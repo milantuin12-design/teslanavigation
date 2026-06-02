@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      superchargers: {
+        Row: {
+          country: string
+          id: string
+          last_updated: string | null
+          lat: number
+          lng: number
+          name: string
+          occupied_stalls: number | null
+          stall_types: string | null
+          total_stalls: number | null
+        }
+        Insert: {
+          country: string
+          id?: string
+          last_updated?: string | null
+          lat: number
+          lng: number
+          name: string
+          occupied_stalls?: number | null
+          stall_types?: string | null
+          total_stalls?: number | null
+        }
+        Update: {
+          country?: string
+          id?: string
+          last_updated?: string | null
+          lat?: number
+          lng?: number
+          name?: string
+          occupied_stalls?: number | null
+          stall_types?: string | null
+          total_stalls?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
