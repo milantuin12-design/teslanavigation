@@ -224,7 +224,12 @@ async function lookupEVAvailability(
     }
   }
 
-  const updateBody: Record<string, unknown> = { last_updated: new Date().toISOString() };
+  const updateBody: {
+    last_updated: string;
+    occupied_stalls?: number;
+    total_stalls?: number;
+    stall_types?: string;
+  } = { last_updated: new Date().toISOString() };
   if (occupiedStalls !== null) updateBody.occupied_stalls = occupiedStalls;
   if (totalStalls !== null) updateBody.total_stalls = totalStalls;
   if (stallTypes !== null && stallTypes !== charger.stall_types) updateBody.stall_types = stallTypes;
