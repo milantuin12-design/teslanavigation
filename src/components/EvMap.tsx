@@ -223,7 +223,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
     }
 
     if (currentPosition) {
-      const marker = L.marker([currentPosition.lat, currentPosition.lng], { icon: currentPositionIcon });
+      const marker = L.marker([currentPosition.lat, currentPosition.lng], { icon: currentPositionIcon() });
       marker.bindPopup(`<div style="font-family:system-ui;font-size:13px;"><strong>Jouw locatie</strong></div>`);
       markersRef.current.addLayer(marker);
     }
