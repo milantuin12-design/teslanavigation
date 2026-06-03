@@ -226,14 +226,10 @@ export function calculateChargingStops(
       minBatteryNeeded = batteryNeededForNextLeg + targetArrivalPercent;
     }
 
-    let batteryAfter: number;
-
-    if (minBatteryNeeded <= chargeTargetPercent) {
-      batteryAfter = Math.ceil(minBatteryNeeded);
-    } else {
-      batteryAfter = Math.ceil(minBatteryNeeded);
-    }
-
+    // Charge to the user's target percentage to minimize stops.
+    // If the next leg (or final stretch) needs more than the target, top up
+    // further — capped at 100%.
+    let batteryAfter = Math.max(chargeTargetPercent, Math.ceil(minBatteryNeeded));
     batteryAfter = Math.min(100, batteryAfter);
 
     const chargerSpeedKw = parseMaxSpeed(best.charger.stallTypes);
