@@ -253,7 +253,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
 
         routeRef.current = polyline;
 
-        if (latLngs.length > 1) {
+        if (latLngs.length > 1 && !isNavigating) {
           map.fitBounds(polyline.getBounds(), { padding: [40, 40], maxZoom: 13 });
         }
       }
