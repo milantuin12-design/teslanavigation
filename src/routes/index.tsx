@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import EvMap from "@/components/EvMap";
 import InputPanel from "@/components/InputPanel";
 import ChargingStops from "@/components/ChargingStops";
@@ -8,6 +8,7 @@ import {
   Supercharger,
   ChargingStop,
   RouteResult,
+  WeatherMode,
   teslaModels,
   teslaBatteryKWh,
 } from "@/lib/tesla-types";
@@ -16,6 +17,9 @@ import {
   calculateChargingStops,
   calculateChargeDuration,
   parseMaxSpeed,
+  distanceToRoute,
+  projectOntoRoute,
+  haversineDistance,
 } from "@/lib/tesla-utils";
 import { listSuperchargers, refreshAvailability } from "@/lib/tesla.functions";
 
@@ -63,6 +67,9 @@ interface OSRMRoute {
   legs?: RouteLeg[];
 }
 
+const OFF_ROUTE_KM_THRESHOLD = 0.2; // 200m
+const OFF_ROUTE_PERSIST_MS = 8000; // off-route for 8s before rerouting
+
 function Index() {
   const [startCoord, setStartCoord] = useState<{ lat: number; lng: number } | null>(null);
   const [destCoord, setDestCoord] = useState<{ lat: number; lng: number } | null>(null);
@@ -71,23 +78,28 @@ function Index() {
   const [batteryPercent, setBatteryPercent] = useState(80);
   const [targetArrivalPercent, setTargetArrivalPercent] = useState(10);
   const [chargeTargetPercent, setChargeTargetPercent] = useState(80);
-  const [winterMode, setWinterMode] = useState(false);
-  const [trailerMode, setTrailerMode] = useState(false);
+  const [weatherMode, setWeatherMode] = useState<WeatherMode>("summer");
+  const [trailerEnabled, setTrailerEnabled] = useState(false);
+  const [trailerReductionPercent, setTrailerReductionPercent] = useState(40);
+  const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
+
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
   const [route, setRoute] = useState<RouteResult | null>(null);
   const [chargingStops, setChargingStops] = useState<ChargingStop[]>([]);
   const [arrivalPercent, setArrivalPercent] = useState<number | null>(null);
   const [routeSteps, setRouteSteps] = useState<RouteStep[]>([]);
-  const [currentStepIndex] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
   const [error, setError] = useState("");
   const [isLoadingChargers, setIsLoadingChargers] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [liveBattery, setLiveBattery] = useState<number>(80);
   const [lastAvailabilityUpdate, setLastAvailabilityUpdate] = useState<string | null>(null);
 
+  const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
+
   const modelRange = teslaModels[selectedModel];
-  const availableRange = getAvailableRange(modelRange, batteryPercent, trailerMode, winterMode);
+  const availableRange = getAvailableRange(modelRange, batteryPercent, trailerReductionEffective, weatherMode);
 
   useEffect(() => {
     let mounted = true;
@@ -129,7 +141,7 @@ function Index() {
   const watchIdRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (isNavigating && navigator.geolocation && route) {
+    if (isNavigating && navigator.geolocation) {
       watchIdRef.current = navigator.geolocation.watchPosition(
         (pos) => {
           setCurrentPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
@@ -149,9 +161,9 @@ function Index() {
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
     };
-  }, [isNavigating, route]);
+  }, [isNavigating]);
 
-  const fetchRouteWithInstructions = async (
+  const fetchRouteWithInstructions = useCallback(async (
     start: [number, number],
     end: [number, number],
     intermediateWaypoints?: [number, number][]
@@ -200,7 +212,83 @@ function Index() {
       }
     }
     return null;
-  };
+  }, []);
+
+  const computeRoute = useCallback(async (
+    fromCoord: { lat: number; lng: number },
+    toCoord: { lat: number; lng: number },
+    fromBattery: number,
+    extraWaypoints: { lat: number; lng: number }[]
+  ): Promise<{ ok: boolean; error?: string } > => {
+    const allWaypoints: [number, number][] = extraWaypoints.map((w) => [w.lng, w.lat]);
+
+    const initialResult = await fetchRouteWithInstructions(
+      [fromCoord.lng, fromCoord.lat],
+      [toCoord.lng, toCoord.lat],
+      allWaypoints.length > 0 ? allWaypoints : undefined
+    );
+
+    if (!initialResult) return { ok: false, error: "Kon geen route vinden." };
+    const { route: initialRoute, steps: initialSteps } = initialResult;
+    setRouteSteps(initialSteps);
+
+    const result = calculateChargingStops(initialRoute, {
+      modelRangeKm: modelRange,
+      batteryPercent: fromBattery,
+      trailerReductionPercent: trailerReductionEffective,
+      chargers: superchargers,
+      modelName: selectedModel,
+      targetArrivalPercent,
+      weatherMode,
+      chargeTargetPercent,
+      minChargerSpeedKw,
+    });
+
+    if (result.unreachable) {
+      setRoute(initialRoute);
+      setChargingStops([]);
+      return { ok: false, error: result.reason || "Deze route is niet mogelijk." };
+    }
+
+    setChargingStops(result.stops);
+    setArrivalPercent(result.arrivalPercent);
+
+    if (result.stops.length > 0) {
+      const chargerWaypoints: [number, number][] = result.stops.map(
+        (stop) => [stop.charger.lng, stop.charger.lat] as [number, number]
+      );
+      const finalWaypoints = [...allWaypoints, ...chargerWaypoints];
+      const finalResult = await fetchRouteWithInstructions(
+        [fromCoord.lng, fromCoord.lat],
+        [toCoord.lng, toCoord.lat],
+        finalWaypoints
+      );
+      if (finalResult) {
+        setRoute(finalResult.route);
+        setRouteSteps(finalResult.steps);
+        const updated = calculateChargingStops(finalResult.route, {
+          modelRangeKm: modelRange,
+          batteryPercent: fromBattery,
+          trailerReductionPercent: trailerReductionEffective,
+          chargers: superchargers,
+          modelName: selectedModel,
+          targetArrivalPercent,
+          weatherMode,
+          chargeTargetPercent,
+          minChargerSpeedKw,
+        });
+        if (!updated.unreachable) {
+          setChargingStops(updated.stops);
+          setArrivalPercent(updated.arrivalPercent);
+        }
+      } else {
+        setRoute(initialRoute);
+      }
+    } else {
+      setRoute(initialRoute);
+    }
+    return { ok: true };
+  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, chargeTargetPercent, minChargerSpeedKw]);
 
   const handleCalculate = useCallback(async () => {
     setError("");
@@ -214,118 +302,120 @@ function Index() {
       setError("Voer start- en bestemmingslocatie in");
       return;
     }
-
     if (superchargers.length === 0) {
       setError("Superchargers worden nog geladen. Wacht even en probeer opnieuw.");
       return;
     }
 
     setIsCalculating(true);
-
+    setLiveBattery(batteryPercent);
     try {
-      const allWaypoints: [number, number][] = waypoints.map((w) => [w.lng, w.lat]);
-
-      const initialResult = await fetchRouteWithInstructions(
-        [startCoord.lng, startCoord.lat],
-        [destCoord.lng, destCoord.lat],
-        allWaypoints.length > 0 ? allWaypoints : undefined
-      );
-
-      if (!initialResult) {
-        setError("Kon geen route vinden. Controleer de locaties.");
-        setIsCalculating(false);
-        return;
-      }
-
-      const { route: initialRoute, steps: initialSteps } = initialResult;
-      setRouteSteps(initialSteps);
-
-      const result = calculateChargingStops(
-        initialRoute,
-        modelRange,
-        batteryPercent,
-        trailerMode,
-        superchargers,
-        selectedModel,
-        targetArrivalPercent,
-        winterMode,
-        chargeTargetPercent
-      );
-
-      if (result.unreachable) {
-        setError(result.reason || "Deze route is niet mogelijk.");
-        setRoute(initialRoute);
-        setIsCalculating(false);
-        return;
-      }
-
-      setChargingStops(result.stops);
-      setArrivalPercent(result.arrivalPercent);
-
-      if (result.stops.length > 0) {
-        const chargerWaypoints: [number, number][] = result.stops.map(
-          (stop) => [stop.charger.lng, stop.charger.lat] as [number, number]
-        );
-
-        const finalWaypoints = [...allWaypoints, ...chargerWaypoints];
-        const finalResult = await fetchRouteWithInstructions(
-          [startCoord.lng, startCoord.lat],
-          [destCoord.lng, destCoord.lat],
-          finalWaypoints.length > 0 ? finalWaypoints : undefined
-        );
-
-        if (finalResult) {
-          setRoute(finalResult.route);
-          setRouteSteps(finalResult.steps);
-
-          const updatedResult = calculateChargingStops(
-            finalResult.route,
-            modelRange,
-            batteryPercent,
-            trailerMode,
-            superchargers,
-            selectedModel,
-            targetArrivalPercent,
-            winterMode
-          );
-
-          if (!updatedResult.unreachable) {
-            setChargingStops(updatedResult.stops);
-            setArrivalPercent(updatedResult.arrivalPercent);
-          }
-        } else {
-          setRoute(initialRoute);
-        }
-      } else {
-        setRoute(initialRoute);
-      }
+      const res = await computeRoute(startCoord, destCoord, batteryPercent, waypoints);
+      if (!res.ok) setError(res.error || "Er ging iets mis.");
     } catch {
       setError("Er ging iets mis. Probeer opnieuw.");
     } finally {
       setIsCalculating(false);
     }
-  }, [
-    startCoord,
-    destCoord,
-    waypoints,
-    modelRange,
-    batteryPercent,
-    trailerMode,
-    superchargers,
-    selectedModel,
-    targetArrivalPercent,
-    winterMode,
-    chargeTargetPercent,
-  ]);
+  }, [startCoord, destCoord, superchargers, batteryPercent, waypoints, computeRoute]);
 
   const handleStartNavigation = useCallback(() => {
     if (!route) return;
+    setLiveBattery(batteryPercent);
     setIsNavigating(true);
-  }, [route]);
+  }, [route, batteryPercent]);
 
   const handleStopNavigation = useCallback(() => {
     setIsNavigating(false);
   }, []);
+
+  // Derived values for navigation HUD
+  const navInfo = useMemo(() => {
+    if (!isNavigating || !currentPosition || !route || !destCoord) return null;
+    const proj = projectOntoRoute(currentPosition.lat, currentPosition.lng, route.coordinates);
+    const remainingKm = Math.max(0, route.totalDistanceKm - proj.km);
+    const remainingMin = route.totalTimeMin > 0 && route.totalDistanceKm > 0
+      ? Math.round((remainingKm / route.totalDistanceKm) * route.totalTimeMin)
+      : 0;
+
+    // next charging stop ahead
+    let nextStop: ChargingStop | null = null;
+    let nextKmFromStart = Infinity;
+    for (const s of chargingStops) {
+      if (s.distanceFromStart > proj.km + 0.5 && s.distanceFromStart < nextKmFromStart) {
+        nextStop = s;
+        nextKmFromStart = s.distanceFromStart;
+      }
+    }
+
+    let nextCharging = null as null | { stop: ChargingStop; kmFromHere: number; etaMin: number };
+    if (nextStop) {
+      const km = Math.max(0, nextStop.distanceFromStart - proj.km);
+      const minEta = route.totalDistanceKm > 0
+        ? Math.round((km / route.totalDistanceKm) * route.totalTimeMin)
+        : 0;
+      nextCharging = { stop: nextStop, kmFromHere: km, etaMin: minEta };
+    }
+
+    // Current step: pick the step whose maneuver location is closest ahead
+    let currentStepIdx = 0;
+    let bestStepDist = Infinity;
+    for (let i = 0; i < routeSteps.length; i++) {
+      const loc = routeSteps[i].maneuver.location; // [lng, lat]
+      const d = haversineDistance(currentPosition.lat, currentPosition.lng, loc[1], loc[0]);
+      if (d < bestStepDist) {
+        bestStepDist = d;
+        currentStepIdx = i;
+      }
+    }
+
+    return {
+      currentStepIdx,
+      nextCharging,
+      destination: { kmFromHere: remainingKm, etaMin: remainingMin },
+      offRouteKm: distanceToRoute(currentPosition.lat, currentPosition.lng, route.coordinates),
+    };
+  }, [isNavigating, currentPosition, route, destCoord, chargingStops, routeSteps]);
+
+  // Auto-reroute when off-route
+  const offRouteSinceRef = useRef<number | null>(null);
+  const isReroutingRef = useRef(false);
+  useEffect(() => {
+    if (!navInfo || !isNavigating || !currentPosition || !destCoord) return;
+    if (isReroutingRef.current) return;
+
+    if (navInfo.offRouteKm > OFF_ROUTE_KM_THRESHOLD) {
+      if (offRouteSinceRef.current === null) offRouteSinceRef.current = Date.now();
+      const elapsed = Date.now() - offRouteSinceRef.current;
+      if (elapsed > OFF_ROUTE_PERSIST_MS) {
+        isReroutingRef.current = true;
+        offRouteSinceRef.current = null;
+        (async () => {
+          await computeRoute(currentPosition, destCoord, liveBattery, []);
+          isReroutingRef.current = false;
+        })();
+      }
+    } else {
+      offRouteSinceRef.current = null;
+    }
+  }, [navInfo, isNavigating, currentPosition, destCoord, liveBattery, computeRoute]);
+
+  // Auto-reroute when live battery insufficient for next charging stop
+  useEffect(() => {
+    if (!isNavigating || !navInfo || !currentPosition || !destCoord || !route) return;
+    if (isReroutingRef.current) return;
+    if (!navInfo.nextCharging) return;
+    // estimated battery needed to reach next stop with 3% safety
+    const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode);
+    const needed = (navInfo.nextCharging.kmFromHere / fullRange) * 100 + 3;
+    if (liveBattery < needed - 1) {
+      isReroutingRef.current = true;
+      (async () => {
+        await computeRoute(currentPosition, destCoord, liveBattery, []);
+        isReroutingRef.current = false;
+      })();
+    }
+  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, computeRoute]);
 
   const handleChargerBatteryChange = useCallback(
     (index: number, newBatteryAfter: number) => {
@@ -353,53 +443,54 @@ function Index() {
 
   return (
     <div className="h-screen w-screen flex flex-col lg:flex-row bg-slate-900 text-white overflow-hidden">
-      <div className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-700/50 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
-          <InputPanel
-            onStartChange={setStartCoord}
-            onDestChange={setDestCoord}
-            onWaypointsChange={setWaypoints}
-            onModelChange={setSelectedModel}
-            onBatteryChange={setBatteryPercent}
-            onArrivalTargetChange={setTargetArrivalPercent}
-            onChargeTargetChange={setChargeTargetPercent}
-            onTrailerToggle={setTrailerMode}
-            onWinterToggle={setWinterMode}
-            onCalculate={handleCalculate}
-            onStartNavigation={isNavigating ? handleStopNavigation : handleStartNavigation}
-            selectedModel={selectedModel}
-            batteryPercent={batteryPercent}
-            arrivalTarget={targetArrivalPercent}
-            chargeTarget={chargeTargetPercent}
-            trailerMode={trailerMode}
-            winterMode={winterMode}
-            isCalculating={isCalculating}
-            totalDistanceKm={route?.totalDistanceKm ?? null}
-            totalTimeMin={route?.totalTimeMin ?? null}
-            chargingStopsCount={chargingStops.length}
-            availableRange={availableRange}
-            superchargersCount={superchargers.length}
-            isLoadingChargers={isLoadingChargers}
-            hasRoute={!!route}
-            isNavigating={isNavigating}
-            lastAvailabilityUpdate={lastAvailabilityUpdate}
-            arrivalPercent={arrivalPercent}
-          />
-        </div>
+      {!isNavigating && (
+        <div className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-700/50 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
+            <InputPanel
+              onStartChange={setStartCoord}
+              onDestChange={setDestCoord}
+              onWaypointsChange={setWaypoints}
+              onModelChange={setSelectedModel}
+              onBatteryChange={setBatteryPercent}
+              onArrivalTargetChange={setTargetArrivalPercent}
+              onChargeTargetChange={setChargeTargetPercent}
+              onTrailerChange={(enabled, pct) => { setTrailerEnabled(enabled); setTrailerReductionPercent(pct); }}
+              onWeatherModeChange={setWeatherMode}
+              onMinChargerSpeedChange={setMinChargerSpeedKw}
+              onCalculate={handleCalculate}
+              onStartNavigation={handleStartNavigation}
+              selectedModel={selectedModel}
+              batteryPercent={batteryPercent}
+              arrivalTarget={targetArrivalPercent}
+              chargeTarget={chargeTargetPercent}
+              trailerEnabled={trailerEnabled}
+              trailerReductionPercent={trailerReductionPercent}
+              weatherMode={weatherMode}
+              minChargerSpeedKw={minChargerSpeedKw}
+              isCalculating={isCalculating}
+              totalDistanceKm={route?.totalDistanceKm ?? null}
+              totalTimeMin={route?.totalTimeMin ?? null}
+              chargingStopsCount={chargingStops.length}
+              availableRange={availableRange}
+              superchargersCount={superchargers.length}
+              isLoadingChargers={isLoadingChargers}
+              hasRoute={!!route}
+              isNavigating={isNavigating}
+              lastAvailabilityUpdate={lastAvailabilityUpdate}
+              arrivalPercent={arrivalPercent}
+            />
+          </div>
 
-        {isNavigating && routeSteps.length > 0 && (
-          <NavigationPanel steps={routeSteps} currentStepIndex={currentStepIndex} />
-        )}
-
-        <div className="border-t border-slate-700/50 max-h-[40vh] overflow-y-auto">
-          <ChargingStops
-            stops={chargingStops}
-            totalDistanceKm={route?.totalDistanceKm ?? null}
-            onBatteryChange={handleChargerBatteryChange}
-            onRemoveCharger={handleRemoveCharger}
-          />
+          <div className="border-t border-slate-700/50 max-h-[40vh] overflow-y-auto">
+            <ChargingStops
+              stops={chargingStops}
+              totalDistanceKm={route?.totalDistanceKm ?? null}
+              onBatteryChange={handleChargerBatteryChange}
+              onRemoveCharger={handleRemoveCharger}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex-1 relative">
         {error && (
@@ -416,6 +507,17 @@ function Index() {
           currentPosition={currentPosition}
           isNavigating={isNavigating}
         />
+        {isNavigating && (
+          <NavigationPanel
+            steps={routeSteps}
+            currentStepIndex={navInfo?.currentStepIdx ?? 0}
+            nextChargingStop={navInfo?.nextCharging ?? null}
+            destination={navInfo?.destination ?? null}
+            currentBattery={liveBattery}
+            onBatteryChange={setLiveBattery}
+            onStop={handleStopNavigation}
+          />
+        )}
       </div>
     </div>
   );
