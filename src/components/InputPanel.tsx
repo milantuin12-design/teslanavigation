@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Gauge } from 'lucide-react';
-import { teslaModels } from '@/lib/tesla-types';
+import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Moon, Gauge } from 'lucide-react';
+import { teslaModels, WeatherMode } from '@/lib/tesla-types';
 
 interface Waypoint {
   id: string;
@@ -17,16 +17,19 @@ interface InputPanelProps {
   onBatteryChange: (pct: number) => void;
   onArrivalTargetChange: (pct: number) => void;
   onChargeTargetChange: (pct: number) => void;
-  onTrailerToggle: (enabled: boolean) => void;
-  onWinterToggle: (enabled: boolean) => void;
+  onTrailerChange: (enabled: boolean, reductionPercent: number) => void;
+  onWeatherModeChange: (mode: WeatherMode) => void;
+  onMinChargerSpeedChange: (kw: number) => void;
   onCalculate: () => void;
   onStartNavigation: () => void;
   selectedModel: string;
   batteryPercent: number;
   arrivalTarget: number;
   chargeTarget: number;
-  trailerMode: boolean;
-  winterMode: boolean;
+  trailerEnabled: boolean;
+  trailerReductionPercent: number;
+  weatherMode: WeatherMode;
+  minChargerSpeedKw: number;
   isCalculating: boolean;
   totalDistanceKm: number | null;
   totalTimeMin: number | null;
@@ -56,7 +59,7 @@ async function geocodeAddress(query: string): Promise<{ lat: number; lng: number
       }
     }
   } catch {
-    // Geocoding failed
+    // ignore
   }
   return null;
 }
@@ -71,6 +74,8 @@ function parseCoordinateInput(input: string): { lat: number; lng: number } | nul
   return { lat, lng };
 }
 
+const MIN_SPEEDS = [0, 100, 125, 150, 200, 250];
+
 export default function InputPanel({
   onStartChange,
   onDestChange,
@@ -79,16 +84,19 @@ export default function InputPanel({
   onBatteryChange,
   onArrivalTargetChange,
   onChargeTargetChange,
-  onTrailerToggle,
-  onWinterToggle,
+  onTrailerChange,
+  onWeatherModeChange,
+  onMinChargerSpeedChange,
   onCalculate,
   onStartNavigation,
   selectedModel,
   batteryPercent,
   arrivalTarget,
   chargeTarget,
-  trailerMode,
-  winterMode,
+  trailerEnabled,
+  trailerReductionPercent,
+  weatherMode,
+  minChargerSpeedKw,
   isCalculating,
   totalDistanceKm,
   totalTimeMin,
@@ -108,6 +116,7 @@ export default function InputPanel({
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
   const [mobileExpanded, setMobileExpanded] = useState(true);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [editingTrailer, setEditingTrailer] = useState(false);
 
   const parseOrGeocode = useCallback(async (
     input: string,
@@ -385,29 +394,91 @@ export default function InputPanel({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          {/* Min charger speed */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
+              <Zap size={13} className="text-blue-400" />
+              Minimale laadsnelheid
+            </label>
+            <div className="grid grid-cols-6 gap-1">
+              {MIN_SPEEDS.map(s => (
+                <button
+                  key={s}
+                  onClick={() => onMinChargerSpeedChange(s)}
+                  className={`px-1 py-1.5 rounded text-[11px] font-medium transition-all ${
+                    minChargerSpeedKw === s
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  }`}
+                >
+                  {s === 0 ? 'Alle' : `${s}+`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Weather mode: 3-way */}
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Klimaat</label>
+            <div className="grid grid-cols-3 gap-1">
+              {([
+                { mode: 'summer' as WeatherMode, label: 'Zomer', icon: Sun, color: 'amber' },
+                { mode: 'winter' as WeatherMode, label: 'Winter', icon: CloudSnow, color: 'blue' },
+                { mode: 'night' as WeatherMode, label: 'Nacht', icon: Moon, color: 'indigo' },
+              ]).map(({ mode, label, icon: Icon }) => (
+                <button
+                  key={mode}
+                  onClick={() => onWeatherModeChange(mode)}
+                  className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg border text-xs font-medium transition-all ${
+                    weatherMode === mode
+                      ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
+                      : 'bg-slate-800/50 border-slate-600/50 text-slate-400 hover:text-slate-300'
+                  }`}
+                >
+                  <Icon size={14} />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Trailer with double-click for custom */}
+          <div>
             <button
-              onClick={() => onWinterToggle(!winterMode)}
-              className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-sm font-medium ${
-                winterMode
-                  ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
-                  : 'bg-slate-800/50 border-slate-600/50 text-slate-400 hover:text-slate-300'
-              }`}
-            >
-              {winterMode ? <CloudSnow size={16} /> : <Sun size={16} />}
-              {winterMode ? 'Winter' : 'Zomer'}
-            </button>
-            <button
-              onClick={() => onTrailerToggle(!trailerMode)}
-              className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-sm font-medium ${
-                trailerMode
+              onClick={() => onTrailerChange(!trailerEnabled, trailerReductionPercent)}
+              onDoubleClick={() => setEditingTrailer(true)}
+              className={`w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-sm font-medium ${
+                trailerEnabled
                   ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
                   : 'bg-slate-800/50 border-slate-600/50 text-slate-400 hover:text-slate-300'
               }`}
+              title="Klik om aan/uit te zetten, dubbelklik om % aan te passen"
             >
               <Truck size={16} />
-              Aanhanger
+              Aanhanger {trailerEnabled ? `(-${trailerReductionPercent}%)` : ''}
             </button>
+            {editingTrailer && (
+              <div className="mt-2 bg-slate-800 border border-slate-600 rounded-lg p-3 space-y-2">
+                <div className="text-xs text-slate-300">Bereikverlies door aanhanger</div>
+                <input
+                  type="range"
+                  min={10}
+                  max={70}
+                  value={trailerReductionPercent}
+                  onChange={(e) => onTrailerChange(trailerEnabled, parseInt(e.target.value))}
+                  className="w-full accent-amber-500"
+                />
+                <div className="flex items-center justify-between">
+                  <span className="text-amber-300 font-bold text-sm">-{trailerReductionPercent}%</span>
+                  <button
+                    onClick={() => setEditingTrailer(false)}
+                    className="text-xs px-2 py-1 bg-slate-700 rounded hover:bg-slate-600"
+                  >
+                    Klaar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-700/50">
@@ -433,7 +504,7 @@ export default function InputPanel({
               }`}
             >
               <Compass size={18} />
-              {isNavigating ? 'Navigatie actief' : 'Start navigatie'}
+              {isNavigating ? 'Stop navigatie' : 'Start navigatie'}
             </button>
           )}
 
@@ -454,24 +525,22 @@ export default function InputPanel({
                   <div className="text-[10px] text-slate-500 uppercase tracking-wider">Oplaadstops</div>
                   <div className="text-base font-bold text-white">{chargingStopsCount}</div>
                 </div>
-                <div className="bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-700/50">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider">Aankomst</div>
-                  <div className="text-base font-bold text-white">
-                    {arrivalPercent !== null ? `${arrivalPercent}%` : '—'}
+                {arrivalPercent !== null && (
+                  <div className="bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-700/50">
+                    <div className="text-[10px] text-slate-500 uppercase tracking-wider">Aankomst</div>
+                    <div className="text-base font-bold text-white">{arrivalPercent}%</div>
                   </div>
-                </div>
+                )}
               </div>
-              {lastAvailabilityUpdate && (
-                <div className="text-[10px] text-slate-500 text-center">
-                  Laatste update: {new Date(lastAvailabilityUpdate).toLocaleTimeString('nl-NL')}
-                </div>
-              )}
             </div>
           )}
 
-          {isLoadingChargers && (
-            <div className="text-xs text-slate-500 text-center">Superchargers laden... ({superchargersCount} geladen)</div>
-          )}
+          <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-800">
+            {isLoadingChargers ? 'Laden van Superchargers...' : `${superchargersCount} Superchargers geladen`}
+            {lastAvailabilityUpdate && (
+              <div className="mt-1">Beschikbaarheid: {new Date(lastAvailabilityUpdate).toLocaleTimeString('nl-NL')}</div>
+            )}
+          </div>
         </div>
       </div>
     </div>
