@@ -258,7 +258,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
         }
       }
     } catch { /* ignore route rendering errors */ }
-  }, [route]);
+  }, [route, isNavigating]);
 
   useEffect(() => {
     const map = mapRef.current;
