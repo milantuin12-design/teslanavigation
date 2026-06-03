@@ -264,7 +264,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
     const map = mapRef.current;
     if (!map || !isNavigating || !currentPosition) return;
 
-    map.panTo([currentPosition.lat, currentPosition.lng], { animate: true, duration: 0.5 });
+    // In navigation: zoom in to street level and follow position
+    const targetZoom = 16;
+    if (map.getZoom() < 15) {
+      map.setView([currentPosition.lat, currentPosition.lng], targetZoom, { animate: true });
+    } else {
+      map.panTo([currentPosition.lat, currentPosition.lng], { animate: true, duration: 0.5 });
+    }
   }, [currentPosition, isNavigating]);
 
   return (
