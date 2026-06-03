@@ -25,6 +25,8 @@ export interface RouteResult {
 
 export type ChargerStatus = 'Beschikbaar' | 'Druk' | 'Vol' | 'Onbekend';
 
+export type WeatherMode = 'summer' | 'winter' | 'night';
+
 export const teslaModels: Record<string, number> = {
   'Model 3 RWD': 385,
   'Model 3 Long Range RWD': 580,

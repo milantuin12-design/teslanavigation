@@ -1,4 +1,4 @@
-import { Supercharger, ChargingStop, ChargerStatus, RouteResult, teslaBatteryKWh } from './tesla-types';
+import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, teslaBatteryKWh } from './tesla-types';
 
 export function parseCoordinates(input: string): { lat: number; lng: number } | null {
   const trimmed = input.trim();
@@ -14,10 +14,21 @@ export function parseCoordinates(input: string): { lat: number; lng: number } | 
   return { lat, lng };
 }
 
-export function getAvailableRange(modelRangeKm: number, batteryPercent: number, trailerMode: boolean, winterMode: boolean = false): number {
+/**
+ * Available range.
+ * - trailerReductionPercent: 0-100, percentage reduction from trailer (default 0 = no trailer)
+ * - weatherMode: summer (no penalty), winter (-20%), night (-5%)
+ */
+export function getAvailableRange(
+  modelRangeKm: number,
+  batteryPercent: number,
+  trailerReductionPercent: number = 0,
+  weatherMode: WeatherMode = 'summer'
+): number {
   let range = modelRangeKm * batteryPercent / 100;
-  if (trailerMode) range *= 0.75;
-  if (winterMode) range *= 0.80;
+  if (trailerReductionPercent > 0) range *= (1 - trailerReductionPercent / 100);
+  if (weatherMode === 'winter') range *= 0.80;
+  else if (weatherMode === 'night') range *= 0.95;
   return range;
 }
 
@@ -107,135 +118,183 @@ export function findChargersNearRoute(
   });
 }
 
+export interface CalcChargingOptions {
+  modelRangeKm: number;
+  batteryPercent: number;
+  trailerReductionPercent: number;
+  chargers: Supercharger[];
+  modelName?: string;
+  targetArrivalPercent?: number;
+  weatherMode?: WeatherMode;
+  chargeTargetPercent?: number;
+  minChargerSpeedKw?: number;
+  /** Max battery % allowed when arriving at a charger (push to bigger stops). */
+  maxArrivalAtChargerPercent?: number;
+  /** Minimum safety battery % at charger arrival. */
+  minSafetyPercent?: number;
+}
+
+/**
+ * Distance-from-current-position to use when calculating closest distance
+ * (excludes already-passed segments).
+ */
 export function calculateChargingStops(
   route: RouteResult,
-  modelRangeKm: number,
-  batteryPercent: number,
-  trailerMode: boolean,
-  chargers: Supercharger[],
-  modelName: string = 'Model 3 Long Range AWD',
-  targetArrivalPercent: number = 10,
-  winterMode: boolean = false,
-  chargeTargetPercent: number = 80
+  opts: CalcChargingOptions
 ): { stops: ChargingStop[]; arrivalPercent: number; unreachable: boolean; reason?: string } {
+  const {
+    modelRangeKm,
+    batteryPercent,
+    trailerReductionPercent,
+    chargers,
+    modelName = 'Model 3 Long Range AWD',
+    targetArrivalPercent = 10,
+    weatherMode = 'summer',
+    chargeTargetPercent = 80,
+    minChargerSpeedKw = 0,
+    maxArrivalAtChargerPercent = 10,
+    minSafetyPercent = 3,
+  } = opts;
+
   const stops: ChargingStop[] = [];
-  const nearChargers = findChargersNearRoute(route.coordinates, chargers, 20);
 
   if (route.coordinates.length < 2) {
     return { stops: [], arrivalPercent: batteryPercent, unreachable: false };
   }
 
+  // Filter chargers by minimum speed
+  const speedFilteredChargers = chargers.filter(
+    c => parseMaxSpeed(c.stallTypes) >= minChargerSpeedKw
+  );
+
+  const nearChargers = findChargersNearRoute(route.coordinates, speedFilteredChargers, 20);
+
   const routeDist = buildRouteDistanceIndex(route.coordinates);
-  const minBatteryPercent = 1.5;
+  const fullRangeKm = getAvailableRange(modelRangeKm, 100, trailerReductionPercent, weatherMode);
 
   if (nearChargers.length === 0) {
-    const directRange = getAvailableRange(modelRangeKm, batteryPercent, trailerMode, winterMode);
+    const directRange = getAvailableRange(modelRangeKm, batteryPercent, trailerReductionPercent, weatherMode);
     if (route.totalDistanceKm <= directRange) {
-      const batteryAtDest = batteryPercent - (route.totalDistanceKm / getAvailableRange(modelRangeKm, 100, trailerMode, winterMode) * 100);
+      const batteryAtDest = batteryPercent - (route.totalDistanceKm / fullRangeKm * 100);
       return { stops: [], arrivalPercent: Math.round(Math.max(0, batteryAtDest)), unreachable: false };
     }
-    return { stops: [], arrivalPercent: 0, unreachable: true, reason: 'Geen Superchargers gevonden langs de route' };
+    return { stops: [], arrivalPercent: 0, unreachable: true, reason: 'Geen geschikte Superchargers gevonden langs de route' };
   }
 
   let currentBattery = batteryPercent;
   let currentPositionKm = 0;
 
-  const maxIterations = 50;
+  const maxIterations = 80;
   let iterations = 0;
 
   while (currentPositionKm < route.totalDistanceKm && iterations < maxIterations) {
     iterations++;
 
     const remainingToDest = route.totalDistanceKm - currentPositionKm;
-    const rangeAtCurrent = getAvailableRange(modelRangeKm, currentBattery, trailerMode, winterMode);
 
-    const batteryNeededForDest = (remainingToDest / getAvailableRange(modelRangeKm, 100, trailerMode, winterMode)) * 100 + targetArrivalPercent;
+    // Can we reach destination directly with arrival target buffer?
+    const batteryNeededForDest = (remainingToDest / fullRangeKm) * 100 + targetArrivalPercent;
     if (currentBattery >= batteryNeededForDest) {
-      const arrivalBattery = Math.max(0, currentBattery - (remainingToDest / getAvailableRange(modelRangeKm, 100, trailerMode, winterMode)) * 100);
+      const arrivalBattery = Math.max(0, currentBattery - (remainingToDest / fullRangeKm) * 100);
       stops.forEach((stop, idx) => { stop.stopNumber = idx + 1; });
       return { stops, arrivalPercent: Math.round(arrivalBattery), unreachable: false };
     }
 
-    const usableRange = rangeAtCurrent * ((currentBattery - minBatteryPercent) / currentBattery);
+    // Reachable distance from here, leaving minSafetyPercent in battery
+    const usableRange = ((currentBattery - minSafetyPercent) / 100) * fullRangeKm;
 
-    const candidates: Array<{
+    type Candidate = {
       charger: Supercharger;
       routeKm: number;
       detourKm: number;
-      distanceToCharger: number;
+      distanceTravelled: number;
       batteryAtCharger: number;
-    }> = [];
+    };
+
+    const candidates: Candidate[] = [];
 
     for (const c of nearChargers) {
-      const chargerCoord: [number, number] = [c.lng, c.lat];
-      const nearestIdx = findNearestCoordIndex(route.coordinates, chargerCoord);
+      const nearestIdx = findNearestCoordIndex(route.coordinates, [c.lng, c.lat]);
       const chargerRouteKm = routeDist[nearestIdx];
       const distFromRoute = haversineDistance(
         route.coordinates[nearestIdx][1], route.coordinates[nearestIdx][0],
         c.lat, c.lng
       );
 
-      if (chargerRouteKm <= currentPositionKm + 1) continue;
+      // Charger must be at least 20km ahead so we don't 3x-stop in 80km
+      if (chargerRouteKm <= currentPositionKm + 20) continue;
 
-      const distanceToCharger = chargerRouteKm - currentPositionKm + distFromRoute * 2;
+      const travelKm = (chargerRouteKm - currentPositionKm) + distFromRoute;
+      if (travelKm > usableRange) continue;
 
-      if (distanceToCharger > usableRange) continue;
-
-      const batteryConsumed = (distanceToCharger / getAvailableRange(modelRangeKm, 100, trailerMode, winterMode)) * 100;
-      const batteryAtCharger = Math.max(minBatteryPercent, currentBattery - batteryConsumed);
+      const batteryConsumed = (travelKm / fullRangeKm) * 100;
+      const batteryAtCharger = currentBattery - batteryConsumed;
 
       candidates.push({
         charger: c,
         routeKm: chargerRouteKm,
         detourKm: distFromRoute,
-        distanceToCharger,
+        distanceTravelled: travelKm,
         batteryAtCharger,
       });
     }
 
     if (candidates.length === 0) {
-      if (rangeAtCurrent >= remainingToDest) {
-        const arrivalBattery = Math.max(0, currentBattery - (remainingToDest / getAvailableRange(modelRangeKm, 100, trailerMode, winterMode)) * 100);
+      // Can't reach any charger but can we still reach destination?
+      if (usableRange + minSafetyPercent / 100 * fullRangeKm >= remainingToDest) {
+        const arrivalBattery = Math.max(0, currentBattery - (remainingToDest / fullRangeKm) * 100);
         stops.forEach((stop, idx) => { stop.stopNumber = idx + 1; });
         return { stops, arrivalPercent: Math.round(arrivalBattery), unreachable: false };
       }
       return { stops, arrivalPercent: 0, unreachable: true, reason: 'Geen bereikbare Supercharger binnen actieradius' };
     }
 
-    candidates.sort((a, b) => b.routeKm - a.routeKm);
+    // PREFER: charger where we arrive with ≤ maxArrivalAtChargerPercent (uses
+    // most of the battery between stops -> fewest stops). If none meets that,
+    // fall back to the farthest reachable charger.
+    const goodCandidates = candidates.filter(c => c.batteryAtCharger <= maxArrivalAtChargerPercent);
 
-    const best = candidates[0];
+    let best: Candidate;
+    if (goodCandidates.length > 0) {
+      // Among those, pick the farthest (closest to destination)
+      goodCandidates.sort((a, b) => b.routeKm - a.routeKm);
+      best = goodCandidates[0];
+    } else {
+      // Pick the farthest reachable
+      candidates.sort((a, b) => b.routeKm - a.routeKm);
+      best = candidates[0];
+    }
 
+    // Look ahead to determine how much we need to charge
     const nextChargerDist = findNextChargerDistance(
       best.routeKm,
       best.charger,
       nearChargers,
-      route.coordinates
+      route.coordinates,
+      routeDist
     );
 
     const distToDestFromCharger = route.totalDistanceKm - best.routeKm;
-    const nextLegDistance = nextChargerDist !== null ? nextChargerDist : distToDestFromCharger;
+    const useDestAsNext = nextChargerDist === null || nextChargerDist > distToDestFromCharger;
+    const nextLegDistance = useDestAsNext ? distToDestFromCharger : nextChargerDist!;
 
-    const batteryNeededForNextLeg = (nextLegDistance / getAvailableRange(modelRangeKm, 100, trailerMode, winterMode)) * 100;
+    const batteryNeededForNextLeg = (nextLegDistance / fullRangeKm) * 100;
 
     let minBatteryNeeded: number;
-
-    if (nextChargerDist !== null) {
-      minBatteryNeeded = minBatteryPercent + batteryNeededForNextLeg + 2;
-    } else {
+    if (useDestAsNext) {
       minBatteryNeeded = batteryNeededForNextLeg + targetArrivalPercent;
+    } else {
+      minBatteryNeeded = batteryNeededForNextLeg + minSafetyPercent + 2;
     }
 
-    // Charge to the user's target percentage to minimize stops.
-    // If the next leg (or final stretch) needs more than the target, top up
-    // further — capped at 100%.
+    // Charge to user's target unless next leg needs more
     let batteryAfter = Math.max(chargeTargetPercent, Math.ceil(minBatteryNeeded));
     batteryAfter = Math.min(100, batteryAfter);
 
     const chargerSpeedKw = parseMaxSpeed(best.charger.stallTypes);
     const batteryKWh = teslaBatteryKWh[modelName] || 79;
     const chargeDurationMin = calculateChargeDuration(
-      Math.round(best.batteryAtCharger),
+      Math.round(Math.max(minSafetyPercent, best.batteryAtCharger)),
       Math.round(batteryAfter),
       batteryKWh,
       chargerSpeedKw
@@ -243,7 +302,7 @@ export function calculateChargingStops(
 
     stops.push({
       charger: best.charger,
-      batteryBefore: Math.round(best.batteryAtCharger),
+      batteryBefore: Math.round(Math.max(minSafetyPercent, best.batteryAtCharger)),
       batteryAfter: Math.round(batteryAfter),
       distanceFromStart: Math.round(best.routeKm),
       chargeDurationMin,
@@ -255,7 +314,7 @@ export function calculateChargingStops(
   }
 
   const finalRemaining = route.totalDistanceKm - currentPositionKm;
-  const arrivalBattery = Math.max(0, currentBattery - (finalRemaining / getAvailableRange(modelRangeKm, 100, trailerMode, winterMode)) * 100);
+  const arrivalBattery = Math.max(0, currentBattery - (finalRemaining / fullRangeKm) * 100);
 
   if (arrivalBattery < 0) {
     return { stops, arrivalPercent: 0, unreachable: true, reason: 'Niet genoeg bereik om bestemming te bereiken' };
@@ -269,9 +328,9 @@ function findNextChargerDistance(
   currentRouteKm: number,
   currentCharger: Supercharger,
   allChargers: Supercharger[],
-  routeCoords: [number, number][]
+  routeCoords: [number, number][],
+  routeDist: number[]
 ): number | null {
-  const routeDistCopy = buildRouteDistanceIndex(routeCoords);
   let nextChargerRouteKm: number | null = null;
   let minDetour = Infinity;
 
@@ -279,13 +338,13 @@ function findNextChargerDistance(
     if (c.name === currentCharger.name && c.lat === currentCharger.lat) continue;
 
     const nearestIdx = findNearestCoordIndex(routeCoords, [c.lng, c.lat]);
-    const chargerRouteKm = routeDistCopy[nearestIdx];
+    const chargerRouteKm = routeDist[nearestIdx];
     const detour = haversineDistance(
       routeCoords[nearestIdx][1], routeCoords[nearestIdx][0],
       c.lat, c.lng
     );
 
-    if (chargerRouteKm > currentRouteKm + 5) {
+    if (chargerRouteKm > currentRouteKm + 20) {
       if (nextChargerRouteKm === null || chargerRouteKm < nextChargerRouteKm) {
         nextChargerRouteKm = chargerRouteKm;
         minDetour = detour;
@@ -294,7 +353,7 @@ function findNextChargerDistance(
   }
 
   if (nextChargerRouteKm === null) return null;
-  return (nextChargerRouteKm - currentRouteKm) + minDetour * 2;
+  return (nextChargerRouteKm - currentRouteKm) + minDetour;
 }
 
 function buildRouteDistanceIndex(routeCoords: [number, number][]): number[] {
@@ -321,6 +380,33 @@ function findNearestCoordIndex(
     }
   }
   return bestIndex;
+}
+
+/** Distance from a point to the nearest point on the route polyline (km). */
+export function distanceToRoute(
+  lat: number,
+  lng: number,
+  routeCoords: [number, number][]
+): number {
+  let best = Infinity;
+  for (let i = 0; i < routeCoords.length - 1; i++) {
+    const [aLng, aLat] = routeCoords[i];
+    const [bLng, bLat] = routeCoords[i + 1];
+    const d = pointToSegmentDistance(lat, lng, aLat, aLng, bLat, bLng);
+    if (d < best) best = d;
+  }
+  return best;
+}
+
+/** Find index along route closest to position; returns km from start. */
+export function projectOntoRoute(
+  lat: number,
+  lng: number,
+  routeCoords: [number, number][]
+): { km: number; index: number } {
+  const idx = findNearestCoordIndex(routeCoords, [lng, lat]);
+  const dists = buildRouteDistanceIndex(routeCoords);
+  return { km: dists[idx], index: idx };
 }
 
 export function getStatusColor(status: ChargerStatus): string {
