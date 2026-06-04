@@ -292,7 +292,7 @@ function Index() {
       setRoute(initialRoute);
     }
     return { ok: true };
-  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, chargeTargetPercent, minChargerSpeedKw]);
+  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw]);
 
   const handleCalculate = useCallback(async () => {
     setError("");
