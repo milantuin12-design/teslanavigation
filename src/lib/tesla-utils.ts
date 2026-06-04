@@ -1,4 +1,4 @@
-import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, teslaBatteryKWh } from './tesla-types';
+import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, TimeMode, teslaBatteryKWh, teslaMaxChargeKw } from './tesla-types';
 
 export function parseCoordinates(input: string): { lat: number; lng: number } | null {
   const trimmed = input.trim();
@@ -17,30 +17,45 @@ export function parseCoordinates(input: string): { lat: number; lng: number } | 
 /**
  * Available range.
  * - trailerReductionPercent: 0-100, percentage reduction from trailer (default 0 = no trailer)
- * - weatherMode: summer (no penalty), winter (-20%), night (-5%)
+ * - weatherMode: summer (no penalty), winter (-20%)
+ * - timeMode: day (no penalty), night (-5%)
  */
 export function getAvailableRange(
   modelRangeKm: number,
   batteryPercent: number,
   trailerReductionPercent: number = 0,
-  weatherMode: WeatherMode = 'summer'
+  weatherMode: WeatherMode = 'summer',
+  timeMode: TimeMode = 'day'
 ): number {
   let range = modelRangeKm * batteryPercent / 100;
   if (trailerReductionPercent > 0) range *= (1 - trailerReductionPercent / 100);
   if (weatherMode === 'winter') range *= 0.80;
-  else if (weatherMode === 'night') range *= 0.95;
+  if (timeMode === 'night') range *= 0.95;
   return range;
 }
 
+/**
+ * Max kW a stall delivers. Realistic mapping:
+ * - explicit kW numbers in stallTypes win
+ * - V4 = 325 kW (Europe), V3 = 250, V2 = 150
+ * - unknown defaults to 150 (safe lower bound)
+ */
 export function parseMaxSpeed(stallTypes?: string): number {
-  if (!stallTypes) return 250;
-  const speeds = stallTypes.match(/(\d+)kw/gi);
-  if (!speeds || speeds.length === 0) {
-    if (/v4/i.test(stallTypes)) return 250;
-    if (/v3/i.test(stallTypes)) return 250;
-    return 150;
+  if (!stallTypes) return 150;
+  const speeds = stallTypes.match(/(\d+)\s*kw/gi);
+  if (speeds && speeds.length > 0) {
+    return Math.max(...speeds.map(s => parseInt(s, 10)));
   }
-  return Math.max(...speeds.map(s => parseInt(s, 10)));
+  if (/v4/i.test(stallTypes)) return 325;
+  if (/v3/i.test(stallTypes)) return 250;
+  if (/v2/i.test(stallTypes)) return 150;
+  return 150;
+}
+
+/** Cap charger speed at car's max DC intake (e.g. M3/Y RWD = 170 kW). */
+export function effectiveChargeSpeedKw(chargerKw: number, modelName: string): number {
+  const cap = teslaMaxChargeKw[modelName] ?? 250;
+  return Math.min(chargerKw, cap);
 }
 
 export function calculateChargeDuration(
