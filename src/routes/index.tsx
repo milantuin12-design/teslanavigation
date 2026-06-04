@@ -410,7 +410,7 @@ function Index() {
     if (isReroutingRef.current) return;
     if (!navInfo.nextCharging) return;
     // estimated battery needed to reach next stop with 3% safety
-    const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode);
+    const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
     const needed = (navInfo.nextCharging.kmFromHere / fullRange) * 100 + 3;
     if (liveBattery < needed - 1) {
       isReroutingRef.current = true;
