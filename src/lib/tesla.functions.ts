@@ -102,7 +102,7 @@ export const refreshAvailability = createServerFn({ method: "POST" })
       noGoogleData,
       total: chargers?.length ?? 0,
       timestamp: new Date().toISOString(),
-      googleMaps: !!googleApiKey,
+      googleMaps: useGateway,
     };
   });
 
