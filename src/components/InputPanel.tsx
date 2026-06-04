@@ -88,6 +88,7 @@ export default function InputPanel({
   onChargeTargetChange,
   onTrailerChange,
   onWeatherModeChange,
+  onTimeModeChange,
   onMinChargerSpeedChange,
   onCalculate,
   onStartNavigation,
