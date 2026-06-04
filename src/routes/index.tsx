@@ -427,7 +427,7 @@ function Index() {
       setChargingStops((prev) =>
         prev.map((stop, i) => {
           if (i !== index) return stop;
-          const chargerSpeedKw = parseMaxSpeed(stop.charger.stallTypes);
+          const chargerSpeedKw = effectiveChargeSpeedKw(parseMaxSpeed(stop.charger.stallTypes), selectedModel);
           const batteryKWh = teslaBatteryKWh[selectedModel] || 79;
           const chargeDurationMin = calculateChargeDuration(
             stop.batteryBefore,
