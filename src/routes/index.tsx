@@ -471,6 +471,7 @@ function Index() {
               trailerEnabled={trailerEnabled}
               trailerReductionPercent={trailerReductionPercent}
               weatherMode={weatherMode}
+              timeMode={timeMode}
               minChargerSpeedKw={minChargerSpeedKw}
               isCalculating={isCalculating}
               totalDistanceKm={route?.totalDistanceKm ?? null}
