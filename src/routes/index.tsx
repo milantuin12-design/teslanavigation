@@ -460,6 +460,7 @@ function Index() {
               onChargeTargetChange={setChargeTargetPercent}
               onTrailerChange={(enabled, pct) => { setTrailerEnabled(enabled); setTrailerReductionPercent(pct); }}
               onWeatherModeChange={setWeatherMode}
+              onTimeModeChange={setTimeMode}
               onMinChargerSpeedChange={setMinChargerSpeedKw}
               onCalculate={handleCalculate}
               onStartNavigation={handleStartNavigation}
