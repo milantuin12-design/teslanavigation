@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Moon, Gauge } from 'lucide-react';
-import { teslaModels, WeatherMode } from '@/lib/tesla-types';
+import { teslaModels, WeatherMode, TimeMode, teslaMaxChargeKw } from '@/lib/tesla-types';
 
 interface Waypoint {
   id: string;
