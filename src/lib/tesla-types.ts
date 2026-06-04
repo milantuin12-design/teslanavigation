@@ -25,7 +25,26 @@ export interface RouteResult {
 
 export type ChargerStatus = 'Beschikbaar' | 'Druk' | 'Vol' | 'Onbekend';
 
-export type WeatherMode = 'summer' | 'winter' | 'night';
+/** Weather/season only (summer = normal, winter = -20%). */
+export type WeatherMode = 'summer' | 'winter';
+/** Time of day (night = -5% range from heaters/lights). */
+export type TimeMode = 'day' | 'night';
+
+/** Max DC charge speed in kW per model (caps the supercharger output). */
+export const teslaMaxChargeKw: Record<string, number> = {
+  'Model 3 RWD': 170,
+  'Model 3 Long Range RWD': 250,
+  'Model 3 Long Range AWD': 250,
+  'Model 3 Performance': 250,
+  'Model Y RWD': 170,
+  'Model Y Long Range RWD': 250,
+  'Model Y Long Range AWD': 250,
+  'Model Y Performance': 250,
+  'Model S': 250,
+  'Model S Plaid': 250,
+  'Model X': 250,
+  'Model X Plaid': 250,
+};
 
 export const teslaModels: Record<string, number> = {
   'Model 3 RWD': 385,
