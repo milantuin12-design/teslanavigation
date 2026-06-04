@@ -19,6 +19,7 @@ interface InputPanelProps {
   onChargeTargetChange: (pct: number) => void;
   onTrailerChange: (enabled: boolean, reductionPercent: number) => void;
   onWeatherModeChange: (mode: WeatherMode) => void;
+  onTimeModeChange: (mode: TimeMode) => void;
   onMinChargerSpeedChange: (kw: number) => void;
   onCalculate: () => void;
   onStartNavigation: () => void;
