@@ -101,7 +101,7 @@ function Index() {
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
   const modelRange = teslaModels[selectedModel];
-  const availableRange = getAvailableRange(modelRange, batteryPercent, trailerReductionEffective, weatherMode);
+  const availableRange = getAvailableRange(modelRange, batteryPercent, trailerReductionEffective, weatherMode, timeMode);
 
   useEffect(() => {
     let mounted = true;
