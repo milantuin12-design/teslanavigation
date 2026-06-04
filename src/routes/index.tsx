@@ -18,6 +18,7 @@ import {
   calculateChargingStops,
   calculateChargeDuration,
   parseMaxSpeed,
+  effectiveChargeSpeedKw,
   distanceToRoute,
   projectOntoRoute,
   haversineDistance,
