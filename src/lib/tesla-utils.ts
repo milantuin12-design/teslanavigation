@@ -187,10 +187,10 @@ export function calculateChargingStops(
   const nearChargers = findChargersNearRoute(route.coordinates, speedFilteredChargers, 20);
 
   const routeDist = buildRouteDistanceIndex(route.coordinates);
-  const fullRangeKm = getAvailableRange(modelRangeKm, 100, trailerReductionPercent, weatherMode);
+  const fullRangeKm = getAvailableRange(modelRangeKm, 100, trailerReductionPercent, weatherMode, timeMode);
 
   if (nearChargers.length === 0) {
-    const directRange = getAvailableRange(modelRangeKm, batteryPercent, trailerReductionPercent, weatherMode);
+    const directRange = getAvailableRange(modelRangeKm, batteryPercent, trailerReductionPercent, weatherMode, timeMode);
     if (route.totalDistanceKm <= directRange) {
       const batteryAtDest = batteryPercent - (route.totalDistanceKm / fullRangeKm * 100);
       return { stops: [], arrivalPercent: Math.round(Math.max(0, batteryAtDest)), unreachable: false };
