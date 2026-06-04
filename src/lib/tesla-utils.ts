@@ -299,16 +299,23 @@ export function calculateChargingStops(
 
     let minBatteryNeeded: number;
     if (useDestAsNext) {
+      // LAST charging stop on the route: only charge enough to arrive at
+      // the destination with targetArrivalPercent — do NOT overfill to
+      // chargeTargetPercent. This avoids huge waste at the last stop.
       minBatteryNeeded = batteryNeededForNextLeg + targetArrivalPercent;
     } else {
       minBatteryNeeded = batteryNeededForNextLeg + minSafetyPercent + 2;
     }
 
-    // Charge to user's target unless next leg needs more
-    let batteryAfter = Math.max(chargeTargetPercent, Math.ceil(minBatteryNeeded));
+    // For non-last stops, also satisfy user's "charge to X%" target.
+    // For the last stop, ignore chargeTargetPercent entirely.
+    let batteryAfter = useDestAsNext
+      ? Math.ceil(minBatteryNeeded)
+      : Math.max(chargeTargetPercent, Math.ceil(minBatteryNeeded));
     batteryAfter = Math.min(100, batteryAfter);
 
-    const chargerSpeedKw = parseMaxSpeed(best.charger.stallTypes);
+    const rawChargerKw = parseMaxSpeed(best.charger.stallTypes);
+    const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, modelName);
     const batteryKWh = teslaBatteryKWh[modelName] || 79;
     const chargeDurationMin = calculateChargeDuration(
       Math.round(Math.max(minSafetyPercent, best.batteryAtCharger)),
