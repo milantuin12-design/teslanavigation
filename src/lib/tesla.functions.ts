@@ -167,11 +167,12 @@ async function lookupEVAvailability(
   }
 
   if (!bestPlace) {
-    const nearRes = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
+    const nearRes = await fetch(`${GATEWAY_BASE}/places/v1/places:searchNearby`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Goog-Api-Key": apiKey,
+        Authorization: `Bearer ${lovableApiKey}`,
+        "X-Connection-Api-Key": googleConnKey,
         "X-Goog-FieldMask": "places.id,places.displayName,places.evChargeOptions",
       },
       body: JSON.stringify({
