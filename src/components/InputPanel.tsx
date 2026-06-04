@@ -30,6 +30,7 @@ interface InputPanelProps {
   trailerEnabled: boolean;
   trailerReductionPercent: number;
   weatherMode: WeatherMode;
+  timeMode: TimeMode;
   minChargerSpeedKw: number;
   isCalculating: boolean;
   totalDistanceKm: number | null;
