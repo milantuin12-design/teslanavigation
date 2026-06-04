@@ -80,6 +80,7 @@ function Index() {
   const [targetArrivalPercent, setTargetArrivalPercent] = useState(10);
   const [chargeTargetPercent, setChargeTargetPercent] = useState(80);
   const [weatherMode, setWeatherMode] = useState<WeatherMode>("summer");
+  const [timeMode, setTimeMode] = useState<TimeMode>("day");
   const [trailerEnabled, setTrailerEnabled] = useState(false);
   const [trailerReductionPercent, setTrailerReductionPercent] = useState(40);
   const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
