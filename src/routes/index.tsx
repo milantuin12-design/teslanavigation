@@ -419,7 +419,7 @@ function Index() {
         isReroutingRef.current = false;
       })();
     }
-  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, computeRoute]);
+  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, timeMode, computeRoute]);
 
   const handleChargerBatteryChange = useCallback(
     (index: number, newBatteryAfter: number) => {
