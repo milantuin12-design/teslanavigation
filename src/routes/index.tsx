@@ -242,6 +242,7 @@ function Index() {
       modelName: selectedModel,
       targetArrivalPercent,
       weatherMode,
+      timeMode,
       chargeTargetPercent,
       minChargerSpeedKw,
     });
