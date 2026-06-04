@@ -9,6 +9,7 @@ import {
   ChargingStop,
   RouteResult,
   WeatherMode,
+  TimeMode,
   teslaModels,
   teslaBatteryKWh,
 } from "@/lib/tesla-types";
