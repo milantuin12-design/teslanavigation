@@ -41,7 +41,9 @@ export const refreshAvailability = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({}).optional().parse(input ?? {}))
   .handler(async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const lovableApiKey = process.env.LOVABLE_API_KEY;
+    const googleConnKey = process.env.GOOGLE_MAPS_API_KEY;
+    const useGateway = !!(lovableApiKey && googleConnKey);
 
     const { data: chargers, error } = await supabaseAdmin
       .from("superchargers")
@@ -55,7 +57,7 @@ export const refreshAvailability = createServerFn({ method: "POST" })
     let failed = 0;
     let noGoogleData = 0;
 
-    if (googleApiKey && chargers) {
+    if (useGateway && chargers) {
       const batchSize = 3;
       const delayMs = 350;
 
