@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Moon, Gauge } from 'lucide-react';
-import { teslaModels, WeatherMode } from '@/lib/tesla-types';
+import { teslaModels, WeatherMode, TimeMode, teslaMaxChargeKw } from '@/lib/tesla-types';
 
 interface Waypoint {
   id: string;
@@ -19,6 +19,7 @@ interface InputPanelProps {
   onChargeTargetChange: (pct: number) => void;
   onTrailerChange: (enabled: boolean, reductionPercent: number) => void;
   onWeatherModeChange: (mode: WeatherMode) => void;
+  onTimeModeChange: (mode: TimeMode) => void;
   onMinChargerSpeedChange: (kw: number) => void;
   onCalculate: () => void;
   onStartNavigation: () => void;
@@ -29,6 +30,7 @@ interface InputPanelProps {
   trailerEnabled: boolean;
   trailerReductionPercent: number;
   weatherMode: WeatherMode;
+  timeMode: TimeMode;
   minChargerSpeedKw: number;
   isCalculating: boolean;
   totalDistanceKm: number | null;
@@ -86,6 +88,7 @@ export default function InputPanel({
   onChargeTargetChange,
   onTrailerChange,
   onWeatherModeChange,
+  onTimeModeChange,
   onMinChargerSpeedChange,
   onCalculate,
   onStartNavigation,
@@ -96,6 +99,7 @@ export default function InputPanel({
   trailerEnabled,
   trailerReductionPercent,
   weatherMode,
+  timeMode,
   minChargerSpeedKw,
   isCalculating,
   totalDistanceKm,
@@ -394,37 +398,54 @@ export default function InputPanel({
             />
           </div>
 
-          {/* Min charger speed */}
+          {/* Min charger speed — show orange warning when car can't use 250kW */}
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
               <Zap size={13} className="text-blue-400" />
               Minimale laadsnelheid
             </label>
             <div className="grid grid-cols-6 gap-1">
-              {MIN_SPEEDS.map(s => (
-                <button
-                  key={s}
-                  onClick={() => onMinChargerSpeedChange(s)}
-                  className={`px-1 py-1.5 rounded text-[11px] font-medium transition-all ${
-                    minChargerSpeedKw === s
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                  }`}
-                >
-                  {s === 0 ? 'Alle' : `${s}+`}
-                </button>
-              ))}
+              {MIN_SPEEDS.map(s => {
+                const carMax = teslaMaxChargeKw[selectedModel] ?? 250;
+                const tooFast = s > carMax;
+                const selected = minChargerSpeedKw === s;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => onMinChargerSpeedChange(s)}
+                    title={tooFast ? `${selectedModel} laadt max ${carMax}kW` : undefined}
+                    className={`px-1 py-1.5 rounded text-[11px] font-medium transition-all ${
+                      selected
+                        ? tooFast
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-blue-600 text-white'
+                        : tooFast
+                          ? 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 border border-amber-500/30'
+                          : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                    }`}
+                  >
+                    {s === 0 ? 'Alle' : `${s}+`}
+                  </button>
+                );
+              })}
             </div>
+            {(() => {
+              const carMax = teslaMaxChargeKw[selectedModel] ?? 250;
+              return carMax < 250 ? (
+                <p className="text-[10px] text-amber-400/80 mt-1">
+                  ⚠ {selectedModel} laadt max {carMax}kW
+                </p>
+              ) : null;
+            })()}
           </div>
 
-          {/* Weather mode: 3-way */}
+          {/* Weather (zomer / winter) */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Klimaat</label>
-            <div className="grid grid-cols-3 gap-1">
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Seizoen</label>
+            <div className="grid grid-cols-2 gap-1">
               {([
-                { mode: 'summer' as WeatherMode, label: 'Zomer', icon: Sun, color: 'amber' },
-                { mode: 'winter' as WeatherMode, label: 'Winter', icon: CloudSnow, color: 'blue' },
-                { mode: 'night' as WeatherMode, label: 'Nacht', icon: Moon, color: 'indigo' },
+                { mode: 'summer' as WeatherMode, label: 'Zomer', icon: Sun },
+                { mode: 'winter' as WeatherMode, label: 'Winter (-20%)', icon: CloudSnow },
               ]).map(({ mode, label, icon: Icon }) => (
                 <button
                   key={mode}
@@ -441,6 +462,31 @@ export default function InputPanel({
               ))}
             </div>
           </div>
+
+          {/* Time of day (dag / nacht) — separate from season */}
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Tijd van de dag</label>
+            <div className="grid grid-cols-2 gap-1">
+              {([
+                { mode: 'day' as TimeMode, label: 'Dag', icon: Sun },
+                { mode: 'night' as TimeMode, label: 'Nacht (-5%)', icon: Moon },
+              ]).map(({ mode, label, icon: Icon }) => (
+                <button
+                  key={mode}
+                  onClick={() => onTimeModeChange(mode)}
+                  className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg border text-xs font-medium transition-all ${
+                    timeMode === mode
+                      ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300'
+                      : 'bg-slate-800/50 border-slate-600/50 text-slate-400 hover:text-slate-300'
+                  }`}
+                >
+                  <Icon size={14} />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
 
           {/* Trailer with double-click for custom */}
           <div>

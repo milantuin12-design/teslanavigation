@@ -41,7 +41,9 @@ export const refreshAvailability = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({}).optional().parse(input ?? {}))
   .handler(async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const lovableApiKey = process.env.LOVABLE_API_KEY;
+    const googleConnKey = process.env.GOOGLE_MAPS_API_KEY;
+    const useGateway = !!(lovableApiKey && googleConnKey);
 
     const { data: chargers, error } = await supabaseAdmin
       .from("superchargers")
@@ -55,7 +57,7 @@ export const refreshAvailability = createServerFn({ method: "POST" })
     let failed = 0;
     let noGoogleData = 0;
 
-    if (googleApiKey && chargers) {
+    if (useGateway && chargers) {
       const batchSize = 3;
       const delayMs = 350;
 
@@ -64,7 +66,7 @@ export const refreshAvailability = createServerFn({ method: "POST" })
         const results = await Promise.allSettled(
           batch.map(async (charger, idx) => {
             await new Promise((r) => setTimeout(r, idx * 100));
-            return lookupEVAvailability(charger, googleApiKey);
+            return lookupEVAvailability(charger, lovableApiKey!, googleConnKey!);
           })
         );
 
@@ -100,24 +102,30 @@ export const refreshAvailability = createServerFn({ method: "POST" })
       noGoogleData,
       total: chargers?.length ?? 0,
       timestamp: new Date().toISOString(),
-      googleMaps: !!googleApiKey,
+      googleMaps: useGateway,
     };
   });
 
+const GATEWAY_BASE = "https://connector-gateway.lovable.dev/google_maps";
+
 async function lookupEVAvailability(
   charger: { id: string; name: string; lat: number; lng: number; stall_types: string | null },
-  apiKey: string
+  lovableApiKey: string,
+  googleConnKey: string
 ): Promise<{ success: boolean; reason?: string }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+  const gwHeaders = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${lovableApiKey}`,
+    "X-Connection-Api-Key": googleConnKey,
+    "X-Goog-FieldMask": "places.id,places.displayName,places.location,places.evChargeOptions",
+  } as const;
+
   const searchQuery = `Tesla Supercharger ${charger.name}`;
-  const textSearchRes = await fetch("https://places.googleapis.com/v1/places:searchText", {
+  const textSearchRes = await fetch(`${GATEWAY_BASE}/places/v1/places:searchText`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Goog-Api-Key": apiKey,
-      "X-Goog-FieldMask": "places.id,places.displayName,places.location,places.evChargeOptions",
-    },
+    headers: gwHeaders,
     body: JSON.stringify({
       textQuery: searchQuery,
       maxResultCount: 3,
@@ -159,11 +167,12 @@ async function lookupEVAvailability(
   }
 
   if (!bestPlace) {
-    const nearRes = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
+    const nearRes = await fetch(`${GATEWAY_BASE}/places/v1/places:searchNearby`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Goog-Api-Key": apiKey,
+        Authorization: `Bearer ${lovableApiKey}`,
+        "X-Connection-Api-Key": googleConnKey,
         "X-Goog-FieldMask": "places.id,places.displayName,places.evChargeOptions",
       },
       body: JSON.stringify({

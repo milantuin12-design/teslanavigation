@@ -1,4 +1,4 @@
-import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, teslaBatteryKWh } from './tesla-types';
+import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, TimeMode, teslaBatteryKWh, teslaMaxChargeKw } from './tesla-types';
 
 export function parseCoordinates(input: string): { lat: number; lng: number } | null {
   const trimmed = input.trim();
@@ -17,30 +17,45 @@ export function parseCoordinates(input: string): { lat: number; lng: number } | 
 /**
  * Available range.
  * - trailerReductionPercent: 0-100, percentage reduction from trailer (default 0 = no trailer)
- * - weatherMode: summer (no penalty), winter (-20%), night (-5%)
+ * - weatherMode: summer (no penalty), winter (-20%)
+ * - timeMode: day (no penalty), night (-5%)
  */
 export function getAvailableRange(
   modelRangeKm: number,
   batteryPercent: number,
   trailerReductionPercent: number = 0,
-  weatherMode: WeatherMode = 'summer'
+  weatherMode: WeatherMode = 'summer',
+  timeMode: TimeMode = 'day'
 ): number {
   let range = modelRangeKm * batteryPercent / 100;
   if (trailerReductionPercent > 0) range *= (1 - trailerReductionPercent / 100);
   if (weatherMode === 'winter') range *= 0.80;
-  else if (weatherMode === 'night') range *= 0.95;
+  if (timeMode === 'night') range *= 0.95;
   return range;
 }
 
+/**
+ * Max kW a stall delivers. Realistic mapping:
+ * - explicit kW numbers in stallTypes win
+ * - V4 = 325 kW (Europe), V3 = 250, V2 = 150
+ * - unknown defaults to 150 (safe lower bound)
+ */
 export function parseMaxSpeed(stallTypes?: string): number {
-  if (!stallTypes) return 250;
-  const speeds = stallTypes.match(/(\d+)kw/gi);
-  if (!speeds || speeds.length === 0) {
-    if (/v4/i.test(stallTypes)) return 250;
-    if (/v3/i.test(stallTypes)) return 250;
-    return 150;
+  if (!stallTypes) return 150;
+  const speeds = stallTypes.match(/(\d+)\s*kw/gi);
+  if (speeds && speeds.length > 0) {
+    return Math.max(...speeds.map(s => parseInt(s, 10)));
   }
-  return Math.max(...speeds.map(s => parseInt(s, 10)));
+  if (/v4/i.test(stallTypes)) return 325;
+  if (/v3/i.test(stallTypes)) return 250;
+  if (/v2/i.test(stallTypes)) return 150;
+  return 150;
+}
+
+/** Cap charger speed at car's max DC intake (e.g. M3/Y RWD = 170 kW). */
+export function effectiveChargeSpeedKw(chargerKw: number, modelName: string): number {
+  const cap = teslaMaxChargeKw[modelName] ?? 250;
+  return Math.min(chargerKw, cap);
 }
 
 export function calculateChargeDuration(
@@ -126,6 +141,7 @@ export interface CalcChargingOptions {
   modelName?: string;
   targetArrivalPercent?: number;
   weatherMode?: WeatherMode;
+  timeMode?: TimeMode;
   chargeTargetPercent?: number;
   minChargerSpeedKw?: number;
   /** Max battery % allowed when arriving at a charger (push to bigger stops). */
@@ -150,6 +166,7 @@ export function calculateChargingStops(
     modelName = 'Model 3 Long Range AWD',
     targetArrivalPercent = 10,
     weatherMode = 'summer',
+    timeMode = 'day',
     chargeTargetPercent = 80,
     minChargerSpeedKw = 0,
     maxArrivalAtChargerPercent = 10,
@@ -170,10 +187,10 @@ export function calculateChargingStops(
   const nearChargers = findChargersNearRoute(route.coordinates, speedFilteredChargers, 20);
 
   const routeDist = buildRouteDistanceIndex(route.coordinates);
-  const fullRangeKm = getAvailableRange(modelRangeKm, 100, trailerReductionPercent, weatherMode);
+  const fullRangeKm = getAvailableRange(modelRangeKm, 100, trailerReductionPercent, weatherMode, timeMode);
 
   if (nearChargers.length === 0) {
-    const directRange = getAvailableRange(modelRangeKm, batteryPercent, trailerReductionPercent, weatherMode);
+    const directRange = getAvailableRange(modelRangeKm, batteryPercent, trailerReductionPercent, weatherMode, timeMode);
     if (route.totalDistanceKm <= directRange) {
       const batteryAtDest = batteryPercent - (route.totalDistanceKm / fullRangeKm * 100);
       return { stops: [], arrivalPercent: Math.round(Math.max(0, batteryAtDest)), unreachable: false };
@@ -282,16 +299,23 @@ export function calculateChargingStops(
 
     let minBatteryNeeded: number;
     if (useDestAsNext) {
+      // LAST charging stop on the route: only charge enough to arrive at
+      // the destination with targetArrivalPercent — do NOT overfill to
+      // chargeTargetPercent. This avoids huge waste at the last stop.
       minBatteryNeeded = batteryNeededForNextLeg + targetArrivalPercent;
     } else {
       minBatteryNeeded = batteryNeededForNextLeg + minSafetyPercent + 2;
     }
 
-    // Charge to user's target unless next leg needs more
-    let batteryAfter = Math.max(chargeTargetPercent, Math.ceil(minBatteryNeeded));
+    // For non-last stops, also satisfy user's "charge to X%" target.
+    // For the last stop, ignore chargeTargetPercent entirely.
+    let batteryAfter = useDestAsNext
+      ? Math.ceil(minBatteryNeeded)
+      : Math.max(chargeTargetPercent, Math.ceil(minBatteryNeeded));
     batteryAfter = Math.min(100, batteryAfter);
 
-    const chargerSpeedKw = parseMaxSpeed(best.charger.stallTypes);
+    const rawChargerKw = parseMaxSpeed(best.charger.stallTypes);
+    const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, modelName);
     const batteryKWh = teslaBatteryKWh[modelName] || 79;
     const chargeDurationMin = calculateChargeDuration(
       Math.round(Math.max(minSafetyPercent, best.batteryAtCharger)),

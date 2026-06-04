@@ -9,6 +9,7 @@ import {
   ChargingStop,
   RouteResult,
   WeatherMode,
+  TimeMode,
   teslaModels,
   teslaBatteryKWh,
 } from "@/lib/tesla-types";
@@ -17,6 +18,7 @@ import {
   calculateChargingStops,
   calculateChargeDuration,
   parseMaxSpeed,
+  effectiveChargeSpeedKw,
   distanceToRoute,
   projectOntoRoute,
   haversineDistance,
@@ -79,6 +81,7 @@ function Index() {
   const [targetArrivalPercent, setTargetArrivalPercent] = useState(10);
   const [chargeTargetPercent, setChargeTargetPercent] = useState(80);
   const [weatherMode, setWeatherMode] = useState<WeatherMode>("summer");
+  const [timeMode, setTimeMode] = useState<TimeMode>("day");
   const [trailerEnabled, setTrailerEnabled] = useState(false);
   const [trailerReductionPercent, setTrailerReductionPercent] = useState(40);
   const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
@@ -99,7 +102,7 @@ function Index() {
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
   const modelRange = teslaModels[selectedModel];
-  const availableRange = getAvailableRange(modelRange, batteryPercent, trailerReductionEffective, weatherMode);
+  const availableRange = getAvailableRange(modelRange, batteryPercent, trailerReductionEffective, weatherMode, timeMode);
 
   useEffect(() => {
     let mounted = true;
@@ -240,6 +243,7 @@ function Index() {
       modelName: selectedModel,
       targetArrivalPercent,
       weatherMode,
+      timeMode,
       chargeTargetPercent,
       minChargerSpeedKw,
     });
@@ -274,6 +278,7 @@ function Index() {
           modelName: selectedModel,
           targetArrivalPercent,
           weatherMode,
+          timeMode,
           chargeTargetPercent,
           minChargerSpeedKw,
         });
@@ -288,7 +293,7 @@ function Index() {
       setRoute(initialRoute);
     }
     return { ok: true };
-  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, chargeTargetPercent, minChargerSpeedKw]);
+  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw]);
 
   const handleCalculate = useCallback(async () => {
     setError("");
@@ -406,7 +411,7 @@ function Index() {
     if (isReroutingRef.current) return;
     if (!navInfo.nextCharging) return;
     // estimated battery needed to reach next stop with 3% safety
-    const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode);
+    const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
     const needed = (navInfo.nextCharging.kmFromHere / fullRange) * 100 + 3;
     if (liveBattery < needed - 1) {
       isReroutingRef.current = true;
@@ -415,14 +420,14 @@ function Index() {
         isReroutingRef.current = false;
       })();
     }
-  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, computeRoute]);
+  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, timeMode, computeRoute]);
 
   const handleChargerBatteryChange = useCallback(
     (index: number, newBatteryAfter: number) => {
       setChargingStops((prev) =>
         prev.map((stop, i) => {
           if (i !== index) return stop;
-          const chargerSpeedKw = parseMaxSpeed(stop.charger.stallTypes);
+          const chargerSpeedKw = effectiveChargeSpeedKw(parseMaxSpeed(stop.charger.stallTypes), selectedModel);
           const batteryKWh = teslaBatteryKWh[selectedModel] || 79;
           const chargeDurationMin = calculateChargeDuration(
             stop.batteryBefore,
@@ -456,6 +461,7 @@ function Index() {
               onChargeTargetChange={setChargeTargetPercent}
               onTrailerChange={(enabled, pct) => { setTrailerEnabled(enabled); setTrailerReductionPercent(pct); }}
               onWeatherModeChange={setWeatherMode}
+              onTimeModeChange={setTimeMode}
               onMinChargerSpeedChange={setMinChargerSpeedKw}
               onCalculate={handleCalculate}
               onStartNavigation={handleStartNavigation}
@@ -466,6 +472,7 @@ function Index() {
               trailerEnabled={trailerEnabled}
               trailerReductionPercent={trailerReductionPercent}
               weatherMode={weatherMode}
+              timeMode={timeMode}
               minChargerSpeedKw={minChargerSpeedKw}
               isCalculating={isCalculating}
               totalDistanceKm={route?.totalDistanceKm ?? null}
