@@ -99,6 +99,7 @@ export default function InputPanel({
   trailerEnabled,
   trailerReductionPercent,
   weatherMode,
+  timeMode,
   minChargerSpeedKw,
   isCalculating,
   totalDistanceKm,
