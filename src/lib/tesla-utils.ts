@@ -141,6 +141,7 @@ export interface CalcChargingOptions {
   modelName?: string;
   targetArrivalPercent?: number;
   weatherMode?: WeatherMode;
+  timeMode?: TimeMode;
   chargeTargetPercent?: number;
   minChargerSpeedKw?: number;
   /** Max battery % allowed when arriving at a charger (push to bigger stops). */
@@ -165,6 +166,7 @@ export function calculateChargingStops(
     modelName = 'Model 3 Long Range AWD',
     targetArrivalPercent = 10,
     weatherMode = 'summer',
+    timeMode = 'day',
     chargeTargetPercent = 80,
     minChargerSpeedKw = 0,
     maxArrivalAtChargerPercent = 10,
