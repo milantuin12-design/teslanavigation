@@ -106,20 +106,26 @@ export const refreshAvailability = createServerFn({ method: "POST" })
     };
   });
 
+const GATEWAY_BASE = "https://connector-gateway.lovable.dev/google_maps";
+
 async function lookupEVAvailability(
   charger: { id: string; name: string; lat: number; lng: number; stall_types: string | null },
-  apiKey: string
+  lovableApiKey: string,
+  googleConnKey: string
 ): Promise<{ success: boolean; reason?: string }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+  const gwHeaders = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${lovableApiKey}`,
+    "X-Connection-Api-Key": googleConnKey,
+    "X-Goog-FieldMask": "places.id,places.displayName,places.location,places.evChargeOptions",
+  } as const;
+
   const searchQuery = `Tesla Supercharger ${charger.name}`;
-  const textSearchRes = await fetch("https://places.googleapis.com/v1/places:searchText", {
+  const textSearchRes = await fetch(`${GATEWAY_BASE}/places/v1/places:searchText`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Goog-Api-Key": apiKey,
-      "X-Goog-FieldMask": "places.id,places.displayName,places.location,places.evChargeOptions",
-    },
+    headers: gwHeaders,
     body: JSON.stringify({
       textQuery: searchQuery,
       maxResultCount: 3,
