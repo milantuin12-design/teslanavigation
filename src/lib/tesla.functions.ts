@@ -66,7 +66,7 @@ export const refreshAvailability = createServerFn({ method: "POST" })
         const results = await Promise.allSettled(
           batch.map(async (charger, idx) => {
             await new Promise((r) => setTimeout(r, idx * 100));
-            return lookupEVAvailability(charger, googleApiKey);
+            return lookupEVAvailability(charger, lovableApiKey!, googleConnKey!);
           })
         );
 
