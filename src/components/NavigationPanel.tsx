@@ -1,4 +1,4 @@
-import { ArrowUp, ArrowLeft, ArrowRight, RotateCcw, Merge, Flag, Zap, MapPin, Battery, X } from 'lucide-react';
+import { ArrowUp, ArrowLeft, ArrowRight, RotateCcw, Merge, Flag, Zap, MapPin, Battery, X, Compass, Navigation as NavIcon } from 'lucide-react';
 import { useState } from 'react';
 import { ChargingStop } from '@/lib/tesla-types';
 
@@ -17,33 +17,33 @@ interface RouteStep {
 interface NavigationPanelProps {
   steps: RouteStep[];
   currentStepIndex: number;
-  /** Next charging stop ahead (km remaining + ETA min from now) */
-  nextChargingStop: { stop: ChargingStop; kmFromHere: number; etaMin: number } | null;
-  /** Destination info from current position */
-  destination: { kmFromHere: number; etaMin: number } | null;
+  nextChargingStop: { stop: ChargingStop; kmFromHere: number; etaMin: number; arrivalPercent: number } | null;
+  destination: { kmFromHere: number; etaMin: number; arrivalPercent: number } | null;
   currentBattery: number;
+  /** Estimate of current battery based on distance traveled */
+  estimatedBattery: number | null;
   onBatteryChange: (pct: number) => void;
   onStop: () => void;
+  headingUp: boolean;
+  onToggleHeadingUp: () => void;
+  /** When set, show "Route aangepast" banner with all upcoming stops */
+  routeChangedStops: ChargingStop[] | null;
 }
 
 function formatDistance(meters: number): string {
-  if (meters >= 1000) {
-    return `${(meters / 1000).toFixed(meters >= 10000 ? 0 : 1)} km`;
-  }
+  if (meters >= 1000) return `${(meters / 1000).toFixed(meters >= 10000 ? 0 : 1)} km`;
   return `${Math.round(meters / 10) * 10} m`;
 }
-
 function formatKm(km: number): string {
   return km < 1 ? `${Math.round(km * 1000)} m` : `${Math.round(km)} km`;
 }
-
 function formatMin(min: number): string {
   const h = Math.floor(min / 60);
   const m = Math.round(min % 60);
   return h > 0 ? `${h}u ${m}m` : `${m}m`;
 }
 
-function getManeuverIcon(type: string, modifier?: string, size: number = 48): React.ReactNode {
+function getManeuverIcon(type: string, modifier?: string, size = 48): React.ReactNode {
   const cls = "text-white";
   switch (type) {
     case 'turn':
@@ -85,8 +85,12 @@ export default function NavigationPanel({
   nextChargingStop,
   destination,
   currentBattery,
+  estimatedBattery,
   onBatteryChange,
   onStop,
+  headingUp,
+  onToggleHeadingUp,
+  routeChangedStops,
 }: NavigationPanelProps) {
   const [editingBattery, setEditingBattery] = useState(false);
   const [batteryDraft, setBatteryDraft] = useState(currentBattery);
@@ -100,12 +104,26 @@ export default function NavigationPanel({
       <div className="pointer-events-auto bg-slate-900/95 backdrop-blur-sm border-b-2 border-blue-500/30 shadow-xl">
         <div className="flex items-center justify-between px-4 py-2">
           <span className="text-xs font-semibold text-blue-300 uppercase tracking-wider">Navigatie</span>
-          <button
-            onClick={onStop}
-            className="flex items-center gap-1 px-3 py-1 bg-red-500/20 border border-red-500/40 text-red-300 rounded-lg text-xs font-medium hover:bg-red-500/30"
-          >
-            <X size={14} /> Stop
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onToggleHeadingUp}
+              className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium border ${
+                headingUp
+                  ? 'bg-blue-500/30 border-blue-400/50 text-blue-200'
+                  : 'bg-slate-800 border-slate-600 text-slate-300'
+              }`}
+              title={headingUp ? 'Schakel naar noord boven' : 'Schakel naar rijrichting boven'}
+            >
+              {headingUp ? <NavIcon size={14} /> : <Compass size={14} />}
+              {headingUp ? 'Rijrichting' : 'Noord'}
+            </button>
+            <button
+              onClick={onStop}
+              className="flex items-center gap-1 px-3 py-1 bg-red-500/20 border border-red-500/40 text-red-300 rounded-lg text-xs font-medium hover:bg-red-500/30"
+            >
+              <X size={14} /> Stop
+            </button>
+          </div>
         </div>
         {currentStep ? (
           <div className="flex items-center gap-4 px-5 pb-4 pt-1">
@@ -131,22 +149,35 @@ export default function NavigationPanel({
         )}
       </div>
 
+      {/* Route changed banner */}
+      {routeChangedStops && (
+        <div className="pointer-events-auto mx-4 mt-3 bg-amber-500/95 backdrop-blur-sm border border-amber-300 rounded-xl shadow-xl px-4 py-3">
+          <div className="text-sm font-bold text-slate-900 mb-2">⚡ Route aangepast</div>
+          <div className="space-y-1">
+            {routeChangedStops.map((s, i) => (
+              <div key={i} className="text-xs text-slate-900">
+                <strong>#{i + 1}</strong> {s.charger.name} — {s.distanceFromStart} km · laad tot {s.batteryAfter}%
+              </div>
+            ))}
+            {routeChangedStops.length === 0 && (
+              <div className="text-xs text-slate-900">Geen oplaadstops meer nodig.</div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex-1" />
 
-      {/* BOTTOM — battery + next charge + destination */}
+      {/* BOTTOM */}
       <div className="pointer-events-auto bg-slate-900/95 backdrop-blur-sm border-t-2 border-blue-500/30 shadow-xl">
-        {/* Live battery input */}
         <div className="px-4 pt-3 pb-2 border-b border-slate-800">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Battery size={16} className="text-green-400" />
             <span className="text-xs text-slate-400">Huidige batterij:</span>
             {editingBattery ? (
               <>
                 <input
-                  type="number"
-                  min={1}
-                  max={100}
-                  value={batteryDraft}
+                  type="number" min={1} max={100} value={batteryDraft}
                   onChange={(e) => setBatteryDraft(parseInt(e.target.value) || 0)}
                   className="w-16 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-white"
                   autoFocus
@@ -165,19 +196,18 @@ export default function NavigationPanel({
                 onClick={() => { setBatteryDraft(currentBattery); setEditingBattery(true); }}
                 className="text-base font-bold text-green-400 hover:text-green-300"
                 title="Klik om bij te werken"
-              >
-                {currentBattery}%
-              </button>
+              >{currentBattery}%</button>
+            )}
+            {estimatedBattery !== null && Math.abs(estimatedBattery - currentBattery) >= 2 && (
+              <span className="text-xs text-slate-500 ml-1">(schatting: ≈ {Math.round(estimatedBattery)}%)</span>
             )}
           </div>
         </div>
 
         <div className="grid grid-cols-2 divide-x divide-slate-800">
-          {/* Next charging stop */}
           <div className="px-4 py-3">
             <div className="flex items-center gap-1.5 text-[10px] text-amber-400 uppercase font-semibold tracking-wider mb-1">
-              <Zap size={11} />
-              Volgende lading
+              <Zap size={11} /> Volgende lading
             </div>
             {nextChargingStop ? (
               <>
@@ -187,17 +217,18 @@ export default function NavigationPanel({
                 <div className="text-sm text-slate-300 mt-0.5">
                   {formatKm(nextChargingStop.kmFromHere)} • {formatMin(nextChargingStop.etaMin)}
                 </div>
+                <div className={`text-xs mt-0.5 ${nextChargingStop.arrivalPercent < 5 ? 'text-red-400' : 'text-slate-400'}`}>
+                  Aankomst: ≈ {Math.round(nextChargingStop.arrivalPercent)}%
+                </div>
               </>
             ) : (
               <div className="text-sm text-slate-500">Geen stops meer</div>
             )}
           </div>
 
-          {/* Destination */}
           <div className="px-4 py-3">
             <div className="flex items-center gap-1.5 text-[10px] text-red-400 uppercase font-semibold tracking-wider mb-1">
-              <MapPin size={11} />
-              Bestemming
+              <MapPin size={11} /> Bestemming
             </div>
             {destination ? (
               <>
@@ -206,6 +237,9 @@ export default function NavigationPanel({
                 </div>
                 <div className="text-sm text-slate-300 mt-0.5">
                   {formatMin(destination.etaMin)}
+                </div>
+                <div className={`text-xs mt-0.5 ${destination.arrivalPercent < 5 ? 'text-red-400' : 'text-slate-400'}`}>
+                  Aankomst: ≈ {Math.round(destination.arrivalPercent)}%
                 </div>
               </>
             ) : (
