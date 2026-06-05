@@ -468,22 +468,56 @@ function Index() {
     }
   }, [navInfo, isNavigating, currentPosition, destCoord, liveBattery, computeRoute]);
 
-  // Auto-reroute when live battery insufficient for next charging stop
+  // Auto-reroute when live battery insufficient for next charging stop, or when we can skip it
   useEffect(() => {
     if (!isNavigating || !navInfo || !currentPosition || !destCoord || !route) return;
     if (isReroutingRef.current) return;
     if (!navInfo.nextCharging) return;
-    // estimated battery needed to reach next stop with 3% safety
     const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
-    const needed = (navInfo.nextCharging.kmFromHere / fullRange) * 100 + 3;
-    if (liveBattery < needed - 1) {
+    const neededForNext = (navInfo.nextCharging.kmFromHere / fullRange) * 100 + 3;
+
+    // Find the stop AFTER next (within current chargingStops)
+    const proj = positionProj;
+    let stopAfter: ChargingStop | null = null;
+    let foundCurrent = false;
+    for (const s of chargingStops) {
+      if (proj && s.distanceFromStart > proj.km + 0.5) {
+        if (!foundCurrent) { foundCurrent = true; continue; }
+        stopAfter = s; break;
+      }
+    }
+    const canSkip = stopAfter && proj
+      ? liveBattery >= ((stopAfter.distanceFromStart - proj.km) / fullRange) * 100 + 8
+      : false;
+
+    const shouldReroute = liveBattery < neededForNext - 1 || canSkip;
+    if (shouldReroute) {
       isReroutingRef.current = true;
       (async () => {
+        const before = chargingStops;
         await computeRoute(currentPosition, destCoord, liveBattery, []);
+        // Show "Route aangepast" banner with new stops for 10 s
+        setNavStartBattery(liveBattery);
+        setNavStartKm(proj?.km ?? 0);
+        setRouteChangedAt(Date.now());
+        // chargingStops state will update on next render; show what's there now
+        setRouteChangedStops(before);
+        setTimeout(() => {
+          setRouteChangedStops(null);
+          setRouteChangedAt(null);
+        }, 10000);
         isReroutingRef.current = false;
       })();
     }
-  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, timeMode, computeRoute]);
+  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, timeMode, computeRoute, chargingStops, positionProj]);
+
+  // When user manually updates liveBattery, reset estimate baseline
+  useEffect(() => {
+    if (!isNavigating || !positionProj) return;
+    setNavStartBattery(liveBattery);
+    setNavStartKm(positionProj.km);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveBattery]);
 
   const handleChargerBatteryChange = useCallback(
     (index: number, newBatteryAfter: number) => {
