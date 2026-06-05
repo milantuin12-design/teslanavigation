@@ -610,6 +610,8 @@ function Index() {
           chargingStops={chargingStops}
           currentPosition={currentPosition}
           isNavigating={isNavigating}
+          heading={currentHeading}
+          headingUp={headingUp}
         />
         {isNavigating && (
           <NavigationPanel
@@ -618,8 +620,12 @@ function Index() {
             nextChargingStop={navInfo?.nextCharging ?? null}
             destination={navInfo?.destination ?? null}
             currentBattery={liveBattery}
+            estimatedBattery={estimatedBattery}
             onBatteryChange={setLiveBattery}
             onStop={handleStopNavigation}
+            headingUp={headingUp}
+            onToggleHeadingUp={() => setHeadingUp((v) => !v)}
+            routeChangedStops={routeChangedStops}
           />
         )}
       </div>
