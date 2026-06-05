@@ -96,8 +96,15 @@ function Index() {
   const [isLoadingChargers, setIsLoadingChargers] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [currentHeading, setCurrentHeading] = useState<number | null>(null);
+  const [headingUp, setHeadingUp] = useState(false);
   const [liveBattery, setLiveBattery] = useState<number>(80);
   const [lastAvailabilityUpdate, setLastAvailabilityUpdate] = useState<string | null>(null);
+  const [navStartBattery, setNavStartBattery] = useState<number>(80);
+  const [navStartKm, setNavStartKm] = useState<number>(0);
+  const [routeChangedAt, setRouteChangedAt] = useState<number | null>(null);
+  const [routeChangedStops, setRouteChangedStops] = useState<ChargingStop[] | null>(null);
+  const prevPositionRef = useRef<{ lat: number; lng: number } | null>(null);
 
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
