@@ -350,23 +350,45 @@ function Index() {
   const handleStartNavigation = useCallback(() => {
     if (!route) return;
     setLiveBattery(batteryPercent);
+    setNavStartBattery(batteryPercent);
+    setNavStartKm(0);
     setIsNavigating(true);
+    setRouteChangedStops(null);
+    setRouteChangedAt(null);
   }, [route, batteryPercent]);
 
   const handleStopNavigation = useCallback(() => {
     setIsNavigating(false);
+    setHeadingUp(false);
   }, []);
+
+  // Position projected onto route
+  const positionProj = useMemo(() => {
+    if (!isNavigating || !currentPosition || !route) return null;
+    return projectOntoRoute(currentPosition.lat, currentPosition.lng, route.coordinates);
+  }, [isNavigating, currentPosition, route]);
+
+  // Estimated current battery based on distance traveled from nav start
+  const fullRangeKmActive = useMemo(() => {
+    return getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
+  }, [modelRange, trailerReductionEffective, weatherMode, timeMode]);
+
+  const estimatedBattery = useMemo(() => {
+    if (!isNavigating || !positionProj) return null;
+    const traveledKm = Math.max(0, positionProj.km - navStartKm);
+    const consumed = (traveledKm / fullRangeKmActive) * 100;
+    return Math.max(0, navStartBattery - consumed);
+  }, [isNavigating, positionProj, navStartKm, navStartBattery, fullRangeKmActive]);
 
   // Derived values for navigation HUD
   const navInfo = useMemo(() => {
-    if (!isNavigating || !currentPosition || !route || !destCoord) return null;
-    const proj = projectOntoRoute(currentPosition.lat, currentPosition.lng, route.coordinates);
+    if (!isNavigating || !currentPosition || !route || !destCoord || !positionProj) return null;
+    const proj = positionProj;
     const remainingKm = Math.max(0, route.totalDistanceKm - proj.km);
     const remainingMin = route.totalTimeMin > 0 && route.totalDistanceKm > 0
       ? Math.round((remainingKm / route.totalDistanceKm) * route.totalTimeMin)
       : 0;
 
-    // next charging stop ahead
     let nextStop: ChargingStop | null = null;
     let nextKmFromStart = Infinity;
     for (const s of chargingStops) {
@@ -376,20 +398,37 @@ function Index() {
       }
     }
 
-    let nextCharging = null as null | { stop: ChargingStop; kmFromHere: number; etaMin: number };
+    let nextCharging = null as null | { stop: ChargingStop; kmFromHere: number; etaMin: number; arrivalPercent: number };
     if (nextStop) {
       const km = Math.max(0, nextStop.distanceFromStart - proj.km);
       const minEta = route.totalDistanceKm > 0
         ? Math.round((km / route.totalDistanceKm) * route.totalTimeMin)
         : 0;
-      nextCharging = { stop: nextStop, kmFromHere: km, etaMin: minEta };
+      const consumed = (km / fullRangeKmActive) * 100;
+      const arrivalPct = Math.max(0, liveBattery - consumed);
+      nextCharging = { stop: nextStop, kmFromHere: km, etaMin: minEta, arrivalPercent: arrivalPct };
     }
 
-    // Current step: pick the step whose maneuver location is closest ahead
+    const destConsumed = (remainingKm / fullRangeKmActive) * 100;
+    // For destination % we assume charging happens at planned stops
+    let destPct = liveBattery;
+    let runningKm = proj.km;
+    let runningBat = liveBattery;
+    for (const s of chargingStops) {
+      if (s.distanceFromStart <= proj.km) continue;
+      const leg = s.distanceFromStart - runningKm;
+      runningBat = Math.max(0, runningBat - (leg / fullRangeKmActive) * 100);
+      runningBat = Math.max(runningBat, s.batteryAfter);
+      runningKm = s.distanceFromStart;
+    }
+    const finalLeg = route.totalDistanceKm - runningKm;
+    destPct = Math.max(0, runningBat - (finalLeg / fullRangeKmActive) * 100);
+    if (chargingStops.length === 0) destPct = Math.max(0, liveBattery - destConsumed);
+
     let currentStepIdx = 0;
     let bestStepDist = Infinity;
     for (let i = 0; i < routeSteps.length; i++) {
-      const loc = routeSteps[i].maneuver.location; // [lng, lat]
+      const loc = routeSteps[i].maneuver.location;
       const d = haversineDistance(currentPosition.lat, currentPosition.lng, loc[1], loc[0]);
       if (d < bestStepDist) {
         bestStepDist = d;
@@ -400,10 +439,11 @@ function Index() {
     return {
       currentStepIdx,
       nextCharging,
-      destination: { kmFromHere: remainingKm, etaMin: remainingMin },
+      destination: { kmFromHere: remainingKm, etaMin: remainingMin, arrivalPercent: destPct },
       offRouteKm: distanceToRoute(currentPosition.lat, currentPosition.lng, route.coordinates),
     };
-  }, [isNavigating, currentPosition, route, destCoord, chargingStops, routeSteps]);
+  }, [isNavigating, currentPosition, route, destCoord, chargingStops, routeSteps, positionProj, liveBattery, fullRangeKmActive]);
+
 
   // Auto-reroute when off-route
   const offRouteSinceRef = useRef<number | null>(null);
