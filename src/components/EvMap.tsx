@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus } from '@/lib/tesla-types';
@@ -12,13 +12,10 @@ interface EvMapProps {
   chargingStops: ChargingStop[];
   currentPosition?: { lat: number; lng: number } | null;
   isNavigating?: boolean;
+  /** Heading in degrees clockwise from north; map rotates so this faces up when headingUp. */
+  heading?: number | null;
+  headingUp?: boolean;
 }
-
-const getTypicalBusyPattern = (): number[] => [
-  15, 12, 10, 8, 8, 10, 15, 25, 40, 55, 70, 80, 75, 65, 60, 55, 60, 75, 85, 80, 70, 55, 40, 25
-];
-
-const getCurrentHour = (): number => new Date().getHours();
 
 const startIcon = L.divIcon({
   className: 'custom-marker',
@@ -63,65 +60,11 @@ function currentPositionIcon() {
   });
 }
 
-function generateBusyGraph(currentHour: number): string {
-  const pattern = getTypicalBusyPattern();
-  const hours = [];
-  for (let i = 0; i < 24; i++) {
-    const hourIndex = (currentHour - 6 + i) % 24;
-    const adjustedIndex = hourIndex < 0 ? hourIndex + 24 : hourIndex;
-    hours.push({ hour: adjustedIndex, busy: pattern[adjustedIndex] });
-  }
-
-  const bars = hours.slice(0, 12).map((h, i) => {
-    const isCurrent = h.hour === currentHour;
-    const height = Math.round(h.busy * 0.4);
-    const color = isCurrent ? '#3b82f6' : h.busy > 70 ? '#ef4444' : h.busy > 40 ? '#f59e0b' : '#22c55e';
-    return `<div style="width:6px;height:${height}px;background:${color};border-radius:2px;margin:0 1px;${isCurrent ? 'box-shadow:0 0 4px #3b82f6;' : ''}"></div>`;
-  }).join('');
-
-  return `<div style="display:flex;align-items:flex-end;height:45px;padding:4px 0;">${bars}</div>`;
-}
-
-function getEstimatedPrice(country?: string): { perKwh: number; currency: string } {
-  const prices: Record<string, { perKwh: number; currency: string }> = {
-    'Netherlands': { perKwh: 0.52, currency: '€' },
-    'Nederland': { perKwh: 0.52, currency: '€' },
-    'Belgium': { perKwh: 0.48, currency: '€' },
-    'België': { perKwh: 0.48, currency: '€' },
-    'Germany': { perKwh: 0.45, currency: '€' },
-    'Duitsland': { perKwh: 0.45, currency: '€' },
-    'France': { perKwh: 0.42, currency: '€' },
-    'Frankrijk': { perKwh: 0.42, currency: '€' },
-    'Switzerland': { perKwh: 0.55, currency: 'CHF' },
-    'Zwitserland': { perKwh: 0.55, currency: 'CHF' },
-    'Austria': { perKwh: 0.43, currency: '€' },
-    'Oostenrijk': { perKwh: 0.43, currency: '€' },
-    'Denmark': { perKwh: 0.50, currency: 'DKK' },
-    'Denemarken': { perKwh: 0.50, currency: 'DKK' },
-    'Sweden': { perKwh: 0.48, currency: 'SEK' },
-    'Zweden': { perKwh: 0.48, currency: 'SEK' },
-    'Norway': { perKwh: 0.40, currency: 'NOK' },
-    'Noorwegen': { perKwh: 0.40, currency: 'NOK' },
-    'Estonia': { perKwh: 0.35, currency: '€' },
-    'Estland': { perKwh: 0.35, currency: '€' },
-  };
-
-  return prices[country || 'Netherlands'] || { perKwh: 0.45, currency: '€' };
-}
-
-export default function EvMap({ startCoord, destCoord, superchargers, route, chargingStops, currentPosition, isNavigating }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, route, chargingStops, currentPosition, isNavigating, heading, headingUp }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
   const routeRef = useRef<L.Polyline | null>(null);
-  const [, setUpdateTimer] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setUpdateTimer(n => n + 1);
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -151,9 +94,6 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
     if (!map) return;
 
     markersRef.current.clearLayers();
-    const currentHour = getCurrentHour();
-    const busyPattern = getTypicalBusyPattern();
-    const currentBusyPercent = busyPattern[currentHour];
 
     superchargers.forEach(charger => {
       try {
@@ -161,32 +101,18 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
         const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(status) });
 
         const maxSpeed = parseMaxSpeed(charger.stallTypes);
-        const price = getEstimatedPrice(charger.country);
 
-        let popup = `<div style="font-family:system-ui;font-size:13px;min-width:200px;">
-          <strong style="font-size:14px;">${charger.name || 'Onbekend'}</strong><br/>
-          <span style="color:${getStatusColor(status)};font-weight:600;">${status}</span>`;
-
-        if (status !== 'Onbekend' && charger.totalStalls !== undefined && charger.occupiedStalls !== undefined) {
-          const avail = charger.totalStalls - charger.occupiedStalls;
-          popup += `<br/><span>${avail}/${charger.totalStalls} beschikbaar</span>`;
+        let popup = `<div style="font-family:system-ui;font-size:13px;min-width:180px;">
+          <strong style="font-size:14px;">${charger.name || 'Onbekend'}</strong>`;
+        if (charger.totalStalls) {
+          popup += `<br/><span style="color:#94a3b8;">${charger.totalStalls} laadpalen</span>`;
         }
-
         if (maxSpeed) {
-          popup += `<br/><span style="color:#60a5fa;font-weight:500;">Max ${maxSpeed}kW</span>`;
+          popup += `<br/><span style="color:#60a5fa;font-weight:500;">Max ${maxSpeed} kW</span>`;
         }
-
-        popup += `<br/><span style="color:#22c55e;font-weight:500;">~${price.perKwh.toFixed(2)}${price.currency}/kWh</span>`;
-
-        popup += `<hr style="margin:8px 0;border-color:#334155;"/>
-          <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">Drukte vandaag (${currentBusyPercent}% nu)</div>
-          ${generateBusyGraph(currentHour)}
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-top:2px;">
-            <span>${((currentHour - 6 + 24) % 24).toString().padStart(2, '0')}:00</span>
-            <span>Nu</span>
-            <span>${((currentHour + 5) % 24).toString().padStart(2, '0')}:00</span>
-          </div>`;
-
+        if (charger.stallTypes) {
+          popup += `<br/><span style="color:#64748b;font-size:11px;">${charger.stallTypes}</span>`;
+        }
         popup += `</div>`;
         marker.bindPopup(popup);
         markersRef.current.addLayer(marker);
@@ -211,21 +137,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
     });
 
     if (startCoord) {
-      const marker = L.marker([startCoord.lat, startCoord.lng], { icon: startIcon });
-      marker.bindPopup(`<div style="font-family:system-ui;font-size:13px;"><strong>Start</strong><br/>${startCoord.lat.toFixed(4)}, ${startCoord.lng.toFixed(4)}</div>`);
-      markersRef.current.addLayer(marker);
+      markersRef.current.addLayer(L.marker([startCoord.lat, startCoord.lng], { icon: startIcon }));
     }
-
     if (destCoord) {
-      const marker = L.marker([destCoord.lat, destCoord.lng], { icon: destIcon });
-      marker.bindPopup(`<div style="font-family:system-ui;font-size:13px;"><strong>Bestemming</strong><br/>${destCoord.lat.toFixed(4)}, ${destCoord.lng.toFixed(4)}</div>`);
-      markersRef.current.addLayer(marker);
+      markersRef.current.addLayer(L.marker([destCoord.lat, destCoord.lng], { icon: destIcon }));
     }
-
     if (currentPosition) {
-      const marker = L.marker([currentPosition.lat, currentPosition.lng], { icon: currentPositionIcon() });
-      marker.bindPopup(`<div style="font-family:system-ui;font-size:13px;"><strong>Jouw locatie</strong></div>`);
-      markersRef.current.addLayer(marker);
+      markersRef.current.addLayer(L.marker([currentPosition.lat, currentPosition.lng], { icon: currentPositionIcon() }));
     }
   }, [startCoord, destCoord, superchargers, chargingStops, currentPosition]);
 
@@ -264,20 +182,34 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
     const map = mapRef.current;
     if (!map || !isNavigating || !currentPosition) return;
 
-    // In navigation: zoom in to street level and follow position
     const targetZoom = 16;
     if (map.getZoom() < 15) {
       map.setView([currentPosition.lat, currentPosition.lng], targetZoom, { animate: true });
     } else {
       map.panTo([currentPosition.lat, currentPosition.lng], { animate: true, duration: 0.5 });
     }
+    setTimeout(() => { try { map.invalidateSize(); } catch { /* */ } }, 300);
   }, [currentPosition, isNavigating]);
 
+  // Heading-up rotation via CSS on the leaflet container.
+  const rotation = isNavigating && headingUp && typeof heading === 'number' ? -heading : 0;
+  const isRotated = rotation !== 0;
+
   return (
-    <div
-      ref={mapContainerRef}
-      className="w-full h-full min-h-[400px] rounded-xl overflow-hidden"
-      style={{ zIndex: 0 }}
-    />
+    <div className="w-full h-full min-h-[400px] relative overflow-hidden" style={{ zIndex: 0 }}>
+      <div
+        ref={mapContainerRef}
+        className="absolute"
+        style={{
+          transform: `rotate(${rotation}deg)`,
+          transformOrigin: 'center center',
+          transition: 'transform 0.4s ease-out',
+          width: isRotated ? '160%' : '100%',
+          height: isRotated ? '160%' : '100%',
+          left: isRotated ? '-30%' : '0',
+          top: isRotated ? '-30%' : '0',
+        }}
+      />
+    </div>
   );
 }

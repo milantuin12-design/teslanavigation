@@ -96,8 +96,15 @@ function Index() {
   const [isLoadingChargers, setIsLoadingChargers] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [currentHeading, setCurrentHeading] = useState<number | null>(null);
+  const [headingUp, setHeadingUp] = useState(false);
   const [liveBattery, setLiveBattery] = useState<number>(80);
   const [lastAvailabilityUpdate, setLastAvailabilityUpdate] = useState<string | null>(null);
+  const [navStartBattery, setNavStartBattery] = useState<number>(80);
+  const [navStartKm, setNavStartKm] = useState<number>(0);
+  const [routeChangedAt, setRouteChangedAt] = useState<number | null>(null);
+  const [routeChangedStops, setRouteChangedStops] = useState<ChargingStop[] | null>(null);
+  const prevPositionRef = useRef<{ lat: number; lng: number } | null>(null);
 
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
@@ -147,7 +154,21 @@ function Index() {
     if (isNavigating && navigator.geolocation) {
       watchIdRef.current = navigator.geolocation.watchPosition(
         (pos) => {
-          setCurrentPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          // Compute heading from GPS heading or from prev->new bearing
+          let h: number | null = typeof pos.coords.heading === 'number' && !isNaN(pos.coords.heading) ? pos.coords.heading : null;
+          if (h === null && prevPositionRef.current) {
+            const prev = prevPositionRef.current;
+            const dy = newPos.lat - prev.lat;
+            const dx = (newPos.lng - prev.lng) * Math.cos(((newPos.lat + prev.lat) / 2) * Math.PI / 180);
+            if (Math.abs(dx) + Math.abs(dy) > 1e-6) {
+              h = (Math.atan2(dx, dy) * 180) / Math.PI;
+              if (h < 0) h += 360;
+            }
+          }
+          if (h !== null) setCurrentHeading(h);
+          prevPositionRef.current = newPos;
+          setCurrentPosition(newPos);
         },
         () => {},
         { enableHighAccuracy: true, maximumAge: 3000 }
@@ -158,6 +179,8 @@ function Index() {
         watchIdRef.current = null;
       }
       setCurrentPosition(null);
+      setCurrentHeading(null);
+      prevPositionRef.current = null;
     }
     return () => {
       if (watchIdRef.current !== null) {
@@ -327,23 +350,45 @@ function Index() {
   const handleStartNavigation = useCallback(() => {
     if (!route) return;
     setLiveBattery(batteryPercent);
+    setNavStartBattery(batteryPercent);
+    setNavStartKm(0);
     setIsNavigating(true);
+    setRouteChangedStops(null);
+    setRouteChangedAt(null);
   }, [route, batteryPercent]);
 
   const handleStopNavigation = useCallback(() => {
     setIsNavigating(false);
+    setHeadingUp(false);
   }, []);
+
+  // Position projected onto route
+  const positionProj = useMemo(() => {
+    if (!isNavigating || !currentPosition || !route) return null;
+    return projectOntoRoute(currentPosition.lat, currentPosition.lng, route.coordinates);
+  }, [isNavigating, currentPosition, route]);
+
+  // Estimated current battery based on distance traveled from nav start
+  const fullRangeKmActive = useMemo(() => {
+    return getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
+  }, [modelRange, trailerReductionEffective, weatherMode, timeMode]);
+
+  const estimatedBattery = useMemo(() => {
+    if (!isNavigating || !positionProj) return null;
+    const traveledKm = Math.max(0, positionProj.km - navStartKm);
+    const consumed = (traveledKm / fullRangeKmActive) * 100;
+    return Math.max(0, navStartBattery - consumed);
+  }, [isNavigating, positionProj, navStartKm, navStartBattery, fullRangeKmActive]);
 
   // Derived values for navigation HUD
   const navInfo = useMemo(() => {
-    if (!isNavigating || !currentPosition || !route || !destCoord) return null;
-    const proj = projectOntoRoute(currentPosition.lat, currentPosition.lng, route.coordinates);
+    if (!isNavigating || !currentPosition || !route || !destCoord || !positionProj) return null;
+    const proj = positionProj;
     const remainingKm = Math.max(0, route.totalDistanceKm - proj.km);
     const remainingMin = route.totalTimeMin > 0 && route.totalDistanceKm > 0
       ? Math.round((remainingKm / route.totalDistanceKm) * route.totalTimeMin)
       : 0;
 
-    // next charging stop ahead
     let nextStop: ChargingStop | null = null;
     let nextKmFromStart = Infinity;
     for (const s of chargingStops) {
@@ -353,20 +398,37 @@ function Index() {
       }
     }
 
-    let nextCharging = null as null | { stop: ChargingStop; kmFromHere: number; etaMin: number };
+    let nextCharging = null as null | { stop: ChargingStop; kmFromHere: number; etaMin: number; arrivalPercent: number };
     if (nextStop) {
       const km = Math.max(0, nextStop.distanceFromStart - proj.km);
       const minEta = route.totalDistanceKm > 0
         ? Math.round((km / route.totalDistanceKm) * route.totalTimeMin)
         : 0;
-      nextCharging = { stop: nextStop, kmFromHere: km, etaMin: minEta };
+      const consumed = (km / fullRangeKmActive) * 100;
+      const arrivalPct = Math.max(0, liveBattery - consumed);
+      nextCharging = { stop: nextStop, kmFromHere: km, etaMin: minEta, arrivalPercent: arrivalPct };
     }
 
-    // Current step: pick the step whose maneuver location is closest ahead
+    const destConsumed = (remainingKm / fullRangeKmActive) * 100;
+    // For destination % we assume charging happens at planned stops
+    let destPct = liveBattery;
+    let runningKm = proj.km;
+    let runningBat = liveBattery;
+    for (const s of chargingStops) {
+      if (s.distanceFromStart <= proj.km) continue;
+      const leg = s.distanceFromStart - runningKm;
+      runningBat = Math.max(0, runningBat - (leg / fullRangeKmActive) * 100);
+      runningBat = Math.max(runningBat, s.batteryAfter);
+      runningKm = s.distanceFromStart;
+    }
+    const finalLeg = route.totalDistanceKm - runningKm;
+    destPct = Math.max(0, runningBat - (finalLeg / fullRangeKmActive) * 100);
+    if (chargingStops.length === 0) destPct = Math.max(0, liveBattery - destConsumed);
+
     let currentStepIdx = 0;
     let bestStepDist = Infinity;
     for (let i = 0; i < routeSteps.length; i++) {
-      const loc = routeSteps[i].maneuver.location; // [lng, lat]
+      const loc = routeSteps[i].maneuver.location;
       const d = haversineDistance(currentPosition.lat, currentPosition.lng, loc[1], loc[0]);
       if (d < bestStepDist) {
         bestStepDist = d;
@@ -377,10 +439,11 @@ function Index() {
     return {
       currentStepIdx,
       nextCharging,
-      destination: { kmFromHere: remainingKm, etaMin: remainingMin },
+      destination: { kmFromHere: remainingKm, etaMin: remainingMin, arrivalPercent: destPct },
       offRouteKm: distanceToRoute(currentPosition.lat, currentPosition.lng, route.coordinates),
     };
-  }, [isNavigating, currentPosition, route, destCoord, chargingStops, routeSteps]);
+  }, [isNavigating, currentPosition, route, destCoord, chargingStops, routeSteps, positionProj, liveBattery, fullRangeKmActive]);
+
 
   // Auto-reroute when off-route
   const offRouteSinceRef = useRef<number | null>(null);
@@ -405,22 +468,56 @@ function Index() {
     }
   }, [navInfo, isNavigating, currentPosition, destCoord, liveBattery, computeRoute]);
 
-  // Auto-reroute when live battery insufficient for next charging stop
+  // Auto-reroute when live battery insufficient for next charging stop, or when we can skip it
   useEffect(() => {
     if (!isNavigating || !navInfo || !currentPosition || !destCoord || !route) return;
     if (isReroutingRef.current) return;
     if (!navInfo.nextCharging) return;
-    // estimated battery needed to reach next stop with 3% safety
     const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
-    const needed = (navInfo.nextCharging.kmFromHere / fullRange) * 100 + 3;
-    if (liveBattery < needed - 1) {
+    const neededForNext = (navInfo.nextCharging.kmFromHere / fullRange) * 100 + 3;
+
+    // Find the stop AFTER next (within current chargingStops)
+    const proj = positionProj;
+    let stopAfter: ChargingStop | null = null;
+    let foundCurrent = false;
+    for (const s of chargingStops) {
+      if (proj && s.distanceFromStart > proj.km + 0.5) {
+        if (!foundCurrent) { foundCurrent = true; continue; }
+        stopAfter = s; break;
+      }
+    }
+    const canSkip = stopAfter && proj
+      ? liveBattery >= ((stopAfter.distanceFromStart - proj.km) / fullRange) * 100 + 8
+      : false;
+
+    const shouldReroute = liveBattery < neededForNext - 1 || canSkip;
+    if (shouldReroute) {
       isReroutingRef.current = true;
       (async () => {
+        const before = chargingStops;
         await computeRoute(currentPosition, destCoord, liveBattery, []);
+        // Show "Route aangepast" banner with new stops for 10 s
+        setNavStartBattery(liveBattery);
+        setNavStartKm(proj?.km ?? 0);
+        setRouteChangedAt(Date.now());
+        // chargingStops state will update on next render; show what's there now
+        setRouteChangedStops(before);
+        setTimeout(() => {
+          setRouteChangedStops(null);
+          setRouteChangedAt(null);
+        }, 10000);
         isReroutingRef.current = false;
       })();
     }
-  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, timeMode, computeRoute]);
+  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, timeMode, computeRoute, chargingStops, positionProj]);
+
+  // When user manually updates liveBattery, reset estimate baseline
+  useEffect(() => {
+    if (!isNavigating || !positionProj) return;
+    setNavStartBattery(liveBattery);
+    setNavStartKm(positionProj.km);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveBattery]);
 
   const handleChargerBatteryChange = useCallback(
     (index: number, newBatteryAfter: number) => {
@@ -513,6 +610,8 @@ function Index() {
           chargingStops={chargingStops}
           currentPosition={currentPosition}
           isNavigating={isNavigating}
+          heading={currentHeading}
+          headingUp={headingUp}
         />
         {isNavigating && (
           <NavigationPanel
@@ -521,8 +620,12 @@ function Index() {
             nextChargingStop={navInfo?.nextCharging ?? null}
             destination={navInfo?.destination ?? null}
             currentBattery={liveBattery}
+            estimatedBattery={estimatedBattery}
             onBatteryChange={setLiveBattery}
             onStop={handleStopNavigation}
+            headingUp={headingUp}
+            onToggleHeadingUp={() => setHeadingUp((v) => !v)}
+            routeChangedStops={routeChangedStops}
           />
         )}
       </div>

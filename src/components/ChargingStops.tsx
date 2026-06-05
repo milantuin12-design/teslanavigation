@@ -1,7 +1,7 @@
 import { Zap, BatteryCharging, MapPin, Gauge, Clock, X, Edit3 } from 'lucide-react';
 import { useState } from 'react';
-import { ChargingStop, ChargerStatus } from '@/lib/tesla-types';
-import { getStatusColor, getChargerStatus, parseMaxSpeed } from '@/lib/tesla-utils';
+import { ChargingStop } from '@/lib/tesla-types';
+import { parseMaxSpeed } from '@/lib/tesla-utils';
 
 interface ChargingStopsProps {
   stops: ChargingStop[];
@@ -58,8 +58,6 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
         Oplaadstops
       </h3>
       {stops.map((stop, idx) => {
-        const status: ChargerStatus = getChargerStatus(stop.charger);
-        const statusColor = getStatusColor(status);
         const maxSpeedKw = parseMaxSpeed(stop.charger.stallTypes);
         const maxSpeedLabel = maxSpeedKw ? `${maxSpeedKw}kW` : '';
         const isEditing = editingIndex === idx;
@@ -70,15 +68,9 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
             className="bg-slate-800/60 border border-slate-700/50 rounded-lg px-3 py-2.5"
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ background: statusColor }}
-                />
-                <span className="text-sm font-medium text-white">
-                  {stop.charger.name}
-                </span>
-              </div>
+              <span className="text-sm font-medium text-white">
+                {stop.charger.name}
+              </span>
               <div className="flex items-center gap-1">
                 {onRemoveCharger && (
                   <button
@@ -110,18 +102,8 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                     className="w-14 bg-slate-700 border border-slate-600 rounded px-1.5 py-0.5 text-xs text-white"
                   />
                   <span className="text-slate-400">%</span>
-                  <button
-                    onClick={handleSaveEdit}
-                    className="px-1.5 py-0.5 bg-green-600 text-white text-[10px] rounded"
-                  >
-                    OK
-                  </button>
-                  <button
-                    onClick={handleCancelEdit}
-                    className="px-1.5 py-0.5 bg-slate-600 text-white text-[10px] rounded"
-                  >
-                    Annuleer
-                  </button>
+                  <button onClick={handleSaveEdit} className="px-1.5 py-0.5 bg-green-600 text-white text-[10px] rounded">OK</button>
+                  <button onClick={handleCancelEdit} className="px-1.5 py-0.5 bg-slate-600 text-white text-[10px] rounded">Annuleer</button>
                 </div>
               ) : (
                 <span
@@ -145,21 +127,6 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                 </span>
               )}
             </div>
-            {status !== 'Onbekend' && stop.charger.totalStalls !== undefined && stop.charger.occupiedStalls !== undefined ? (
-              <div className="mt-1 text-[10px] text-slate-500">
-                {stop.charger.totalStalls - stop.charger.occupiedStalls}/{stop.charger.totalStalls} beschikbaar
-                {stop.charger.stallTypes && (
-                  <span className="ml-2 text-slate-600">{stop.charger.stallTypes}</span>
-                )}
-              </div>
-            ) : (
-              <div className="mt-1 text-[10px] text-slate-500">
-                Beschikbaarheid: {status}
-                {stop.charger.stallTypes && (
-                  <span className="ml-2 text-slate-600">{stop.charger.stallTypes}</span>
-                )}
-              </div>
-            )}
           </div>
         );
       })}
