@@ -154,7 +154,21 @@ function Index() {
     if (isNavigating && navigator.geolocation) {
       watchIdRef.current = navigator.geolocation.watchPosition(
         (pos) => {
-          setCurrentPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          // Compute heading from GPS heading or from prev->new bearing
+          let h: number | null = typeof pos.coords.heading === 'number' && !isNaN(pos.coords.heading) ? pos.coords.heading : null;
+          if (h === null && prevPositionRef.current) {
+            const prev = prevPositionRef.current;
+            const dy = newPos.lat - prev.lat;
+            const dx = (newPos.lng - prev.lng) * Math.cos(((newPos.lat + prev.lat) / 2) * Math.PI / 180);
+            if (Math.abs(dx) + Math.abs(dy) > 1e-6) {
+              h = (Math.atan2(dx, dy) * 180) / Math.PI;
+              if (h < 0) h += 360;
+            }
+          }
+          if (h !== null) setCurrentHeading(h);
+          prevPositionRef.current = newPos;
+          setCurrentPosition(newPos);
         },
         () => {},
         { enableHighAccuracy: true, maximumAge: 3000 }
@@ -165,6 +179,8 @@ function Index() {
         watchIdRef.current = null;
       }
       setCurrentPosition(null);
+      setCurrentHeading(null);
+      prevPositionRef.current = null;
     }
     return () => {
       if (watchIdRef.current !== null) {
