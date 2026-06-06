@@ -425,19 +425,36 @@ function Index() {
     destPct = Math.max(0, runningBat - (finalLeg / fullRangeKmActive) * 100);
     if (chargingStops.length === 0) destPct = Math.max(0, liveBattery - destConsumed);
 
+    // currentStepIdx = first maneuver we haven't reached yet, based on
+    // cumulative step distance along the route vs. our projected position.
     let currentStepIdx = 0;
-    let bestStepDist = Infinity;
-    for (let i = 0; i < routeSteps.length; i++) {
-      const loc = routeSteps[i].maneuver.location;
-      const d = haversineDistance(currentPosition.lat, currentPosition.lng, loc[1], loc[0]);
-      if (d < bestStepDist) {
-        bestStepDist = d;
-        currentStepIdx = i;
+    let distanceToNextManeuver: number | null = null;
+    if (routeSteps.length > 0) {
+      let cumKm = 0;
+      let foundIdx = -1;
+      const traveledKm = proj.km;
+      for (let i = 0; i < routeSteps.length; i++) {
+        cumKm += routeSteps[i].distance / 1000;
+        if (cumKm > traveledKm + 0.005) {
+          foundIdx = i;
+          distanceToNextManeuver = Math.max(0, (cumKm - traveledKm) * 1000);
+          break;
+        }
+      }
+      currentStepIdx = foundIdx >= 0 ? foundIdx : routeSteps.length - 1;
+      if (distanceToNextManeuver === null && routeSteps[currentStepIdx]) {
+        distanceToNextManeuver = haversineDistance(
+          currentPosition.lat,
+          currentPosition.lng,
+          routeSteps[currentStepIdx].maneuver.location[1],
+          routeSteps[currentStepIdx].maneuver.location[0],
+        ) * 1000;
       }
     }
 
     return {
       currentStepIdx,
+      distanceToNextManeuver,
       nextCharging,
       destination: { kmFromHere: remainingKm, etaMin: remainingMin, arrivalPercent: destPct },
       offRouteKm: distanceToRoute(currentPosition.lat, currentPosition.lng, route.coordinates),
@@ -617,6 +634,7 @@ function Index() {
           <NavigationPanel
             steps={routeSteps}
             currentStepIndex={navInfo?.currentStepIdx ?? 0}
+            distanceToNextManeuver={navInfo?.distanceToNextManeuver ?? null}
             nextChargingStop={navInfo?.nextCharging ?? null}
             destination={navInfo?.destination ?? null}
             currentBattery={liveBattery}
