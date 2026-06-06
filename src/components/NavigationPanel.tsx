@@ -169,7 +169,7 @@ export default function NavigationPanel({
           <div className="space-y-1">
             {routeChangedStops.map((s, i) => (
               <div key={i} className="text-xs text-slate-900">
-                <strong>#{i + 1}</strong> {s.charger.name} — {s.distanceFromStart} km · laad tot {s.batteryAfter}%
+                <strong>#{i + 1}</strong> {s.charger.name} — {s.distanceFromStart} km · {s.charger.totalStalls ? `${s.charger.totalStalls} laadplekken · ` : ''}laad tot {s.batteryAfter}%
               </div>
             ))}
             {routeChangedStops.length === 0 && (
@@ -230,6 +230,11 @@ export default function NavigationPanel({
                 <div className="text-sm text-slate-300 mt-0.5">
                   {formatKm(nextChargingStop.kmFromHere)} • {formatMin(nextChargingStop.etaMin)}
                 </div>
+                {nextChargingStop.stop.charger.totalStalls && (
+                  <div className="text-xs text-slate-400 mt-0.5">
+                    {nextChargingStop.stop.charger.totalStalls} laadplekken
+                  </div>
+                )}
                 <div className={`text-xs mt-0.5 ${nextChargingStop.arrivalPercent < 5 ? 'text-red-400' : 'text-slate-400'}`}>
                   Aankomst: ≈ {Math.round(nextChargingStop.arrivalPercent)}%
                 </div>

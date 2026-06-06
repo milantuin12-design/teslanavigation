@@ -105,7 +105,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
         let popup = `<div style="font-family:system-ui;font-size:13px;min-width:180px;">
           <strong style="font-size:14px;">${charger.name || 'Onbekend'}</strong>`;
         if (charger.totalStalls) {
-          popup += `<br/><span style="color:#94a3b8;">${charger.totalStalls} laadpalen</span>`;
+          popup += `<br/><span style="color:#94a3b8;">${charger.totalStalls} laadplekken</span>`;
         }
         if (maxSpeed) {
           popup += `<br/><span style="color:#60a5fa;font-weight:500;">Max ${maxSpeed} kW</span>`;
@@ -127,6 +127,9 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
           <strong>Opladen #${idx + 1}</strong><br/>
           ${stop.charger.name}<br/>
           Batterij: ${stop.batteryBefore}% &#8594; ${stop.batteryAfter}%`;
+        if (stop.charger.totalStalls) {
+          popup += `<br/><span style="color:#94a3b8;">${stop.charger.totalStalls} laadplekken</span>`;
+        }
         if (maxSpeed) {
           popup += `<br/><span style="color:#60a5fa;">Max ${maxSpeed}kW</span>`;
         }
