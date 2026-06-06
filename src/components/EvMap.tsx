@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus } from '@/lib/tesla-types';
-import { getChargerStatus, getStatusColor, parseMaxSpeed } from '@/lib/tesla-utils';
+import { getChargerStatus, parseMaxSpeed } from '@/lib/tesla-utils';
 
 interface EvMapProps {
   startCoord: { lat: number; lng: number } | null;
@@ -31,11 +31,11 @@ const destIcon = L.divIcon({
   iconAnchor: [14, 14],
 });
 
-function chargerIcon(status: ChargerStatus) {
-  const color = getStatusColor(status);
+function chargerIcon(_status: ChargerStatus) {
+  // All chargers shown as available (green) — live occupancy not exposed.
   return L.divIcon({
     className: 'custom-marker',
-    html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);"></div>`,
+    html: `<div style="width:22px;height:22px;border-radius:50%;background:#22c55e;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);"></div>`,
     iconSize: [22, 22],
     iconAnchor: [11, 11],
   });
@@ -183,12 +183,18 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
     if (!map || !isNavigating || !currentPosition) return;
 
     const targetZoom = 16;
-    if (map.getZoom() < 15) {
-      map.setView([currentPosition.lat, currentPosition.lng], targetZoom, { animate: true });
+    if (map.getZoom() < 14) {
+      map.setView([currentPosition.lat, currentPosition.lng], targetZoom, {
+        animate: true,
+        duration: 1.2,
+      });
     } else {
-      map.panTo([currentPosition.lat, currentPosition.lng], { animate: true, duration: 0.5 });
+      map.panTo([currentPosition.lat, currentPosition.lng], {
+        animate: true,
+        duration: 1.2,
+        easeLinearity: 0.25,
+      });
     }
-    setTimeout(() => { try { map.invalidateSize(); } catch { /* */ } }, 300);
   }, [currentPosition, isNavigating]);
 
   // Heading-up rotation via CSS on the leaflet container.

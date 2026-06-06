@@ -17,6 +17,8 @@ interface RouteStep {
 interface NavigationPanelProps {
   steps: RouteStep[];
   currentStepIndex: number;
+  /** Live distance (meters) from current GPS position to the next maneuver. */
+  distanceToNextManeuver: number | null;
   nextChargingStop: { stop: ChargingStop; kmFromHere: number; etaMin: number; arrivalPercent: number } | null;
   destination: { kmFromHere: number; etaMin: number; arrivalPercent: number } | null;
   currentBattery: number;
@@ -31,8 +33,17 @@ interface NavigationPanelProps {
 }
 
 function formatDistance(meters: number): string {
-  if (meters >= 1000) return `${(meters / 1000).toFixed(meters >= 10000 ? 0 : 1)} km`;
-  return `${Math.round(meters / 10) * 10} m`;
+  if (meters < 15) return 'NU';
+  // Snap to display values when < 1 km so the readout updates often and
+  // the driver always sees: 1 km → 800 → 500 → 250 → 100 → 25 → NU.
+  if (meters <= 1000) {
+    const snaps = [25, 100, 250, 500, 800, 1000];
+    let snap = 25;
+    for (const v of snaps) if (meters >= v) snap = v;
+    if (snap >= 1000) return '1 km';
+    return `${snap} m`;
+  }
+  return `${(meters / 1000).toFixed(meters >= 10000 ? 0 : 1)} km`;
 }
 function formatKm(km: number): string {
   return km < 1 ? `${Math.round(km * 1000)} m` : `${Math.round(km)} km`;
@@ -82,6 +93,7 @@ function getManeuverText(type: string, modifier?: string, name?: string): string
 export default function NavigationPanel({
   steps,
   currentStepIndex,
+  distanceToNextManeuver,
   nextChargingStop,
   destination,
   currentBattery,
@@ -97,6 +109,7 @@ export default function NavigationPanel({
 
   const currentStep = steps[currentStepIndex];
   const nextStep = steps[currentStepIndex + 1];
+  const liveDistance = distanceToNextManeuver ?? currentStep?.distance ?? 0;
 
   return (
     <div className="absolute inset-0 pointer-events-none z-[1000] flex flex-col">
@@ -132,7 +145,7 @@ export default function NavigationPanel({
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-4xl font-bold text-white leading-none">
-                {formatDistance(currentStep.distance)}
+                {formatDistance(liveDistance)}
               </div>
               <div className="text-sm text-slate-300 mt-1.5 truncate">
                 {getManeuverText(currentStep.maneuver.type, currentStep.maneuver.modifier, currentStep.name)}
