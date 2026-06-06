@@ -338,11 +338,17 @@ export default function InputPanel({
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
               <Car size={13} className="text-slate-300" />
-              Model
+              Model <span className="text-slate-500">(dubbelklik = volgende)</span>
             </label>
             <select
               value={selectedModel}
               onChange={e => onModelChange(e.target.value)}
+              onDoubleClick={() => {
+                const keys = Object.keys(teslaModels);
+                const idx = keys.indexOf(selectedModel);
+                const next = keys[(idx + 1) % keys.length];
+                onModelChange(next);
+              }}
               className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all appearance-none cursor-pointer"
             >
               {Object.keys(teslaModels).map(model => (
