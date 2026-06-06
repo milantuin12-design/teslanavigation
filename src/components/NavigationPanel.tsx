@@ -145,7 +145,7 @@ export default function NavigationPanel({
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-4xl font-bold text-white leading-none">
-                {formatDistance(currentStep.distance)}
+                {formatDistance(liveDistance)}
               </div>
               <div className="text-sm text-slate-300 mt-1.5 truncate">
                 {getManeuverText(currentStep.maneuver.type, currentStep.maneuver.modifier, currentStep.name)}
