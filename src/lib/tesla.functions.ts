@@ -5,14 +5,30 @@ import type { Supercharger } from "./tesla-types";
 export const listSuperchargers = createServerFn({ method: "GET" }).handler(
   async (): Promise<Supercharger[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
-      .from("superchargers")
-      .select("name,lat,lng,total_stalls,stall_types,occupied_stalls,country")
-      .order("name");
+    const pageSize = 1000;
+    const rows: Array<{
+      name: string;
+      lat: number;
+      lng: number;
+      total_stalls: number | null;
+      stall_types: string | null;
+      occupied_stalls: number | null;
+      country: string | null;
+    }> = [];
 
-    if (error) throw new Error(error.message);
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await supabaseAdmin
+        .from("superchargers")
+        .select("name,lat,lng,total_stalls,stall_types,occupied_stalls,country")
+        .order("name")
+        .range(from, from + pageSize - 1);
 
-    return (data ?? []).map((row) => ({
+      if (error) throw new Error(error.message);
+      rows.push(...(data ?? []));
+      if (!data || data.length < pageSize) break;
+    }
+
+    return rows.map((row) => ({
       name: row.name as string,
       lat: row.lat as number,
       lng: row.lng as number,
@@ -236,12 +252,8 @@ async function lookupEVAvailability(
   const updateBody: {
     last_updated: string;
     occupied_stalls?: number;
-    total_stalls?: number;
-    stall_types?: string;
   } = { last_updated: new Date().toISOString() };
   if (occupiedStalls !== null) updateBody.occupied_stalls = occupiedStalls;
-  if (totalStalls !== null) updateBody.total_stalls = totalStalls;
-  if (stallTypes !== null && stallTypes !== charger.stall_types) updateBody.stall_types = stallTypes;
 
   const { error: upErr } = await supabaseAdmin
     .from("superchargers")
