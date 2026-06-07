@@ -2,6 +2,23 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { Supercharger } from "./tesla-types";
 
+function normalizeStallData(totalStalls?: number | null, stallTypes?: string | null) {
+  const rawParts = (stallTypes ?? "")
+    .split(/[,+]/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const uniqueParts = rawParts.filter((part, index) => rawParts.indexOf(part) === index);
+  const parsedTotal = uniqueParts.reduce((sum, part) => {
+    const match = part.match(/^(\d+)\s*x/i);
+    return sum + (match ? Number(match[1]) : 0);
+  }, 0);
+
+  return {
+    totalStalls: parsedTotal > 0 ? parsedTotal : totalStalls ?? undefined,
+    stallTypes: uniqueParts.length > 0 ? uniqueParts.join(", ") : stallTypes ?? undefined,
+  };
+}
+
 export const listSuperchargers = createServerFn({ method: "GET" }).handler(
   async (): Promise<Supercharger[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -28,15 +45,18 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
       if (!data || data.length < pageSize) break;
     }
 
-    return rows.map((row) => ({
-      name: row.name as string,
-      lat: row.lat as number,
-      lng: row.lng as number,
-      totalStalls: row.total_stalls ?? undefined,
-      occupiedStalls: row.occupied_stalls ?? undefined,
-      stallTypes: row.stall_types ?? undefined,
-      country: row.country ?? undefined,
-    }));
+    return rows.map((row) => {
+      const normalized = normalizeStallData(row.total_stalls, row.stall_types);
+      return {
+        name: row.name as string,
+        lat: row.lat as number,
+        lng: row.lng as number,
+        totalStalls: normalized.totalStalls,
+        occupiedStalls: row.occupied_stalls ?? undefined,
+        stallTypes: normalized.stallTypes,
+        country: row.country ?? undefined,
+      };
+    });
   }
 );
 
