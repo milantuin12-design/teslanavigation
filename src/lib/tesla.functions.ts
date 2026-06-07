@@ -218,31 +218,23 @@ async function lookupEVAvailability(
   }
 
   let occupiedStalls: number | null = null;
-  let totalStalls: number | null = null;
-  let stallTypes: string | null = charger.stall_types;
-
   if (bestPlace?.evChargeOptions) {
     const evOpts = bestPlace.evChargeOptions;
-    totalStalls = evOpts.connectorCount;
+    const connectorCount = evOpts.connectorCount;
     let availableCount = 0;
     let outOfServiceCount = 0;
-    const speedParts: string[] = [];
 
     for (const agg of evOpts.connectorAggregation || []) {
-      const speed = agg.maxChargeRateKw ? `${agg.count}x${Math.round(agg.maxChargeRateKw)}kW` : `${agg.count}x`;
-      speedParts.push(speed);
       if (agg.availableCount !== undefined) availableCount += agg.availableCount;
       if (agg.outOfServiceCount !== undefined) outOfServiceCount += agg.outOfServiceCount;
     }
-
-    if (speedParts.length > 0) stallTypes = speedParts.join(", ");
 
     if (
       availableCount > 0 ||
       outOfServiceCount > 0 ||
       evOpts.connectorAggregation?.some((a) => a.availableCount !== undefined)
     ) {
-      occupiedStalls = totalStalls - availableCount - outOfServiceCount;
+      occupiedStalls = connectorCount - availableCount - outOfServiceCount;
       if (occupiedStalls < 0) occupiedStalls = 0;
     } else {
       occupiedStalls = null;
