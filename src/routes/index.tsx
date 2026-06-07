@@ -23,7 +23,7 @@ import {
   projectOntoRoute,
   haversineDistance,
 } from "@/lib/tesla-utils";
-import { listSuperchargers, refreshAvailability } from "@/lib/tesla.functions";
+import { listSuperchargers } from "@/lib/tesla.functions";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -127,25 +127,7 @@ function Index() {
   }, []);
 
   useEffect(() => {
-    let mounted = true;
-    const refresh = async () => {
-      try {
-        const res = await refreshAvailability({ data: {} });
-        if (!mounted) return;
-        if (res?.timestamp) setLastAvailabilityUpdate(res.timestamp);
-        const data = await listSuperchargers();
-        if (mounted) setSuperchargers(data);
-      } catch {
-        // ignore
-      }
-    };
-    const timeout = setTimeout(refresh, 5000);
-    const interval = setInterval(refresh, 60000);
-    return () => {
-      mounted = false;
-      clearTimeout(timeout);
-      clearInterval(interval);
-    };
+    setLastAvailabilityUpdate(new Date().toISOString());
   }, []);
 
   const watchIdRef = useRef<number | null>(null);

@@ -307,11 +307,12 @@ export function calculateChargingStops(
       minBatteryNeeded = batteryNeededForNextLeg + minSafetyPercent + 2;
     }
 
-    // For non-last stops, also satisfy user's "charge to X%" target.
-    // For the last stop, ignore chargeTargetPercent entirely.
+    // For non-last stops, prefer fewer charging stops: charge high enough to
+    // skip extra intermediate chargers when possible. For the last stop,
+    // ignore chargeTargetPercent entirely to avoid wasted charging.
     let batteryAfter = useDestAsNext
       ? Math.ceil(minBatteryNeeded)
-      : Math.max(chargeTargetPercent, Math.ceil(minBatteryNeeded));
+      : Math.max(chargeTargetPercent, 95, Math.ceil(minBatteryNeeded));
     batteryAfter = Math.min(100, batteryAfter);
 
     const rawChargerKw = parseMaxSpeed(best.charger.stallTypes);
