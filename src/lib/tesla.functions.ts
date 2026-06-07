@@ -56,69 +56,13 @@ interface EVChargeOptions {
 export const refreshAvailability = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({}).optional().parse(input ?? {}))
   .handler(async () => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const lovableApiKey = process.env.LOVABLE_API_KEY;
-    const googleConnKey = process.env.GOOGLE_MAPS_API_KEY;
-    const useGateway = !!(lovableApiKey && googleConnKey);
-
-    const { data: chargers, error } = await supabaseAdmin
-      .from("superchargers")
-      .select("id,name,lat,lng,total_stalls,occupied_stalls,stall_types")
-      .order("name")
-      .limit(1000);
-
-    if (error) throw new Error(error.message);
-
-    let updated = 0;
-    let failed = 0;
-    let noGoogleData = 0;
-
-    if (useGateway && chargers) {
-      const batchSize = 3;
-      const delayMs = 350;
-
-      for (let i = 0; i < chargers.length; i += batchSize) {
-        const batch = chargers.slice(i, i + batchSize);
-        const results = await Promise.allSettled(
-          batch.map(async (charger, idx) => {
-            await new Promise((r) => setTimeout(r, idx * 100));
-            return lookupEVAvailability(charger, lovableApiKey!, googleConnKey!);
-          })
-        );
-
-        for (let j = 0; j < results.length; j++) {
-          const r = results[j];
-          if (r.status === "fulfilled" && r.value.success) {
-            updated++;
-          } else if (r.status === "fulfilled" && r.value.reason === "no_google_data") {
-            noGoogleData++;
-          } else {
-            failed++;
-          }
-        }
-
-        if (i + batchSize < chargers.length) {
-          await new Promise((r) => setTimeout(r, delayMs));
-        }
-      }
-    } else if (chargers) {
-      for (const charger of chargers) {
-        const { error: upErr } = await supabaseAdmin
-          .from("superchargers")
-          .update({ last_updated: new Date().toISOString() })
-          .eq("id", charger.id);
-        if (upErr) failed++;
-        else updated++;
-      }
-    }
-
     return {
-      updated,
-      failed,
-      noGoogleData,
-      total: chargers?.length ?? 0,
+      updated: 0,
+      failed: 0,
+      noGoogleData: 0,
+      total: 0,
       timestamp: new Date().toISOString(),
-      googleMaps: useGateway,
+      googleMaps: false,
     };
   });
 
