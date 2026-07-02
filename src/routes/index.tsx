@@ -260,6 +260,11 @@ function Index() {
     const { route: initialRoute, steps: initialSteps } = initialResult;
     setRouteSteps(initialSteps);
 
+    const variantOpts = {
+      chargeTargetPercent: routeType === "fewest" ? 100 : chargeTargetPercent,
+      maxArrivalAtChargerPercent: routeType === "fewest" ? 5 : 10,
+      trailerOnly: routeType === "trailer",
+    };
     const result = calculateChargingStops(initialRoute, {
       modelRangeKm: modelRange,
       batteryPercent: fromBattery,
@@ -269,9 +274,10 @@ function Index() {
       targetArrivalPercent,
       weatherMode,
       timeMode,
-      chargeTargetPercent,
       minChargerSpeedKw,
+      ...variantOpts,
     });
+
 
     if (result.unreachable) {
       setRoute(initialRoute);
