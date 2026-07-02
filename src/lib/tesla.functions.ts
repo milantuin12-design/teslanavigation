@@ -109,7 +109,7 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => chargerInput.parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as unknown as { supabase: SupabaseAny; userId: string });
+    await assertAdmin(context);
     const payload = {
       name: data.name,
       lat: data.lat,
@@ -142,7 +142,7 @@ export const deleteSupercharger = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as unknown as { supabase: SupabaseAny; userId: string });
+    await assertAdmin(context);
     const { error } = await context.supabase.from("superchargers").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
