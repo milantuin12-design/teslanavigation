@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { Supercharger } from "./tesla-types";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 function normalizeStallData(totalStalls?: number | null, stallTypes?: string | null) {
   const rawParts = (stallTypes ?? "")
@@ -19,59 +20,133 @@ function normalizeStallData(totalStalls?: number | null, stallTypes?: string | n
   };
 }
 
+const SELECT_COLS =
+  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,max_speed_kw,versions,opening_time,closing_time,trailer_friendly";
+
+type Row = {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  total_stalls: number | null;
+  stall_types: string | null;
+  occupied_stalls: number | null;
+  country: string | null;
+  max_speed_kw: number | null;
+  versions: string[] | null;
+  opening_time: string | null;
+  closing_time: string | null;
+  trailer_friendly: boolean | null;
+};
+
+function rowToCharger(row: Row): Supercharger {
+  const normalized = normalizeStallData(row.total_stalls, row.stall_types);
+  return {
+    id: row.id,
+    name: row.name,
+    lat: row.lat,
+    lng: row.lng,
+    totalStalls: normalized.totalStalls,
+    occupiedStalls: row.occupied_stalls ?? undefined,
+    stallTypes: normalized.stallTypes,
+    country: row.country ?? undefined,
+    maxSpeedKw: row.max_speed_kw ?? undefined,
+    versions: row.versions ?? [],
+    openingTime: row.opening_time,
+    closingTime: row.closing_time,
+    trailerFriendly: !!row.trailer_friendly,
+  };
+}
+
 export const listSuperchargers = createServerFn({ method: "GET" }).handler(
   async (): Promise<Supercharger[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const pageSize = 1000;
-    const rows: Array<{
-      name: string;
-      lat: number;
-      lng: number;
-      total_stalls: number | null;
-      stall_types: string | null;
-      occupied_stalls: number | null;
-      country: string | null;
-    }> = [];
+    const rows: Row[] = [];
 
     for (let from = 0; ; from += pageSize) {
       const { data, error } = await supabaseAdmin
         .from("superchargers")
-        .select("name,lat,lng,total_stalls,stall_types,occupied_stalls,country")
+        .select(SELECT_COLS)
         .order("name")
         .range(from, from + pageSize - 1);
 
       if (error) throw new Error(error.message);
-      rows.push(...(data ?? []));
+      rows.push(...((data as unknown as Row[]) ?? []));
       if (!data || data.length < pageSize) break;
     }
 
-    return rows.map((row) => {
-      const normalized = normalizeStallData(row.total_stalls, row.stall_types);
-      return {
-        name: row.name as string,
-        lat: row.lat as number,
-        lng: row.lng as number,
-        totalStalls: normalized.totalStalls,
-        occupiedStalls: row.occupied_stalls ?? undefined,
-        stallTypes: normalized.stallTypes,
-        country: row.country ?? undefined,
-      };
-    });
+    return rows.map(rowToCharger);
   }
 );
 
-interface ConnectorAggregation {
-  type: string;
-  maxChargeRateKw: number;
-  count: number;
-  availableCount?: number;
-  outOfServiceCount?: number;
+const chargerInput = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().min(1).max(200),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  country: z.string().max(100),
+  totalStalls: z.number().int().min(0).max(500).optional(),
+  stallTypes: z.string().max(500).optional(),
+  maxSpeedKw: z.number().int().min(0).max(1000).optional(),
+  versions: z.array(z.string()).default([]),
+  openingTime: z.string().nullable().optional(),
+  closingTime: z.string().nullable().optional(),
+  trailerFriendly: z.boolean().default(false),
+});
+
+async function assertAdmin(context: { supabase: unknown; userId: string }) {
+  const sb = context.supabase as { rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" | "user" }) => PromiseLike<{ data: boolean | null; error: { message: string } | null }> };
+  const { data, error } = await sb.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Forbidden");
 }
 
-interface EVChargeOptions {
-  connectorCount: number;
-  connectorAggregation: ConnectorAggregation[];
-}
+
+
+
+export const upsertSupercharger = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => chargerInput.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const payload = {
+      name: data.name,
+      lat: data.lat,
+      lng: data.lng,
+      country: data.country,
+      total_stalls: data.totalStalls ?? null,
+      stall_types: data.stallTypes ?? null,
+      max_speed_kw: data.maxSpeedKw ?? null,
+      versions: data.versions,
+      opening_time: data.openingTime || null,
+      closing_time: data.closingTime || null,
+      trailer_friendly: data.trailerFriendly,
+    };
+    if (data.id) {
+      const { error } = await context.supabase.from("superchargers").update(payload).eq("id", data.id);
+      if (error) throw new Error(error.message);
+      return { id: data.id };
+    } else {
+      const { data: inserted, error } = await context.supabase
+        .from("superchargers")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      return { id: (inserted as { id: string }).id };
+    }
+  });
+
+export const deleteSupercharger = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase.from("superchargers").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
 
 export const refreshAvailability = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({}).optional().parse(input ?? {}))
@@ -85,137 +160,3 @@ export const refreshAvailability = createServerFn({ method: "POST" })
       googleMaps: false,
     };
   });
-
-const GATEWAY_BASE = "https://connector-gateway.lovable.dev/google_maps";
-
-async function lookupEVAvailability(
-  charger: { id: string; name: string; lat: number; lng: number; stall_types: string | null },
-  lovableApiKey: string,
-  googleConnKey: string
-): Promise<{ success: boolean; reason?: string }> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-  const gwHeaders = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${lovableApiKey}`,
-    "X-Connection-Api-Key": googleConnKey,
-    "X-Goog-FieldMask": "places.id,places.displayName,places.location,places.evChargeOptions",
-  } as const;
-
-  const searchQuery = `Tesla Supercharger ${charger.name}`;
-  const textSearchRes = await fetch(`${GATEWAY_BASE}/places/v1/places:searchText`, {
-    method: "POST",
-    headers: gwHeaders,
-    body: JSON.stringify({
-      textQuery: searchQuery,
-      maxResultCount: 3,
-      locationBias: {
-        circle: {
-          center: { latitude: charger.lat, longitude: charger.lng },
-          radius: 10000.0,
-        },
-      },
-    }),
-  });
-
-  type Place = {
-    id: string;
-    displayName?: { text: string };
-    evChargeOptions?: EVChargeOptions;
-    location?: { latitude: number; longitude: number };
-  };
-  let bestPlace: Place | null = null;
-
-  if (textSearchRes.ok) {
-    const textSearchData = await textSearchRes.json();
-    const places: Place[] = textSearchData.places || [];
-    for (const place of places) {
-      const name = (place.displayName?.text || "").toLowerCase();
-      const isTesla = name.includes("tesla") || name.includes("supercharger");
-      const isMatch = name.includes(charger.name.toLowerCase().split(",")[0].split(" ")[0].toLowerCase());
-      if (place.location) {
-        const dist = Math.sqrt(
-          Math.pow(place.location.latitude - charger.lat, 2) +
-            Math.pow(place.location.longitude - charger.lng, 2)
-        );
-        if (dist < 0.1 && (isTesla || isMatch)) {
-          bestPlace = place;
-          break;
-        }
-      }
-    }
-  }
-
-  if (!bestPlace) {
-    const nearRes = await fetch(`${GATEWAY_BASE}/places/v1/places:searchNearby`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${lovableApiKey}`,
-        "X-Connection-Api-Key": googleConnKey,
-        "X-Goog-FieldMask": "places.id,places.displayName,places.evChargeOptions",
-      },
-      body: JSON.stringify({
-        includedTypes: ["ev_charger"],
-        maxResultCount: 5,
-        locationRestriction: {
-          circle: {
-            center: { latitude: charger.lat, longitude: charger.lng },
-            radius: 1000.0,
-          },
-        },
-      }),
-    });
-
-    if (nearRes.ok) {
-      const nearData = await nearRes.json();
-      const places: Place[] = nearData.places || [];
-      for (const place of places) {
-        const name = (place.displayName?.text || "").toLowerCase();
-        if (name.includes("tesla") || name.includes("supercharger")) {
-          bestPlace = place;
-          break;
-        }
-      }
-      if (!bestPlace && places.length > 0) bestPlace = places[0];
-    }
-  }
-
-  let occupiedStalls: number | null = null;
-  if (bestPlace?.evChargeOptions) {
-    const evOpts = bestPlace.evChargeOptions;
-    const connectorCount = evOpts.connectorCount;
-    let availableCount = 0;
-    let outOfServiceCount = 0;
-
-    for (const agg of evOpts.connectorAggregation || []) {
-      if (agg.availableCount !== undefined) availableCount += agg.availableCount;
-      if (agg.outOfServiceCount !== undefined) outOfServiceCount += agg.outOfServiceCount;
-    }
-
-    if (
-      availableCount > 0 ||
-      outOfServiceCount > 0 ||
-      evOpts.connectorAggregation?.some((a) => a.availableCount !== undefined)
-    ) {
-      occupiedStalls = connectorCount - availableCount - outOfServiceCount;
-      if (occupiedStalls < 0) occupiedStalls = 0;
-    } else {
-      occupiedStalls = null;
-    }
-  }
-
-  const updateBody: {
-    last_updated: string;
-    occupied_stalls?: number;
-  } = { last_updated: new Date().toISOString() };
-  if (occupiedStalls !== null) updateBody.occupied_stalls = occupiedStalls;
-
-  const { error: upErr } = await supabaseAdmin
-    .from("superchargers")
-    .update(updateBody)
-    .eq("id", charger.id);
-
-  if (upErr) return { success: false, reason: "db_update_failed" };
-  return { success: occupiedStalls !== null, reason: occupiedStalls === null ? "no_google_data" : undefined };
-}

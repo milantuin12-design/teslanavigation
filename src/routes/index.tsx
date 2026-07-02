@@ -4,12 +4,21 @@ import EvMap from "@/components/EvMap";
 import InputPanel from "@/components/InputPanel";
 import ChargingStops from "@/components/ChargingStops";
 import NavigationPanel from "@/components/NavigationPanel";
+import { AccountMenu } from "@/components/AccountMenu";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { Bookmark } from "lucide-react";
 import {
   Supercharger,
   ChargingStop,
   RouteResult,
   WeatherMode,
   TimeMode,
+  RouteType,
   teslaModels,
   teslaBatteryKWh,
 } from "@/lib/tesla-types";
@@ -24,6 +33,7 @@ import {
   haversineDistance,
 } from "@/lib/tesla-utils";
 import { listSuperchargers } from "@/lib/tesla.functions";
+
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -86,7 +96,17 @@ function Index() {
   const [trailerReductionPercent, setTrailerReductionPercent] = useState(40);
   const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
 
+  const [routeType, setRouteType] = useState<RouteType>("fastest");
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user ? { id: data.user.id } : null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setCurrentUser(s?.user ? { id: s.user.id } : null));
+    return () => sub.subscription.unsubscribe();
+  }, []);
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
+
   const [route, setRoute] = useState<RouteResult | null>(null);
   const [chargingStops, setChargingStops] = useState<ChargingStop[]>([]);
   const [arrivalPercent, setArrivalPercent] = useState<number | null>(null);
@@ -240,6 +260,11 @@ function Index() {
     const { route: initialRoute, steps: initialSteps } = initialResult;
     setRouteSteps(initialSteps);
 
+    const variantOpts = {
+      chargeTargetPercent: routeType === "fewest" ? 100 : chargeTargetPercent,
+      maxArrivalAtChargerPercent: routeType === "fewest" ? 5 : 10,
+      trailerOnly: routeType === "trailer",
+    };
     const result = calculateChargingStops(initialRoute, {
       modelRangeKm: modelRange,
       batteryPercent: fromBattery,
@@ -249,9 +274,10 @@ function Index() {
       targetArrivalPercent,
       weatherMode,
       timeMode,
-      chargeTargetPercent,
       minChargerSpeedKw,
+      ...variantOpts,
     });
+
 
     if (result.unreachable) {
       setRoute(initialRoute);
@@ -284,8 +310,8 @@ function Index() {
           targetArrivalPercent,
           weatherMode,
           timeMode,
-          chargeTargetPercent,
           minChargerSpeedKw,
+          ...variantOpts,
         });
         if (!updated.unreachable) {
           setChargingStops(updated.stops);
@@ -298,7 +324,8 @@ function Index() {
       setRoute(initialRoute);
     }
     return { ok: true };
-  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw]);
+  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw, routeType]);
+
 
   const handleCalculate = useCallback(async () => {
     setError("");
@@ -596,11 +623,29 @@ function Index() {
       )}
 
       <div className="flex-1 relative">
+        {!isNavigating && (
+          <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
+            <AccountMenu />
+            {route && (
+              <div className="flex gap-2 bg-slate-800/90 backdrop-blur px-2 py-1 rounded-lg border border-slate-700">
+                {(["fastest","fewest","scenic","trailer"] as RouteType[]).filter(t => t !== "trailer" || trailerEnabled).map(t => (
+                  <button key={t} onClick={() => { setRouteType(t); handleCalculate(); }} className={`px-2 py-1 text-xs rounded ${routeType===t?"bg-red-600 text-white":"text-slate-300 hover:text-white"}`}>
+                    {t==="fastest"?"Snelste":t==="fewest"?"Minste stops":t==="scenic"?"Toeristisch":"Aanhanger"}
+                  </button>
+                ))}
+              </div>
+            )}
+            {route && currentUser && (
+              <Button size="sm" onClick={() => setSaveOpen(true)} className="bg-red-600 hover:bg-red-700"><Bookmark className="w-4 h-4 mr-1" />Opslaan</Button>
+            )}
+          </div>
+        )}
         {error && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-red-500/90 backdrop-blur-sm text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg max-w-md text-center">
             {error}
           </div>
         )}
+
         <EvMap
           startCoord={startCoord}
           destCoord={destCoord}
@@ -629,6 +674,37 @@ function Index() {
           />
         )}
       </div>
+      <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white">
+          <DialogHeader><DialogTitle>Route opslaan</DialogTitle></DialogHeader>
+          <div><Label>Naam</Label><Input value={saveName} onChange={(e) => setSaveName(e.target.value)} className="bg-slate-800 border-slate-700" placeholder="Bijv. Amsterdam → Berlijn" /></div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSaveOpen(false)}>Annuleren</Button>
+            <Button className="bg-red-600 hover:bg-red-700" onClick={async () => {
+              if (!currentUser || !startCoord || !destCoord || !route) return;
+              const { error } = await supabase.from("saved_routes").insert({
+                user_id: currentUser.id,
+                name: saveName || "Naamloze route",
+                start_lat: startCoord.lat, start_lng: startCoord.lng,
+                end_lat: destCoord.lat, end_lng: destCoord.lng,
+                model_name: selectedModel,
+                battery_percent: batteryPercent,
+                trailer_mode: trailerEnabled,
+                trailer_reduction: trailerReductionPercent,
+                weather_mode: weatherMode,
+                time_mode: timeMode,
+                route_type: routeType,
+                charger_ids: chargingStops.map(s => s.charger.id).filter((x): x is string => !!x),
+                total_distance_km: route.totalDistanceKm,
+                total_time_min: route.totalTimeMin,
+              });
+              if (error) toast.error(error.message);
+              else { toast.success("Route opgeslagen"); setSaveOpen(false); setSaveName(""); }
+            }}>Opslaan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
