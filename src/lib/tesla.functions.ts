@@ -95,7 +95,7 @@ const chargerInput = z.object({
   trailerFriendly: z.boolean().default(false),
 });
 
-async function assertAdmin(context: { supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }> }; userId: string }) {
+async function assertAdmin(context: { supabase: { rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" | "user" }) => Promise<{ data: unknown; error: { message: string } | null }> }; userId: string }) {
   const { data, error } = await context.supabase.rpc("has_role", {
     _user_id: context.userId,
     _role: "admin",
@@ -103,6 +103,7 @@ async function assertAdmin(context: { supabase: { rpc: (fn: string, args: Record
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Forbidden");
 }
+
 
 
 export const upsertSupercharger = createServerFn({ method: "POST" })
