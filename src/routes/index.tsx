@@ -623,11 +623,29 @@ function Index() {
       )}
 
       <div className="flex-1 relative">
+        {!isNavigating && (
+          <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
+            <AccountMenu />
+            {route && (
+              <div className="flex gap-2 bg-slate-800/90 backdrop-blur px-2 py-1 rounded-lg border border-slate-700">
+                {(["fastest","fewest","scenic","trailer"] as RouteType[]).filter(t => t !== "trailer" || trailerEnabled).map(t => (
+                  <button key={t} onClick={() => { setRouteType(t); handleCalculate(); }} className={`px-2 py-1 text-xs rounded ${routeType===t?"bg-red-600 text-white":"text-slate-300 hover:text-white"}`}>
+                    {t==="fastest"?"Snelste":t==="fewest"?"Minste stops":t==="scenic"?"Toeristisch":"Aanhanger"}
+                  </button>
+                ))}
+              </div>
+            )}
+            {route && currentUser && (
+              <Button size="sm" onClick={() => setSaveOpen(true)} className="bg-red-600 hover:bg-red-700"><Bookmark className="w-4 h-4 mr-1" />Opslaan</Button>
+            )}
+          </div>
+        )}
         {error && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-red-500/90 backdrop-blur-sm text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg max-w-md text-center">
             {error}
           </div>
         )}
+
         <EvMap
           startCoord={startCoord}
           destCoord={destCoord}
