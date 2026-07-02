@@ -310,8 +310,8 @@ function Index() {
           targetArrivalPercent,
           weatherMode,
           timeMode,
-          chargeTargetPercent,
           minChargerSpeedKw,
+          ...variantOpts,
         });
         if (!updated.unreachable) {
           setChargingStops(updated.stops);
@@ -324,7 +324,8 @@ function Index() {
       setRoute(initialRoute);
     }
     return { ok: true };
-  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw]);
+  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw, routeType]);
+
 
   const handleCalculate = useCallback(async () => {
     setError("");
