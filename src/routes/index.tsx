@@ -4,12 +4,21 @@ import EvMap from "@/components/EvMap";
 import InputPanel from "@/components/InputPanel";
 import ChargingStops from "@/components/ChargingStops";
 import NavigationPanel from "@/components/NavigationPanel";
+import { AccountMenu } from "@/components/AccountMenu";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { Bookmark } from "lucide-react";
 import {
   Supercharger,
   ChargingStop,
   RouteResult,
   WeatherMode,
   TimeMode,
+  RouteType,
   teslaModels,
   teslaBatteryKWh,
 } from "@/lib/tesla-types";
@@ -24,6 +33,7 @@ import {
   haversineDistance,
 } from "@/lib/tesla-utils";
 import { listSuperchargers } from "@/lib/tesla.functions";
+
 
 export const Route = createFileRoute("/")({
   ssr: false,
