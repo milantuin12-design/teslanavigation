@@ -96,7 +96,17 @@ function Index() {
   const [trailerReductionPercent, setTrailerReductionPercent] = useState(40);
   const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
 
+  const [routeType, setRouteType] = useState<RouteType>("fastest");
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user ? { id: data.user.id } : null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setCurrentUser(s?.user ? { id: s.user.id } : null));
+    return () => sub.subscription.unsubscribe();
+  }, []);
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
+
   const [route, setRoute] = useState<RouteResult | null>(null);
   const [chargingStops, setChargingStops] = useState<ChargingStop[]>([]);
   const [arrivalPercent, setArrivalPercent] = useState<number | null>(null);
