@@ -674,6 +674,37 @@ function Index() {
           />
         )}
       </div>
+      <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white">
+          <DialogHeader><DialogTitle>Route opslaan</DialogTitle></DialogHeader>
+          <div><Label>Naam</Label><Input value={saveName} onChange={(e) => setSaveName(e.target.value)} className="bg-slate-800 border-slate-700" placeholder="Bijv. Amsterdam → Berlijn" /></div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSaveOpen(false)}>Annuleren</Button>
+            <Button className="bg-red-600 hover:bg-red-700" onClick={async () => {
+              if (!currentUser || !startCoord || !destCoord || !route) return;
+              const { error } = await supabase.from("saved_routes").insert({
+                user_id: currentUser.id,
+                name: saveName || "Naamloze route",
+                start_lat: startCoord.lat, start_lng: startCoord.lng,
+                end_lat: destCoord.lat, end_lng: destCoord.lng,
+                model_name: selectedModel,
+                battery_percent: batteryPercent,
+                trailer_mode: trailerEnabled,
+                trailer_reduction: trailerReductionPercent,
+                weather_mode: weatherMode,
+                time_mode: timeMode,
+                route_type: routeType,
+                charger_ids: chargingStops.map(s => s.charger.id).filter((x): x is string => !!x),
+                total_distance_km: route.totalDistanceKm,
+                total_time_min: route.totalTimeMin,
+              });
+              if (error) toast.error(error.message);
+              else { toast.success("Route opgeslagen"); setSaveOpen(false); setSaveName(""); }
+            }}>Opslaan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
