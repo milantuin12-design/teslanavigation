@@ -1,4 +1,5 @@
 export interface Supercharger {
+  id?: string;
   name: string;
   lat: number;
   lng: number;
@@ -6,6 +7,11 @@ export interface Supercharger {
   occupiedStalls?: number;
   stallTypes?: string;
   country?: string;
+  maxSpeedKw?: number;
+  versions?: string[];
+  openingTime?: string | null; // "HH:MM"
+  closingTime?: string | null;
+  trailerFriendly?: boolean;
 }
 
 export interface ChargingStop {
@@ -24,13 +30,10 @@ export interface RouteResult {
 }
 
 export type ChargerStatus = 'Beschikbaar' | 'Druk' | 'Vol' | 'Onbekend';
-
-/** Weather/season only (summer = normal, winter = -20%). */
 export type WeatherMode = 'summer' | 'winter';
-/** Time of day (night = -5% range from heaters/lights). */
 export type TimeMode = 'day' | 'night';
+export type RouteType = 'fastest' | 'fewest' | 'scenic' | 'trailer';
 
-/** Max DC charge speed in kW per model (caps the supercharger output). */
 export const teslaMaxChargeKw: Record<string, number> = {
   'Model 3 RWD': 170,
   'Model 3 Long Range RWD': 250,
