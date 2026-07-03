@@ -125,6 +125,8 @@ function Index() {
   const [routeChangedAt, setRouteChangedAt] = useState<number | null>(null);
   const [routeChangedStops, setRouteChangedStops] = useState<ChargingStop[] | null>(null);
   const prevPositionRef = useRef<{ lat: number; lng: number } | null>(null);
+  const displayedPositionRef = useRef<{ lat: number; lng: number } | null>(null);
+  const gpsAnimationFrameRef = useRef<number | null>(null);
 
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
@@ -170,10 +172,30 @@ function Index() {
           }
           if (h !== null) setCurrentHeading(h);
           prevPositionRef.current = newPos;
-          setCurrentPosition(newPos);
+          const from = displayedPositionRef.current ?? newPos;
+          if (gpsAnimationFrameRef.current !== null) cancelAnimationFrame(gpsAnimationFrameRef.current);
+          if (!displayedPositionRef.current) {
+            displayedPositionRef.current = newPos;
+            setCurrentPosition(newPos);
+            return;
+          }
+          const start = performance.now();
+          const durationMs = 1100;
+          const animate = (now: number) => {
+            const t = Math.min(1, (now - start) / durationMs);
+            const eased = 1 - Math.pow(1 - t, 3);
+            const interpolated = {
+              lat: from.lat + (newPos.lat - from.lat) * eased,
+              lng: from.lng + (newPos.lng - from.lng) * eased,
+            };
+            displayedPositionRef.current = interpolated;
+            setCurrentPosition(interpolated);
+            if (t < 1) gpsAnimationFrameRef.current = requestAnimationFrame(animate);
+          };
+          gpsAnimationFrameRef.current = requestAnimationFrame(animate);
         },
         () => {},
-        { enableHighAccuracy: true, maximumAge: 3000 }
+        { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
       );
     } else {
       if (watchIdRef.current !== null) {
@@ -183,10 +205,19 @@ function Index() {
       setCurrentPosition(null);
       setCurrentHeading(null);
       prevPositionRef.current = null;
+      displayedPositionRef.current = null;
+      if (gpsAnimationFrameRef.current !== null) {
+        cancelAnimationFrame(gpsAnimationFrameRef.current);
+        gpsAnimationFrameRef.current = null;
+      }
     }
     return () => {
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+      if (gpsAnimationFrameRef.current !== null) {
+        cancelAnimationFrame(gpsAnimationFrameRef.current);
+        gpsAnimationFrameRef.current = null;
       }
     };
   }, [isNavigating]);
@@ -289,10 +320,12 @@ function Index() {
     setArrivalPercent(result.arrivalPercent);
 
     if (result.stops.length > 0) {
-      const chargerWaypoints: [number, number][] = result.stops.map(
-        (stop) => [stop.charger.lng, stop.charger.lat] as [number, number]
-      );
-      const finalWaypoints = [...allWaypoints, ...chargerWaypoints];
+      const finalWaypoints = [
+        ...extraWaypoints.map((point) => ({ point: [point.lng, point.lat] as [number, number], km: projectOntoRoute(point.lat, point.lng, initialRoute.coordinates).km })),
+        ...result.stops.map((stop) => ({ point: [stop.charger.lng, stop.charger.lat] as [number, number], km: stop.distanceFromStart })),
+      ]
+        .sort((a, b) => a.km - b.km)
+        .map((entry) => entry.point);
       const finalResult = await fetchRouteWithInstructions(
         [fromCoord.lng, fromCoord.lat],
         [toCoord.lng, toCoord.lat],
@@ -301,22 +334,29 @@ function Index() {
       if (finalResult) {
         setRoute(finalResult.route);
         setRouteSteps(finalResult.steps);
-        const updated = calculateChargingStops(finalResult.route, {
-          modelRangeKm: modelRange,
-          batteryPercent: fromBattery,
-          trailerReductionPercent: trailerReductionEffective,
-          chargers: superchargers,
-          modelName: selectedModel,
-          targetArrivalPercent,
-          weatherMode,
-          timeMode,
-          minChargerSpeedKw,
-          ...variantOpts,
-        });
-        if (!updated.unreachable) {
-          setChargingStops(updated.stops);
-          setArrivalPercent(updated.arrivalPercent);
-        }
+        const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
+        let runningKm = 0;
+        let runningBattery = fromBattery;
+        const fixedStops = result.stops
+          .map((stop) => ({
+            ...stop,
+            distanceFromStart: Math.round(projectOntoRoute(stop.charger.lat, stop.charger.lng, finalResult.route.coordinates).km),
+          }))
+          .sort((a, b) => a.distanceFromStart - b.distanceFromStart)
+          .map((stop, idx) => {
+            const legKm = Math.max(0, stop.distanceFromStart - runningKm);
+            const batteryBefore = Math.max(0, Math.round(runningBattery - (legKm / fullRange) * 100));
+            const rawChargerKw = parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
+            const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, selectedModel);
+            const batteryKWh = teslaBatteryKWh[selectedModel] || 79;
+            const chargeDurationMin = calculateChargeDuration(batteryBefore, stop.batteryAfter, batteryKWh, chargerSpeedKw);
+            runningKm = stop.distanceFromStart;
+            runningBattery = stop.batteryAfter;
+            return { ...stop, stopNumber: idx + 1, batteryBefore, chargeDurationMin };
+          });
+        const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
+        setChargingStops(fixedStops);
+        setArrivalPercent(Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)));
       } else {
         setRoute(initialRoute);
       }
@@ -550,7 +590,7 @@ function Index() {
       setChargingStops((prev) =>
         prev.map((stop, i) => {
           if (i !== index) return stop;
-          const chargerSpeedKw = effectiveChargeSpeedKw(parseMaxSpeed(stop.charger.stallTypes), selectedModel);
+          const chargerSpeedKw = effectiveChargeSpeedKw(parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs), selectedModel);
           const batteryKWh = teslaBatteryKWh[selectedModel] || 79;
           const chargeDurationMin = calculateChargeDuration(
             stop.batteryBefore,

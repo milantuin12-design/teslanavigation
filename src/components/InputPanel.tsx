@@ -445,13 +445,14 @@ export default function InputPanel({
             })()}
           </div>
 
-          {/* Weather (zomer / winter) */}
+          {/* Weather */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Seizoen</label>
-            <div className="grid grid-cols-2 gap-1">
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Weer</label>
+            <div className="grid grid-cols-3 gap-1">
               {([
                 { mode: 'summer' as WeatherMode, label: 'Zomer', icon: Sun },
                 { mode: 'winter' as WeatherMode, label: 'Winter (-20%)', icon: CloudSnow },
+                { mode: 'fog' as WeatherMode, label: 'Mist (-10%)', icon: CloudSnow },
               ]).map(({ mode, label, icon: Icon }) => (
                 <button
                   key={mode}
@@ -472,7 +473,7 @@ export default function InputPanel({
           {/* Time of day (dag / nacht) — separate from season */}
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-1.5">Tijd van de dag</label>
-            <div className="grid grid-cols-2 gap-1">
+            <div className="grid grid-cols-3 gap-1">
               {([
                 { mode: 'day' as TimeMode, label: 'Dag', icon: Sun },
                 { mode: 'night' as TimeMode, label: 'Nacht (-5%)', icon: Moon },

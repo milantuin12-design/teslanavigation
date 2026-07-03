@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import type { Supercharger } from "./tesla-types";
+import type { ChargerConfig, Supercharger } from "./tesla-types";
+import type { Json } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, parseChargerConfigsFromLegacy } from "./tesla-utils";
 
 function normalizeStallData(totalStalls?: number | null, stallTypes?: string | null) {
   const rawParts = (stallTypes ?? "")
@@ -21,7 +23,7 @@ function normalizeStallData(totalStalls?: number | null, stallTypes?: string | n
 }
 
 const SELECT_COLS =
-  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,max_speed_kw,versions,opening_time,closing_time,trailer_friendly";
+  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,max_speed_kw,versions,opening_time,closing_time,trailer_friendly,is_available,charger_configs";
 
 type Row = {
   id: string;
@@ -37,24 +39,31 @@ type Row = {
   opening_time: string | null;
   closing_time: string | null;
   trailer_friendly: boolean | null;
+  is_available: boolean | null;
+  charger_configs: ChargerConfig[] | null;
 };
 
 function rowToCharger(row: Row): Supercharger {
   const normalized = normalizeStallData(row.total_stalls, row.stall_types);
+  const chargerConfigs = normalizeChargerConfigs(row.charger_configs).length > 0
+    ? normalizeChargerConfigs(row.charger_configs)
+    : parseChargerConfigsFromLegacy(row.stall_types, row.total_stalls, row.max_speed_kw, row.versions);
   return {
     id: row.id,
     name: row.name,
     lat: row.lat,
     lng: row.lng,
-    totalStalls: normalized.totalStalls,
+    totalStalls: getTotalStallsFromConfigs(chargerConfigs) ?? normalized.totalStalls,
     occupiedStalls: row.occupied_stalls ?? undefined,
     stallTypes: normalized.stallTypes,
     country: row.country ?? undefined,
-    maxSpeedKw: row.max_speed_kw ?? undefined,
-    versions: row.versions ?? [],
+    maxSpeedKw: getMaxSpeedFromConfigs(chargerConfigs) ?? row.max_speed_kw ?? undefined,
+    versions: getVersionsFromConfigs(chargerConfigs).length > 0 ? getVersionsFromConfigs(chargerConfigs) : row.versions ?? [],
+    chargerConfigs,
     openingTime: row.opening_time,
     closingTime: row.closing_time,
     trailerFriendly: !!row.trailer_friendly,
+    isAvailable: row.is_available !== false,
   };
 }
 
@@ -90,9 +99,15 @@ const chargerInput = z.object({
   stallTypes: z.string().max(500).optional(),
   maxSpeedKw: z.number().int().min(0).max(1000).optional(),
   versions: z.array(z.string()).default([]),
+  chargerConfigs: z.array(z.object({
+    count: z.number().int().min(1).max(500),
+    version: z.string().min(1).max(10),
+    speedKw: z.number().int().min(1).max(1000),
+  })).default([]),
   openingTime: z.string().nullable().optional(),
   closingTime: z.string().nullable().optional(),
   trailerFriendly: z.boolean().default(false),
+  isAvailable: z.boolean().default(true),
 });
 
 async function assertAdmin(context: { supabase: unknown; userId: string }) {
@@ -110,18 +125,22 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => chargerInput.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
+    const configs = normalizeChargerConfigs(data.chargerConfigs);
+    const stallTypes = configs.map((config) => `${config.count}x${config.version} ${config.speedKw}kW`).join(" - ");
     const payload = {
       name: data.name,
       lat: data.lat,
       lng: data.lng,
       country: data.country,
-      total_stalls: data.totalStalls ?? null,
-      stall_types: data.stallTypes ?? null,
-      max_speed_kw: data.maxSpeedKw ?? null,
-      versions: data.versions,
+      total_stalls: getTotalStallsFromConfigs(configs) ?? data.totalStalls ?? null,
+      stall_types: stallTypes || data.stallTypes || null,
+      max_speed_kw: getMaxSpeedFromConfigs(configs) ?? data.maxSpeedKw ?? null,
+      versions: getVersionsFromConfigs(configs).length > 0 ? getVersionsFromConfigs(configs) : data.versions,
+      charger_configs: configs.map((config) => ({ ...config })) as Json,
       opening_time: data.openingTime || null,
       closing_time: data.closingTime || null,
       trailer_friendly: data.trailerFriendly,
+      is_available: data.isAvailable,
     };
     if (data.id) {
       const { error } = await context.supabase.from("superchargers").update(payload).eq("id", data.id);
