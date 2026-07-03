@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { ChargerConfig, Supercharger } from "./tesla-types";
+import type { Json } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, parseChargerConfigsFromLegacy } from "./tesla-utils";
 
@@ -135,7 +136,7 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       stall_types: stallTypes || data.stallTypes || null,
       max_speed_kw: getMaxSpeedFromConfigs(configs) ?? data.maxSpeedKw ?? null,
       versions: getVersionsFromConfigs(configs).length > 0 ? getVersionsFromConfigs(configs) : data.versions,
-      charger_configs: configs,
+      charger_configs: configs.map((config) => ({ ...config })) as Json,
       opening_time: data.openingTime || null,
       closing_time: data.closingTime || null,
       trailer_friendly: data.trailerFriendly,
