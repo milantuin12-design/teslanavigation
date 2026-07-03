@@ -112,6 +112,7 @@ export type Database = {
       }
       superchargers: {
         Row: {
+          charger_configs: Json
           closing_time: string | null
           country: string
           id: string
@@ -129,6 +130,7 @@ export type Database = {
           versions: string[] | null
         }
         Insert: {
+          charger_configs?: Json
           closing_time?: string | null
           country: string
           id?: string
@@ -146,6 +148,7 @@ export type Database = {
           versions?: string[] | null
         }
         Update: {
+          charger_configs?: Json
           closing_time?: string | null
           country?: string
           id?: string
