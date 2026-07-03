@@ -334,11 +334,29 @@ function Index() {
       if (finalResult) {
         setRoute(finalResult.route);
         setRouteSteps(finalResult.steps);
-        setChargingStops(result.stops.map((stop, idx) => ({
-          ...stop,
-          stopNumber: idx + 1,
-          distanceFromStart: Math.round(projectOntoRoute(stop.charger.lat, stop.charger.lng, finalResult.route.coordinates).km),
-        })));
+        const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
+        let runningKm = 0;
+        let runningBattery = fromBattery;
+        const fixedStops = result.stops
+          .map((stop) => ({
+            ...stop,
+            distanceFromStart: Math.round(projectOntoRoute(stop.charger.lat, stop.charger.lng, finalResult.route.coordinates).km),
+          }))
+          .sort((a, b) => a.distanceFromStart - b.distanceFromStart)
+          .map((stop, idx) => {
+            const legKm = Math.max(0, stop.distanceFromStart - runningKm);
+            const batteryBefore = Math.max(0, Math.round(runningBattery - (legKm / fullRange) * 100));
+            const rawChargerKw = parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
+            const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, selectedModel);
+            const batteryKWh = teslaBatteryKWh[selectedModel] || 79;
+            const chargeDurationMin = calculateChargeDuration(batteryBefore, stop.batteryAfter, batteryKWh, chargerSpeedKw);
+            runningKm = stop.distanceFromStart;
+            runningBattery = stop.batteryAfter;
+            return { ...stop, stopNumber: idx + 1, batteryBefore, chargeDurationMin };
+          });
+        const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
+        setChargingStops(fixedStops);
+        setArrivalPercent(Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)));
       } else {
         setRoute(initialRoute);
       }
