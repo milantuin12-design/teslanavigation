@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Trash2, Pencil, Plus, Truck, X } from "lucide-react";
 import type { ChargerConfig } from "@/lib/tesla-types";
 import type { Json } from "@/integrations/supabase/types";
+import { parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -58,6 +59,13 @@ function configSummary(configs?: ChargerConfig[] | null) {
   return normalized.length > 0
     ? normalized.map((config) => `${config.count} ${config.version} laders ${config.speedKw}kW`).join(" · ")
     : "-";
+}
+
+function configsForCharger(charger: Charger): ChargerConfig[] {
+  const direct = normalizeConfigs(charger.charger_configs);
+  return direct.length > 0
+    ? direct
+    : parseChargerConfigsFromLegacy(charger.stall_types, charger.total_stalls, charger.max_speed_kw, charger.versions);
 }
 
 function totalFromConfigs(configs?: ChargerConfig[] | null) {
@@ -109,7 +117,7 @@ function AdminPage() {
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
   const openNew = () => { setEditing({ ...emptyCharger }); setCoordsInput(""); };
-  const openEdit = (c: Charger) => { setEditing({ ...c }); setCoordsInput(`${c.lat},${c.lng}`); };
+  const openEdit = (c: Charger) => { setEditing({ ...c, charger_configs: configsForCharger(c) }); setCoordsInput(`${c.lat},${c.lng}`); };
 
   const save = async () => {
     if (!editing) return;
@@ -190,7 +198,7 @@ function AdminPage() {
                     <tr key={c.id} className="border-t border-slate-700 hover:bg-slate-800/50">
                       <td className="p-3">{c.name}</td>
                       <td className="p-3">{c.country}</td>
-                      <td className="p-3 max-w-xs text-slate-300">{configSummary(c.charger_configs)}</td>
+                      <td className="p-3 max-w-xs text-slate-300">{configSummary(configsForCharger(c))}</td>
                       <td className="p-3">{c.opening_time && c.closing_time ? `${c.opening_time}-${c.closing_time}` : "24/7"}</td>
                       <td className="p-3">{c.is_available === false ? <span className="text-red-400">Niet beschikbaar</span> : <span className="text-green-400">Beschikbaar</span>}</td>
                       <td className="p-3">{c.trailer_friendly ? "✓" : "-"}</td>

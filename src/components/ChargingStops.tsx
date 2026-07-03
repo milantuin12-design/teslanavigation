@@ -58,7 +58,7 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
         Oplaadstops
       </h3>
       {stops.map((stop, idx) => {
-        const maxSpeedKw = parseMaxSpeed(stop.charger.stallTypes);
+        const maxSpeedKw = parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
         const maxSpeedLabel = maxSpeedKw ? `${maxSpeedKw}kW` : '';
         const stallCountLabel = stop.charger.totalStalls ? `${stop.charger.totalStalls} laadplekken` : '';
         const isEditing = editingIndex === idx;
