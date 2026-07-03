@@ -115,6 +115,7 @@ export type Database = {
           closing_time: string | null
           country: string
           id: string
+          is_available: boolean
           last_updated: string | null
           lat: number
           lng: number
@@ -131,6 +132,7 @@ export type Database = {
           closing_time?: string | null
           country: string
           id?: string
+          is_available?: boolean
           last_updated?: string | null
           lat: number
           lng: number
@@ -147,6 +149,7 @@ export type Database = {
           closing_time?: string | null
           country?: string
           id?: string
+          is_available?: boolean
           last_updated?: string | null
           lat?: number
           lng?: number
