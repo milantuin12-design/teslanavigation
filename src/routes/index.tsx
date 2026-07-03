@@ -320,10 +320,12 @@ function Index() {
     setArrivalPercent(result.arrivalPercent);
 
     if (result.stops.length > 0) {
-      const chargerWaypoints: [number, number][] = result.stops.map(
-        (stop) => [stop.charger.lng, stop.charger.lat] as [number, number]
-      );
-      const finalWaypoints = [...allWaypoints, ...chargerWaypoints];
+      const finalWaypoints = [
+        ...extraWaypoints.map((point) => ({ point: [point.lng, point.lat] as [number, number], km: projectOntoRoute(point.lat, point.lng, initialRoute.coordinates).km })),
+        ...result.stops.map((stop) => ({ point: [stop.charger.lng, stop.charger.lat] as [number, number], km: stop.distanceFromStart })),
+      ]
+        .sort((a, b) => a.km - b.km)
+        .map((entry) => entry.point);
       const finalResult = await fetchRouteWithInstructions(
         [fromCoord.lng, fromCoord.lat],
         [toCoord.lng, toCoord.lat],
