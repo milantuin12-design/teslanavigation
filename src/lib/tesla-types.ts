@@ -1,3 +1,9 @@
+export interface ChargerConfig {
+  count: number;
+  version: 'V2' | 'V3' | 'V4' | string;
+  speedKw: number;
+}
+
 export interface Supercharger {
   id?: string;
   name: string;
@@ -9,9 +15,11 @@ export interface Supercharger {
   country?: string;
   maxSpeedKw?: number;
   versions?: string[];
+  chargerConfigs?: ChargerConfig[];
   openingTime?: string | null; // "HH:MM"
   closingTime?: string | null;
   trailerFriendly?: boolean;
+  isAvailable?: boolean;
 }
 
 export interface ChargingStop {
@@ -29,8 +37,8 @@ export interface RouteResult {
   totalTimeMin: number;
 }
 
-export type ChargerStatus = 'Beschikbaar' | 'Druk' | 'Vol' | 'Onbekend';
-export type WeatherMode = 'summer' | 'winter';
+export type ChargerStatus = 'Beschikbaar' | 'Druk' | 'Vol' | 'Onbekend' | 'Niet beschikbaar';
+export type WeatherMode = 'summer' | 'winter' | 'fog';
 export type TimeMode = 'day' | 'night';
 export type RouteType = 'fastest' | 'fewest' | 'scenic' | 'trailer';
 

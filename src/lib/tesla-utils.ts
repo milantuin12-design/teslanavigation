@@ -1,4 +1,4 @@
-import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, TimeMode, teslaBatteryKWh, teslaMaxChargeKw } from './tesla-types';
+import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, TimeMode, teslaBatteryKWh, teslaMaxChargeKw, ChargerConfig } from './tesla-types';
 
 export function parseCoordinates(input: string): { lat: number; lng: number } | null {
   const trimmed = input.trim();
@@ -21,11 +21,71 @@ export function getAvailableRange(
   let range = modelRangeKm * batteryPercent / 100;
   if (trailerReductionPercent > 0) range *= (1 - trailerReductionPercent / 100);
   if (weatherMode === 'winter') range *= 0.80;
+  if (weatherMode === 'fog') range *= 0.90;
   if (timeMode === 'night') range *= 0.95;
   return range;
 }
 
-export function parseMaxSpeed(stallTypes?: string, maxSpeedKw?: number): number {
+export function normalizeChargerConfigs(configs?: ChargerConfig[] | null): ChargerConfig[] {
+  if (!Array.isArray(configs)) return [];
+  return configs
+    .map((config) => ({
+      count: Number(config.count),
+      version: String(config.version || '').toUpperCase(),
+      speedKw: Number(config.speedKw),
+    }))
+    .filter((config) => config.count > 0 && config.speedKw > 0 && config.version.length > 0);
+}
+
+export function parseChargerConfigsFromLegacy(stallTypes?: string | null, totalStalls?: number | null, maxSpeedKw?: number | null, versions?: string[] | null): ChargerConfig[] {
+  const raw = stallTypes || '';
+  const configs: ChargerConfig[] = [];
+  const detailedPattern = /(\d+)\s*x?\s*(?:laders?)?\s*(?:\(?\s*)?(V[234])?(?:\s*\)?\s*)?(?:laders?)?\s*(?:(\d{2,3})\s*k?w?)?/gi;
+  let match: RegExpExecArray | null;
+  while ((match = detailedPattern.exec(raw)) !== null) {
+    const count = Number(match[1]);
+    const version = (match[2] || '').toUpperCase();
+    const speedFromText = match[3] ? Number(match[3]) : 0;
+    if (!count) continue;
+    const inferredVersion = version || (speedFromText >= 250 ? 'V3' : 'V2');
+    const inferredSpeed = speedFromText || (inferredVersion === 'V4' ? 325 : inferredVersion === 'V3' ? 250 : 150);
+    configs.push({ count, version: inferredVersion, speedKw: inferredSpeed });
+  }
+
+  if (configs.length > 0) return configs;
+  const fallbackCount = totalStalls || 0;
+  const fallbackSpeed = maxSpeedKw || parseMaxSpeed(raw || undefined, undefined, []);
+  const fallbackVersion = versions?.[0] || (/v4/i.test(raw) ? 'V4' : /v3/i.test(raw) ? 'V3' : 'V2');
+  return fallbackCount > 0 ? [{ count: fallbackCount, version: fallbackVersion, speedKw: fallbackSpeed }] : [];
+}
+
+export function getTotalStallsFromConfigs(configs?: ChargerConfig[] | null): number | undefined {
+  const total = normalizeChargerConfigs(configs).reduce((sum, config) => sum + config.count, 0);
+  return total > 0 ? total : undefined;
+}
+
+export function getMaxSpeedFromConfigs(configs?: ChargerConfig[] | null): number | undefined {
+  const speeds = normalizeChargerConfigs(configs).map((config) => config.speedKw);
+  return speeds.length > 0 ? Math.max(...speeds) : undefined;
+}
+
+export function getVersionsFromConfigs(configs?: ChargerConfig[] | null): string[] {
+  return Array.from(new Set(normalizeChargerConfigs(configs).map((config) => config.version))).sort();
+}
+
+export function formatChargerConfig(config: ChargerConfig): string {
+  return `${config.count} ${config.version} laders ${config.speedKw}kW`;
+}
+
+export function getChargerConfigs(charger: Supercharger): ChargerConfig[] {
+  const direct = normalizeChargerConfigs(charger.chargerConfigs);
+  if (direct.length > 0) return direct;
+  return parseChargerConfigsFromLegacy(charger.stallTypes, charger.totalStalls, charger.maxSpeedKw, charger.versions);
+}
+
+export function parseMaxSpeed(stallTypes?: string, maxSpeedKw?: number, chargerConfigs?: ChargerConfig[]): number {
+  const configSpeed = getMaxSpeedFromConfigs(chargerConfigs);
+  if (configSpeed) return configSpeed;
   if (typeof maxSpeedKw === 'number' && maxSpeedKw > 0) return maxSpeedKw;
   if (!stallTypes) return 150;
   const speeds = stallTypes.match(/(\d+)\s*kw/gi);
@@ -57,7 +117,12 @@ export function calculateChargeDuration(
   return Math.max(5, Math.round(totalHours * 60));
 }
 
-export function getChargerStatus(charger: Supercharger): ChargerStatus {
+export function isChargerOperationalAt(charger: Supercharger, atDate: Date = new Date()): boolean {
+  return charger.isAvailable !== false && isChargerOpenAt(charger, atDate);
+}
+
+export function getChargerStatus(charger: Supercharger, atDate: Date = new Date()): ChargerStatus {
+  if (!isChargerOperationalAt(charger, atDate)) return 'Niet beschikbaar';
   if (charger.totalStalls === undefined || charger.occupiedStalls === undefined) return 'Onbekend';
   const available = charger.totalStalls - charger.occupiedStalls;
   if (available === 0) return 'Vol';
@@ -168,7 +233,7 @@ export function calculateChargingStops(
     return { stops: [], arrivalPercent: batteryPercent, unreachable: false };
   }
 
-  let filtered = chargers.filter(c => parseMaxSpeed(c.stallTypes, c.maxSpeedKw) >= minChargerSpeedKw);
+  let filtered = chargers.filter(c => c.isAvailable !== false && parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) >= minChargerSpeedKw);
   if (trailerOnly) filtered = filtered.filter(c => c.trailerFriendly);
 
   const nearChargers = findChargersNearRoute(route.coordinates, filtered, 20);
@@ -279,7 +344,7 @@ export function calculateChargingStops(
       : Math.max(chargeTargetPercent, Math.ceil(minBatteryNeeded));
     batteryAfter = Math.min(100, batteryAfter);
 
-    const rawChargerKw = parseMaxSpeed(best.charger.stallTypes, best.charger.maxSpeedKw);
+    const rawChargerKw = parseMaxSpeed(best.charger.stallTypes, best.charger.maxSpeedKw, best.charger.chargerConfigs);
     const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, modelName);
     const batteryKWh = teslaBatteryKWh[modelName] || 79;
     const chargeDurationMin = calculateChargeDuration(
@@ -383,5 +448,6 @@ export function getStatusColor(status: ChargerStatus): string {
     case 'Druk': return '#f59e0b';
     case 'Vol': return '#ef4444';
     case 'Onbekend': return '#64748b';
+    case 'Niet beschikbaar': return '#ef4444';
   }
 }
