@@ -74,6 +74,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
   const routeRef = useRef<L.Polyline | null>(null);
+  const currentMarkerRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -157,10 +158,26 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
     if (destCoord) {
       markersRef.current.addLayer(L.marker([destCoord.lat, destCoord.lng], { icon: destIcon }));
     }
-    if (currentPosition) {
-      markersRef.current.addLayer(L.marker([currentPosition.lat, currentPosition.lng], { icon: currentPositionIcon() }));
+  }, [startCoord, destCoord, superchargers, chargingStops]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (!currentPosition) {
+      if (currentMarkerRef.current) {
+        map.removeLayer(currentMarkerRef.current);
+        currentMarkerRef.current = null;
+      }
+      return;
     }
-  }, [startCoord, destCoord, superchargers, chargingStops, currentPosition]);
+
+    if (!currentMarkerRef.current) {
+      currentMarkerRef.current = L.marker([currentPosition.lat, currentPosition.lng], { icon: currentPositionIcon() }).addTo(map);
+    } else {
+      currentMarkerRef.current.setLatLng([currentPosition.lat, currentPosition.lng]);
+    }
+  }, [currentPosition]);
 
   useEffect(() => {
     const map = mapRef.current;
