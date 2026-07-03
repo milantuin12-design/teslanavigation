@@ -75,6 +75,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
   const routeRef = useRef<L.Polyline | null>(null);
   const currentMarkerRef = useRef<L.Marker | null>(null);
+  const followPausedUntilRef = useRef(0);
+  const lastAutoPanRef = useRef(0);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -89,6 +91,11 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
       attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics',
       maxZoom: 18,
     }).addTo(map);
+
+    const pauseFollow = () => {
+      followPausedUntilRef.current = Date.now() + 8000;
+    };
+    map.on('dragstart zoomstart', pauseFollow);
 
     markersRef.current.addTo(map);
     mapRef.current = map;
@@ -213,6 +220,9 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !isNavigating || !currentPosition) return;
+    const now = Date.now();
+    if (now < followPausedUntilRef.current || now - lastAutoPanRef.current < 300) return;
+    lastAutoPanRef.current = now;
 
     const targetZoom = 16;
     if (map.getZoom() < 14) {
