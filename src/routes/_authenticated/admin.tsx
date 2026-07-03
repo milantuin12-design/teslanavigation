@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Trash2, Pencil, Plus, Truck, X } from "lucide-react";
 import type { ChargerConfig } from "@/lib/tesla-types";
+import type { Json } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -118,7 +119,7 @@ function AdminPage() {
       return;
     }
     const payload = {
-      charger_configs: normalizeConfigs(editing.charger_configs),
+      charger_configs: normalizeConfigs(editing.charger_configs).map((config) => ({ ...config })) as Json,
       name: editing.name || "",
       lat: parts[0], lng: parts[1],
       country: editing.country || "",
