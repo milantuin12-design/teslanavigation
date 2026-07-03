@@ -277,8 +277,8 @@ function AdminPage() {
               </div>
               <p className="text-xs text-slate-400">Beide leeg = 24/7 open</p>
               <label className="flex items-center gap-2 cursor-pointer">
-                <Checkbox checked={editing.is_available !== false} onCheckedChange={(c) => setEditing({ ...editing, is_available: !!c })} />
-                Beschikbaar
+                <Checkbox checked={editing.is_available === false} onCheckedChange={(c) => setEditing({ ...editing, is_available: !c })} />
+                Niet beschikbaar (rood op de kaart)
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={!!editing.trailer_friendly} onCheckedChange={(c) => setEditing({ ...editing, trailer_friendly: !!c })} />
