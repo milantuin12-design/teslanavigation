@@ -445,10 +445,10 @@ export default function InputPanel({
             })()}
           </div>
 
-          {/* Weather (zomer / winter) */}
+          {/* Weather */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Seizoen</label>
-            <div className="grid grid-cols-2 gap-1">
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Weer</label>
+            <div className="grid grid-cols-3 gap-1">
               {([
                 { mode: 'summer' as WeatherMode, label: 'Zomer', icon: Sun },
                 { mode: 'winter' as WeatherMode, label: 'Winter (-20%)', icon: CloudSnow },
