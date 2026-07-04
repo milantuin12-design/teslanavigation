@@ -8,9 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Trash2, Pencil, Plus, Truck, X } from "lucide-react";
-import type { ChargerConfig } from "@/lib/tesla-types";
+import type { ChargerConfig, OpeningDayKey, OpeningHours } from "@/lib/tesla-types";
 import type { Json } from "@/integrations/supabase/types";
-import { parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
+import { defaultOpeningHours, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -28,6 +28,7 @@ type Charger = {
   stall_types: string | null;
   max_speed_kw: number | null;
   versions: string[] | null;
+  opening_hours: OpeningHours | null;
   opening_time: string | null;
   closing_time: string | null;
   trailer_friendly: boolean;
@@ -39,6 +40,7 @@ const emptyCharger = {
   name: "", lat: 0, lng: 0, country: "",
   total_stalls: null as number | null, stall_types: null as string | null,
   max_speed_kw: null as number | null, versions: [] as string[],
+  opening_hours: defaultOpeningHours() as OpeningHours,
   opening_time: null as string | null, closing_time: null as string | null,
   trailer_friendly: false, is_available: true,
   charger_configs: [{ count: 8, version: "V3", speedKw: 250 }] as ChargerConfig[],
@@ -66,6 +68,15 @@ function configsForCharger(charger: Charger): ChargerConfig[] {
   return direct.length > 0
     ? direct
     : parseChargerConfigsFromLegacy(charger.stall_types, charger.total_stalls, charger.max_speed_kw, charger.versions);
+}
+
+function openingSummary(openingHours?: OpeningHours | null, openingTime?: string | null, closingTime?: string | null) {
+  const hours = normalizeOpeningHours(openingHours, openingTime, closingTime);
+  if (hours.mode === "24_7") return "24/7";
+  return openingDayKeys.map((day) => {
+    const dayHours = hours.days[day];
+    return `${openingDayLabels[day]} ${dayHours.closed ? "dicht" : `${dayHours.open}-${dayHours.close}`}`;
+  }).join(" · ");
 }
 
 function totalFromConfigs(configs?: ChargerConfig[] | null) {
@@ -104,7 +115,7 @@ function AdminPage() {
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from("superchargers")
-        .select("id,name,lat,lng,country,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,trailer_friendly,is_available,charger_configs")
+        .select("id,name,lat,lng,country,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs")
         .order("name").range(from, from + 999);
       if (error) { toast.error(error.message); break; }
       rows.push(...(data as Charger[]));
@@ -116,8 +127,8 @@ function AdminPage() {
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
-  const openNew = () => { setEditing({ ...emptyCharger }); setCoordsInput(""); };
-  const openEdit = (c: Charger) => { setEditing({ ...c, charger_configs: configsForCharger(c) }); setCoordsInput(`${c.lat},${c.lng}`); };
+  const openNew = () => { setEditing({ ...emptyCharger, opening_hours: defaultOpeningHours() }); setCoordsInput(""); };
+  const openEdit = (c: Charger) => { setEditing({ ...c, charger_configs: configsForCharger(c), opening_hours: normalizeOpeningHours(c.opening_hours, c.opening_time, c.closing_time) }); setCoordsInput(`${c.lat},${c.lng}`); };
 
   const save = async () => {
     if (!editing) return;
@@ -135,6 +146,7 @@ function AdminPage() {
       stall_types: configSummary(editing.charger_configs).replaceAll(" · ", " - "),
       max_speed_kw: maxSpeedFromConfigs(editing.charger_configs),
       versions: versionsFromConfigs(editing.charger_configs),
+      opening_hours: normalizeOpeningHours(editing.opening_hours, editing.opening_time, editing.closing_time) as unknown as Json,
       opening_time: editing.opening_time || null,
       closing_time: editing.closing_time || null,
       trailer_friendly: !!editing.trailer_friendly,
@@ -199,7 +211,7 @@ function AdminPage() {
                       <td className="p-3">{c.name}</td>
                       <td className="p-3">{c.country}</td>
                       <td className="p-3 max-w-xs text-slate-300">{configSummary(configsForCharger(c))}</td>
-                      <td className="p-3">{c.opening_time && c.closing_time ? `${c.opening_time}-${c.closing_time}` : "24/7"}</td>
+                      <td className="p-3 max-w-sm text-slate-300">{openingSummary(c.opening_hours, c.opening_time, c.closing_time)}</td>
                       <td className="p-3">{c.is_available === false ? <span className="text-red-400">Niet beschikbaar</span> : <span className="text-green-400">Beschikbaar</span>}</td>
                       <td className="p-3">{c.trailer_friendly ? "✓" : "-"}</td>
                       <td className="p-3 text-right whitespace-nowrap">
@@ -271,11 +283,36 @@ function AdminPage() {
                   })}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><Label>Open vanaf (HH:MM)</Label><Input type="time" value={editing.opening_time || ""} onChange={(e) => setEditing({ ...editing, opening_time: e.target.value || null })} className="bg-slate-800 border-slate-700" /></div>
-                <div><Label>Dicht vanaf</Label><Input type="time" value={editing.closing_time || ""} onChange={(e) => setEditing({ ...editing, closing_time: e.target.value || null })} className="bg-slate-800 border-slate-700" /></div>
+              <div className="rounded-lg border border-slate-700 p-3 space-y-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={normalizeOpeningHours(editing.opening_hours, editing.opening_time, editing.closing_time).mode === "24_7"} onCheckedChange={(checked) => {
+                    const current = normalizeOpeningHours(editing.opening_hours, editing.opening_time, editing.closing_time);
+                    setEditing({ ...editing, opening_hours: { ...current, mode: checked ? "24_7" : "weekly" } });
+                  }} />
+                  24/7 open
+                </label>
+                {normalizeOpeningHours(editing.opening_hours, editing.opening_time, editing.closing_time).mode === "weekly" && (
+                  <div className="space-y-2">
+                    {openingDayKeys.map((day: OpeningDayKey) => {
+                      const hours = normalizeOpeningHours(editing.opening_hours, editing.opening_time, editing.closing_time);
+                      const dayHours = hours.days[day];
+                      const updateDay = (next: Partial<typeof dayHours>) => {
+                        setEditing({ ...editing, opening_hours: { ...hours, days: { ...hours.days, [day]: { ...dayHours, ...next } } } });
+                      };
+                      return (
+                        <div key={day} className="grid grid-cols-[34px_1fr_1fr_auto] gap-2 items-center">
+                          <span className="text-xs text-slate-400">{openingDayLabels[day]}</span>
+                          <Input type="time" value={dayHours.open} disabled={dayHours.closed} onChange={(e) => updateDay({ open: e.target.value })} className="bg-slate-800 border-slate-700" />
+                          <Input type="time" value={dayHours.close} disabled={dayHours.closed} onChange={(e) => updateDay({ close: e.target.value })} className="bg-slate-800 border-slate-700" />
+                          <label className="flex items-center gap-1 text-xs text-slate-300">
+                            <Checkbox checked={!!dayHours.closed} onCheckedChange={(checked) => updateDay({ closed: !!checked })} /> Dicht
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-slate-400">Beide leeg = 24/7 open</p>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={editing.is_available === false} onCheckedChange={(c) => setEditing({ ...editing, is_available: !c })} />
                 Niet beschikbaar (rood op de kaart)

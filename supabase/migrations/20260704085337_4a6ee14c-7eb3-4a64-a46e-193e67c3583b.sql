@@ -1,0 +1,2 @@
+ALTER TABLE public.superchargers
+ADD COLUMN IF NOT EXISTS opening_hours jsonb NOT NULL DEFAULT '{"mode":"24_7","days":{"mon":{"closed":false,"open":"00:00","close":"23:59"},"tue":{"closed":false,"open":"00:00","close":"23:59"},"wed":{"closed":false,"open":"00:00","close":"23:59"},"thu":{"closed":false,"open":"00:00","close":"23:59"},"fri":{"closed":false,"open":"00:00","close":"23:59"},"sat":{"closed":false,"open":"00:00","close":"23:59"},"sun":{"closed":false,"open":"00:00","close":"23:59"}}}'::jsonb;

@@ -123,6 +123,7 @@ export type Database = {
           max_speed_kw: number | null
           name: string
           occupied_stalls: number | null
+          opening_hours: Json
           opening_time: string | null
           stall_types: string | null
           total_stalls: number | null
@@ -141,6 +142,7 @@ export type Database = {
           max_speed_kw?: number | null
           name: string
           occupied_stalls?: number | null
+          opening_hours?: Json
           opening_time?: string | null
           stall_types?: string | null
           total_stalls?: number | null
@@ -159,6 +161,7 @@ export type Database = {
           max_speed_kw?: number | null
           name?: string
           occupied_stalls?: number | null
+          opening_hours?: Json
           opening_time?: string | null
           stall_types?: string | null
           total_stalls?: number | null

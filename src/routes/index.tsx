@@ -31,6 +31,7 @@ import {
   distanceToRoute,
   projectOntoRoute,
   haversineDistance,
+  isChargerOperationalAt,
 } from "@/lib/tesla-utils";
 import { listSuperchargers } from "@/lib/tesla.functions";
 
@@ -79,6 +80,13 @@ interface OSRMRoute {
   legs?: RouteLeg[];
 }
 
+interface RoutePlan {
+  route: RouteResult;
+  steps: RouteStep[];
+  stops: ChargingStop[];
+  arrivalPercent: number;
+}
+
 const OFF_ROUTE_KM_THRESHOLD = 0.2; // 200m
 const OFF_ROUTE_PERSIST_MS = 8000; // off-route for 8s before rerouting
 
@@ -108,6 +116,8 @@ function Index() {
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
 
   const [route, setRoute] = useState<RouteResult | null>(null);
+  const [routeVariants, setRouteVariants] = useState<Partial<Record<RouteType, RouteResult>>>({});
+  const [routePlans, setRoutePlans] = useState<Partial<Record<RouteType, RoutePlan>>>({});
   const [chargingStops, setChargingStops] = useState<ChargingStop[]>([]);
   const [arrivalPercent, setArrivalPercent] = useState<number | null>(null);
   const [routeSteps, setRouteSteps] = useState<RouteStep[]>([]);
@@ -225,7 +235,9 @@ function Index() {
   const fetchRouteWithInstructions = useCallback(async (
     start: [number, number],
     end: [number, number],
-    intermediateWaypoints?: [number, number][]
+    intermediateWaypoints?: [number, number][],
+    alternativeIndex: number = 0,
+    avoidMotorway: boolean = false
   ): Promise<{ route: RouteResult; steps: RouteStep[] } | null> => {
     const allPoints: [number, number][] = [start];
     if (intermediateWaypoints && intermediateWaypoints.length > 0) {
@@ -235,9 +247,14 @@ function Index() {
 
     const coordString = allPoints.map((c) => `${c[0]},${c[1]}`).join(";");
 
+    const baseQuery = `overview=full&geometries=geojson&steps=true&alternatives=3`;
     const osrmUrls = [
-      `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson&steps=true`,
-      `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordString}?overview=full&geometries=geojson&steps=true`,
+      ...(avoidMotorway ? [
+        `https://router.project-osrm.org/route/v1/driving/${coordString}?${baseQuery}&exclude=motorway`,
+        `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordString}?${baseQuery}&exclude=motorway`,
+      ] : []),
+      `https://router.project-osrm.org/route/v1/driving/${coordString}?${baseQuery}`,
+      `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordString}?${baseQuery}`,
     ];
 
     for (const osrmUrl of osrmUrls) {
@@ -249,7 +266,7 @@ function Index() {
         if (response.ok) {
           const data = await response.json();
           if (data.routes && data.routes.length > 0) {
-            const osrmRoute: OSRMRoute = data.routes[0];
+              const osrmRoute: OSRMRoute = data.routes[Math.min(alternativeIndex, data.routes.length - 1)];
             const steps: RouteStep[] = [];
             if (osrmRoute.legs) {
               for (const leg of osrmRoute.legs) {
@@ -273,28 +290,31 @@ function Index() {
     return null;
   }, []);
 
-  const computeRoute = useCallback(async (
+  const computeRoutePlan = useCallback(async (
     fromCoord: { lat: number; lng: number },
     toCoord: { lat: number; lng: number },
     fromBattery: number,
-    extraWaypoints: { lat: number; lng: number }[]
-  ): Promise<{ ok: boolean; error?: string } > => {
+    extraWaypoints: { lat: number; lng: number }[],
+    selectedType: RouteType,
+    alternativeIndex: number = 0
+  ): Promise<{ ok: boolean; plan?: RoutePlan; error?: string } > => {
     const allWaypoints: [number, number][] = extraWaypoints.map((w) => [w.lng, w.lat]);
 
     const initialResult = await fetchRouteWithInstructions(
       [fromCoord.lng, fromCoord.lat],
       [toCoord.lng, toCoord.lat],
-      allWaypoints.length > 0 ? allWaypoints : undefined
+      allWaypoints.length > 0 ? allWaypoints : undefined,
+      alternativeIndex,
+      selectedType === "scenic"
     );
 
     if (!initialResult) return { ok: false, error: "Kon geen route vinden." };
     const { route: initialRoute, steps: initialSteps } = initialResult;
-    setRouteSteps(initialSteps);
 
     const variantOpts = {
-      chargeTargetPercent: routeType === "fewest" ? 100 : chargeTargetPercent,
-      maxArrivalAtChargerPercent: routeType === "fewest" ? 5 : 10,
-      trailerOnly: routeType === "trailer",
+      chargeTargetPercent,
+      maxArrivalAtChargerPercent: selectedType === "fewest" ? 5 : 10,
+      preferTrailerFriendly: selectedType === "trailer",
     };
     const result = calculateChargingStops(initialRoute, {
       modelRangeKm: modelRange,
@@ -305,19 +325,16 @@ function Index() {
       targetArrivalPercent,
       weatherMode,
       timeMode,
-      minChargerSpeedKw,
+      minChargerSpeedKw: selectedType === "scenic" ? 0 : minChargerSpeedKw,
       ...variantOpts,
     });
 
 
     if (result.unreachable) {
-      setRoute(initialRoute);
-      setChargingStops([]);
       return { ok: false, error: result.reason || "Deze route is niet mogelijk." };
     }
 
-    setChargingStops(result.stops);
-    setArrivalPercent(result.arrivalPercent);
+    let finalPlan: RoutePlan = { route: initialRoute, steps: initialSteps, stops: result.stops, arrivalPercent: result.arrivalPercent };
 
     if (result.stops.length > 0) {
       const finalWaypoints = [
@@ -329,11 +346,11 @@ function Index() {
       const finalResult = await fetchRouteWithInstructions(
         [fromCoord.lng, fromCoord.lat],
         [toCoord.lng, toCoord.lat],
-        finalWaypoints
+        finalWaypoints,
+        alternativeIndex,
+        selectedType === "scenic"
       );
       if (finalResult) {
-        setRoute(finalResult.route);
-        setRouteSteps(finalResult.steps);
         const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
         let runningKm = 0;
         let runningBattery = fromBattery;
@@ -355,21 +372,64 @@ function Index() {
             return { ...stop, stopNumber: idx + 1, batteryBefore, chargeDurationMin };
           });
         const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
-        setChargingStops(fixedStops);
-        setArrivalPercent(Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)));
+        finalPlan = {
+          route: finalResult.route,
+          steps: finalResult.steps,
+          stops: fixedStops,
+          arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
+        };
       } else {
-        setRoute(initialRoute);
+        finalPlan = { route: initialRoute, steps: initialSteps, stops: result.stops, arrivalPercent: result.arrivalPercent };
       }
-    } else {
-      setRoute(initialRoute);
     }
+
+    return { ok: true, plan: finalPlan };
+  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw]);
+
+  const applyPlan = useCallback((type: RouteType, plan: RoutePlan) => {
+    setRouteType(type);
+    setRoute(plan.route);
+    setRouteSteps(plan.steps);
+    setChargingStops(plan.stops);
+    setArrivalPercent(plan.arrivalPercent);
+  }, []);
+
+  const computeRoute = useCallback(async (
+    fromCoord: { lat: number; lng: number },
+    toCoord: { lat: number; lng: number },
+    fromBattery: number,
+    extraWaypoints: { lat: number; lng: number }[]
+  ): Promise<{ ok: boolean; error?: string } > => {
+    const selected = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, routeType, routeType === "scenic" ? 1 : 0);
+    if (!selected.ok || !selected.plan) return { ok: false, error: selected.error };
+
+    const nextPlans: Partial<Record<RouteType, RoutePlan>> = { [routeType]: selected.plan };
+    const nextVariants: Partial<Record<RouteType, RouteResult>> = { [routeType]: selected.plan.route };
+
+    if (selected.plan.route.totalDistanceKm >= 1000) {
+      const allTypes: RouteType[] = ["fastest", "fewest", "scenic", "trailer"];
+      await Promise.all(allTypes.filter((type) => type !== routeType).map(async (type) => {
+        const planned = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, type, type === "scenic" ? 1 : 0);
+        if (planned.ok && planned.plan) {
+          const plan = planned.plan;
+          nextPlans[type] = plan;
+          nextVariants[type] = plan.route;
+        }
+      }));
+    }
+
+    setRoutePlans(nextPlans);
+    setRouteVariants(nextVariants);
+    applyPlan(routeType, selected.plan);
     return { ok: true };
-  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw, routeType]);
+  }, [applyPlan, computeRoutePlan, routeType]);
 
 
   const handleCalculate = useCallback(async () => {
     setError("");
     setRoute(null);
+    setRouteVariants({});
+    setRoutePlans({});
     setChargingStops([]);
     setRouteSteps([]);
     setIsNavigating(false);
@@ -395,6 +455,30 @@ function Index() {
       setIsCalculating(false);
     }
   }, [startCoord, destCoord, superchargers, batteryPercent, waypoints, computeRoute]);
+
+  const handleSelectRouteType = useCallback(async (type: RouteType) => {
+    const existing = routePlans[type];
+    if (existing) {
+      applyPlan(type, existing);
+      return;
+    }
+    if (!startCoord || !destCoord) return;
+    setRouteType(type);
+    setIsCalculating(true);
+    try {
+      const planned = await computeRoutePlan(startCoord, destCoord, batteryPercent, waypoints, type, type === "scenic" ? 1 : 0);
+      if (planned.ok && planned.plan) {
+        const plan = planned.plan;
+        setRoutePlans((prev) => ({ ...prev, [type]: plan }));
+        setRouteVariants((prev) => ({ ...prev, [type]: plan.route }));
+        applyPlan(type, plan);
+      } else {
+        setError(planned.error || "Deze routevariant lukt niet.");
+      }
+    } finally {
+      setIsCalculating(false);
+    }
+  }, [applyPlan, batteryPercent, computeRoutePlan, destCoord, routePlans, startCoord, waypoints]);
 
   const handleStartNavigation = useCallback(() => {
     if (!route) return;
@@ -577,6 +661,19 @@ function Index() {
     }
   }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, timeMode, computeRoute, chargingStops, positionProj]);
 
+  useEffect(() => {
+    if (!isNavigating || !navInfo?.nextCharging || !currentPosition || !destCoord) return;
+    if (isReroutingRef.current) return;
+    const eta = new Date(Date.now() + navInfo.nextCharging.etaMin * 60000);
+    if (isChargerOperationalAt(navInfo.nextCharging.stop.charger, eta)) return;
+    isReroutingRef.current = true;
+    setError("Volgende Supercharger is dicht of niet beschikbaar. Route wordt aangepast.");
+    (async () => {
+      await computeRoute(currentPosition, destCoord, liveBattery, []);
+      isReroutingRef.current = false;
+    })();
+  }, [computeRoute, currentPosition, destCoord, isNavigating, liveBattery, navInfo]);
+
   // When user manually updates liveBattery, reset estimate baseline
   useEffect(() => {
     if (!isNavigating || !positionProj) return;
@@ -668,8 +765,8 @@ function Index() {
             <AccountMenu />
             {route && (
               <div className="flex gap-2 bg-slate-800/90 backdrop-blur px-2 py-1 rounded-lg border border-slate-700">
-                {(["fastest","fewest","scenic","trailer"] as RouteType[]).filter(t => t !== "trailer" || trailerEnabled).map(t => (
-                  <button key={t} onClick={() => { setRouteType(t); handleCalculate(); }} className={`px-2 py-1 text-xs rounded ${routeType===t?"bg-red-600 text-white":"text-slate-300 hover:text-white"}`}>
+                {(["fastest","fewest","scenic","trailer"] as RouteType[]).filter(t => route.totalDistanceKm >= 1000 || t !== "trailer" || trailerEnabled || routeVariants.trailer).map(t => (
+                  <button key={t} onClick={() => handleSelectRouteType(t)} className={`px-2 py-1 text-xs rounded ${routeType===t?"bg-red-600 text-white":"text-slate-300 hover:text-white"}`}>
                     {t==="fastest"?"Snelste":t==="fewest"?"Minste stops":t==="scenic"?"Toeristisch":"Aanhanger"}
                   </button>
                 ))}
@@ -691,6 +788,8 @@ function Index() {
           destCoord={destCoord}
           superchargers={superchargers}
           route={route}
+          routeVariants={routeVariants}
+          selectedRouteType={routeType}
           chargingStops={chargingStops}
           currentPosition={currentPosition}
           isNavigating={isNavigating}
