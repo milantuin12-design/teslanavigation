@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import type { ChargerConfig, Supercharger } from "./tesla-types";
+import type { ChargerConfig, OpeningHours, Supercharger } from "./tesla-types";
 import type { Json } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, parseChargerConfigsFromLegacy } from "./tesla-utils";
+import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, normalizeOpeningHours, parseChargerConfigsFromLegacy } from "./tesla-utils";
 
 function normalizeStallData(totalStalls?: number | null, stallTypes?: string | null) {
   const rawParts = (stallTypes ?? "")
@@ -23,7 +23,7 @@ function normalizeStallData(totalStalls?: number | null, stallTypes?: string | n
 }
 
 const SELECT_COLS =
-  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,max_speed_kw,versions,opening_time,closing_time,trailer_friendly,is_available,charger_configs";
+  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs";
 
 type Row = {
   id: string;
@@ -38,6 +38,7 @@ type Row = {
   versions: string[] | null;
   opening_time: string | null;
   closing_time: string | null;
+  opening_hours: OpeningHours | null;
   trailer_friendly: boolean | null;
   is_available: boolean | null;
   charger_configs: ChargerConfig[] | null;
@@ -60,6 +61,7 @@ function rowToCharger(row: Row): Supercharger {
     maxSpeedKw: getMaxSpeedFromConfigs(chargerConfigs) ?? row.max_speed_kw ?? undefined,
     versions: getVersionsFromConfigs(chargerConfigs).length > 0 ? getVersionsFromConfigs(chargerConfigs) : row.versions ?? [],
     chargerConfigs,
+    openingHours: normalizeOpeningHours(row.opening_hours, row.opening_time, row.closing_time),
     openingTime: row.opening_time,
     closingTime: row.closing_time,
     trailerFriendly: !!row.trailer_friendly,
@@ -106,6 +108,14 @@ const chargerInput = z.object({
   })).default([]),
   openingTime: z.string().nullable().optional(),
   closingTime: z.string().nullable().optional(),
+  openingHours: z.object({
+    mode: z.enum(["24_7", "weekly"]),
+    days: z.record(z.object({
+      closed: z.boolean().optional(),
+      open: z.string(),
+      close: z.string(),
+    })),
+  }).optional(),
   trailerFriendly: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
 });
@@ -137,6 +147,7 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       max_speed_kw: getMaxSpeedFromConfigs(configs) ?? data.maxSpeedKw ?? null,
       versions: getVersionsFromConfigs(configs).length > 0 ? getVersionsFromConfigs(configs) : data.versions,
       charger_configs: configs.map((config) => ({ ...config })) as Json,
+      opening_hours: normalizeOpeningHours(data.openingHours, data.openingTime, data.closingTime) as unknown as Json,
       opening_time: data.openingTime || null,
       closing_time: data.closingTime || null,
       trailer_friendly: data.trailerFriendly,
