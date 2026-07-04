@@ -124,7 +124,14 @@ export function normalizeOpeningHours(value?: unknown, openingTime?: string | nu
         }
       }
     }
-    return { mode: raw.mode === 'weekly' ? 'weekly' : '24_7', days };
+    if (raw.mode === 'weekly') return { mode: 'weekly', days };
+    if (openingTime && closingTime) {
+      return {
+        mode: 'weekly',
+        days: Object.fromEntries(openingDayKeys.map((day) => [day, { closed: false, open: openingTime.slice(0, 5), close: closingTime.slice(0, 5) }])) as OpeningHours['days'],
+      };
+    }
+    return { mode: '24_7', days };
   }
   if (openingTime && closingTime) {
     return {
