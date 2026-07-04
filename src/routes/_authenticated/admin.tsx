@@ -115,7 +115,7 @@ function AdminPage() {
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from("superchargers")
-        .select("id,name,lat,lng,country,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,trailer_friendly,is_available,charger_configs")
+        .select("id,name,lat,lng,country,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs")
         .order("name").range(from, from + 999);
       if (error) { toast.error(error.message); break; }
       rows.push(...(data as Charger[]));
@@ -146,6 +146,7 @@ function AdminPage() {
       stall_types: configSummary(editing.charger_configs).replaceAll(" · ", " - "),
       max_speed_kw: maxSpeedFromConfigs(editing.charger_configs),
       versions: versionsFromConfigs(editing.charger_configs),
+      opening_hours: normalizeOpeningHours(editing.opening_hours, editing.opening_time, editing.closing_time) as unknown as Json,
       opening_time: editing.opening_time || null,
       closing_time: editing.closing_time || null,
       trailer_friendly: !!editing.trailer_friendly,
