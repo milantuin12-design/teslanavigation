@@ -70,6 +70,15 @@ function configsForCharger(charger: Charger): ChargerConfig[] {
     : parseChargerConfigsFromLegacy(charger.stall_types, charger.total_stalls, charger.max_speed_kw, charger.versions);
 }
 
+function openingSummary(openingHours?: OpeningHours | null, openingTime?: string | null, closingTime?: string | null) {
+  const hours = normalizeOpeningHours(openingHours, openingTime, closingTime);
+  if (hours.mode === "24_7") return "24/7";
+  return openingDayKeys.map((day) => {
+    const dayHours = hours.days[day];
+    return `${openingDayLabels[day]} ${dayHours.closed ? "dicht" : `${dayHours.open}-${dayHours.close}`}`;
+  }).join(" · ");
+}
+
 function totalFromConfigs(configs?: ChargerConfig[] | null) {
   const total = normalizeConfigs(configs).reduce((sum, config) => sum + config.count, 0);
   return total > 0 ? total : null;
@@ -118,8 +127,8 @@ function AdminPage() {
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
-  const openNew = () => { setEditing({ ...emptyCharger }); setCoordsInput(""); };
-  const openEdit = (c: Charger) => { setEditing({ ...c, charger_configs: configsForCharger(c) }); setCoordsInput(`${c.lat},${c.lng}`); };
+  const openNew = () => { setEditing({ ...emptyCharger, opening_hours: defaultOpeningHours() }); setCoordsInput(""); };
+  const openEdit = (c: Charger) => { setEditing({ ...c, charger_configs: configsForCharger(c), opening_hours: normalizeOpeningHours(c.opening_hours, c.opening_time, c.closing_time) }); setCoordsInput(`${c.lat},${c.lng}`); };
 
   const save = async () => {
     if (!editing) return;
