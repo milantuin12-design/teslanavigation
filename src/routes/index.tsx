@@ -236,7 +236,8 @@ function Index() {
     start: [number, number],
     end: [number, number],
     intermediateWaypoints?: [number, number][],
-    alternativeIndex: number = 0
+    alternativeIndex: number = 0,
+    avoidMotorway: boolean = false
   ): Promise<{ route: RouteResult; steps: RouteStep[] } | null> => {
     const allPoints: [number, number][] = [start];
     if (intermediateWaypoints && intermediateWaypoints.length > 0) {
@@ -246,9 +247,14 @@ function Index() {
 
     const coordString = allPoints.map((c) => `${c[0]},${c[1]}`).join(";");
 
+    const baseQuery = `overview=full&geometries=geojson&steps=true&alternatives=3`;
     const osrmUrls = [
-      `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson&steps=true&alternatives=true`,
-      `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordString}?overview=full&geometries=geojson&steps=true&alternatives=true`,
+      ...(avoidMotorway ? [
+        `https://router.project-osrm.org/route/v1/driving/${coordString}?${baseQuery}&exclude=motorway`,
+        `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordString}?${baseQuery}&exclude=motorway`,
+      ] : []),
+      `https://router.project-osrm.org/route/v1/driving/${coordString}?${baseQuery}`,
+      `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordString}?${baseQuery}`,
     ];
 
     for (const osrmUrl of osrmUrls) {
@@ -298,7 +304,8 @@ function Index() {
       [fromCoord.lng, fromCoord.lat],
       [toCoord.lng, toCoord.lat],
       allWaypoints.length > 0 ? allWaypoints : undefined,
-      alternativeIndex
+      alternativeIndex,
+      selectedType === "scenic"
     );
 
     if (!initialResult) return { ok: false, error: "Kon geen route vinden." };
@@ -340,7 +347,8 @@ function Index() {
         [fromCoord.lng, fromCoord.lat],
         [toCoord.lng, toCoord.lat],
         finalWaypoints,
-        alternativeIndex
+        alternativeIndex,
+        selectedType === "scenic"
       );
       if (finalResult) {
         const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
@@ -403,8 +411,9 @@ function Index() {
       await Promise.all(allTypes.filter((type) => type !== routeType).map(async (type) => {
         const planned = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, type, type === "scenic" ? 1 : 0);
         if (planned.ok && planned.plan) {
-          nextPlans[type] = planned.plan;
-          nextVariants[type] = planned.plan.route;
+          const plan = planned.plan;
+          nextPlans[type] = plan;
+          nextVariants[type] = plan.route;
         }
       }));
     }
@@ -459,9 +468,10 @@ function Index() {
     try {
       const planned = await computeRoutePlan(startCoord, destCoord, batteryPercent, waypoints, type, type === "scenic" ? 1 : 0);
       if (planned.ok && planned.plan) {
-        setRoutePlans((prev) => ({ ...prev, [type]: planned.plan }));
-        setRouteVariants((prev) => ({ ...prev, [type]: planned.plan!.route }));
-        applyPlan(type, planned.plan);
+        const plan = planned.plan;
+        setRoutePlans((prev) => ({ ...prev, [type]: plan }));
+        setRouteVariants((prev) => ({ ...prev, [type]: plan.route }));
+        applyPlan(type, plan);
       } else {
         setError(planned.error || "Deze routevariant lukt niet.");
       }
