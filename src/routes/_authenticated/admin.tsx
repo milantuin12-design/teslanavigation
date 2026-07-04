@@ -8,9 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Trash2, Pencil, Plus, Truck, X } from "lucide-react";
-import type { ChargerConfig } from "@/lib/tesla-types";
+import type { ChargerConfig, OpeningDayKey, OpeningHours } from "@/lib/tesla-types";
 import type { Json } from "@/integrations/supabase/types";
-import { parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
+import { defaultOpeningHours, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -28,6 +28,7 @@ type Charger = {
   stall_types: string | null;
   max_speed_kw: number | null;
   versions: string[] | null;
+  opening_hours: OpeningHours | null;
   opening_time: string | null;
   closing_time: string | null;
   trailer_friendly: boolean;
@@ -39,6 +40,7 @@ const emptyCharger = {
   name: "", lat: 0, lng: 0, country: "",
   total_stalls: null as number | null, stall_types: null as string | null,
   max_speed_kw: null as number | null, versions: [] as string[],
+  opening_hours: defaultOpeningHours() as OpeningHours,
   opening_time: null as string | null, closing_time: null as string | null,
   trailer_friendly: false, is_available: true,
   charger_configs: [{ count: 8, version: "V3", speedKw: 250 }] as ChargerConfig[],
