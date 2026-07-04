@@ -211,7 +211,7 @@ function AdminPage() {
                       <td className="p-3">{c.name}</td>
                       <td className="p-3">{c.country}</td>
                       <td className="p-3 max-w-xs text-slate-300">{configSummary(configsForCharger(c))}</td>
-                      <td className="p-3">{c.opening_time && c.closing_time ? `${c.opening_time}-${c.closing_time}` : "24/7"}</td>
+                      <td className="p-3 max-w-sm text-slate-300">{openingSummary(c.opening_hours, c.opening_time, c.closing_time)}</td>
                       <td className="p-3">{c.is_available === false ? <span className="text-red-400">Niet beschikbaar</span> : <span className="text-green-400">Beschikbaar</span>}</td>
                       <td className="p-3">{c.trailer_friendly ? "✓" : "-"}</td>
                       <td className="p-3 text-right whitespace-nowrap">
@@ -283,11 +283,36 @@ function AdminPage() {
                   })}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><Label>Open vanaf (HH:MM)</Label><Input type="time" value={editing.opening_time || ""} onChange={(e) => setEditing({ ...editing, opening_time: e.target.value || null })} className="bg-slate-800 border-slate-700" /></div>
-                <div><Label>Dicht vanaf</Label><Input type="time" value={editing.closing_time || ""} onChange={(e) => setEditing({ ...editing, closing_time: e.target.value || null })} className="bg-slate-800 border-slate-700" /></div>
+              <div className="rounded-lg border border-slate-700 p-3 space-y-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={normalizeOpeningHours(editing.opening_hours, editing.opening_time, editing.closing_time).mode === "24_7"} onCheckedChange={(checked) => {
+                    const current = normalizeOpeningHours(editing.opening_hours, editing.opening_time, editing.closing_time);
+                    setEditing({ ...editing, opening_hours: { ...current, mode: checked ? "24_7" : "weekly" } });
+                  }} />
+                  24/7 open
+                </label>
+                {normalizeOpeningHours(editing.opening_hours, editing.opening_time, editing.closing_time).mode === "weekly" && (
+                  <div className="space-y-2">
+                    {openingDayKeys.map((day: OpeningDayKey) => {
+                      const hours = normalizeOpeningHours(editing.opening_hours, editing.opening_time, editing.closing_time);
+                      const dayHours = hours.days[day];
+                      const updateDay = (next: Partial<typeof dayHours>) => {
+                        setEditing({ ...editing, opening_hours: { ...hours, days: { ...hours.days, [day]: { ...dayHours, ...next } } } });
+                      };
+                      return (
+                        <div key={day} className="grid grid-cols-[34px_1fr_1fr_auto] gap-2 items-center">
+                          <span className="text-xs text-slate-400">{openingDayLabels[day]}</span>
+                          <Input type="time" value={dayHours.open} disabled={dayHours.closed} onChange={(e) => updateDay({ open: e.target.value })} className="bg-slate-800 border-slate-700" />
+                          <Input type="time" value={dayHours.close} disabled={dayHours.closed} onChange={(e) => updateDay({ close: e.target.value })} className="bg-slate-800 border-slate-700" />
+                          <label className="flex items-center gap-1 text-xs text-slate-300">
+                            <Checkbox checked={!!dayHours.closed} onCheckedChange={(checked) => updateDay({ closed: !!checked })} /> Dicht
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-slate-400">Beide leeg = 24/7 open</p>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={editing.is_available === false} onCheckedChange={(c) => setEditing({ ...editing, is_available: !c })} />
                 Niet beschikbaar (rood op de kaart)
