@@ -4,6 +4,19 @@ export interface ChargerConfig {
   speedKw: number;
 }
 
+export type OpeningDayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+
+export interface OpeningDayHours {
+  closed?: boolean;
+  open: string;
+  close: string;
+}
+
+export interface OpeningHours {
+  mode: '24_7' | 'weekly';
+  days: Record<OpeningDayKey, OpeningDayHours>;
+}
+
 export interface Supercharger {
   id?: string;
   name: string;
@@ -16,6 +29,7 @@ export interface Supercharger {
   maxSpeedKw?: number;
   versions?: string[];
   chargerConfigs?: ChargerConfig[];
+  openingHours?: OpeningHours | null;
   openingTime?: string | null; // "HH:MM"
   closingTime?: string | null;
   trailerFriendly?: boolean;
