@@ -1,4 +1,4 @@
-import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, TimeMode, teslaBatteryKWh, teslaMaxChargeKw, ChargerConfig } from './tesla-types';
+import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, TimeMode, teslaBatteryKWh, teslaMaxChargeKw, ChargerConfig, OpeningHours, OpeningDayKey } from './tesla-types';
 
 export function parseCoordinates(input: string): { lat: number; lng: number } | null {
   const trimmed = input.trim();
@@ -38,7 +38,12 @@ export function normalizeChargerConfigs(configs?: ChargerConfig[] | null): Charg
 }
 
 export function parseChargerConfigsFromLegacy(stallTypes?: string | null, totalStalls?: number | null, maxSpeedKw?: number | null, versions?: string[] | null): ChargerConfig[] {
-  const raw = stallTypes || '';
+  const raw = (stallTypes || '')
+    .split(/[,+]/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .filter((part, index, all) => all.indexOf(part) === index)
+    .join(', ');
   const configs: ChargerConfig[] = [];
   const detailedPattern = /(\d+)\s*x?\s*(?:laders?)?\s*(?:\(?\s*)?(V[234])?(?:\s*\)?\s*)?(?:laders?)?\s*(?:(\d{2,3})\s*k?w?)?/gi;
   let match: RegExpExecArray | null;
@@ -81,6 +86,70 @@ export function getChargerConfigs(charger: Supercharger): ChargerConfig[] {
   const direct = normalizeChargerConfigs(charger.chargerConfigs);
   if (direct.length > 0) return direct;
   return parseChargerConfigsFromLegacy(charger.stallTypes, charger.totalStalls, charger.maxSpeedKw, charger.versions);
+}
+
+export const openingDayKeys: OpeningDayKey[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+export const openingDayLabels: Record<OpeningDayKey, string> = {
+  mon: 'Ma',
+  tue: 'Di',
+  wed: 'Wo',
+  thu: 'Do',
+  fri: 'Vr',
+  sat: 'Za',
+  sun: 'Zo',
+};
+
+export function defaultOpeningHours(): OpeningHours {
+  return {
+    mode: '24_7',
+    days: Object.fromEntries(openingDayKeys.map((day) => [day, { closed: false, open: '00:00', close: '23:59' }])) as OpeningHours['days'],
+  };
+}
+
+export function normalizeOpeningHours(value?: unknown, openingTime?: string | null, closingTime?: string | null): OpeningHours {
+  const fallback = defaultOpeningHours();
+  if (value && typeof value === 'object') {
+    const raw = value as Partial<OpeningHours>;
+    const days = { ...fallback.days };
+    if (raw.days && typeof raw.days === 'object') {
+      for (const day of openingDayKeys) {
+        const rawDay = raw.days[day];
+        if (rawDay && typeof rawDay === 'object') {
+          days[day] = {
+            closed: !!rawDay.closed,
+            open: typeof rawDay.open === 'string' && rawDay.open ? rawDay.open : '00:00',
+            close: typeof rawDay.close === 'string' && rawDay.close ? rawDay.close : '23:59',
+          };
+        }
+      }
+    }
+    return { mode: raw.mode === 'weekly' ? 'weekly' : '24_7', days };
+  }
+  if (openingTime && closingTime) {
+    return {
+      mode: 'weekly',
+      days: Object.fromEntries(openingDayKeys.map((day) => [day, { closed: false, open: openingTime.slice(0, 5), close: closingTime.slice(0, 5) }])) as OpeningHours['days'],
+    };
+  }
+  return fallback;
+}
+
+function minutesFromHHMM(value: string): number {
+  const [h, m] = value.split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+function dayKeyForDate(date: Date): OpeningDayKey {
+  return openingDayKeys[(date.getDay() + 6) % 7];
+}
+
+export function formatOpeningHoursSummary(charger: Supercharger): string {
+  const hours = normalizeOpeningHours(charger.openingHours, charger.openingTime, charger.closingTime);
+  if (hours.mode === '24_7') return '24/7 open';
+  const today = hours.days[dayKeyForDate(new Date())];
+  if (!today || today.closed) return 'Vandaag gesloten';
+  return `Vandaag ${today.open}–${today.close}`;
 }
 
 export function parseMaxSpeed(stallTypes?: string, maxSpeedKw?: number, chargerConfigs?: ChargerConfig[]): number {
@@ -175,6 +244,19 @@ export function findChargersNearRoute(
 
 /** Is charger open at given local time (HH:MM). null times = 24/7. */
 export function isChargerOpenAt(charger: Supercharger, atDate: Date): boolean {
+  const weekly = normalizeOpeningHours(charger.openingHours, charger.openingTime, charger.closingTime);
+  if (weekly.mode === '24_7') return true;
+  const today = weekly.days[dayKeyForDate(atDate)];
+  if (!today || today.closed) return false;
+  const mins = atDate.getHours() * 60 + atDate.getMinutes();
+  const openMin = minutesFromHHMM(today.open);
+  const closeMin = minutesFromHHMM(today.close);
+  if (openMin === closeMin) return true;
+  if (openMin < closeMin) return mins >= openMin && mins <= closeMin;
+  return mins >= openMin || mins <= closeMin;
+}
+
+export function isChargerOpenAtLegacy(charger: Supercharger, atDate: Date): boolean {
   if (!charger.openingTime || !charger.closingTime) return true;
   const mins = atDate.getHours() * 60 + atDate.getMinutes();
   const [oh, om] = charger.openingTime.split(':').map(Number);
@@ -202,6 +284,8 @@ export interface CalcChargingOptions {
   minSafetyPercent?: number;
   /** Only allow trailer-friendly chargers. */
   trailerOnly?: boolean;
+  /** Prefer trailer-friendly chargers but allow others if needed. */
+  preferTrailerFriendly?: boolean;
   /** Time of departure — used to filter out chargers that are closed at arrival. */
   departureTime?: Date;
 }
@@ -224,6 +308,7 @@ export function calculateChargingStops(
     maxArrivalAtChargerPercent = 10,
     minSafetyPercent = 3,
     trailerOnly = false,
+    preferTrailerFriendly = false,
     departureTime = new Date(),
   } = opts;
 
@@ -320,10 +405,10 @@ export function calculateChargingStops(
     const goodCandidates = candidates.filter(c => c.batteryAtCharger <= maxArrivalAtChargerPercent);
     let best: Candidate;
     if (goodCandidates.length > 0) {
-      goodCandidates.sort((a, b) => b.routeKm - a.routeKm);
+      goodCandidates.sort((a, b) => scoreCandidate(b, preferTrailerFriendly) - scoreCandidate(a, preferTrailerFriendly));
       best = goodCandidates[0];
     } else {
-      candidates.sort((a, b) => b.routeKm - a.routeKm);
+      candidates.sort((a, b) => scoreCandidate(b, preferTrailerFriendly) - scoreCandidate(a, preferTrailerFriendly));
       best = candidates[0];
     }
 
@@ -375,6 +460,10 @@ export function calculateChargingStops(
   }
   stops.forEach((stop, idx) => { stop.stopNumber = idx + 1; });
   return { stops, arrivalPercent: Math.round(arrivalBattery), unreachable: false };
+}
+
+function scoreCandidate(candidate: { routeKm: number; detourKm: number; charger: Supercharger }, preferTrailerFriendly: boolean): number {
+  return candidate.routeKm - candidate.detourKm * 2 + (preferTrailerFriendly && candidate.charger.trailerFriendly ? 80 : 0);
 }
 
 function findNextChargerDistance(
