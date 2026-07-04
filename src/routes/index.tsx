@@ -79,6 +79,13 @@ interface OSRMRoute {
   legs?: RouteLeg[];
 }
 
+interface RoutePlan {
+  route: RouteResult;
+  steps: RouteStep[];
+  stops: ChargingStop[];
+  arrivalPercent: number;
+}
+
 const OFF_ROUTE_KM_THRESHOLD = 0.2; // 200m
 const OFF_ROUTE_PERSIST_MS = 8000; // off-route for 8s before rerouting
 
@@ -108,6 +115,8 @@ function Index() {
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
 
   const [route, setRoute] = useState<RouteResult | null>(null);
+  const [routeVariants, setRouteVariants] = useState<Partial<Record<RouteType, RouteResult>>>({});
+  const [routePlans, setRoutePlans] = useState<Partial<Record<RouteType, RoutePlan>>>({});
   const [chargingStops, setChargingStops] = useState<ChargingStop[]>([]);
   const [arrivalPercent, setArrivalPercent] = useState<number | null>(null);
   const [routeSteps, setRouteSteps] = useState<RouteStep[]>([]);
@@ -225,7 +234,8 @@ function Index() {
   const fetchRouteWithInstructions = useCallback(async (
     start: [number, number],
     end: [number, number],
-    intermediateWaypoints?: [number, number][]
+    intermediateWaypoints?: [number, number][],
+    alternativeIndex: number = 0
   ): Promise<{ route: RouteResult; steps: RouteStep[] } | null> => {
     const allPoints: [number, number][] = [start];
     if (intermediateWaypoints && intermediateWaypoints.length > 0) {
@@ -236,8 +246,8 @@ function Index() {
     const coordString = allPoints.map((c) => `${c[0]},${c[1]}`).join(";");
 
     const osrmUrls = [
-      `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson&steps=true`,
-      `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordString}?overview=full&geometries=geojson&steps=true`,
+      `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson&steps=true&alternatives=true`,
+      `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordString}?overview=full&geometries=geojson&steps=true&alternatives=true`,
     ];
 
     for (const osrmUrl of osrmUrls) {
@@ -249,7 +259,7 @@ function Index() {
         if (response.ok) {
           const data = await response.json();
           if (data.routes && data.routes.length > 0) {
-            const osrmRoute: OSRMRoute = data.routes[0];
+              const osrmRoute: OSRMRoute = data.routes[Math.min(alternativeIndex, data.routes.length - 1)];
             const steps: RouteStep[] = [];
             if (osrmRoute.legs) {
               for (const leg of osrmRoute.legs) {
@@ -273,28 +283,30 @@ function Index() {
     return null;
   }, []);
 
-  const computeRoute = useCallback(async (
+  const computeRoutePlan = useCallback(async (
     fromCoord: { lat: number; lng: number },
     toCoord: { lat: number; lng: number },
     fromBattery: number,
-    extraWaypoints: { lat: number; lng: number }[]
-  ): Promise<{ ok: boolean; error?: string } > => {
+    extraWaypoints: { lat: number; lng: number }[],
+    selectedType: RouteType,
+    alternativeIndex: number = 0
+  ): Promise<{ ok: boolean; plan?: RoutePlan; error?: string } > => {
     const allWaypoints: [number, number][] = extraWaypoints.map((w) => [w.lng, w.lat]);
 
     const initialResult = await fetchRouteWithInstructions(
       [fromCoord.lng, fromCoord.lat],
       [toCoord.lng, toCoord.lat],
-      allWaypoints.length > 0 ? allWaypoints : undefined
+      allWaypoints.length > 0 ? allWaypoints : undefined,
+      alternativeIndex
     );
 
     if (!initialResult) return { ok: false, error: "Kon geen route vinden." };
     const { route: initialRoute, steps: initialSteps } = initialResult;
-    setRouteSteps(initialSteps);
 
     const variantOpts = {
-      chargeTargetPercent: routeType === "fewest" ? 100 : chargeTargetPercent,
-      maxArrivalAtChargerPercent: routeType === "fewest" ? 5 : 10,
-      trailerOnly: routeType === "trailer",
+      chargeTargetPercent,
+      maxArrivalAtChargerPercent: selectedType === "fewest" ? 5 : 10,
+      preferTrailerFriendly: selectedType === "trailer",
     };
     const result = calculateChargingStops(initialRoute, {
       modelRangeKm: modelRange,
@@ -305,19 +317,16 @@ function Index() {
       targetArrivalPercent,
       weatherMode,
       timeMode,
-      minChargerSpeedKw,
+      minChargerSpeedKw: selectedType === "scenic" ? 0 : minChargerSpeedKw,
       ...variantOpts,
     });
 
 
     if (result.unreachable) {
-      setRoute(initialRoute);
-      setChargingStops([]);
       return { ok: false, error: result.reason || "Deze route is niet mogelijk." };
     }
 
-    setChargingStops(result.stops);
-    setArrivalPercent(result.arrivalPercent);
+    let finalPlan: RoutePlan = { route: initialRoute, steps: initialSteps, stops: result.stops, arrivalPercent: result.arrivalPercent };
 
     if (result.stops.length > 0) {
       const finalWaypoints = [
@@ -329,11 +338,10 @@ function Index() {
       const finalResult = await fetchRouteWithInstructions(
         [fromCoord.lng, fromCoord.lat],
         [toCoord.lng, toCoord.lat],
-        finalWaypoints
+        finalWaypoints,
+        alternativeIndex
       );
       if (finalResult) {
-        setRoute(finalResult.route);
-        setRouteSteps(finalResult.steps);
         const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
         let runningKm = 0;
         let runningBattery = fromBattery;
@@ -355,16 +363,56 @@ function Index() {
             return { ...stop, stopNumber: idx + 1, batteryBefore, chargeDurationMin };
           });
         const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
-        setChargingStops(fixedStops);
-        setArrivalPercent(Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)));
+        finalPlan = {
+          route: finalResult.route,
+          steps: finalResult.steps,
+          stops: fixedStops,
+          arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
+        };
       } else {
-        setRoute(initialRoute);
+        finalPlan = { route: initialRoute, steps: initialSteps, stops: result.stops, arrivalPercent: result.arrivalPercent };
       }
-    } else {
-      setRoute(initialRoute);
     }
+
+    return { ok: true, plan: finalPlan };
+  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw]);
+
+  const applyPlan = useCallback((type: RouteType, plan: RoutePlan) => {
+    setRouteType(type);
+    setRoute(plan.route);
+    setRouteSteps(plan.steps);
+    setChargingStops(plan.stops);
+    setArrivalPercent(plan.arrivalPercent);
+  }, []);
+
+  const computeRoute = useCallback(async (
+    fromCoord: { lat: number; lng: number },
+    toCoord: { lat: number; lng: number },
+    fromBattery: number,
+    extraWaypoints: { lat: number; lng: number }[]
+  ): Promise<{ ok: boolean; error?: string } > => {
+    const selected = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, routeType, routeType === "scenic" ? 1 : 0);
+    if (!selected.ok || !selected.plan) return { ok: false, error: selected.error };
+
+    const nextPlans: Partial<Record<RouteType, RoutePlan>> = { [routeType]: selected.plan };
+    const nextVariants: Partial<Record<RouteType, RouteResult>> = { [routeType]: selected.plan.route };
+
+    if (selected.plan.route.totalDistanceKm >= 1000) {
+      const allTypes: RouteType[] = ["fastest", "fewest", "scenic", "trailer"];
+      await Promise.all(allTypes.filter((type) => type !== routeType).map(async (type) => {
+        const planned = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, type, type === "scenic" ? 1 : 0);
+        if (planned.ok && planned.plan) {
+          nextPlans[type] = planned.plan;
+          nextVariants[type] = planned.plan.route;
+        }
+      }));
+    }
+
+    setRoutePlans(nextPlans);
+    setRouteVariants(nextVariants);
+    applyPlan(routeType, selected.plan);
     return { ok: true };
-  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw, routeType]);
+  }, [applyPlan, computeRoutePlan, routeType]);
 
 
   const handleCalculate = useCallback(async () => {
