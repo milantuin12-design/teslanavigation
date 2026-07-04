@@ -31,6 +31,7 @@ import {
   distanceToRoute,
   projectOntoRoute,
   haversineDistance,
+  isChargerOperationalAt,
 } from "@/lib/tesla-utils";
 import { listSuperchargers } from "@/lib/tesla.functions";
 
@@ -418,6 +419,8 @@ function Index() {
   const handleCalculate = useCallback(async () => {
     setError("");
     setRoute(null);
+    setRouteVariants({});
+    setRoutePlans({});
     setChargingStops([]);
     setRouteSteps([]);
     setIsNavigating(false);
@@ -443,6 +446,29 @@ function Index() {
       setIsCalculating(false);
     }
   }, [startCoord, destCoord, superchargers, batteryPercent, waypoints, computeRoute]);
+
+  const handleSelectRouteType = useCallback(async (type: RouteType) => {
+    const existing = routePlans[type];
+    if (existing) {
+      applyPlan(type, existing);
+      return;
+    }
+    if (!startCoord || !destCoord) return;
+    setRouteType(type);
+    setIsCalculating(true);
+    try {
+      const planned = await computeRoutePlan(startCoord, destCoord, batteryPercent, waypoints, type, type === "scenic" ? 1 : 0);
+      if (planned.ok && planned.plan) {
+        setRoutePlans((prev) => ({ ...prev, [type]: planned.plan }));
+        setRouteVariants((prev) => ({ ...prev, [type]: planned.plan!.route }));
+        applyPlan(type, planned.plan);
+      } else {
+        setError(planned.error || "Deze routevariant lukt niet.");
+      }
+    } finally {
+      setIsCalculating(false);
+    }
+  }, [applyPlan, batteryPercent, computeRoutePlan, destCoord, routePlans, startCoord, waypoints]);
 
   const handleStartNavigation = useCallback(() => {
     if (!route) return;
@@ -625,6 +651,19 @@ function Index() {
     }
   }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, timeMode, computeRoute, chargingStops, positionProj]);
 
+  useEffect(() => {
+    if (!isNavigating || !navInfo?.nextCharging || !currentPosition || !destCoord) return;
+    if (isReroutingRef.current) return;
+    const eta = new Date(Date.now() + navInfo.nextCharging.etaMin * 60000);
+    if (isChargerOperationalAt(navInfo.nextCharging.stop.charger, eta)) return;
+    isReroutingRef.current = true;
+    setError("Volgende Supercharger is dicht of niet beschikbaar. Route wordt aangepast.");
+    (async () => {
+      await computeRoute(currentPosition, destCoord, liveBattery, []);
+      isReroutingRef.current = false;
+    })();
+  }, [computeRoute, currentPosition, destCoord, isNavigating, liveBattery, navInfo]);
+
   // When user manually updates liveBattery, reset estimate baseline
   useEffect(() => {
     if (!isNavigating || !positionProj) return;
@@ -716,8 +755,8 @@ function Index() {
             <AccountMenu />
             {route && (
               <div className="flex gap-2 bg-slate-800/90 backdrop-blur px-2 py-1 rounded-lg border border-slate-700">
-                {(["fastest","fewest","scenic","trailer"] as RouteType[]).filter(t => t !== "trailer" || trailerEnabled).map(t => (
-                  <button key={t} onClick={() => { setRouteType(t); handleCalculate(); }} className={`px-2 py-1 text-xs rounded ${routeType===t?"bg-red-600 text-white":"text-slate-300 hover:text-white"}`}>
+                {(["fastest","fewest","scenic","trailer"] as RouteType[]).filter(t => route.totalDistanceKm >= 1000 || t !== "trailer" || trailerEnabled || routeVariants.trailer).map(t => (
+                  <button key={t} onClick={() => handleSelectRouteType(t)} className={`px-2 py-1 text-xs rounded ${routeType===t?"bg-red-600 text-white":"text-slate-300 hover:text-white"}`}>
                     {t==="fastest"?"Snelste":t==="fewest"?"Minste stops":t==="scenic"?"Toeristisch":"Aanhanger"}
                   </button>
                 ))}
@@ -739,6 +778,8 @@ function Index() {
           destCoord={destCoord}
           superchargers={superchargers}
           route={route}
+          routeVariants={routeVariants}
+          selectedRouteType={routeType}
           chargingStops={chargingStops}
           currentPosition={currentPosition}
           isNavigating={isNavigating}
