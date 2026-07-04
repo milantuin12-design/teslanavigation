@@ -2,13 +2,15 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus } from '@/lib/tesla-types';
-import { formatChargerConfig, getChargerConfigs, getChargerStatus, isChargerOperationalAt, parseMaxSpeed } from '@/lib/tesla-utils';
+import { formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isChargerOperationalAt, parseMaxSpeed } from '@/lib/tesla-utils';
 
 interface EvMapProps {
   startCoord: { lat: number; lng: number } | null;
   destCoord: { lat: number; lng: number } | null;
   superchargers: Supercharger[];
   route: RouteResult | null;
+  routeVariants?: Partial<Record<string, RouteResult>>;
+  selectedRouteType?: string;
   chargingStops: ChargingStop[];
   currentPosition?: { lat: number; lng: number } | null;
   isNavigating?: boolean;
@@ -60,20 +62,16 @@ function currentPositionIcon() {
   });
 }
 
-function formatOpeningHours(charger: Supercharger): string {
-  if (!charger.openingTime || !charger.closingTime) return '24/7 open';
-  return `Open ${charger.openingTime.slice(0, 5)}–${charger.closingTime.slice(0, 5)}`;
-}
-
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[char] || char);
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, route, chargingStops, currentPosition, isNavigating, heading, headingUp }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
   const routeRef = useRef<L.Polyline | null>(null);
+  const routeVariantsRef = useRef<L.LayerGroup>(L.layerGroup());
   const currentMarkerRef = useRef<L.Marker | null>(null);
   const followPausedUntilRef = useRef(0);
   const lastAutoPanRef = useRef(0);
@@ -92,12 +90,20 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
       maxZoom: 18,
     }).addTo(map);
 
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      maxZoom: 18,
+      pane: 'overlayPane',
+      opacity: 0.85,
+    }).addTo(map);
+
     const pauseFollow = () => {
       followPausedUntilRef.current = Date.now() + 8000;
     };
     map.on('dragstart zoomstart', pauseFollow);
 
     markersRef.current.addTo(map);
+    routeVariantsRef.current.addTo(map);
     mapRef.current = map;
 
     return () => {
@@ -129,7 +135,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
           popup += `<br/><span style="color:#475569;">${charger.totalStalls} laadplekken</span>`;
         }
         popup += `<div style="margin-top:6px;color:#2563eb;font-weight:600;">Max ${maxSpeed} kW</div>`;
-        popup += `<div style="margin-top:3px;color:#475569;">${formatOpeningHours(charger)}</div>`;
+        popup += `<div style="margin-top:3px;color:#475569;">${escapeHtml(formatOpeningHoursSummary(charger))}</div>`;
         popup += `</div>`;
         marker.bindPopup(popup);
         markersRef.current.addLayer(marker);
@@ -191,9 +197,30 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
     if (!map) return;
 
     try {
-      if (routeRef.current) {
-        map.removeLayer(routeRef.current);
-        routeRef.current = null;
+      if (routeRef.current) { map.removeLayer(routeRef.current); routeRef.current = null; }
+      routeVariantsRef.current.clearLayers();
+
+      const variantEntries = Object.entries(routeVariants || {}).filter((entry): entry is [string, RouteResult] => !!entry[1]);
+      if (variantEntries.length > 1) {
+        variantEntries.forEach(([type, variantRoute]) => {
+          const latLngs: L.LatLngExpression[] = variantRoute.coordinates.map(([lng, lat]) => [lat, lng] as L.LatLngExpression);
+          const selected = type === selectedRouteType;
+          const polyline = L.polyline(latLngs, {
+            color: selected ? '#3b82f6' : '#94a3b8',
+            weight: selected ? 5 : 3,
+            opacity: selected ? 0.95 : 0.55,
+            smoothFactor: 1,
+          });
+          routeVariantsRef.current.addLayer(polyline);
+          if (selected) routeRef.current = polyline;
+        });
+
+        const selectedRoute = routeVariants?.[selectedRouteType || ''] || route;
+        if (selectedRoute && selectedRoute.coordinates.length > 0 && !isNavigating) {
+          const bounds = L.latLngBounds(selectedRoute.coordinates.map(([lng, lat]) => [lat, lng] as L.LatLngExpression));
+          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
+        }
+        return;
       }
 
       if (route && route.coordinates.length > 0) {
@@ -215,7 +242,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, cha
         }
       }
     } catch { /* ignore route rendering errors */ }
-  }, [route, isNavigating]);
+  }, [route, routeVariants, selectedRouteType, isNavigating]);
 
   useEffect(() => {
     const map = mapRef.current;
