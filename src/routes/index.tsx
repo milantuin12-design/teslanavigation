@@ -95,6 +95,8 @@ function Index() {
   const [destCoord, setDestCoord] = useState<{ lat: number; lng: number } | null>(null);
   const [waypoints, setWaypoints] = useState<{ lat: number; lng: number }[]>([]);
   const [selectedModel, setSelectedModel] = useState("Model 3 Long Range AWD");
+  const [manualRangeKm, setManualRangeKm] = useState(400);
+  const [manualSpeedKw, setManualSpeedKw] = useState(250);
   const [batteryPercent, setBatteryPercent] = useState(80);
   const [targetArrivalPercent, setTargetArrivalPercent] = useState(10);
   const [chargeTargetPercent, setChargeTargetPercent] = useState(80);
@@ -105,6 +107,7 @@ function Index() {
   const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
 
   const [routeType, setRouteType] = useState<RouteType>("fastest");
+
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
