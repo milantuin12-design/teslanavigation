@@ -437,7 +437,7 @@ function Index() {
     const nextVariants: Partial<Record<RouteType, RouteResult>> = { [routeType]: selected.plan.route };
 
     if (selected.plan.route.totalDistanceKm >= 1000) {
-      const allTypes: RouteType[] = ["fastest", "fewest", "scenic", "trailer"];
+      const allTypes: RouteType[] = ["fastest", "fewest", "scenic", "trailer", "manual"];
       await Promise.all(allTypes.filter((type) => type !== routeType).map(async (type) => {
         const planned = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, type, type === "scenic" ? 1 : 0);
         if (planned.ok && planned.plan) {
