@@ -289,9 +289,17 @@ export interface CalcChargingOptions {
   weatherMode?: WeatherMode;
   timeMode?: TimeMode;
   chargeTargetPercent?: number;
+  /** Minimum SOC to charge to at each stop (floor). */
+  minChargeTargetPercent?: number;
+  /** Maximum SOC to charge to at each stop (cap). */
+  maxChargeTargetPercent?: number;
   minChargerSpeedKw?: number;
   maxArrivalAtChargerPercent?: number;
   minSafetyPercent?: number;
+  /** Battery capacity override (kWh) for manual model. */
+  batteryCapacityKWhOverride?: number;
+  /** Car max charge speed override (kW) for manual model. */
+  carMaxKwOverride?: number;
   /** Only allow trailer-friendly chargers. */
   trailerOnly?: boolean;
   /** Prefer trailer-friendly chargers but allow others if needed. */
@@ -314,13 +322,18 @@ export function calculateChargingStops(
     weatherMode = 'summer',
     timeMode = 'day',
     chargeTargetPercent = 80,
+    minChargeTargetPercent,
+    maxChargeTargetPercent,
     minChargerSpeedKw = 0,
     maxArrivalAtChargerPercent = 10,
     minSafetyPercent = 3,
+    batteryCapacityKWhOverride,
+    carMaxKwOverride,
     trailerOnly = false,
     preferTrailerFriendly = false,
     departureTime = new Date(),
   } = opts;
+
 
   const stops: ChargingStop[] = [];
 
