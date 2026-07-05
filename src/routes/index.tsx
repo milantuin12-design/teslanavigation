@@ -193,12 +193,14 @@ function Index() {
   }, []);
 
   // Once superchargers are loaded and a pending load is queued, calculate
+  const handleCalculateRef = useRef<(() => void) | null>(null);
   useEffect(() => {
     if (!pendingLoadCalc || superchargers.length === 0 || !startCoord || !destCoord) return;
     setPendingLoadCalc(false);
-    handleCalculate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    handleCalculateRef.current?.();
   }, [pendingLoadCalc, superchargers.length, startCoord, destCoord]);
+
+
 
 
 
