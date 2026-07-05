@@ -794,14 +794,15 @@ function Index() {
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
             <AccountMenu />
             {route && (
-              <div className="flex gap-2 bg-slate-800/90 backdrop-blur px-2 py-1 rounded-lg border border-slate-700">
-                {(["fastest","fewest","scenic","trailer"] as RouteType[]).filter(t => route.totalDistanceKm >= 1000 || t !== "trailer" || trailerEnabled || routeVariants.trailer).map(t => (
+              <div className="flex flex-wrap gap-2 bg-slate-800/90 backdrop-blur px-2 py-1 rounded-lg border border-slate-700">
+                {(["fastest","fewest","scenic","trailer","manual"] as RouteType[]).map(t => (
                   <button key={t} onClick={() => handleSelectRouteType(t)} className={`px-2 py-1 text-xs rounded ${routeType===t?"bg-red-600 text-white":"text-slate-300 hover:text-white"}`}>
-                    {t==="fastest"?"Snelste":t==="fewest"?"Minste stops":t==="scenic"?"Toeristisch":"Aanhanger"}
+                    {t==="fastest"?"Snelste":t==="fewest"?"Minste stops":t==="scenic"?"Toeristisch":t==="trailer"?"Aanhanger":"Handmatig"}
                   </button>
                 ))}
               </div>
             )}
+
             {route && currentUser && (
               <Button size="sm" onClick={() => setSaveOpen(true)} className="bg-red-600 hover:bg-red-700"><Bookmark className="w-4 h-4 mr-1" />Opslaan</Button>
             )}
