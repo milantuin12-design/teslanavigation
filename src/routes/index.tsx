@@ -316,8 +316,22 @@ function Index() {
     if (!initialResult) return { ok: false, error: "Kon geen route vinden." };
     const { route: initialRoute, steps: initialSteps } = initialResult;
 
+    // Per-variant charging strategy
+    let minChargeTarget: number | undefined;
+    let maxChargeTarget: number | undefined;
+    let chargeTargetForVariant = chargeTargetPercent;
+    if (selectedType === "fastest" || selectedType === "trailer") {
+      minChargeTarget = 60; maxChargeTarget = 85; chargeTargetForVariant = 60;
+    } else if (selectedType === "fewest") {
+      minChargeTarget = 80; maxChargeTarget = 100; chargeTargetForVariant = 80;
+    } else if (selectedType === "manual") {
+      chargeTargetForVariant = chargeTargetPercent;
+    }
+
     const variantOpts = {
-      chargeTargetPercent,
+      chargeTargetPercent: chargeTargetForVariant,
+      minChargeTargetPercent: minChargeTarget,
+      maxChargeTargetPercent: maxChargeTarget,
       maxArrivalAtChargerPercent: selectedType === "fewest" ? 5 : 10,
       preferTrailerFriendly: selectedType === "trailer",
     };
@@ -331,6 +345,8 @@ function Index() {
       weatherMode,
       timeMode,
       minChargerSpeedKw: selectedType === "scenic" ? 0 : minChargerSpeedKw,
+      carMaxKwOverride,
+      batteryCapacityKWhOverride: selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined,
       ...variantOpts,
     });
 
@@ -357,8 +373,13 @@ function Index() {
       );
       if (finalResult) {
         const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
+        const batteryKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
+        const kmPerMin = finalResult.route.totalDistanceKm > 0 && finalResult.route.totalTimeMin > 0
+          ? finalResult.route.totalDistanceKm / finalResult.route.totalTimeMin
+          : 1.5;
         let runningKm = 0;
         let runningBattery = fromBattery;
+        let runningMin = 0;
         const fixedStops = result.stops
           .map((stop) => ({
             ...stop,
@@ -369,12 +390,15 @@ function Index() {
             const legKm = Math.max(0, stop.distanceFromStart - runningKm);
             const batteryBefore = Math.max(0, Math.round(runningBattery - (legKm / fullRange) * 100));
             const rawChargerKw = parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
-            const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, selectedModel);
-            const batteryKWh = teslaBatteryKWh[selectedModel] || 79;
+            const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, selectedModel, carMaxKwOverride);
             const chargeDurationMin = calculateChargeDuration(batteryBefore, stop.batteryAfter, batteryKWh, chargerSpeedKw);
+            const travelMin = legKm / kmPerMin;
+            runningMin += travelMin;
+            const etaMinFromStart = Math.round(runningMin);
+            runningMin += chargeDurationMin;
             runningKm = stop.distanceFromStart;
             runningBattery = stop.batteryAfter;
-            return { ...stop, stopNumber: idx + 1, batteryBefore, chargeDurationMin };
+            return { ...stop, stopNumber: idx + 1, batteryBefore, chargeDurationMin, etaMinFromStart };
           });
         const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
         finalPlan = {
@@ -389,7 +413,8 @@ function Index() {
     }
 
     return { ok: true, plan: finalPlan };
-  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw]);
+  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw, carMaxKwOverride, manualRangeKm]);
+
 
   const applyPlan = useCallback((type: RouteType, plan: RoutePlan) => {
     setRouteType(type);
