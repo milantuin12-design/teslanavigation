@@ -43,7 +43,10 @@ export interface ChargingStop {
   distanceFromStart: number;
   chargeDurationMin: number;
   stopNumber?: number;
+  /** Minutes from departure until arrival at this stop. */
+  etaMinFromStart?: number;
 }
+
 
 export interface RouteResult {
   coordinates: [number, number][];
