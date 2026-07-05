@@ -447,20 +447,24 @@ export function calculateChargingStops(
     } else {
       minBatteryNeeded = batteryNeededForNextLeg + minSafetyPercent + 2;
     }
+    const floor = typeof minChargeTargetPercent === 'number' ? minChargeTargetPercent : chargeTargetPercent;
+    const cap = typeof maxChargeTargetPercent === 'number' ? maxChargeTargetPercent : 100;
     let batteryAfter = useDestAsNext
-      ? Math.ceil(minBatteryNeeded)
-      : Math.max(chargeTargetPercent, Math.ceil(minBatteryNeeded));
+      ? Math.min(cap, Math.max(Math.ceil(minBatteryNeeded), floor))
+      : Math.max(floor, Math.ceil(minBatteryNeeded));
+    batteryAfter = Math.min(cap, Math.max(batteryAfter, Math.ceil(minBatteryNeeded)));
     batteryAfter = Math.min(100, batteryAfter);
 
     const rawChargerKw = parseMaxSpeed(best.charger.stallTypes, best.charger.maxSpeedKw, best.charger.chargerConfigs);
-    const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, modelName);
-    const batteryKWh = teslaBatteryKWh[modelName] || 79;
+    const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, modelName, carMaxKwOverride);
+    const batteryKWh = batteryCapacityKWhOverride || teslaBatteryKWh[modelName] || 79;
     const chargeDurationMin = calculateChargeDuration(
       Math.round(Math.max(minSafetyPercent, best.batteryAtCharger)),
       Math.round(batteryAfter),
       batteryKWh,
       chargerSpeedKw
     );
+
 
     stops.push({
       charger: best.charger,
