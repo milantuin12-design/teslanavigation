@@ -132,10 +132,12 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const operational = isChargerOperationalAt(charger);
+        const statusColor = operational ? '#16a34a' : '#dc2626';
         let popup = `<div style="font-family:system-ui;font-size:13px;min-width:220px;position:relative;color:#0f172a;">
           ${charger.trailerFriendly ? '<div style="position:absolute;right:0;top:0;font-size:18px;" title="Aanhangervriendelijk">🚚</div>' : ''}
           <strong style="font-size:15px;padding-right:24px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
-          <div style="margin-top:4px;color:${operational ? '#16a34a' : '#dc2626'};font-weight:700;">${operational ? 'Beschikbaar' : 'Niet beschikbaar'}</div>`;
+          <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
+
         if (configs.length > 0) {
           popup += `<div style="margin-top:6px;display:grid;gap:3px;">${configs.map((config) => `<div>${escapeHtml(formatChargerConfig(config))}</div>`).join('')}</div>`;
         } else if (charger.totalStalls) {
