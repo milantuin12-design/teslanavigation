@@ -62,6 +62,9 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
         const maxSpeedLabel = maxSpeedKw ? `${maxSpeedKw}kW` : '';
         const stallCountLabel = stop.charger.totalStalls ? `${stop.charger.totalStalls} laadplekken` : '';
         const isEditing = editingIndex === idx;
+        const eta = typeof stop.etaMinFromStart === 'number'
+          ? new Date(Date.now() + stop.etaMinFromStart * 60000)
+          : null;
 
         return (
           <div
@@ -87,11 +90,17 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                 </span>
               </div>
             </div>
+            {eta && (
+              <div className="text-[11px] text-blue-300 mt-0.5">
+                Aankomst ± {eta.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            )}
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
               <span className="flex items-center gap-1">
                 <MapPin size={11} />
                 {stop.distanceFromStart} km
               </span>
+
               {isEditing ? (
                 <div className="flex items-center gap-1">
                   <input

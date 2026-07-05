@@ -95,6 +95,8 @@ function Index() {
   const [destCoord, setDestCoord] = useState<{ lat: number; lng: number } | null>(null);
   const [waypoints, setWaypoints] = useState<{ lat: number; lng: number }[]>([]);
   const [selectedModel, setSelectedModel] = useState("Model 3 Long Range AWD");
+  const [manualRangeKm, setManualRangeKm] = useState(400);
+  const [manualSpeedKw, setManualSpeedKw] = useState(250);
   const [batteryPercent, setBatteryPercent] = useState(80);
   const [targetArrivalPercent, setTargetArrivalPercent] = useState(10);
   const [chargeTargetPercent, setChargeTargetPercent] = useState(80);
@@ -105,6 +107,7 @@ function Index() {
   const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
 
   const [routeType, setRouteType] = useState<RouteType>("fastest");
+
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
@@ -140,8 +143,10 @@ function Index() {
 
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
-  const modelRange = teslaModels[selectedModel];
+  const modelRange = selectedModel === "Handmatig" ? manualRangeKm : teslaModels[selectedModel];
+  const carMaxKwOverride = selectedModel === "Handmatig" ? manualSpeedKw : undefined;
   const availableRange = getAvailableRange(modelRange, batteryPercent, trailerReductionEffective, weatherMode, timeMode);
+
 
   useEffect(() => {
     let mounted = true;
@@ -161,6 +166,43 @@ function Index() {
   useEffect(() => {
     setLastAvailabilityUpdate(new Date().toISOString());
   }, []);
+
+  // Load saved route via ?load=<id>
+  const [pendingLoadCalc, setPendingLoadCalc] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const loadId = params.get("load");
+    if (!loadId) return;
+    (async () => {
+      const { data, error } = await supabase.from("saved_routes").select("*").eq("id", loadId).maybeSingle();
+      if (error || !data) { toast.error("Route niet gevonden"); return; }
+      setStartCoord({ lat: data.start_lat, lng: data.start_lng });
+      setDestCoord({ lat: data.end_lat, lng: data.end_lng });
+      setSelectedModel(data.model_name);
+      setBatteryPercent(data.battery_percent);
+      setTrailerEnabled(data.trailer_mode);
+      setTrailerReductionPercent(data.trailer_reduction);
+      setWeatherMode(data.weather_mode as WeatherMode);
+      setTimeMode(data.time_mode as TimeMode);
+      setRouteType(data.route_type as RouteType);
+      setPendingLoadCalc(true);
+      // Clear query
+      window.history.replaceState(null, "", window.location.pathname);
+    })();
+  }, []);
+
+  // Once superchargers are loaded and a pending load is queued, calculate
+  const handleCalculateRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    if (!pendingLoadCalc || superchargers.length === 0 || !startCoord || !destCoord) return;
+    setPendingLoadCalc(false);
+    handleCalculateRef.current?.();
+  }, [pendingLoadCalc, superchargers.length, startCoord, destCoord]);
+
+
+
+
 
   const watchIdRef = useRef<number | null>(null);
 
@@ -311,8 +353,22 @@ function Index() {
     if (!initialResult) return { ok: false, error: "Kon geen route vinden." };
     const { route: initialRoute, steps: initialSteps } = initialResult;
 
+    // Per-variant charging strategy
+    let minChargeTarget: number | undefined;
+    let maxChargeTarget: number | undefined;
+    let chargeTargetForVariant = chargeTargetPercent;
+    if (selectedType === "fastest" || selectedType === "trailer") {
+      minChargeTarget = 60; maxChargeTarget = 85; chargeTargetForVariant = 60;
+    } else if (selectedType === "fewest") {
+      minChargeTarget = 80; maxChargeTarget = 100; chargeTargetForVariant = 80;
+    } else if (selectedType === "manual") {
+      chargeTargetForVariant = chargeTargetPercent;
+    }
+
     const variantOpts = {
-      chargeTargetPercent,
+      chargeTargetPercent: chargeTargetForVariant,
+      minChargeTargetPercent: minChargeTarget,
+      maxChargeTargetPercent: maxChargeTarget,
       maxArrivalAtChargerPercent: selectedType === "fewest" ? 5 : 10,
       preferTrailerFriendly: selectedType === "trailer",
     };
@@ -326,6 +382,8 @@ function Index() {
       weatherMode,
       timeMode,
       minChargerSpeedKw: selectedType === "scenic" ? 0 : minChargerSpeedKw,
+      carMaxKwOverride,
+      batteryCapacityKWhOverride: selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined,
       ...variantOpts,
     });
 
@@ -352,8 +410,13 @@ function Index() {
       );
       if (finalResult) {
         const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
+        const batteryKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
+        const kmPerMin = finalResult.route.totalDistanceKm > 0 && finalResult.route.totalTimeMin > 0
+          ? finalResult.route.totalDistanceKm / finalResult.route.totalTimeMin
+          : 1.5;
         let runningKm = 0;
         let runningBattery = fromBattery;
+        let runningMin = 0;
         const fixedStops = result.stops
           .map((stop) => ({
             ...stop,
@@ -364,12 +427,15 @@ function Index() {
             const legKm = Math.max(0, stop.distanceFromStart - runningKm);
             const batteryBefore = Math.max(0, Math.round(runningBattery - (legKm / fullRange) * 100));
             const rawChargerKw = parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
-            const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, selectedModel);
-            const batteryKWh = teslaBatteryKWh[selectedModel] || 79;
+            const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, selectedModel, carMaxKwOverride);
             const chargeDurationMin = calculateChargeDuration(batteryBefore, stop.batteryAfter, batteryKWh, chargerSpeedKw);
+            const travelMin = legKm / kmPerMin;
+            runningMin += travelMin;
+            const etaMinFromStart = Math.round(runningMin);
+            runningMin += chargeDurationMin;
             runningKm = stop.distanceFromStart;
             runningBattery = stop.batteryAfter;
-            return { ...stop, stopNumber: idx + 1, batteryBefore, chargeDurationMin };
+            return { ...stop, stopNumber: idx + 1, batteryBefore, chargeDurationMin, etaMinFromStart };
           });
         const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
         finalPlan = {
@@ -384,7 +450,8 @@ function Index() {
     }
 
     return { ok: true, plan: finalPlan };
-  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw]);
+  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw, carMaxKwOverride, manualRangeKm]);
+
 
   const applyPlan = useCallback((type: RouteType, plan: RoutePlan) => {
     setRouteType(type);
@@ -407,7 +474,7 @@ function Index() {
     const nextVariants: Partial<Record<RouteType, RouteResult>> = { [routeType]: selected.plan.route };
 
     if (selected.plan.route.totalDistanceKm >= 1000) {
-      const allTypes: RouteType[] = ["fastest", "fewest", "scenic", "trailer"];
+      const allTypes: RouteType[] = ["fastest", "fewest", "scenic", "trailer", "manual"];
       await Promise.all(allTypes.filter((type) => type !== routeType).map(async (type) => {
         const planned = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, type, type === "scenic" ? 1 : 0);
         if (planned.ok && planned.plan) {
@@ -455,6 +522,9 @@ function Index() {
       setIsCalculating(false);
     }
   }, [startCoord, destCoord, superchargers, batteryPercent, waypoints, computeRoute]);
+
+  useEffect(() => { handleCalculateRef.current = handleCalculate; }, [handleCalculate]);
+
 
   const handleSelectRouteType = useCallback(async (type: RouteType) => {
     const existing = routePlans[type];
@@ -723,6 +793,11 @@ function Index() {
               onWeatherModeChange={setWeatherMode}
               onTimeModeChange={setTimeMode}
               onMinChargerSpeedChange={setMinChargerSpeedKw}
+              onManualRangeChange={setManualRangeKm}
+              onManualSpeedChange={setManualSpeedKw}
+              manualRangeKm={manualRangeKm}
+              manualSpeedKw={manualSpeedKw}
+
               onCalculate={handleCalculate}
               onStartNavigation={handleStartNavigation}
               selectedModel={selectedModel}
@@ -764,14 +839,15 @@ function Index() {
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
             <AccountMenu />
             {route && (
-              <div className="flex gap-2 bg-slate-800/90 backdrop-blur px-2 py-1 rounded-lg border border-slate-700">
-                {(["fastest","fewest","scenic","trailer"] as RouteType[]).filter(t => route.totalDistanceKm >= 1000 || t !== "trailer" || trailerEnabled || routeVariants.trailer).map(t => (
+              <div className="flex flex-wrap gap-2 bg-slate-800/90 backdrop-blur px-2 py-1 rounded-lg border border-slate-700">
+                {(["fastest","fewest","scenic","trailer","manual"] as RouteType[]).map(t => (
                   <button key={t} onClick={() => handleSelectRouteType(t)} className={`px-2 py-1 text-xs rounded ${routeType===t?"bg-red-600 text-white":"text-slate-300 hover:text-white"}`}>
-                    {t==="fastest"?"Snelste":t==="fewest"?"Minste stops":t==="scenic"?"Toeristisch":"Aanhanger"}
+                    {t==="fastest"?"Snelste":t==="fewest"?"Minste stops":t==="scenic"?"Toeristisch":t==="trailer"?"Aanhanger":"Handmatig"}
                   </button>
                 ))}
               </div>
             )}
+
             {route && currentUser && (
               <Button size="sm" onClick={() => setSaveOpen(true)} className="bg-red-600 hover:bg-red-700"><Bookmark className="w-4 h-4 mr-1" />Opslaan</Button>
             )}

@@ -43,7 +43,10 @@ export interface ChargingStop {
   distanceFromStart: number;
   chargeDurationMin: number;
   stopNumber?: number;
+  /** Minutes from departure until arrival at this stop. */
+  etaMinFromStart?: number;
 }
+
 
 export interface RouteResult {
   coordinates: [number, number][];
@@ -51,10 +54,11 @@ export interface RouteResult {
   totalTimeMin: number;
 }
 
-export type ChargerStatus = 'Beschikbaar' | 'Druk' | 'Vol' | 'Onbekend' | 'Niet beschikbaar';
+export type ChargerStatus = 'Beschikbaar' | 'Druk' | 'Vol' | 'Onbekend' | 'Niet beschikbaar' | 'Gesloten';
 export type WeatherMode = 'summer' | 'winter' | 'fog';
 export type TimeMode = 'day' | 'night';
-export type RouteType = 'fastest' | 'fewest' | 'scenic' | 'trailer';
+export type RouteType = 'fastest' | 'fewest' | 'scenic' | 'trailer' | 'manual';
+
 
 export const teslaMaxChargeKw: Record<string, number> = {
   'Model 3 RWD': 170,

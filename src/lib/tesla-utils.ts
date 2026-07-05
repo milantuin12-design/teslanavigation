@@ -172,10 +172,11 @@ export function parseMaxSpeed(stallTypes?: string, maxSpeedKw?: number, chargerC
   return 150;
 }
 
-export function effectiveChargeSpeedKw(chargerKw: number, modelName: string): number {
-  const cap = teslaMaxChargeKw[modelName] ?? 250;
+export function effectiveChargeSpeedKw(chargerKw: number, modelName: string, maxKwOverride?: number): number {
+  const cap = typeof maxKwOverride === 'number' && maxKwOverride > 0 ? maxKwOverride : (teslaMaxChargeKw[modelName] ?? 250);
   return Math.min(chargerKw, cap);
 }
+
 
 export function calculateChargeDuration(
   batteryBefore: number,
@@ -198,13 +199,15 @@ export function isChargerOperationalAt(charger: Supercharger, atDate: Date = new
 }
 
 export function getChargerStatus(charger: Supercharger, atDate: Date = new Date()): ChargerStatus {
-  if (!isChargerOperationalAt(charger, atDate)) return 'Niet beschikbaar';
+  if (charger.isAvailable === false) return 'Niet beschikbaar';
+  if (!isChargerOpenAt(charger, atDate)) return 'Gesloten';
   if (charger.totalStalls === undefined || charger.occupiedStalls === undefined) return 'Onbekend';
   const available = charger.totalStalls - charger.occupiedStalls;
   if (available === 0) return 'Vol';
   if (available <= Math.ceil(charger.totalStalls * 0.25)) return 'Druk';
   return 'Beschikbaar';
 }
+
 
 export function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;
@@ -286,9 +289,17 @@ export interface CalcChargingOptions {
   weatherMode?: WeatherMode;
   timeMode?: TimeMode;
   chargeTargetPercent?: number;
+  /** Minimum SOC to charge to at each stop (floor). */
+  minChargeTargetPercent?: number;
+  /** Maximum SOC to charge to at each stop (cap). */
+  maxChargeTargetPercent?: number;
   minChargerSpeedKw?: number;
   maxArrivalAtChargerPercent?: number;
   minSafetyPercent?: number;
+  /** Battery capacity override (kWh) for manual model. */
+  batteryCapacityKWhOverride?: number;
+  /** Car max charge speed override (kW) for manual model. */
+  carMaxKwOverride?: number;
   /** Only allow trailer-friendly chargers. */
   trailerOnly?: boolean;
   /** Prefer trailer-friendly chargers but allow others if needed. */
@@ -311,13 +322,18 @@ export function calculateChargingStops(
     weatherMode = 'summer',
     timeMode = 'day',
     chargeTargetPercent = 80,
+    minChargeTargetPercent,
+    maxChargeTargetPercent,
     minChargerSpeedKw = 0,
     maxArrivalAtChargerPercent = 10,
     minSafetyPercent = 3,
+    batteryCapacityKWhOverride,
+    carMaxKwOverride,
     trailerOnly = false,
     preferTrailerFriendly = false,
     departureTime = new Date(),
   } = opts;
+
 
   const stops: ChargingStop[] = [];
 
@@ -431,20 +447,24 @@ export function calculateChargingStops(
     } else {
       minBatteryNeeded = batteryNeededForNextLeg + minSafetyPercent + 2;
     }
+    const floor = typeof minChargeTargetPercent === 'number' ? minChargeTargetPercent : chargeTargetPercent;
+    const cap = typeof maxChargeTargetPercent === 'number' ? maxChargeTargetPercent : 100;
     let batteryAfter = useDestAsNext
-      ? Math.ceil(minBatteryNeeded)
-      : Math.max(chargeTargetPercent, Math.ceil(minBatteryNeeded));
+      ? Math.min(cap, Math.max(Math.ceil(minBatteryNeeded), floor))
+      : Math.max(floor, Math.ceil(minBatteryNeeded));
+    batteryAfter = Math.min(cap, Math.max(batteryAfter, Math.ceil(minBatteryNeeded)));
     batteryAfter = Math.min(100, batteryAfter);
 
     const rawChargerKw = parseMaxSpeed(best.charger.stallTypes, best.charger.maxSpeedKw, best.charger.chargerConfigs);
-    const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, modelName);
-    const batteryKWh = teslaBatteryKWh[modelName] || 79;
+    const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, modelName, carMaxKwOverride);
+    const batteryKWh = batteryCapacityKWhOverride || teslaBatteryKWh[modelName] || 79;
     const chargeDurationMin = calculateChargeDuration(
       Math.round(Math.max(minSafetyPercent, best.batteryAtCharger)),
       Math.round(batteryAfter),
       batteryKWh,
       chargerSpeedKw
     );
+
 
     stops.push({
       charger: best.charger,
@@ -545,5 +565,7 @@ export function getStatusColor(status: ChargerStatus): string {
     case 'Vol': return '#ef4444';
     case 'Onbekend': return '#64748b';
     case 'Niet beschikbaar': return '#ef4444';
+    case 'Gesloten': return '#ef4444';
   }
 }
+

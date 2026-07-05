@@ -34,7 +34,11 @@ const destIcon = L.divIcon({
 });
 
 function chargerIcon(status: ChargerStatus) {
-  const color = status === 'Niet beschikbaar' || status === 'Vol' ? '#ef4444' : status === 'Druk' ? '#f59e0b' : '#22c55e';
+  const color = status === 'Niet beschikbaar' || status === 'Gesloten' || status === 'Vol'
+    ? '#ef4444'
+    : status === 'Druk'
+      ? '#f59e0b'
+      : '#22c55e';
   return L.divIcon({
     className: 'custom-marker',
     html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);"></div>`,
@@ -42,6 +46,7 @@ function chargerIcon(status: ChargerStatus) {
     iconAnchor: [11, 11],
   });
 }
+
 
 function chargeStopIcon() {
   return L.divIcon({
@@ -90,12 +95,14 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
       maxZoom: 18,
     }).addTo(map);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
+    // Country/region borders + place labels overlay
+    L.tileLayer('https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri Boundaries',
       maxZoom: 18,
       pane: 'overlayPane',
-      opacity: 0.85,
+      opacity: 0.9,
     }).addTo(map);
+
 
     const pauseFollow = () => {
       followPausedUntilRef.current = Date.now() + 8000;
@@ -125,10 +132,12 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const operational = isChargerOperationalAt(charger);
+        const statusColor = operational ? '#16a34a' : '#dc2626';
         let popup = `<div style="font-family:system-ui;font-size:13px;min-width:220px;position:relative;color:#0f172a;">
           ${charger.trailerFriendly ? '<div style="position:absolute;right:0;top:0;font-size:18px;" title="Aanhangervriendelijk">🚚</div>' : ''}
           <strong style="font-size:15px;padding-right:24px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
-          <div style="margin-top:4px;color:${operational ? '#16a34a' : '#dc2626'};font-weight:700;">${operational ? 'Beschikbaar' : 'Niet beschikbaar'}</div>`;
+          <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
+
         if (configs.length > 0) {
           popup += `<div style="margin-top:6px;display:grid;gap:3px;">${configs.map((config) => `<div>${escapeHtml(formatChargerConfig(config))}</div>`).join('')}</div>`;
         } else if (charger.totalStalls) {

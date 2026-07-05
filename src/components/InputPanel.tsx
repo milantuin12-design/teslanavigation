@@ -21,6 +21,8 @@ interface InputPanelProps {
   onWeatherModeChange: (mode: WeatherMode) => void;
   onTimeModeChange: (mode: TimeMode) => void;
   onMinChargerSpeedChange: (kw: number) => void;
+  onManualRangeChange?: (km: number) => void;
+  onManualSpeedChange?: (kw: number) => void;
   onCalculate: () => void;
   onStartNavigation: () => void;
   selectedModel: string;
@@ -32,6 +34,8 @@ interface InputPanelProps {
   weatherMode: WeatherMode;
   timeMode: TimeMode;
   minChargerSpeedKw: number;
+  manualRangeKm?: number;
+  manualSpeedKw?: number;
   isCalculating: boolean;
   totalDistanceKm: number | null;
   totalTimeMin: number | null;
@@ -44,6 +48,7 @@ interface InputPanelProps {
   lastAvailabilityUpdate: string | null;
   arrivalPercent: number | null;
 }
+
 
 const coordRegex = /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/;
 
@@ -90,6 +95,8 @@ export default function InputPanel({
   onWeatherModeChange,
   onTimeModeChange,
   onMinChargerSpeedChange,
+  onManualRangeChange,
+  onManualSpeedChange,
   onCalculate,
   onStartNavigation,
   selectedModel,
@@ -101,6 +108,9 @@ export default function InputPanel({
   weatherMode,
   timeMode,
   minChargerSpeedKw,
+  manualRangeKm = 400,
+  manualSpeedKw = 250,
+
   isCalculating,
   totalDistanceKm,
   totalTimeMin,
@@ -356,8 +366,36 @@ export default function InputPanel({
                   {model} ({teslaModels[model]} km)
                 </option>
               ))}
+              <option value="Handmatig">Handmatig (eigen instellingen)</option>
             </select>
+            {selectedModel === 'Handmatig' && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[11px] text-slate-400">Bereik (km)</label>
+                  <input
+                    type="number"
+                    min={50}
+                    max={1500}
+                    value={manualRangeKm}
+                    onChange={(e) => onManualRangeChange?.(parseInt(e.target.value) || 400)}
+                    className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400">Laadsnelheid (kW)</label>
+                  <input
+                    type="number"
+                    min={11}
+                    max={500}
+                    value={manualSpeedKw}
+                    onChange={(e) => onManualSpeedChange?.(parseInt(e.target.value) || 250)}
+                    className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
+                  />
+                </div>
+              </div>
+            )}
           </div>
+
 
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
