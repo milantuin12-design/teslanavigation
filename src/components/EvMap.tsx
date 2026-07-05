@@ -95,12 +95,14 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
       maxZoom: 18,
     }).addTo(map);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
+    // Country/region borders + place labels overlay
+    L.tileLayer('https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri Boundaries',
       maxZoom: 18,
       pane: 'overlayPane',
-      opacity: 0.85,
+      opacity: 0.9,
     }).addTo(map);
+
 
     const pauseFollow = () => {
       followPausedUntilRef.current = Date.now() + 8000;
