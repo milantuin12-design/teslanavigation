@@ -21,6 +21,8 @@ interface InputPanelProps {
   onWeatherModeChange: (mode: WeatherMode) => void;
   onTimeModeChange: (mode: TimeMode) => void;
   onMinChargerSpeedChange: (kw: number) => void;
+  onManualRangeChange?: (km: number) => void;
+  onManualSpeedChange?: (kw: number) => void;
   onCalculate: () => void;
   onStartNavigation: () => void;
   selectedModel: string;
@@ -32,6 +34,8 @@ interface InputPanelProps {
   weatherMode: WeatherMode;
   timeMode: TimeMode;
   minChargerSpeedKw: number;
+  manualRangeKm?: number;
+  manualSpeedKw?: number;
   isCalculating: boolean;
   totalDistanceKm: number | null;
   totalTimeMin: number | null;
@@ -44,6 +48,7 @@ interface InputPanelProps {
   lastAvailabilityUpdate: string | null;
   arrivalPercent: number | null;
 }
+
 
 const coordRegex = /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/;
 
