@@ -523,6 +523,9 @@ function Index() {
     }
   }, [startCoord, destCoord, superchargers, batteryPercent, waypoints, computeRoute]);
 
+  useEffect(() => { handleCalculateRef.current = handleCalculate; }, [handleCalculate]);
+
+
   const handleSelectRouteType = useCallback(async (type: RouteType) => {
     const existing = routePlans[type];
     if (existing) {
