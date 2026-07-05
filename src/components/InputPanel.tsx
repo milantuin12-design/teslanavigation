@@ -95,6 +95,8 @@ export default function InputPanel({
   onWeatherModeChange,
   onTimeModeChange,
   onMinChargerSpeedChange,
+  onManualRangeChange,
+  onManualSpeedChange,
   onCalculate,
   onStartNavigation,
   selectedModel,
@@ -106,6 +108,9 @@ export default function InputPanel({
   weatherMode,
   timeMode,
   minChargerSpeedKw,
+  manualRangeKm = 400,
+  manualSpeedKw = 250,
+
   isCalculating,
   totalDistanceKm,
   totalTimeMin,
