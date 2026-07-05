@@ -167,6 +167,41 @@ function Index() {
     setLastAvailabilityUpdate(new Date().toISOString());
   }, []);
 
+  // Load saved route via ?load=<id>
+  const [pendingLoadCalc, setPendingLoadCalc] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const loadId = params.get("load");
+    if (!loadId) return;
+    (async () => {
+      const { data, error } = await supabase.from("saved_routes").select("*").eq("id", loadId).maybeSingle();
+      if (error || !data) { toast.error("Route niet gevonden"); return; }
+      setStartCoord({ lat: data.start_lat, lng: data.start_lng });
+      setDestCoord({ lat: data.end_lat, lng: data.end_lng });
+      setSelectedModel(data.model_name);
+      setBatteryPercent(data.battery_percent);
+      setTrailerEnabled(data.trailer_mode);
+      setTrailerReductionPercent(data.trailer_reduction);
+      setWeatherMode(data.weather_mode as WeatherMode);
+      setTimeMode(data.time_mode as TimeMode);
+      setRouteType(data.route_type as RouteType);
+      setPendingLoadCalc(true);
+      // Clear query
+      window.history.replaceState(null, "", window.location.pathname);
+    })();
+  }, []);
+
+  // Once superchargers are loaded and a pending load is queued, calculate
+  useEffect(() => {
+    if (!pendingLoadCalc || superchargers.length === 0 || !startCoord || !destCoord) return;
+    setPendingLoadCalc(false);
+    handleCalculate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingLoadCalc, superchargers.length, startCoord, destCoord]);
+
+
+
   const watchIdRef = useRef<number | null>(null);
 
   useEffect(() => {
