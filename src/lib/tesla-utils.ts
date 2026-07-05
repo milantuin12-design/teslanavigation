@@ -545,5 +545,7 @@ export function getStatusColor(status: ChargerStatus): string {
     case 'Vol': return '#ef4444';
     case 'Onbekend': return '#64748b';
     case 'Niet beschikbaar': return '#ef4444';
+    case 'Gesloten': return '#ef4444';
   }
 }
+
