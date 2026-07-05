@@ -198,13 +198,15 @@ export function isChargerOperationalAt(charger: Supercharger, atDate: Date = new
 }
 
 export function getChargerStatus(charger: Supercharger, atDate: Date = new Date()): ChargerStatus {
-  if (!isChargerOperationalAt(charger, atDate)) return 'Niet beschikbaar';
+  if (charger.isAvailable === false) return 'Niet beschikbaar';
+  if (!isChargerOpenAt(charger, atDate)) return 'Gesloten';
   if (charger.totalStalls === undefined || charger.occupiedStalls === undefined) return 'Onbekend';
   const available = charger.totalStalls - charger.occupiedStalls;
   if (available === 0) return 'Vol';
   if (available <= Math.ceil(charger.totalStalls * 0.25)) return 'Druk';
   return 'Beschikbaar';
 }
+
 
 export function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;
