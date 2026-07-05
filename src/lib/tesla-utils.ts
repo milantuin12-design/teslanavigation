@@ -172,10 +172,11 @@ export function parseMaxSpeed(stallTypes?: string, maxSpeedKw?: number, chargerC
   return 150;
 }
 
-export function effectiveChargeSpeedKw(chargerKw: number, modelName: string): number {
-  const cap = teslaMaxChargeKw[modelName] ?? 250;
+export function effectiveChargeSpeedKw(chargerKw: number, modelName: string, maxKwOverride?: number): number {
+  const cap = typeof maxKwOverride === 'number' && maxKwOverride > 0 ? maxKwOverride : (teslaMaxChargeKw[modelName] ?? 250);
   return Math.min(chargerKw, cap);
 }
+
 
 export function calculateChargeDuration(
   batteryBefore: number,
