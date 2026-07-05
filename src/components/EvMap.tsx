@@ -34,7 +34,11 @@ const destIcon = L.divIcon({
 });
 
 function chargerIcon(status: ChargerStatus) {
-  const color = status === 'Niet beschikbaar' || status === 'Vol' ? '#ef4444' : status === 'Druk' ? '#f59e0b' : '#22c55e';
+  const color = status === 'Niet beschikbaar' || status === 'Gesloten' || status === 'Vol'
+    ? '#ef4444'
+    : status === 'Druk'
+      ? '#f59e0b'
+      : '#22c55e';
   return L.divIcon({
     className: 'custom-marker',
     html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);"></div>`,
@@ -42,6 +46,7 @@ function chargerIcon(status: ChargerStatus) {
     iconAnchor: [11, 11],
   });
 }
+
 
 function chargeStopIcon() {
   return L.divIcon({
