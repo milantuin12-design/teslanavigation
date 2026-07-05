@@ -753,6 +753,11 @@ function Index() {
               onWeatherModeChange={setWeatherMode}
               onTimeModeChange={setTimeMode}
               onMinChargerSpeedChange={setMinChargerSpeedKw}
+              onManualRangeChange={setManualRangeKm}
+              onManualSpeedChange={setManualSpeedKw}
+              manualRangeKm={manualRangeKm}
+              manualSpeedKw={manualSpeedKw}
+
               onCalculate={handleCalculate}
               onStartNavigation={handleStartNavigation}
               selectedModel={selectedModel}
