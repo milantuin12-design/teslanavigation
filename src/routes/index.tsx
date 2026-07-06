@@ -742,18 +742,16 @@ function Index() {
     if (shouldReroute) {
       isReroutingRef.current = true;
       (async () => {
-        const before = chargingStops;
-        await computeRoute(currentPosition, destCoord, liveBattery, []);
-        // Show "Route aangepast" banner with new stops for 10 s
+        const res = await computeRoute(currentPosition, destCoord, liveBattery, []);
         setNavStartBattery(liveBattery);
         setNavStartKm(proj?.km ?? 0);
         setRouteChangedAt(Date.now());
-        // chargingStops state will update on next render; show what's there now
-        setRouteChangedStops(before);
+        // Toon NIEUWE stops (route zoals hij nu is).
+        setRouteChangedStops(res.plan?.stops ?? null);
         setTimeout(() => {
           setRouteChangedStops(null);
           setRouteChangedAt(null);
-        }, 10000);
+        }, 12000);
         isReroutingRef.current = false;
       })();
     }
@@ -767,7 +765,10 @@ function Index() {
     isReroutingRef.current = true;
     setError("Volgende Supercharger is dicht of niet beschikbaar. Route wordt aangepast.");
     (async () => {
-      await computeRoute(currentPosition, destCoord, liveBattery, []);
+      const res = await computeRoute(currentPosition, destCoord, liveBattery, []);
+      setRouteChangedAt(Date.now());
+      setRouteChangedStops(res.plan?.stops ?? null);
+      setTimeout(() => { setRouteChangedStops(null); setRouteChangedAt(null); }, 12000);
       isReroutingRef.current = false;
     })();
   }, [computeRoute, currentPosition, destCoord, isNavigating, liveBattery, navInfo]);
