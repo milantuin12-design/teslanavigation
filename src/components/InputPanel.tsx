@@ -415,7 +415,7 @@ export default function InputPanel({
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
               <Gauge size={13} className="text-blue-400" />
-              Opladen tot: {chargeTarget}%
+              Opladen tot: {chargeTarget}% <span className="text-slate-500 text-[10px]">(alleen bij Handmatige route)</span>
             </label>
             <input
               type="range"
