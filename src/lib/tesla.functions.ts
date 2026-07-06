@@ -23,7 +23,7 @@ function normalizeStallData(totalStalls?: number | null, stallTypes?: string | n
 }
 
 const SELECT_COLS =
-  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs";
+  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage";
 
 type Row = {
   id: string;
@@ -42,6 +42,8 @@ type Row = {
   trailer_friendly: boolean | null;
   is_available: boolean | null;
   charger_configs: ChargerConfig[] | null;
+  parking_fee: boolean | null;
+  in_parking_garage: boolean | null;
 };
 
 function rowToCharger(row: Row): Supercharger {
@@ -66,6 +68,8 @@ function rowToCharger(row: Row): Supercharger {
     closingTime: row.closing_time,
     trailerFriendly: !!row.trailer_friendly,
     isAvailable: row.is_available !== false,
+    parkingFee: !!row.parking_fee,
+    inParkingGarage: !!row.in_parking_garage,
   };
 }
 
@@ -118,6 +122,8 @@ const chargerInput = z.object({
   }).optional(),
   trailerFriendly: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
+  parkingFee: z.boolean().default(false),
+  inParkingGarage: z.boolean().default(false),
 });
 
 async function assertAdmin(context: { supabase: unknown; userId: string }) {
@@ -152,6 +158,8 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       closing_time: data.closingTime || null,
       trailer_friendly: data.trailerFriendly,
       is_available: data.isAvailable,
+      parking_fee: data.parkingFee,
+      in_parking_garage: data.inParkingGarage,
     };
     if (data.id) {
       const { error } = await context.supabase.from("superchargers").update(payload).eq("id", data.id);
