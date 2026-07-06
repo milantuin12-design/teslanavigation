@@ -34,6 +34,8 @@ type Charger = {
   trailer_friendly: boolean;
   is_available: boolean;
   charger_configs: ChargerConfig[] | null;
+  parking_fee: boolean;
+  in_parking_garage: boolean;
 };
 
 const emptyCharger = {
@@ -43,6 +45,7 @@ const emptyCharger = {
   opening_hours: defaultOpeningHours() as OpeningHours,
   opening_time: null as string | null, closing_time: null as string | null,
   trailer_friendly: false, is_available: true,
+  parking_fee: false, in_parking_garage: false,
   charger_configs: [{ count: 8, version: "V3", speedKw: 250 }] as ChargerConfig[],
 };
 
@@ -115,7 +118,7 @@ function AdminPage() {
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from("superchargers")
-        .select("id,name,lat,lng,country,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs")
+        .select("id,name,lat,lng,country,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage")
         .order("name").range(from, from + 999);
       if (error) { toast.error(error.message); break; }
       rows.push(...(data as Charger[]));
