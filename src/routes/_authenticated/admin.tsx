@@ -253,7 +253,7 @@ function AdminPage() {
                       <select value={config.version || "V3"} onChange={(e) => {
                         const version = e.target.value;
                         const next = [...(editing.charger_configs || [])];
-                        next[index] = { ...config, version, speedKw: version === "V4" ? 325 : version === "V3" ? 250 : 150 };
+                        next[index] = { ...config, version, speedKw: version === "V4" ? 250 : version === "V3" ? 250 : 150 };
                         setEditing({ ...editing, charger_configs: next });
                       }} className="bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm">
                         {versionOpts.map((v) => <option key={v} value={v}>{v}</option>)}
@@ -320,11 +320,19 @@ function AdminPage() {
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={editing.is_available === false} onCheckedChange={(c) => setEditing({ ...editing, is_available: !c })} />
-                Niet beschikbaar (rood op de kaart)
+                Niet beschikbaar (grijs op de kaart)
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={!!editing.trailer_friendly} onCheckedChange={(c) => setEditing({ ...editing, trailer_friendly: !!c })} />
                 <Truck className="w-4 h-4" /> Aanhangervriendelijk (doorrijbaar met aanhanger)
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={!!editing.parking_fee} onCheckedChange={(c) => setEditing({ ...editing, parking_fee: !!c })} />
+                💶 Parkeergeld verplicht
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={!!editing.in_parking_garage} onCheckedChange={(c) => setEditing({ ...editing, in_parking_garage: !!c })} />
+                🅿️ In parkeergarage (niet voor aanhangerroute)
               </label>
             </div>
           )}
