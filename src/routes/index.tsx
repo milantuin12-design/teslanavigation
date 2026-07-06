@@ -478,8 +478,13 @@ function Index() {
     toCoord: { lat: number; lng: number },
     fromBattery: number,
     extraWaypoints: { lat: number; lng: number }[]
-  ): Promise<{ ok: boolean; error?: string } > => {
-    const selected = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, routeType, routeType === "scenic" ? 1 : 0);
+  ): Promise<{ ok: boolean; error?: string; plan?: RoutePlan } > => {
+    const altIndexFor = (type: RouteType): number => {
+      if (type === "scenic") return 1;
+      if (type === "trailer") return 2;
+      return 0;
+    };
+    const selected = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, routeType, altIndexFor(routeType));
     if (!selected.ok || !selected.plan) return { ok: false, error: selected.error };
 
     const nextPlans: Partial<Record<RouteType, RoutePlan>> = { [routeType]: selected.plan };
@@ -488,19 +493,30 @@ function Index() {
     if (selected.plan.route.totalDistanceKm >= 1000) {
       const allTypes: RouteType[] = ["fastest", "fewest", "scenic", "trailer", "manual"];
       await Promise.all(allTypes.filter((type) => type !== routeType).map(async (type) => {
-        const planned = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, type, type === "scenic" ? 1 : 0);
+        const planned = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, type, altIndexFor(type));
         if (planned.ok && planned.plan) {
           const plan = planned.plan;
           nextPlans[type] = plan;
           nextVariants[type] = plan.route;
         }
       }));
+
+      // Garandeer dat "Minste stops" écht minder stops heeft dan "Snelste".
+      const fewest = nextPlans.fewest;
+      const fastest = nextPlans.fastest;
+      if (fewest && fastest && fewest.stops.length >= fastest.stops.length && fastest.stops.length > 0) {
+        const retry = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, "fewest", 0);
+        if (retry.ok && retry.plan && retry.plan.stops.length < fastest.stops.length) {
+          nextPlans.fewest = retry.plan;
+          nextVariants.fewest = retry.plan.route;
+        }
+      }
     }
 
     setRoutePlans(nextPlans);
     setRouteVariants(nextVariants);
     applyPlan(routeType, selected.plan);
-    return { ok: true };
+    return { ok: true, plan: selected.plan };
   }, [applyPlan, computeRoutePlan, routeType]);
 
 
