@@ -80,6 +80,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
   const currentMarkerRef = useRef<L.Marker | null>(null);
   const followPausedUntilRef = useRef(0);
   const lastAutoPanRef = useRef(0);
+  const [statusTick, setStatusTick] = useState(0);
+
+  // Refresh charger colours every 60s zodat openingstijden/beschikbaarheid live is.
+  useEffect(() => {
+    const id = setInterval(() => setStatusTick((v) => v + 1), 60000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
