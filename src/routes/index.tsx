@@ -357,10 +357,20 @@ function Index() {
     let minChargeTarget: number | undefined;
     let maxChargeTarget: number | undefined;
     let chargeTargetForVariant = chargeTargetPercent;
-    if (selectedType === "fastest" || selectedType === "trailer") {
-      minChargeTarget = 60; maxChargeTarget = 85; chargeTargetForVariant = 60;
+    let variantMinSpeed = minChargerSpeedKw;
+    let variantMaxArrival = 10;
+    if (selectedType === "fastest") {
+      // Écht snelste: laag laden (curve stijl 55-80), snelle laders, kortere batterijstops.
+      minChargeTarget = 55; maxChargeTarget = 80; chargeTargetForVariant = 60;
+      variantMinSpeed = Math.max(minChargerSpeedKw, 200);
+      variantMaxArrival = 12;
     } else if (selectedType === "fewest") {
-      minChargeTarget = 80; maxChargeTarget = 100; chargeTargetForVariant = 80;
+      // Zo min mogelijk stops: bijna vol laden en dieper leegrijden.
+      minChargeTarget = 92; maxChargeTarget = 100; chargeTargetForVariant = 95;
+      variantMinSpeed = Math.max(minChargerSpeedKw, 150);
+      variantMaxArrival = 5;
+    } else if (selectedType === "trailer") {
+      minChargeTarget = 65; maxChargeTarget = 90; chargeTargetForVariant = 75;
     } else if (selectedType === "manual") {
       chargeTargetForVariant = chargeTargetPercent;
     }
@@ -369,8 +379,10 @@ function Index() {
       chargeTargetPercent: chargeTargetForVariant,
       minChargeTargetPercent: minChargeTarget,
       maxChargeTargetPercent: maxChargeTarget,
-      maxArrivalAtChargerPercent: selectedType === "fewest" ? 5 : 10,
+      maxArrivalAtChargerPercent: variantMaxArrival,
       preferTrailerFriendly: selectedType === "trailer",
+      excludeParkingGarage: selectedType === "trailer",
+      minSafetyPercent: selectedType === "fewest" ? 2 : 3,
     };
     const result = calculateChargingStops(initialRoute, {
       modelRangeKm: modelRange,
@@ -381,7 +393,7 @@ function Index() {
       targetArrivalPercent,
       weatherMode,
       timeMode,
-      minChargerSpeedKw: selectedType === "scenic" ? 0 : minChargerSpeedKw,
+      minChargerSpeedKw: selectedType === "scenic" ? 0 : variantMinSpeed,
       carMaxKwOverride,
       batteryCapacityKWhOverride: selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined,
       ...variantOpts,
