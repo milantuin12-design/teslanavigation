@@ -154,6 +154,8 @@ function AdminPage() {
       closing_time: editing.closing_time || null,
       trailer_friendly: !!editing.trailer_friendly,
       is_available: editing.is_available !== false,
+      parking_fee: !!editing.parking_fee,
+      in_parking_garage: !!editing.in_parking_garage,
     };
     if (editing.id) {
       const { error } = await supabase.from("superchargers").update(payload).eq("id", editing.id);
