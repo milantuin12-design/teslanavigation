@@ -316,6 +316,8 @@ export interface CalcChargingOptions {
   trailerOnly?: boolean;
   /** Prefer trailer-friendly chargers but allow others if needed. */
   preferTrailerFriendly?: boolean;
+  /** Exclude chargers inside parking garages (trailer routes cannot enter). */
+  excludeParkingGarage?: boolean;
   /** Time of departure — used to filter out chargers that are closed at arrival. */
   departureTime?: Date;
 }
@@ -343,6 +345,7 @@ export function calculateChargingStops(
     carMaxKwOverride,
     trailerOnly = false,
     preferTrailerFriendly = false,
+    excludeParkingGarage = false,
     departureTime = new Date(),
   } = opts;
 
@@ -355,6 +358,7 @@ export function calculateChargingStops(
 
   let filtered = chargers.filter(c => c.isAvailable !== false && parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) >= minChargerSpeedKw);
   if (trailerOnly) filtered = filtered.filter(c => c.trailerFriendly);
+  if (excludeParkingGarage) filtered = filtered.filter(c => !c.inParkingGarage);
 
   const nearChargers = findChargersNearRoute(route.coordinates, filtered, 20);
   const routeDist = buildRouteDistanceIndex(route.coordinates);
@@ -502,7 +506,8 @@ export function calculateChargingStops(
 }
 
 function scoreCandidate(candidate: { routeKm: number; detourKm: number; charger: Supercharger }, preferTrailerFriendly: boolean): number {
-  return candidate.routeKm - candidate.detourKm * 2 + (preferTrailerFriendly && candidate.charger.trailerFriendly ? 80 : 0);
+  const garagePenalty = candidate.charger.inParkingGarage ? -30 : 0;
+  return candidate.routeKm - candidate.detourKm * 2 + (preferTrailerFriendly && candidate.charger.trailerFriendly ? 80 : 0) + garagePenalty;
 }
 
 function findNextChargerDistance(
