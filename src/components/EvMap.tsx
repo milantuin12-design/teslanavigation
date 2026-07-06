@@ -191,7 +191,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     if (destCoord) {
       markersRef.current.addLayer(L.marker([destCoord.lat, destCoord.lng], { icon: destIcon }));
     }
-  }, [startCoord, destCoord, superchargers, chargingStops]);
+  }, [startCoord, destCoord, superchargers, chargingStops, statusTick]);
 
   useEffect(() => {
     const map = mapRef.current;
