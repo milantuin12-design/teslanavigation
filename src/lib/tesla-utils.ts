@@ -178,20 +178,32 @@ export function effectiveChargeSpeedKw(chargerKw: number, modelName: string, max
 }
 
 
+// Tesla-typische laadtijden (Model 3/Y LR, ~79 kWh, V3 250 kW):
+// cumulatieve minuten vanaf 0% naar elk 10%-punt.
+const CHARGE_CURVE_MIN = [0, 3, 6, 10, 14, 19, 25, 32, 41, 54, 72];
+
+function curveMinutesAt(percent: number): number {
+  const p = Math.max(0, Math.min(100, percent));
+  const idx = Math.floor(p / 10);
+  const frac = (p - idx * 10) / 10;
+  const a = CHARGE_CURVE_MIN[idx] ?? CHARGE_CURVE_MIN[CHARGE_CURVE_MIN.length - 1];
+  const b = CHARGE_CURVE_MIN[Math.min(idx + 1, CHARGE_CURVE_MIN.length - 1)];
+  return a + (b - a) * frac;
+}
+
 export function calculateChargeDuration(
   batteryBefore: number,
   batteryAfter: number,
   batteryCapacityKWh: number,
   chargerMaxSpeedKw: number
 ): number {
-  const kwhNeeded = batteryCapacityKWh * (batteryAfter - batteryBefore) / 100;
-  const midPoint = Math.min(batteryAfter, 50);
-  const lowPhaseKwh = batteryCapacityKWh * (Math.min(midPoint, batteryAfter) - batteryBefore) / 100;
-  const highPhaseKwh = Math.max(0, kwhNeeded - lowPhaseKwh);
-  const lowPhaseHours = lowPhaseKwh / (chargerMaxSpeedKw * 0.70);
-  const highPhaseHours = highPhaseKwh / (chargerMaxSpeedKw * 0.40);
-  const totalHours = lowPhaseHours + highPhaseHours;
-  return Math.max(5, Math.round(totalHours * 60));
+  if (batteryAfter <= batteryBefore) return 0;
+  const base = Math.max(0, curveMinutesAt(batteryAfter) - curveMinutesAt(batteryBefore));
+  // Trager dan 250 kW → langer laden (evenredig, met redelijke ondergrens).
+  const speedScale = chargerMaxSpeedKw >= 240 ? 1 : Math.min(3, 250 / Math.max(50, chargerMaxSpeedKw));
+  // Groter accupakket → schaal proportioneel (curve is voor ~79 kWh).
+  const kwhScale = Math.max(0.7, batteryCapacityKWh / 79);
+  return Math.max(3, Math.round(base * speedScale * kwhScale));
 }
 
 export function isChargerOperationalAt(charger: Supercharger, atDate: Date = new Date()): boolean {
@@ -304,6 +316,8 @@ export interface CalcChargingOptions {
   trailerOnly?: boolean;
   /** Prefer trailer-friendly chargers but allow others if needed. */
   preferTrailerFriendly?: boolean;
+  /** Exclude chargers inside parking garages (trailer routes cannot enter). */
+  excludeParkingGarage?: boolean;
   /** Time of departure — used to filter out chargers that are closed at arrival. */
   departureTime?: Date;
 }
@@ -331,6 +345,7 @@ export function calculateChargingStops(
     carMaxKwOverride,
     trailerOnly = false,
     preferTrailerFriendly = false,
+    excludeParkingGarage = false,
     departureTime = new Date(),
   } = opts;
 
@@ -343,6 +358,7 @@ export function calculateChargingStops(
 
   let filtered = chargers.filter(c => c.isAvailable !== false && parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) >= minChargerSpeedKw);
   if (trailerOnly) filtered = filtered.filter(c => c.trailerFriendly);
+  if (excludeParkingGarage) filtered = filtered.filter(c => !c.inParkingGarage);
 
   const nearChargers = findChargersNearRoute(route.coordinates, filtered, 20);
   const routeDist = buildRouteDistanceIndex(route.coordinates);
@@ -490,7 +506,8 @@ export function calculateChargingStops(
 }
 
 function scoreCandidate(candidate: { routeKm: number; detourKm: number; charger: Supercharger }, preferTrailerFriendly: boolean): number {
-  return candidate.routeKm - candidate.detourKm * 2 + (preferTrailerFriendly && candidate.charger.trailerFriendly ? 80 : 0);
+  const garagePenalty = candidate.charger.inParkingGarage ? -30 : 0;
+  return candidate.routeKm - candidate.detourKm * 2 + (preferTrailerFriendly && candidate.charger.trailerFriendly ? 80 : 0) + garagePenalty;
 }
 
 function findNextChargerDistance(
@@ -564,8 +581,8 @@ export function getStatusColor(status: ChargerStatus): string {
     case 'Druk': return '#f59e0b';
     case 'Vol': return '#ef4444';
     case 'Onbekend': return '#64748b';
-    case 'Niet beschikbaar': return '#ef4444';
-    case 'Gesloten': return '#ef4444';
+    case 'Niet beschikbaar': return '#94a3b8'; // grijs
+    case 'Gesloten': return '#ef4444'; // rood
   }
 }
 

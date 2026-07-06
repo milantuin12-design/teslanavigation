@@ -357,10 +357,20 @@ function Index() {
     let minChargeTarget: number | undefined;
     let maxChargeTarget: number | undefined;
     let chargeTargetForVariant = chargeTargetPercent;
-    if (selectedType === "fastest" || selectedType === "trailer") {
-      minChargeTarget = 60; maxChargeTarget = 85; chargeTargetForVariant = 60;
+    let variantMinSpeed = minChargerSpeedKw;
+    let variantMaxArrival = 10;
+    if (selectedType === "fastest") {
+      // Écht snelste: laag laden (curve stijl 55-80), snelle laders, kortere batterijstops.
+      minChargeTarget = 55; maxChargeTarget = 80; chargeTargetForVariant = 60;
+      variantMinSpeed = Math.max(minChargerSpeedKw, 200);
+      variantMaxArrival = 12;
     } else if (selectedType === "fewest") {
-      minChargeTarget = 80; maxChargeTarget = 100; chargeTargetForVariant = 80;
+      // Zo min mogelijk stops: bijna vol laden en dieper leegrijden.
+      minChargeTarget = 92; maxChargeTarget = 100; chargeTargetForVariant = 95;
+      variantMinSpeed = Math.max(minChargerSpeedKw, 150);
+      variantMaxArrival = 5;
+    } else if (selectedType === "trailer") {
+      minChargeTarget = 65; maxChargeTarget = 90; chargeTargetForVariant = 75;
     } else if (selectedType === "manual") {
       chargeTargetForVariant = chargeTargetPercent;
     }
@@ -369,8 +379,10 @@ function Index() {
       chargeTargetPercent: chargeTargetForVariant,
       minChargeTargetPercent: minChargeTarget,
       maxChargeTargetPercent: maxChargeTarget,
-      maxArrivalAtChargerPercent: selectedType === "fewest" ? 5 : 10,
+      maxArrivalAtChargerPercent: variantMaxArrival,
       preferTrailerFriendly: selectedType === "trailer",
+      excludeParkingGarage: selectedType === "trailer",
+      minSafetyPercent: selectedType === "fewest" ? 2 : 3,
     };
     const result = calculateChargingStops(initialRoute, {
       modelRangeKm: modelRange,
@@ -381,7 +393,7 @@ function Index() {
       targetArrivalPercent,
       weatherMode,
       timeMode,
-      minChargerSpeedKw: selectedType === "scenic" ? 0 : minChargerSpeedKw,
+      minChargerSpeedKw: selectedType === "scenic" ? 0 : variantMinSpeed,
       carMaxKwOverride,
       batteryCapacityKWhOverride: selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined,
       ...variantOpts,
@@ -466,8 +478,13 @@ function Index() {
     toCoord: { lat: number; lng: number },
     fromBattery: number,
     extraWaypoints: { lat: number; lng: number }[]
-  ): Promise<{ ok: boolean; error?: string } > => {
-    const selected = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, routeType, routeType === "scenic" ? 1 : 0);
+  ): Promise<{ ok: boolean; error?: string; plan?: RoutePlan } > => {
+    const altIndexFor = (type: RouteType): number => {
+      if (type === "scenic") return 1;
+      if (type === "trailer") return 2;
+      return 0;
+    };
+    const selected = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, routeType, altIndexFor(routeType));
     if (!selected.ok || !selected.plan) return { ok: false, error: selected.error };
 
     const nextPlans: Partial<Record<RouteType, RoutePlan>> = { [routeType]: selected.plan };
@@ -476,19 +493,30 @@ function Index() {
     if (selected.plan.route.totalDistanceKm >= 1000) {
       const allTypes: RouteType[] = ["fastest", "fewest", "scenic", "trailer", "manual"];
       await Promise.all(allTypes.filter((type) => type !== routeType).map(async (type) => {
-        const planned = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, type, type === "scenic" ? 1 : 0);
+        const planned = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, type, altIndexFor(type));
         if (planned.ok && planned.plan) {
           const plan = planned.plan;
           nextPlans[type] = plan;
           nextVariants[type] = plan.route;
         }
       }));
+
+      // Garandeer dat "Minste stops" écht minder stops heeft dan "Snelste".
+      const fewest = nextPlans.fewest;
+      const fastest = nextPlans.fastest;
+      if (fewest && fastest && fewest.stops.length >= fastest.stops.length && fastest.stops.length > 0) {
+        const retry = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, "fewest", 0);
+        if (retry.ok && retry.plan && retry.plan.stops.length < fastest.stops.length) {
+          nextPlans.fewest = retry.plan;
+          nextVariants.fewest = retry.plan.route;
+        }
+      }
     }
 
     setRoutePlans(nextPlans);
     setRouteVariants(nextVariants);
     applyPlan(routeType, selected.plan);
-    return { ok: true };
+    return { ok: true, plan: selected.plan };
   }, [applyPlan, computeRoutePlan, routeType]);
 
 
@@ -714,18 +742,16 @@ function Index() {
     if (shouldReroute) {
       isReroutingRef.current = true;
       (async () => {
-        const before = chargingStops;
-        await computeRoute(currentPosition, destCoord, liveBattery, []);
-        // Show "Route aangepast" banner with new stops for 10 s
+        const res = await computeRoute(currentPosition, destCoord, liveBattery, []);
         setNavStartBattery(liveBattery);
         setNavStartKm(proj?.km ?? 0);
         setRouteChangedAt(Date.now());
-        // chargingStops state will update on next render; show what's there now
-        setRouteChangedStops(before);
+        // Toon NIEUWE stops (route zoals hij nu is).
+        setRouteChangedStops(res.plan?.stops ?? null);
         setTimeout(() => {
           setRouteChangedStops(null);
           setRouteChangedAt(null);
-        }, 10000);
+        }, 12000);
         isReroutingRef.current = false;
       })();
     }
@@ -739,7 +765,10 @@ function Index() {
     isReroutingRef.current = true;
     setError("Volgende Supercharger is dicht of niet beschikbaar. Route wordt aangepast.");
     (async () => {
-      await computeRoute(currentPosition, destCoord, liveBattery, []);
+      const res = await computeRoute(currentPosition, destCoord, liveBattery, []);
+      setRouteChangedAt(Date.now());
+      setRouteChangedStops(res.plan?.stops ?? null);
+      setTimeout(() => { setRouteChangedStops(null); setRouteChangedAt(null); }, 12000);
       isReroutingRef.current = false;
     })();
   }, [computeRoute, currentPosition, destCoord, isNavigating, liveBattery, navInfo]);

@@ -34,6 +34,8 @@ type Charger = {
   trailer_friendly: boolean;
   is_available: boolean;
   charger_configs: ChargerConfig[] | null;
+  parking_fee: boolean;
+  in_parking_garage: boolean;
 };
 
 const emptyCharger = {
@@ -43,6 +45,7 @@ const emptyCharger = {
   opening_hours: defaultOpeningHours() as OpeningHours,
   opening_time: null as string | null, closing_time: null as string | null,
   trailer_friendly: false, is_available: true,
+  parking_fee: false, in_parking_garage: false,
   charger_configs: [{ count: 8, version: "V3", speedKw: 250 }] as ChargerConfig[],
 };
 
@@ -115,7 +118,7 @@ function AdminPage() {
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from("superchargers")
-        .select("id,name,lat,lng,country,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs")
+        .select("id,name,lat,lng,country,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage")
         .order("name").range(from, from + 999);
       if (error) { toast.error(error.message); break; }
       rows.push(...(data as Charger[]));
@@ -151,6 +154,8 @@ function AdminPage() {
       closing_time: editing.closing_time || null,
       trailer_friendly: !!editing.trailer_friendly,
       is_available: editing.is_available !== false,
+      parking_fee: !!editing.parking_fee,
+      in_parking_garage: !!editing.in_parking_garage,
     };
     if (editing.id) {
       const { error } = await supabase.from("superchargers").update(payload).eq("id", editing.id);
@@ -248,7 +253,7 @@ function AdminPage() {
                       <select value={config.version || "V3"} onChange={(e) => {
                         const version = e.target.value;
                         const next = [...(editing.charger_configs || [])];
-                        next[index] = { ...config, version, speedKw: version === "V4" ? 325 : version === "V3" ? 250 : 150 };
+                        next[index] = { ...config, version, speedKw: version === "V4" ? 250 : version === "V3" ? 250 : 150 };
                         setEditing({ ...editing, charger_configs: next });
                       }} className="bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm">
                         {versionOpts.map((v) => <option key={v} value={v}>{v}</option>)}
@@ -315,11 +320,19 @@ function AdminPage() {
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={editing.is_available === false} onCheckedChange={(c) => setEditing({ ...editing, is_available: !c })} />
-                Niet beschikbaar (rood op de kaart)
+                Niet beschikbaar (grijs op de kaart)
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={!!editing.trailer_friendly} onCheckedChange={(c) => setEditing({ ...editing, trailer_friendly: !!c })} />
                 <Truck className="w-4 h-4" /> Aanhangervriendelijk (doorrijbaar met aanhanger)
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={!!editing.parking_fee} onCheckedChange={(c) => setEditing({ ...editing, parking_fee: !!c })} />
+                💶 Parkeergeld verplicht
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={!!editing.in_parking_garage} onCheckedChange={(c) => setEditing({ ...editing, in_parking_garage: !!c })} />
+                🅿️ In parkeergarage (niet voor aanhangerroute)
               </label>
             </div>
           )}

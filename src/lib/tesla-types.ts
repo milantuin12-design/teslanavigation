@@ -34,6 +34,8 @@ export interface Supercharger {
   closingTime?: string | null;
   trailerFriendly?: boolean;
   isAvailable?: boolean;
+  parkingFee?: boolean;
+  inParkingGarage?: boolean;
 }
 
 export interface ChargingStop {

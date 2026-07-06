@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus } from '@/lib/tesla-types';
@@ -34,11 +34,11 @@ const destIcon = L.divIcon({
 });
 
 function chargerIcon(status: ChargerStatus) {
-  const color = status === 'Niet beschikbaar' || status === 'Gesloten' || status === 'Vol'
-    ? '#ef4444'
-    : status === 'Druk'
-      ? '#f59e0b'
-      : '#22c55e';
+  let color = '#22c55e'; // groen = open/beschikbaar
+  if (status === 'Niet beschikbaar') color = '#94a3b8'; // grijs
+  else if (status === 'Gesloten' || status === 'Vol') color = '#ef4444'; // rood
+  else if (status === 'Druk') color = '#f59e0b';
+  else if (status === 'Onbekend') color = '#64748b';
   return L.divIcon({
     className: 'custom-marker',
     html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);"></div>`,
@@ -80,6 +80,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
   const currentMarkerRef = useRef<L.Marker | null>(null);
   const followPausedUntilRef = useRef(0);
   const lastAutoPanRef = useRef(0);
+  const [statusTick, setStatusTick] = useState(0);
+
+  // Refresh charger colours every 60s zodat openingstijden/beschikbaarheid live is.
+  useEffect(() => {
+    const id = setInterval(() => setStatusTick((v) => v + 1), 60000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -134,8 +141,12 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         const operational = isChargerOperationalAt(charger);
         const statusColor = operational ? '#16a34a' : '#dc2626';
         let popup = `<div style="font-family:system-ui;font-size:13px;min-width:220px;position:relative;color:#0f172a;">
-          ${charger.trailerFriendly ? '<div style="position:absolute;right:0;top:0;font-size:18px;" title="Aanhangervriendelijk">🚚</div>' : ''}
-          <strong style="font-size:15px;padding-right:24px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
+          <div style="position:absolute;right:0;top:0;display:flex;gap:4px;font-size:16px;">
+            ${charger.trailerFriendly ? '<span title="Aanhangervriendelijk">🚚</span>' : ''}
+            ${charger.inParkingGarage ? '<span title="In parkeergarage">🅿️</span>' : ''}
+            ${charger.parkingFee ? '<span title="Parkeergeld verplicht">💶</span>' : ''}
+          </div>
+          <strong style="font-size:15px;padding-right:60px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
           <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
 
         if (configs.length > 0) {
@@ -180,7 +191,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     if (destCoord) {
       markersRef.current.addLayer(L.marker([destCoord.lat, destCoord.lng], { icon: destIcon }));
     }
-  }, [startCoord, destCoord, superchargers, chargingStops]);
+  }, [startCoord, destCoord, superchargers, chargingStops, statusTick]);
 
   useEffect(() => {
     const map = mapRef.current;
