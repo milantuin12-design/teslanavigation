@@ -116,6 +116,7 @@ export type Database = {
           closing_time: string | null
           country: string
           id: string
+          in_parking_garage: boolean
           is_available: boolean
           last_updated: string | null
           lat: number
@@ -125,6 +126,7 @@ export type Database = {
           occupied_stalls: number | null
           opening_hours: Json
           opening_time: string | null
+          parking_fee: boolean
           stall_types: string | null
           total_stalls: number | null
           trailer_friendly: boolean
@@ -135,6 +137,7 @@ export type Database = {
           closing_time?: string | null
           country: string
           id?: string
+          in_parking_garage?: boolean
           is_available?: boolean
           last_updated?: string | null
           lat: number
@@ -144,6 +147,7 @@ export type Database = {
           occupied_stalls?: number | null
           opening_hours?: Json
           opening_time?: string | null
+          parking_fee?: boolean
           stall_types?: string | null
           total_stalls?: number | null
           trailer_friendly?: boolean
@@ -154,6 +158,7 @@ export type Database = {
           closing_time?: string | null
           country?: string
           id?: string
+          in_parking_garage?: boolean
           is_available?: boolean
           last_updated?: string | null
           lat?: number
@@ -163,6 +168,7 @@ export type Database = {
           occupied_stalls?: number | null
           opening_hours?: Json
           opening_time?: string | null
+          parking_fee?: boolean
           stall_types?: string | null
           total_stalls?: number | null
           trailer_friendly?: boolean
