@@ -607,11 +607,14 @@ function Index() {
     setIsNavigating(true);
     setRouteChangedStops(null);
     setRouteChangedAt(null);
+    setActiveChargingStop(null);
+    chargedStopKeysRef.current = new Set();
   }, [route, batteryPercent]);
 
   const handleStopNavigation = useCallback(() => {
     setIsNavigating(false);
     setHeadingUp(false);
+    setActiveChargingStop(null);
   }, []);
 
   // Position projected onto route
