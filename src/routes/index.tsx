@@ -513,6 +513,24 @@ function Index() {
       }
     }
 
+    // Als de gebruiker "Snelste" koos, kies de variant met écht de laagste totaaltijd (rijden + laden).
+    if (routeType === "fastest") {
+      const totalTime = (p: RoutePlan) => p.route.totalTimeMin + p.stops.reduce((s, st) => s + st.chargeDurationMin, 0);
+      let bestType: RouteType = "fastest";
+      let bestPlan = selected.plan;
+      for (const [t, p] of Object.entries(nextPlans) as [RouteType, RoutePlan][]) {
+        if (p && totalTime(p) < totalTime(bestPlan) - 1) { bestType = t; bestPlan = p; }
+      }
+      if (bestType !== "fastest") {
+        nextPlans.fastest = bestPlan;
+        nextVariants.fastest = bestPlan.route;
+      }
+      setRoutePlans(nextPlans);
+      setRouteVariants(nextVariants);
+      applyPlan("fastest", bestPlan);
+      return { ok: true, plan: bestPlan };
+    }
+
     setRoutePlans(nextPlans);
     setRouteVariants(nextVariants);
     applyPlan(routeType, selected.plan);
