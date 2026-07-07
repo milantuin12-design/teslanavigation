@@ -4,6 +4,7 @@ import EvMap from "@/components/EvMap";
 import InputPanel from "@/components/InputPanel";
 import ChargingStops from "@/components/ChargingStops";
 import NavigationPanel from "@/components/NavigationPanel";
+import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -137,6 +138,8 @@ function Index() {
   const [navStartKm, setNavStartKm] = useState<number>(0);
   const [routeChangedAt, setRouteChangedAt] = useState<number | null>(null);
   const [routeChangedStops, setRouteChangedStops] = useState<ChargingStop[] | null>(null);
+  const [activeChargingStop, setActiveChargingStop] = useState<ChargingStop | null>(null);
+  const chargedStopKeysRef = useRef<Set<string>>(new Set());
   const prevPositionRef = useRef<{ lat: number; lng: number } | null>(null);
   const displayedPositionRef = useRef<{ lat: number; lng: number } | null>(null);
   const gpsAnimationFrameRef = useRef<number | null>(null);
@@ -360,10 +363,10 @@ function Index() {
     let variantMinSpeed = minChargerSpeedKw;
     let variantMaxArrival = 10;
     if (selectedType === "fastest") {
-      // Écht snelste: laag laden (curve stijl 55-80), snelle laders, kortere batterijstops.
-      minChargeTarget = 55; maxChargeTarget = 80; chargeTargetForVariant = 60;
-      variantMinSpeed = Math.max(minChargerSpeedKw, 200);
-      variantMaxArrival = 12;
+      // Écht snelste: laag laden (curve steilst), korte stops.
+      minChargeTarget = 55; maxChargeTarget = 75; chargeTargetForVariant = 60;
+      variantMinSpeed = minChargerSpeedKw;
+      variantMaxArrival = 15;
     } else if (selectedType === "fewest") {
       // Zo min mogelijk stops: bijna vol laden en dieper leegrijden.
       minChargeTarget = 92; maxChargeTarget = 100; chargeTargetForVariant = 95;
@@ -513,6 +516,24 @@ function Index() {
       }
     }
 
+    // Als de gebruiker "Snelste" koos, kies de variant met écht de laagste totaaltijd (rijden + laden).
+    if (routeType === "fastest") {
+      const totalTime = (p: RoutePlan) => p.route.totalTimeMin + p.stops.reduce((s, st) => s + st.chargeDurationMin, 0);
+      let bestType: RouteType = "fastest";
+      let bestPlan = selected.plan;
+      for (const [t, p] of Object.entries(nextPlans) as [RouteType, RoutePlan][]) {
+        if (p && totalTime(p) < totalTime(bestPlan) - 1) { bestType = t; bestPlan = p; }
+      }
+      if (bestType !== "fastest") {
+        nextPlans.fastest = bestPlan;
+        nextVariants.fastest = bestPlan.route;
+      }
+      setRoutePlans(nextPlans);
+      setRouteVariants(nextVariants);
+      applyPlan("fastest", bestPlan);
+      return { ok: true, plan: bestPlan };
+    }
+
     setRoutePlans(nextPlans);
     setRouteVariants(nextVariants);
     applyPlan(routeType, selected.plan);
@@ -586,11 +607,14 @@ function Index() {
     setIsNavigating(true);
     setRouteChangedStops(null);
     setRouteChangedAt(null);
+    setActiveChargingStop(null);
+    chargedStopKeysRef.current = new Set();
   }, [route, batteryPercent]);
 
   const handleStopNavigation = useCallback(() => {
     setIsNavigating(false);
     setHeadingUp(false);
+    setActiveChargingStop(null);
   }, []);
 
   // Position projected onto route
@@ -773,6 +797,18 @@ function Index() {
     })();
   }, [computeRoute, currentPosition, destCoord, isNavigating, liveBattery, navInfo]);
 
+  // Auto-open charging screen when arrived at (or nearly at) next supercharger
+  useEffect(() => {
+    if (!isNavigating || !navInfo?.nextCharging || activeChargingStop) return;
+    if (navInfo.nextCharging.kmFromHere > 0.15) return;
+    const stop = navInfo.nextCharging.stop;
+    const key = `${stop.charger.id ?? stop.charger.name}-${stop.distanceFromStart}`;
+    if (chargedStopKeysRef.current.has(key)) return;
+    chargedStopKeysRef.current.add(key);
+    setActiveChargingStop(stop);
+  }, [isNavigating, navInfo, activeChargingStop]);
+
+
   // When user manually updates liveBattery, reset estimate baseline
   useEffect(() => {
     if (!isNavigating || !positionProj) return;
@@ -809,7 +845,10 @@ function Index() {
     <div className="h-screen w-screen flex flex-col lg:flex-row bg-slate-900 text-white overflow-hidden">
       {!isNavigating && (
         <div className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-700/50 flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto">
+          <div
+            className="flex-1 overflow-y-auto overscroll-contain"
+            style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+          >
             <InputPanel
               onStartChange={setStartCoord}
               onDestChange={setDestCoord}
@@ -915,6 +954,20 @@ function Index() {
             headingUp={headingUp}
             onToggleHeadingUp={() => setHeadingUp((v) => !v)}
             routeChangedStops={routeChangedStops}
+          />
+        )}
+        {isNavigating && activeChargingStop && (
+          <ChargingScreen
+            stop={activeChargingStop}
+            modelName={selectedModel}
+            batteryCapacityKWhOverride={selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined}
+            carMaxKwOverride={carMaxKwOverride}
+            currentBattery={Math.round(estimatedBattery ?? liveBattery)}
+            onDone={(finalPct) => {
+              setLiveBattery(finalPct);
+              setActiveChargingStop(null);
+            }}
+            onSkip={() => setActiveChargingStop(null)}
           />
         )}
       </div>

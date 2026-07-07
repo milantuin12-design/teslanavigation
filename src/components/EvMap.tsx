@@ -140,13 +140,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         const configs = getChargerConfigs(charger);
         const operational = isChargerOperationalAt(charger);
         const statusColor = operational ? '#16a34a' : '#dc2626';
-        let popup = `<div style="font-family:system-ui;font-size:13px;min-width:220px;position:relative;color:#0f172a;">
-          <div style="position:absolute;right:0;top:0;display:flex;gap:4px;font-size:16px;">
-            ${charger.trailerFriendly ? '<span title="Aanhangervriendelijk">🚚</span>' : ''}
-            ${charger.inParkingGarage ? '<span title="In parkeergarage">🅿️</span>' : ''}
-            ${charger.parkingFee ? '<span title="Parkeergeld verplicht">💶</span>' : ''}
-          </div>
-          <strong style="font-size:15px;padding-right:60px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
+        let popup = `<div style="font-family:system-ui;font-size:13px;min-width:220px;color:#0f172a;">
+          <strong style="font-size:15px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
           <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
 
         if (configs.length > 0) {
@@ -156,6 +151,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         }
         popup += `<div style="margin-top:6px;color:#2563eb;font-weight:600;">Max ${maxSpeed} kW</div>`;
         popup += `<div style="margin-top:3px;color:#475569;">${escapeHtml(formatOpeningHoursSummary(charger))}</div>`;
+        const extras: string[] = [];
+        if (charger.trailerFriendly) extras.push('Aanhangervriendelijk');
+        if (charger.inParkingGarage) extras.push('In parkeergarage');
+        if (charger.parkingFee) extras.push('Parkeergeld verplicht');
+        if (extras.length > 0) {
+          popup += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0;display:grid;gap:2px;color:#334155;font-weight:500;">${extras.map((line) => `<div>• ${escapeHtml(line)}</div>`).join('')}</div>`;
+        }
         popup += `</div>`;
         marker.bindPopup(popup);
         markersRef.current.addLayer(marker);
