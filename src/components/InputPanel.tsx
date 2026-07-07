@@ -257,7 +257,10 @@ export default function InputPanel({
         {mobileExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
       </button>
 
-      <div className={`flex-1 overflow-y-auto ${mobileExpanded ? 'block' : 'hidden'} lg:block`}>
+      <div
+        className={`flex-1 overflow-y-auto overscroll-contain ${mobileExpanded ? 'block' : 'hidden'} lg:block`}
+        style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+      >
         <div className="p-5 space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <Zap size={22} className="text-blue-400" />
