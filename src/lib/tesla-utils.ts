@@ -178,16 +178,33 @@ export function effectiveChargeSpeedKw(chargerKw: number, modelName: string, max
 }
 
 
-// Tesla-typische laadtijden (Model 3/Y LR, ~79 kWh, V3 250 kW):
-// cumulatieve minuten vanaf 0% naar elk 10%-punt.
-const CHARGE_CURVE_MIN = [0, 3, 6, 10, 14, 19, 25, 32, 41, 54, 72];
+// Tesla-typische laadtijden op ~79 kWh accu.
+// Cumulatieve minuten vanaf 0% naar elk 10%-punt, per laadsnelheid.
+const CHARGE_CURVES: Record<number, number[]> = {
+  125: [0, 5, 10, 15, 21, 28, 36, 45, 56, 71, 91],
+  150: [0, 4, 8, 12, 17, 23, 30, 38, 48, 62, 81],
+  250: [0, 3, 6, 10, 14, 19, 25, 32, 41, 54, 72],
+};
 
-function curveMinutesAt(percent: number): number {
+function curveArrayForSpeed(speedKw: number): number[] {
+  const s = Math.max(30, Math.min(400, speedKw || 150));
+  if (s <= 125) return CHARGE_CURVES[125];
+  if (s >= 250) return CHARGE_CURVES[250];
+  let lo = 125, hi = 150;
+  if (s > 150) { lo = 150; hi = 250; }
+  const t = (s - lo) / (hi - lo);
+  const a = CHARGE_CURVES[lo];
+  const b = CHARGE_CURVES[hi];
+  return a.map((v, i) => v + (b[i] - v) * t);
+}
+
+function curveMinutesAt(percent: number, speedKw: number): number {
+  const curve = curveArrayForSpeed(speedKw);
   const p = Math.max(0, Math.min(100, percent));
   const idx = Math.floor(p / 10);
   const frac = (p - idx * 10) / 10;
-  const a = CHARGE_CURVE_MIN[idx] ?? CHARGE_CURVE_MIN[CHARGE_CURVE_MIN.length - 1];
-  const b = CHARGE_CURVE_MIN[Math.min(idx + 1, CHARGE_CURVE_MIN.length - 1)];
+  const a = curve[idx] ?? curve[curve.length - 1];
+  const b = curve[Math.min(idx + 1, curve.length - 1)];
   return a + (b - a) * frac;
 }
 
@@ -198,13 +215,11 @@ export function calculateChargeDuration(
   chargerMaxSpeedKw: number
 ): number {
   if (batteryAfter <= batteryBefore) return 0;
-  const base = Math.max(0, curveMinutesAt(batteryAfter) - curveMinutesAt(batteryBefore));
-  // Trager dan 250 kW → langer laden (evenredig, met redelijke ondergrens).
-  const speedScale = chargerMaxSpeedKw >= 240 ? 1 : Math.min(3, 250 / Math.max(50, chargerMaxSpeedKw));
-  // Groter accupakket → schaal proportioneel (curve is voor ~79 kWh).
+  const base = Math.max(0, curveMinutesAt(batteryAfter, chargerMaxSpeedKw) - curveMinutesAt(batteryBefore, chargerMaxSpeedKw));
   const kwhScale = Math.max(0.7, batteryCapacityKWh / 79);
-  return Math.max(3, Math.round(base * speedScale * kwhScale));
+  return Math.max(1, Math.round(base * kwhScale));
 }
+
 
 export function isChargerOperationalAt(charger: Supercharger, atDate: Date = new Date()): boolean {
   return charger.isAvailable !== false && isChargerOpenAt(charger, atDate);
