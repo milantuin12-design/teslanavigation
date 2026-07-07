@@ -953,6 +953,20 @@ function Index() {
             routeChangedStops={routeChangedStops}
           />
         )}
+        {isNavigating && activeChargingStop && (
+          <ChargingScreen
+            stop={activeChargingStop}
+            modelName={selectedModel}
+            batteryCapacityKWhOverride={selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined}
+            carMaxKwOverride={carMaxKwOverride}
+            currentBattery={Math.round(estimatedBattery ?? liveBattery)}
+            onDone={(finalPct) => {
+              setLiveBattery(finalPct);
+              setActiveChargingStop(null);
+            }}
+            onSkip={() => setActiveChargingStop(null)}
+          />
+        )}
       </div>
       <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
         <DialogContent className="bg-slate-900 border-slate-700 text-white">
