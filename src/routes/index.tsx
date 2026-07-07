@@ -4,6 +4,7 @@ import EvMap from "@/components/EvMap";
 import InputPanel from "@/components/InputPanel";
 import ChargingStops from "@/components/ChargingStops";
 import NavigationPanel from "@/components/NavigationPanel";
+import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
