@@ -794,6 +794,18 @@ function Index() {
     })();
   }, [computeRoute, currentPosition, destCoord, isNavigating, liveBattery, navInfo]);
 
+  // Auto-open charging screen when arrived at (or nearly at) next supercharger
+  useEffect(() => {
+    if (!isNavigating || !navInfo?.nextCharging || activeChargingStop) return;
+    if (navInfo.nextCharging.kmFromHere > 0.15) return;
+    const stop = navInfo.nextCharging.stop;
+    const key = `${stop.charger.id ?? stop.charger.name}-${stop.distanceFromStart}`;
+    if (chargedStopKeysRef.current.has(key)) return;
+    chargedStopKeysRef.current.add(key);
+    setActiveChargingStop(stop);
+  }, [isNavigating, navInfo, activeChargingStop]);
+
+
   // When user manually updates liveBattery, reset estimate baseline
   useEffect(() => {
     if (!isNavigating || !positionProj) return;
