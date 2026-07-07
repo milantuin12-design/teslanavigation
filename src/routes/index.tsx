@@ -360,10 +360,10 @@ function Index() {
     let variantMinSpeed = minChargerSpeedKw;
     let variantMaxArrival = 10;
     if (selectedType === "fastest") {
-      // Écht snelste: laag laden (curve stijl 55-80), snelle laders, kortere batterijstops.
-      minChargeTarget = 55; maxChargeTarget = 80; chargeTargetForVariant = 60;
-      variantMinSpeed = Math.max(minChargerSpeedKw, 200);
-      variantMaxArrival = 12;
+      // Écht snelste: laag laden (curve steilst), korte stops.
+      minChargeTarget = 55; maxChargeTarget = 75; chargeTargetForVariant = 60;
+      variantMinSpeed = minChargerSpeedKw;
+      variantMaxArrival = 15;
     } else if (selectedType === "fewest") {
       // Zo min mogelijk stops: bijna vol laden en dieper leegrijden.
       minChargeTarget = 92; maxChargeTarget = 100; chargeTargetForVariant = 95;
