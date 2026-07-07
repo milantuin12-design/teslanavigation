@@ -138,6 +138,8 @@ function Index() {
   const [navStartKm, setNavStartKm] = useState<number>(0);
   const [routeChangedAt, setRouteChangedAt] = useState<number | null>(null);
   const [routeChangedStops, setRouteChangedStops] = useState<ChargingStop[] | null>(null);
+  const [activeChargingStop, setActiveChargingStop] = useState<ChargingStop | null>(null);
+  const chargedStopKeysRef = useRef<Set<string>>(new Set());
   const prevPositionRef = useRef<{ lat: number; lng: number } | null>(null);
   const displayedPositionRef = useRef<{ lat: number; lng: number } | null>(null);
   const gpsAnimationFrameRef = useRef<number | null>(null);
