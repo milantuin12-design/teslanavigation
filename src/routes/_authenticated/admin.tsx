@@ -174,6 +174,13 @@ function AdminPage() {
       is_available: editing.is_available !== false,
       parking_fee: !!editing.parking_fee,
       in_parking_garage: !!editing.in_parking_garage,
+      province: editing.province || null,
+      city: editing.city || null,
+      status: editing.status || "operational",
+      construction: (editing.construction || {}) as Json,
+      works: (editing.works || {}) as Json,
+      closure: (editing.closure || {}) as Json,
+
     };
     if (editing.id) {
       const { error } = await supabase.from("superchargers").update(payload).eq("id", editing.id);
