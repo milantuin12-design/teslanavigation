@@ -1,4 +1,4 @@
-import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, TimeMode, teslaBatteryKWh, teslaMaxChargeKw, ChargerConfig, OpeningHours, OpeningDayKey } from './tesla-types';
+import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, TimeMode, teslaBatteryKWh, teslaMaxChargeKw, ChargerConfig, OpeningHours, OpeningDayKey, ChargerLifecycleStatus, ChargerFilterState } from './tesla-types';
 
 export function parseCoordinates(input: string): { lat: number; lng: number } | null {
   const trimmed = input.trim();
@@ -226,14 +226,21 @@ export function isChargerOperationalAt(charger: Supercharger, atDate: Date = new
 }
 
 export function getChargerStatus(charger: Supercharger, atDate: Date = new Date()): ChargerStatus {
+  const lifecycle = charger.status ?? 'operational';
+  if (lifecycle === 'construction') return 'In aanbouw';
+  if (lifecycle === 'works_closed') return 'Dicht door werkzaamheden';
+  if (lifecycle === 'temp_closed') return 'Tijdelijk gesloten';
+  if (lifecycle === 'long_closed') return 'Langdurig gesloten';
   if (charger.isAvailable === false) return 'Niet beschikbaar';
   if (!isChargerOpenAt(charger, atDate)) return 'Gesloten';
+  if (lifecycle === 'works') return 'Werkzaamheden';
   if (charger.totalStalls === undefined || charger.occupiedStalls === undefined) return 'Onbekend';
   const available = charger.totalStalls - charger.occupiedStalls;
   if (available === 0) return 'Vol';
   if (available <= Math.ceil(charger.totalStalls * 0.25)) return 'Druk';
   return 'Beschikbaar';
 }
+
 
 
 export function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -371,7 +378,13 @@ export function calculateChargingStops(
     return { stops: [], arrivalPercent: batteryPercent, unreachable: false };
   }
 
-  let filtered = chargers.filter(c => c.isAvailable !== false && parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) >= minChargerSpeedKw);
+  let filtered = chargers.filter(c => {
+    const lifecycle = c.status ?? 'operational';
+    if (lifecycle !== 'operational' && lifecycle !== 'works') return false;
+    if (c.isAvailable === false) return false;
+    return parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) >= minChargerSpeedKw;
+  });
+
   if (trailerOnly) filtered = filtered.filter(c => c.trailerFriendly);
   if (excludeParkingGarage) filtered = filtered.filter(c => !c.inParkingGarage);
 
@@ -594,10 +607,103 @@ export function getStatusColor(status: ChargerStatus): string {
   switch (status) {
     case 'Beschikbaar': return '#22c55e';
     case 'Druk': return '#f59e0b';
-    case 'Vol': return '#ef4444';
+    case 'Werkzaamheden': return '#f59e0b';
+    case 'In aanbouw': return '#3b82f6';
     case 'Onbekend': return '#64748b';
-    case 'Niet beschikbaar': return '#94a3b8'; // grijs
-    case 'Gesloten': return '#ef4444'; // rood
+    case 'Niet beschikbaar': return '#94a3b8';
+    default: return '#ef4444';
   }
 }
+
+export const lifecycleLabels: Record<ChargerLifecycleStatus, string> = {
+  operational: 'In bedrijf',
+  construction: 'In aanbouw',
+  works: 'Werkzaamheden (deels open)',
+  works_closed: 'Dicht door werkzaamheden',
+  temp_closed: 'Tijdelijk gesloten',
+  long_closed: 'Langdurig gesloten',
+};
+
+export const constructionProgressLabels: Record<string, string> = {
+  planned: 'Gepland',
+  permit: 'Vergunning rond',
+  groundwork: 'Grondwerk bezig',
+  cabling: 'Kabels & aansluiting',
+  installing: 'Laders plaatsen',
+  testing: 'Testfase',
+};
+
+/** Kan deze lader daadwerkelijk gebruikt worden in een route? */
+export function isChargerUsable(charger: Supercharger, atDate: Date = new Date()): boolean {
+  const status = charger.status ?? 'operational';
+  if (status !== 'operational' && status !== 'works') return false;
+  return isChargerOperationalAt(charger, atDate);
+}
+
+/** Aantal laadplekken dat nu open is (rekening houdend met werkzaamheden). */
+export function getOpenStalls(charger: Supercharger): number {
+  const total = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
+  const status = charger.status ?? 'operational';
+  if (status === 'construction') return 0;
+  if (status === 'works') return Math.max(0, total - (charger.works?.closedStalls ?? 0));
+  if (status === 'operational') return total;
+  return 0;
+}
+
+export function formatDateNl(value?: string | null): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+/** Korte statusregels voor popup/lijst, in tekst. */
+export function describeChargerStatus(charger: Supercharger): string[] {
+  const status = charger.status ?? 'operational';
+  const lines: string[] = [];
+  if (status === 'construction') {
+    const c = charger.construction || {};
+    lines.push('In aanbouw');
+    if (c.plannedStalls) lines.push(`Komt: ${c.plannedStalls} laders${c.version ? ` ${c.version}` : ''}${c.speedKw ? ` ${c.speedKw}kW` : ''}`);
+    if (c.progress) lines.push(`Voortgang: ${constructionProgressLabels[c.progress] ?? c.progress}`);
+    if (c.expectedOpen) lines.push(`Verwacht open: ${formatDateNl(c.expectedOpen)}`);
+    if (c.notes) lines.push(c.notes);
+  } else if (status === 'works' || status === 'works_closed') {
+    const w = charger.works || {};
+    lines.push(status === 'works' ? 'Werkzaamheden — deels open' : 'Dicht door werkzaamheden');
+    if (status === 'works') lines.push(`${getOpenStalls(charger)} van ${getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0} laders open`);
+    if (w.reason) lines.push(`Reden: ${w.reason}`);
+    if (w.expectedEnd) lines.push(`Klaar rond: ${formatDateNl(w.expectedEnd)}`);
+    if (w.notes) lines.push(w.notes);
+  } else if (status === 'temp_closed' || status === 'long_closed') {
+    const c = charger.closure || {};
+    lines.push(status === 'temp_closed' ? 'Tijdelijk gesloten' : 'Langdurig gesloten');
+    if (c.reason) lines.push(`Reden: ${c.reason}`);
+    if (c.until) lines.push(`Tot: ${formatDateNl(c.until)}`);
+    if (c.notes) lines.push(c.notes);
+  }
+  return lines;
+}
+
+export function matchesChargerFilters(charger: Supercharger, filters: ChargerFilterState): boolean {
+  const status = charger.status ?? 'operational';
+  if (!filters.statuses.includes(status)) return false;
+  if (filters.minSpeedKw > 0 && parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs) < filters.minSpeedKw) return false;
+  if (filters.versions.length > 0) {
+    const versions = getChargerConfigs(charger).map((c) => c.version);
+    if (!filters.versions.some((v) => versions.includes(v))) return false;
+  }
+  if (filters.trailerOnly && !charger.trailerFriendly) return false;
+  if (filters.noGarage && charger.inParkingGarage) return false;
+  if (filters.noParkingFee && charger.parkingFee) return false;
+  if (filters.openNow && !isChargerUsable(charger)) return false;
+  if (filters.country && (charger.country || '').toLowerCase() !== filters.country.toLowerCase()) return false;
+  if (filters.search) {
+    const needle = filters.search.toLowerCase();
+    const haystack = `${charger.name} ${charger.city ?? ''} ${charger.province ?? ''} ${charger.country ?? ''}`.toLowerCase();
+    if (!haystack.includes(needle)) return false;
+  }
+  return true;
+}
+
 

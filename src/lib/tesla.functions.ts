@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import type { ChargerConfig, OpeningHours, Supercharger } from "./tesla-types";
+import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, Supercharger, WorksInfo } from "./tesla-types";
 import type { Json } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, normalizeOpeningHours, parseChargerConfigsFromLegacy } from "./tesla-utils";
@@ -23,7 +23,7 @@ function normalizeStallData(totalStalls?: number | null, stallTypes?: string | n
 }
 
 const SELECT_COLS =
-  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage";
+  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure";
 
 type Row = {
   id: string;
@@ -34,6 +34,8 @@ type Row = {
   stall_types: string | null;
   occupied_stalls: number | null;
   country: string | null;
+  province: string | null;
+  city: string | null;
   max_speed_kw: number | null;
   versions: string[] | null;
   opening_time: string | null;
@@ -44,13 +46,20 @@ type Row = {
   charger_configs: ChargerConfig[] | null;
   parking_fee: boolean | null;
   in_parking_garage: boolean | null;
+  status: string | null;
+  construction: ConstructionInfo | null;
+  works: WorksInfo | null;
+  closure: ClosureInfo | null;
 };
+
+const LIFECYCLE: ChargerLifecycleStatus[] = ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed'];
 
 function rowToCharger(row: Row): Supercharger {
   const normalized = normalizeStallData(row.total_stalls, row.stall_types);
   const chargerConfigs = normalizeChargerConfigs(row.charger_configs).length > 0
     ? normalizeChargerConfigs(row.charger_configs)
     : parseChargerConfigsFromLegacy(row.stall_types, row.total_stalls, row.max_speed_kw, row.versions);
+  const status = (LIFECYCLE as string[]).includes(row.status ?? '') ? (row.status as ChargerLifecycleStatus) : 'operational';
   return {
     id: row.id,
     name: row.name,
@@ -60,6 +69,8 @@ function rowToCharger(row: Row): Supercharger {
     occupiedStalls: row.occupied_stalls ?? undefined,
     stallTypes: normalized.stallTypes,
     country: row.country ?? undefined,
+    province: row.province ?? undefined,
+    city: row.city ?? undefined,
     maxSpeedKw: getMaxSpeedFromConfigs(chargerConfigs) ?? row.max_speed_kw ?? undefined,
     versions: getVersionsFromConfigs(chargerConfigs).length > 0 ? getVersionsFromConfigs(chargerConfigs) : row.versions ?? [],
     chargerConfigs,
@@ -70,8 +81,13 @@ function rowToCharger(row: Row): Supercharger {
     isAvailable: row.is_available !== false,
     parkingFee: !!row.parking_fee,
     inParkingGarage: !!row.in_parking_garage,
+    status,
+    construction: row.construction ?? {},
+    works: row.works ?? {},
+    closure: row.closure ?? {},
   };
 }
+
 
 export const listSuperchargers = createServerFn({ method: "GET" }).handler(
   async (): Promise<Supercharger[]> => {
@@ -124,7 +140,31 @@ const chargerInput = z.object({
   isAvailable: z.boolean().default(true),
   parkingFee: z.boolean().default(false),
   inParkingGarage: z.boolean().default(false),
+  province: z.string().max(100).optional(),
+  city: z.string().max(100).optional(),
+  status: z.enum(["operational", "construction", "works", "works_closed", "temp_closed", "long_closed"]).default("operational"),
+  construction: z.object({
+    plannedStalls: z.number().int().min(0).max(500).optional(),
+    version: z.string().max(10).optional(),
+    speedKw: z.number().int().min(0).max(1000).optional(),
+    expectedOpen: z.string().max(40).optional(),
+    progress: z.enum(["planned", "permit", "groundwork", "cabling", "installing", "testing"]).optional(),
+    notes: z.string().max(500).optional(),
+  }).default({}),
+  works: z.object({
+    closedStalls: z.number().int().min(0).max(500).optional(),
+    reason: z.string().max(300).optional(),
+    expectedEnd: z.string().max(40).optional(),
+    notes: z.string().max(500).optional(),
+  }).default({}),
+  closure: z.object({
+    reason: z.string().max(300).optional(),
+    from: z.string().max(40).optional(),
+    until: z.string().max(40).optional(),
+    notes: z.string().max(500).optional(),
+  }).default({}),
 });
+
 
 async function assertAdmin(context: { supabase: unknown; userId: string }) {
   const sb = context.supabase as { rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" | "user" }) => PromiseLike<{ data: boolean | null; error: { message: string } | null }> };
@@ -160,6 +200,13 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       is_available: data.isAvailable,
       parking_fee: data.parkingFee,
       in_parking_garage: data.inParkingGarage,
+      province: data.province || null,
+      city: data.city || null,
+      status: data.status,
+      construction: data.construction as Json,
+      works: data.works as Json,
+      closure: data.closure as Json,
+
     };
     if (data.id) {
       const { error } = await context.supabase.from("superchargers").update(payload).eq("id", data.id);

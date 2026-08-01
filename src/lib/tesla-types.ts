@@ -17,6 +17,37 @@ export interface OpeningHours {
   days: Record<OpeningDayKey, OpeningDayHours>;
 }
 
+export type ChargerLifecycleStatus =
+  | 'operational'
+  | 'construction'
+  | 'works'
+  | 'works_closed'
+  | 'temp_closed'
+  | 'long_closed';
+
+export interface ConstructionInfo {
+  plannedStalls?: number;
+  version?: string;
+  speedKw?: number;
+  expectedOpen?: string;
+  progress?: 'planned' | 'permit' | 'groundwork' | 'cabling' | 'installing' | 'testing';
+  notes?: string;
+}
+
+export interface WorksInfo {
+  closedStalls?: number;
+  reason?: string;
+  expectedEnd?: string;
+  notes?: string;
+}
+
+export interface ClosureInfo {
+  reason?: string;
+  from?: string;
+  until?: string;
+  notes?: string;
+}
+
 export interface Supercharger {
   id?: string;
   name: string;
@@ -26,6 +57,8 @@ export interface Supercharger {
   occupiedStalls?: number;
   stallTypes?: string;
   country?: string;
+  province?: string;
+  city?: string;
   maxSpeedKw?: number;
   versions?: string[];
   chargerConfigs?: ChargerConfig[];
@@ -36,7 +69,12 @@ export interface Supercharger {
   isAvailable?: boolean;
   parkingFee?: boolean;
   inParkingGarage?: boolean;
+  status?: ChargerLifecycleStatus;
+  construction?: ConstructionInfo;
+  works?: WorksInfo;
+  closure?: ClosureInfo;
 }
+
 
 export interface ChargingStop {
   charger: Supercharger;
@@ -56,7 +94,43 @@ export interface RouteResult {
   totalTimeMin: number;
 }
 
-export type ChargerStatus = 'Beschikbaar' | 'Druk' | 'Vol' | 'Onbekend' | 'Niet beschikbaar' | 'Gesloten';
+export type ChargerStatus =
+  | 'Beschikbaar'
+  | 'Druk'
+  | 'Vol'
+  | 'Onbekend'
+  | 'Niet beschikbaar'
+  | 'Gesloten'
+  | 'In aanbouw'
+  | 'Werkzaamheden'
+  | 'Dicht door werkzaamheden'
+  | 'Tijdelijk gesloten'
+  | 'Langdurig gesloten';
+
+export interface ChargerFilterState {
+  statuses: ChargerLifecycleStatus[];
+  minSpeedKw: number;
+  versions: string[];
+  trailerOnly: boolean;
+  noGarage: boolean;
+  noParkingFee: boolean;
+  openNow: boolean;
+  country: string;
+  search: string;
+}
+
+export const defaultChargerFilters: ChargerFilterState = {
+  statuses: ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed'],
+  minSpeedKw: 0,
+  versions: [],
+  trailerOnly: false,
+  noGarage: false,
+  noParkingFee: false,
+  openNow: false,
+  country: '',
+  search: '',
+};
+
 export type WeatherMode = 'summer' | 'winter' | 'fog';
 export type TimeMode = 'day' | 'night';
 export type RouteType = 'fastest' | 'fewest' | 'scenic' | 'trailer' | 'manual';

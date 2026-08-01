@@ -14,26 +14,85 @@ export type Database = {
   }
   public: {
     Tables: {
+      charger_reports: {
+        Row: {
+          admin_note: string | null
+          category: string
+          charger_id: string | null
+          charger_name: string | null
+          contact_email: string | null
+          created_at: string
+          id: string
+          message: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_note?: string | null
+          category?: string
+          charger_id?: string | null
+          charger_name?: string | null
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_note?: string | null
+          category?: string
+          charger_id?: string | null
+          charger_name?: string | null
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "charger_reports_charger_id_fkey"
+            columns: ["charger_id"]
+            isOneToOne: false
+            referencedRelation: "superchargers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          blocked: boolean
           created_at: string
           display_name: string | null
           email: string | null
           id: string
+          last_active_at: string | null
+          route_count: number
           updated_at: string
         }
         Insert: {
+          blocked?: boolean
           created_at?: string
           display_name?: string | null
           email?: string | null
           id: string
+          last_active_at?: string | null
+          route_count?: number
           updated_at?: string
         }
         Update: {
+          blocked?: boolean
           created_at?: string
           display_name?: string | null
           email?: string | null
           id?: string
+          last_active_at?: string | null
+          route_count?: number
           updated_at?: string
         }
         Relationships: []
@@ -113,7 +172,10 @@ export type Database = {
       superchargers: {
         Row: {
           charger_configs: Json
+          city: string | null
           closing_time: string | null
+          closure: Json
+          construction: Json
           country: string
           id: string
           in_parking_garage: boolean
@@ -127,14 +189,21 @@ export type Database = {
           opening_hours: Json
           opening_time: string | null
           parking_fee: boolean
+          province: string | null
           stall_types: string | null
+          status: string
           total_stalls: number | null
           trailer_friendly: boolean
+          updated_at: string
           versions: string[] | null
+          works: Json
         }
         Insert: {
           charger_configs?: Json
+          city?: string | null
           closing_time?: string | null
+          closure?: Json
+          construction?: Json
           country: string
           id?: string
           in_parking_garage?: boolean
@@ -148,14 +217,21 @@ export type Database = {
           opening_hours?: Json
           opening_time?: string | null
           parking_fee?: boolean
+          province?: string | null
           stall_types?: string | null
+          status?: string
           total_stalls?: number | null
           trailer_friendly?: boolean
+          updated_at?: string
           versions?: string[] | null
+          works?: Json
         }
         Update: {
           charger_configs?: Json
+          city?: string | null
           closing_time?: string | null
+          closure?: Json
+          construction?: Json
           country?: string
           id?: string
           in_parking_garage?: boolean
@@ -169,10 +245,14 @@ export type Database = {
           opening_hours?: Json
           opening_time?: string | null
           parking_fee?: boolean
+          province?: string | null
           stall_types?: string | null
+          status?: string
           total_stalls?: number | null
           trailer_friendly?: boolean
+          updated_at?: string
           versions?: string[] | null
+          works?: Json
         }
         Relationships: []
       }
