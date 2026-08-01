@@ -8,9 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Trash2, Pencil, Plus, Truck, X } from "lucide-react";
-import type { ChargerConfig, OpeningDayKey, OpeningHours } from "@/lib/tesla-types";
+import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningDayKey, OpeningHours, WorksInfo } from "@/lib/tesla-types";
 import type { Json } from "@/integrations/supabase/types";
-import { defaultOpeningHours, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
+import { constructionProgressLabels, defaultOpeningHours, lifecycleLabels, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
+
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
