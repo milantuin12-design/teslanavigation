@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Bookmark } from "lucide-react";
+import ChargerFilters from "@/components/ChargerFilters";
+import ReportChargerDialog, { type ReportTarget } from "@/components/ReportChargerDialog";
 import {
   Supercharger,
   ChargingStop,
@@ -22,6 +24,8 @@ import {
   RouteType,
   teslaModels,
   teslaBatteryKWh,
+  defaultChargerFilters,
+  type ChargerFilterState,
 } from "@/lib/tesla-types";
 import {
   getAvailableRange,
@@ -33,7 +37,9 @@ import {
   projectOntoRoute,
   haversineDistance,
   isChargerOperationalAt,
+  matchesChargerFilters,
 } from "@/lib/tesla-utils";
+
 import { listSuperchargers } from "@/lib/tesla.functions";
 
 
