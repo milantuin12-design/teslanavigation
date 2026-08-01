@@ -930,7 +930,7 @@ function Index() {
         <EvMap
           startCoord={startCoord}
           destCoord={destCoord}
-          superchargers={superchargers}
+          superchargers={visibleChargers}
           route={route}
           routeVariants={routeVariants}
           selectedRouteType={routeType}
@@ -940,6 +940,7 @@ function Index() {
           heading={currentHeading}
           headingUp={headingUp}
         />
+
         {isNavigating && (
           <NavigationPanel
             steps={routeSteps}
