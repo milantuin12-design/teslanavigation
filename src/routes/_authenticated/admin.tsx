@@ -24,6 +24,8 @@ type Charger = {
   lat: number;
   lng: number;
   country: string;
+  province: string | null;
+  city: string | null;
   total_stalls: number | null;
   stall_types: string | null;
   max_speed_kw: number | null;
@@ -36,18 +38,33 @@ type Charger = {
   charger_configs: ChargerConfig[] | null;
   parking_fee: boolean;
   in_parking_garage: boolean;
+  status: ChargerLifecycleStatus;
+  construction: ConstructionInfo | null;
+  works: WorksInfo | null;
+  closure: ClosureInfo | null;
 };
 
 const emptyCharger = {
-  name: "", lat: 0, lng: 0, country: "",
+  name: "", lat: 0, lng: 0, country: "", province: null as string | null, city: null as string | null,
   total_stalls: null as number | null, stall_types: null as string | null,
   max_speed_kw: null as number | null, versions: [] as string[],
   opening_hours: defaultOpeningHours() as OpeningHours,
   opening_time: null as string | null, closing_time: null as string | null,
   trailer_friendly: false, is_available: true,
   parking_fee: false, in_parking_garage: false,
+  status: "operational" as ChargerLifecycleStatus,
+  construction: {} as ConstructionInfo,
+  works: {} as WorksInfo,
+  closure: {} as ClosureInfo,
   charger_configs: [{ count: 8, version: "V3", speedKw: 250 }] as ChargerConfig[],
 };
+
+const STATUS_OPTIONS: ChargerLifecycleStatus[] = [
+  "operational", "construction", "works", "works_closed", "temp_closed", "long_closed",
+];
+
+const PROGRESS_OPTIONS = ["planned", "permit", "groundwork", "cabling", "installing", "testing"] as const;
+
 
 function normalizeConfigs(configs?: ChargerConfig[] | null): ChargerConfig[] {
   return (configs || [])
