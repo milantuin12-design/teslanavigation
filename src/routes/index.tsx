@@ -190,6 +190,30 @@ function Index() {
     };
   }, []);
 
+  // Live bijwerken zodra een admin een Supercharger aanpast
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const channel = supabase
+      .channel("superchargers-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "superchargers" }, () => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          listSuperchargers()
+            .then((data) => {
+              setSuperchargers(data);
+              setLastAvailabilityUpdate(new Date().toISOString());
+            })
+            .catch(() => {});
+        }, 800);
+      })
+      .subscribe();
+    return () => {
+      if (timer) clearTimeout(timer);
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+
   useEffect(() => {
     setLastAvailabilityUpdate(new Date().toISOString());
   }, []);
