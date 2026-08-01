@@ -1059,7 +1059,9 @@ function Index() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ReportChargerDialog target={reportTarget} onClose={() => setReportTarget(null)} />
     </div>
+
   );
 }
 
