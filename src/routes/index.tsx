@@ -118,6 +118,24 @@ function Index() {
     return () => sub.subscription.unsubscribe();
   }, []);
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
+  const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>({ ...defaultChargerFilters });
+  const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
+
+  const visibleChargers = useMemo(
+    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters)),
+    [superchargers, chargerFilters],
+  );
+
+  // Meldknop in de kaart-popup
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ id: string | null; name: string }>).detail;
+      setReportTarget({ id: detail?.id ?? null, name: detail?.name ?? "" });
+    };
+    window.addEventListener("sc-report", handler);
+    return () => window.removeEventListener("sc-report", handler);
+  }, []);
+
 
   const [route, setRoute] = useState<RouteResult | null>(null);
   const [routeVariants, setRouteVariants] = useState<Partial<Record<RouteType, RouteResult>>>({});
