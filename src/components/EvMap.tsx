@@ -119,6 +119,19 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     };
     map.on('dragstart zoomstart', pauseFollow);
 
+    map.on('popupopen', (event: L.PopupEvent) => {
+      const node = event.popup.getElement();
+      const button = node?.querySelector<HTMLButtonElement>('[data-report-id]');
+      if (!button) return;
+      button.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('sc-report', {
+          detail: { id: button.dataset.reportId || null, name: button.dataset.reportName || '' },
+        }));
+        map.closePopup();
+      }, { once: true });
+    });
+
+
     markersRef.current.addTo(map);
     routeVariantsRef.current.addTo(map);
     mapRef.current = map;
