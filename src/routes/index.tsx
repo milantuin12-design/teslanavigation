@@ -937,7 +937,16 @@ function Index() {
               lastAvailabilityUpdate={lastAvailabilityUpdate}
               arrivalPercent={arrivalPercent}
             />
+            <div className="px-5 pb-5 -mt-2">
+              <ChargerFilters
+                filters={chargerFilters}
+                onChange={setChargerFilters}
+                chargers={superchargers}
+                visibleCount={visibleChargers.length}
+              />
+            </div>
           </div>
+
 
           <div className="border-t border-slate-700/50 max-h-[40vh] overflow-y-auto">
             <ChargingStops
