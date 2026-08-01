@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus } from '@/lib/tesla-types';
-import { formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isChargerOperationalAt, parseMaxSpeed } from '@/lib/tesla-utils';
+import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, getOpenStalls, isChargerUsable, parseMaxSpeed } from '@/lib/tesla-utils';
 
 interface EvMapProps {
   startCoord: { lat: number; lng: number } | null;
