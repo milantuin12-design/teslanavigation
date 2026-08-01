@@ -8,9 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Trash2, Pencil, Plus, Truck, X } from "lucide-react";
-import type { ChargerConfig, OpeningDayKey, OpeningHours } from "@/lib/tesla-types";
+import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningDayKey, OpeningHours, WorksInfo } from "@/lib/tesla-types";
 import type { Json } from "@/integrations/supabase/types";
-import { defaultOpeningHours, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
+import { constructionProgressLabels, defaultOpeningHours, lifecycleLabels, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
+
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -24,6 +25,8 @@ type Charger = {
   lat: number;
   lng: number;
   country: string;
+  province: string | null;
+  city: string | null;
   total_stalls: number | null;
   stall_types: string | null;
   max_speed_kw: number | null;
@@ -36,18 +39,33 @@ type Charger = {
   charger_configs: ChargerConfig[] | null;
   parking_fee: boolean;
   in_parking_garage: boolean;
+  status: ChargerLifecycleStatus;
+  construction: ConstructionInfo | null;
+  works: WorksInfo | null;
+  closure: ClosureInfo | null;
 };
 
 const emptyCharger = {
-  name: "", lat: 0, lng: 0, country: "",
+  name: "", lat: 0, lng: 0, country: "", province: null as string | null, city: null as string | null,
   total_stalls: null as number | null, stall_types: null as string | null,
   max_speed_kw: null as number | null, versions: [] as string[],
   opening_hours: defaultOpeningHours() as OpeningHours,
   opening_time: null as string | null, closing_time: null as string | null,
   trailer_friendly: false, is_available: true,
   parking_fee: false, in_parking_garage: false,
+  status: "operational" as ChargerLifecycleStatus,
+  construction: {} as ConstructionInfo,
+  works: {} as WorksInfo,
+  closure: {} as ClosureInfo,
   charger_configs: [{ count: 8, version: "V3", speedKw: 250 }] as ChargerConfig[],
 };
+
+const STATUS_OPTIONS: ChargerLifecycleStatus[] = [
+  "operational", "construction", "works", "works_closed", "temp_closed", "long_closed",
+];
+
+const PROGRESS_OPTIONS = ["planned", "permit", "groundwork", "cabling", "installing", "testing"] as const;
+
 
 function normalizeConfigs(configs?: ChargerConfig[] | null): ChargerConfig[] {
   return (configs || [])
@@ -118,7 +136,7 @@ function AdminPage() {
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from("superchargers")
-        .select("id,name,lat,lng,country,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage")
+        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure")
         .order("name").range(from, from + 999);
       if (error) { toast.error(error.message); break; }
       rows.push(...(data as Charger[]));
@@ -156,6 +174,13 @@ function AdminPage() {
       is_available: editing.is_available !== false,
       parking_fee: !!editing.parking_fee,
       in_parking_garage: !!editing.in_parking_garage,
+      province: editing.province || null,
+      city: editing.city || null,
+      status: editing.status || "operational",
+      construction: (editing.construction || {}) as Json,
+      works: (editing.works || {}) as Json,
+      closure: (editing.closure || {}) as Json,
+
     };
     if (editing.id) {
       const { error } = await supabase.from("superchargers").update(payload).eq("id", editing.id);
@@ -239,7 +264,102 @@ function AdminPage() {
             <div className="space-y-3">
               <div><Label>Naam</Label><Input value={editing.name || ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
               <div><Label>Land</Label><Input value={editing.country || ""} onChange={(e) => setEditing({ ...editing, country: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
+              <div className="grid grid-cols-2 gap-2">
+                <div><Label>Provincie / regio</Label><Input value={editing.province || ""} onChange={(e) => setEditing({ ...editing, province: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
+                <div><Label>Plaats</Label><Input value={editing.city || ""} onChange={(e) => setEditing({ ...editing, city: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
+              </div>
               <div><Label>Coordinaten (lat,lng)</Label><Input value={coordsInput} onChange={(e) => setCoordsInput(e.target.value)} placeholder="52.3702,4.8952" className="bg-slate-800 border-slate-700" /></div>
+
+              <div className="rounded-lg border border-slate-700 p-3 space-y-3">
+                <div>
+                  <Label>Status</Label>
+                  <select
+                    value={editing.status || "operational"}
+                    onChange={(e) => setEditing({ ...editing, status: e.target.value as ChargerLifecycleStatus })}
+                    className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm"
+                  >
+                    {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{lifecycleLabels[s]}</option>)}
+                  </select>
+                </div>
+
+                {editing.status === "construction" && (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <Label className="text-xs">Aantal laders</Label>
+                        <Input type="number" min={0} value={editing.construction?.plannedStalls ?? ""} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), plannedStalls: parseInt(e.target.value) || undefined } })} className="bg-slate-800 border-slate-700" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Versie</Label>
+                        <select value={editing.construction?.version ?? "V4"} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), version: e.target.value } })} className="w-full bg-slate-800 border border-slate-700 rounded-md px-2 py-2 text-sm">
+                          {versionOpts.map((v) => <option key={v} value={v}>{v}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <Label className="text-xs">kW</Label>
+                        <Input type="number" min={0} value={editing.construction?.speedKw ?? ""} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), speedKw: parseInt(e.target.value) || undefined } })} className="bg-slate-800 border-slate-700" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">Bouwvoortgang</Label>
+                        <select value={editing.construction?.progress ?? "planned"} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), progress: e.target.value as ConstructionInfo["progress"] } })} className="w-full bg-slate-800 border border-slate-700 rounded-md px-2 py-2 text-sm">
+                          {PROGRESS_OPTIONS.map((p) => <option key={p} value={p}>{constructionProgressLabels[p]}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Verwacht open</Label>
+                        <Input type="date" value={editing.construction?.expectedOpen ?? ""} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), expectedOpen: e.target.value } })} className="bg-slate-800 border-slate-700" />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Toelichting</Label>
+                      <Input value={editing.construction?.notes ?? ""} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), notes: e.target.value } })} className="bg-slate-800 border-slate-700" />
+                    </div>
+                  </div>
+                )}
+
+                {(editing.status === "works" || editing.status === "works_closed") && (
+                  <div className="space-y-2">
+                    {editing.status === "works" && (
+                      <div>
+                        <Label className="text-xs">Aantal laders dicht</Label>
+                        <Input type="number" min={0} value={editing.works?.closedStalls ?? ""} onChange={(e) => setEditing({ ...editing, works: { ...(editing.works || {}), closedStalls: parseInt(e.target.value) || 0 } })} className="bg-slate-800 border-slate-700" />
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">Reden</Label>
+                        <Input value={editing.works?.reason ?? ""} onChange={(e) => setEditing({ ...editing, works: { ...(editing.works || {}), reason: e.target.value } })} className="bg-slate-800 border-slate-700" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Klaar rond</Label>
+                        <Input type="date" value={editing.works?.expectedEnd ?? ""} onChange={(e) => setEditing({ ...editing, works: { ...(editing.works || {}), expectedEnd: e.target.value } })} className="bg-slate-800 border-slate-700" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {(editing.status === "temp_closed" || editing.status === "long_closed") && (
+                  <div className="space-y-2">
+                    <div>
+                      <Label className="text-xs">Reden van sluiting</Label>
+                      <Input value={editing.closure?.reason ?? ""} onChange={(e) => setEditing({ ...editing, closure: { ...(editing.closure || {}), reason: e.target.value } })} className="bg-slate-800 border-slate-700" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">Vanaf</Label>
+                        <Input type="date" value={editing.closure?.from ?? ""} onChange={(e) => setEditing({ ...editing, closure: { ...(editing.closure || {}), from: e.target.value } })} className="bg-slate-800 border-slate-700" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Tot (verwacht)</Label>
+                        <Input type="date" value={editing.closure?.until ?? ""} onChange={(e) => setEditing({ ...editing, closure: { ...(editing.closure || {}), until: e.target.value } })} className="bg-slate-800 border-slate-700" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div>
                 <Label>Laders</Label>
                 <div className="space-y-2 mt-2">

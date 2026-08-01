@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus } from '@/lib/tesla-types';
-import { formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isChargerOperationalAt, parseMaxSpeed } from '@/lib/tesla-utils';
+import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, getOpenStalls, isChargerUsable, parseMaxSpeed } from '@/lib/tesla-utils';
 
 interface EvMapProps {
   startCoord: { lat: number; lng: number } | null;
@@ -36,16 +36,19 @@ const destIcon = L.divIcon({
 function chargerIcon(status: ChargerStatus) {
   let color = '#22c55e'; // groen = open/beschikbaar
   if (status === 'Niet beschikbaar') color = '#94a3b8'; // grijs
-  else if (status === 'Gesloten' || status === 'Vol') color = '#ef4444'; // rood
-  else if (status === 'Druk') color = '#f59e0b';
+  else if (status === 'In aanbouw') color = '#3b82f6'; // blauw
+  else if (status === 'Werkzaamheden' || status === 'Druk') color = '#f59e0b'; // oranje
   else if (status === 'Onbekend') color = '#64748b';
+  else if (status !== 'Beschikbaar') color = '#ef4444'; // rood: gesloten varianten
+  const ring = status === 'In aanbouw' ? 'border-style:dashed;' : '';
   return L.divIcon({
     className: 'custom-marker',
-    html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);"></div>`,
+    html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;${ring}box-shadow:0 2px 6px rgba(0,0,0,0.25);"></div>`,
     iconSize: [22, 22],
     iconAnchor: [11, 11],
   });
 }
+
 
 
 function chargeStopIcon() {
@@ -116,6 +119,19 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     };
     map.on('dragstart zoomstart', pauseFollow);
 
+    map.on('popupopen', (event: L.PopupEvent) => {
+      const node = event.popup.getElement();
+      const button = node?.querySelector<HTMLButtonElement>('[data-report-id]');
+      if (!button) return;
+      button.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('sc-report', {
+          detail: { id: button.dataset.reportId || null, name: button.dataset.reportName || '' },
+        }));
+        map.closePopup();
+      }, { once: true });
+    });
+
+
     markersRef.current.addTo(map);
     routeVariantsRef.current.addTo(map);
     mapRef.current = map;
@@ -138,16 +154,26 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(status) });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
-        const operational = isChargerOperationalAt(charger);
-        const statusColor = operational ? '#16a34a' : '#dc2626';
-        let popup = `<div style="font-family:system-ui;font-size:13px;min-width:220px;color:#0f172a;">
+        const usable = isChargerUsable(charger);
+        const statusColor = usable ? '#16a34a' : (charger.status === 'construction' ? '#2563eb' : '#dc2626');
+        const place = [charger.city, charger.province, charger.country].filter(Boolean).join(', ');
+        let popup = `<div style="font-family:system-ui;font-size:13px;min-width:230px;color:#0f172a;">
           <strong style="font-size:15px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
+          ${place ? `<div style="color:#64748b;font-size:11px;">${escapeHtml(place)}</div>` : ''}
           <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
+
+        const statusLines = describeChargerStatus(charger);
+        if (statusLines.length > 1) {
+          popup += `<div style="margin-top:4px;display:grid;gap:2px;color:#334155;">${statusLines.slice(1).map((line) => `<div>${escapeHtml(line)}</div>`).join('')}</div>`;
+        }
 
         if (configs.length > 0) {
           popup += `<div style="margin-top:6px;display:grid;gap:3px;">${configs.map((config) => `<div>${escapeHtml(formatChargerConfig(config))}</div>`).join('')}</div>`;
         } else if (charger.totalStalls) {
           popup += `<br/><span style="color:#475569;">${charger.totalStalls} laadplekken</span>`;
+        }
+        if (charger.status === 'works') {
+          popup += `<div style="margin-top:4px;color:#b45309;font-weight:600;">${getOpenStalls(charger)} laders nu bruikbaar</div>`;
         }
         popup += `<div style="margin-top:6px;color:#2563eb;font-weight:600;">Max ${maxSpeed} kW</div>`;
         popup += `<div style="margin-top:3px;color:#475569;">${escapeHtml(formatOpeningHoursSummary(charger))}</div>`;
@@ -158,11 +184,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         if (extras.length > 0) {
           popup += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0;display:grid;gap:2px;color:#334155;font-weight:500;">${extras.map((line) => `<div>• ${escapeHtml(line)}</div>`).join('')}</div>`;
         }
+        popup += `<button type="button" data-report-id="${escapeHtml(charger.id ?? '')}" data-report-name="${escapeHtml(charger.name ?? '')}" style="margin-top:8px;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#b91c1c;font-weight:600;cursor:pointer;">Fout melden</button>`;
         popup += `</div>`;
         marker.bindPopup(popup);
         markersRef.current.addLayer(marker);
       } catch { /* skip bad charger */ }
     });
+
 
     chargingStops.forEach((stop, idx) => {
       try {

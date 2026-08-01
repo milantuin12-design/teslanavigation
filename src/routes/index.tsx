@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Bookmark } from "lucide-react";
+import ChargerFilters from "@/components/ChargerFilters";
+import ReportChargerDialog, { type ReportTarget } from "@/components/ReportChargerDialog";
 import {
   Supercharger,
   ChargingStop,
@@ -22,6 +24,8 @@ import {
   RouteType,
   teslaModels,
   teslaBatteryKWh,
+  defaultChargerFilters,
+  type ChargerFilterState,
 } from "@/lib/tesla-types";
 import {
   getAvailableRange,
@@ -33,7 +37,9 @@ import {
   projectOntoRoute,
   haversineDistance,
   isChargerOperationalAt,
+  matchesChargerFilters,
 } from "@/lib/tesla-utils";
+
 import { listSuperchargers } from "@/lib/tesla.functions";
 
 
@@ -118,6 +124,24 @@ function Index() {
     return () => sub.subscription.unsubscribe();
   }, []);
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
+  const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>({ ...defaultChargerFilters });
+  const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
+
+  const visibleChargers = useMemo(
+    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters)),
+    [superchargers, chargerFilters],
+  );
+
+  // Meldknop in de kaart-popup
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ id: string | null; name: string }>).detail;
+      setReportTarget({ id: detail?.id ?? null, name: detail?.name ?? "" });
+    };
+    window.addEventListener("sc-report", handler);
+    return () => window.removeEventListener("sc-report", handler);
+  }, []);
+
 
   const [route, setRoute] = useState<RouteResult | null>(null);
   const [routeVariants, setRouteVariants] = useState<Partial<Record<RouteType, RouteResult>>>({});
@@ -165,6 +189,30 @@ function Index() {
       mounted = false;
     };
   }, []);
+
+  // Live bijwerken zodra een admin een Supercharger aanpast
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const channel = supabase
+      .channel("superchargers-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "superchargers" }, () => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          listSuperchargers()
+            .then((data) => {
+              setSuperchargers(data);
+              setLastAvailabilityUpdate(new Date().toISOString());
+            })
+            .catch(() => {});
+        }, 800);
+      })
+      .subscribe();
+    return () => {
+      if (timer) clearTimeout(timer);
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
 
   useEffect(() => {
     setLastAvailabilityUpdate(new Date().toISOString());
@@ -889,7 +937,16 @@ function Index() {
               lastAvailabilityUpdate={lastAvailabilityUpdate}
               arrivalPercent={arrivalPercent}
             />
+            <div className="px-5 pb-5 -mt-2">
+              <ChargerFilters
+                filters={chargerFilters}
+                onChange={setChargerFilters}
+                chargers={superchargers}
+                visibleCount={visibleChargers.length}
+              />
+            </div>
           </div>
+
 
           <div className="border-t border-slate-700/50 max-h-[40vh] overflow-y-auto">
             <ChargingStops
@@ -930,7 +987,7 @@ function Index() {
         <EvMap
           startCoord={startCoord}
           destCoord={destCoord}
-          superchargers={superchargers}
+          superchargers={visibleChargers}
           route={route}
           routeVariants={routeVariants}
           selectedRouteType={routeType}
@@ -940,6 +997,7 @@ function Index() {
           heading={currentHeading}
           headingUp={headingUp}
         />
+
         {isNavigating && (
           <NavigationPanel
             steps={routeSteps}
@@ -1001,7 +1059,9 @@ function Index() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ReportChargerDialog target={reportTarget} onClose={() => setReportTarget(null)} />
     </div>
+
   );
 }
 
