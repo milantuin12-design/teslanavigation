@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json
+          id: string
+          target_count: number
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_count?: number
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_count?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      charger_owners: {
+        Row: {
+          contact: string | null
+          created_at: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          notes: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          contact?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          notes?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          contact?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          notes?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       charger_reports: {
         Row: {
           admin_note: string | null
@@ -23,7 +86,10 @@ export type Database = {
           contact_email: string | null
           created_at: string
           id: string
+          lat: number | null
+          lng: number | null
           message: string
+          photos: string[]
           status: string
           updated_at: string
           user_id: string | null
@@ -36,7 +102,10 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           id?: string
+          lat?: number | null
+          lng?: number | null
           message: string
+          photos?: string[]
           status?: string
           updated_at?: string
           user_id?: string | null
@@ -49,7 +118,10 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           id?: string
+          lat?: number | null
+          lng?: number | null
           message?: string
+          photos?: string[]
           status?: string
           updated_at?: string
           user_id?: string | null
@@ -169,6 +241,42 @@ export type Database = {
         }
         Relationships: []
       }
+      site_updates: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          importance: string
+          published_at: string
+          title: string
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          importance?: string
+          published_at?: string
+          title: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          importance?: string
+          published_at?: string
+          title?: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: []
+      }
       superchargers: {
         Row: {
           charger_configs: Json
@@ -183,13 +291,19 @@ export type Database = {
           last_updated: string | null
           lat: number
           lng: number
+          low_speed: boolean
           max_speed_kw: number | null
           name: string
+          notes: string | null
           occupied_stalls: number | null
           opening_hours: Json
           opening_time: string | null
+          owner_id: string | null
           parking_fee: boolean
+          planned_upgrade: Json
           province: string | null
+          published: boolean
+          reopen_at: string | null
           stall_types: string | null
           status: string
           total_stalls: number | null
@@ -211,13 +325,19 @@ export type Database = {
           last_updated?: string | null
           lat: number
           lng: number
+          low_speed?: boolean
           max_speed_kw?: number | null
           name: string
+          notes?: string | null
           occupied_stalls?: number | null
           opening_hours?: Json
           opening_time?: string | null
+          owner_id?: string | null
           parking_fee?: boolean
+          planned_upgrade?: Json
           province?: string | null
+          published?: boolean
+          reopen_at?: string | null
           stall_types?: string | null
           status?: string
           total_stalls?: number | null
@@ -239,13 +359,19 @@ export type Database = {
           last_updated?: string | null
           lat?: number
           lng?: number
+          low_speed?: boolean
           max_speed_kw?: number | null
           name?: string
+          notes?: string | null
           occupied_stalls?: number | null
           opening_hours?: Json
           opening_time?: string | null
+          owner_id?: string | null
           parking_fee?: boolean
+          planned_upgrade?: Json
           province?: string | null
+          published?: boolean
+          reopen_at?: string | null
           stall_types?: string | null
           status?: string
           total_stalls?: number | null
@@ -254,7 +380,15 @@ export type Database = {
           versions?: string[] | null
           works?: Json
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "superchargers_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "charger_owners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -282,6 +416,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_reopen_chargers: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
