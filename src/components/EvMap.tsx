@@ -107,7 +107,19 @@ function escapeHtml(value: string): string {
   return value.replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[char] || char);
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp }: EvMapProps) {
+function groupChargerConfigs(configs: ChargerConfig[]): string[] {
+  const grouped = new Map<string, number>();
+  configs.forEach((config) => {
+    const key = `${config.version}|${config.speedKw}`;
+    grouped.set(key, (grouped.get(key) || 0) + config.count);
+  });
+  return Array.from(grouped.entries()).map(([key, count]) => {
+    const [version, speedKw] = key.split('|');
+    return `${count}x ${version} ${speedKw} kW`;
+  });
+}
+
+export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -183,17 +195,27 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
 
     superchargers.forEach(charger => {
       try {
+        if (charger.published === false && !showDrafts) return;
+
         const status = getChargerStatus(charger);
         const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status) });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const usable = isChargerUsable(charger);
-        const statusColor = usable ? '#16a34a' : (charger.status === 'construction' ? '#2563eb' : '#dc2626');
+        const statusColor = usable ? '#16a34a' : (charger.status === 'construction' ? '#f59e0b' : '#dc2626');
         const place = [charger.city, charger.province, charger.country].filter(Boolean).join(', ');
-        let popup = `<div style="font-family:system-ui;font-size:13px;min-width:230px;color:#0f172a;">
+        let popup = `<div style="font-family:system-ui;font-size:13px;min-width:240px;color:#0f172a;">
           <strong style="font-size:15px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
           ${place ? `<div style="color:#64748b;font-size:11px;">${escapeHtml(place)}</div>` : ''}
           <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
+
+        if (charger.ownerName) {
+          popup += `<div style="margin-top:4px;display:flex;align-items:center;gap:6px;color:#334155;font-weight:600;">`;
+          if (charger.ownerLogoUrl) {
+            popup += `<img src="${escapeHtml(charger.ownerLogoUrl)}" alt="${escapeHtml(charger.ownerName)}" style="width:16px;height:16px;object-fit:contain;border-radius:3px;" />`;
+          }
+          popup += `<span>${escapeHtml(charger.ownerName)}</span></div>`;
+        }
 
         const statusLines = describeChargerStatus(charger);
         if (statusLines.length > 1) {
@@ -201,15 +223,60 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         }
 
         if (configs.length > 0) {
-          popup += `<div style="margin-top:6px;display:grid;gap:3px;">${configs.map((config) => `<div>${escapeHtml(formatChargerConfig(config))}</div>`).join('')}</div>`;
+          popup += `<div style="margin-top:6px;display:grid;gap:3px;">${groupChargerConfigs(configs).map((line) => `<div>${escapeHtml(line)}</div>`).join('')}</div>`;
         } else if (charger.totalStalls) {
           popup += `<br/><span style="color:#475569;">${charger.totalStalls} laadplekken</span>`;
         }
-        if (charger.status === 'works') {
-          popup += `<div style="margin-top:4px;color:#b45309;font-weight:600;">${getOpenStalls(charger)} laders nu bruikbaar</div>`;
+
+        if (charger.status === 'works' || charger.status === 'works_closed') {
+          const closedConfigs = normalizeChargerConfigs(charger.works?.closedConfigs);
+          if (closedConfigs.length > 0) {
+            const total = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
+            const closed = closedConfigs.reduce((sum, c) => sum + c.count, 0);
+            const available = Math.max(0, total - closed);
+            popup += `<div style="margin-top:4px;color:#b45309;font-weight:600;">${total} totaal · ${closed} buiten gebruik · ${available} beschikbaar</div>`;
+          } else if (charger.status === 'works') {
+            popup += `<div style="margin-top:4px;color:#b45309;font-weight:600;">${getOpenStalls(charger)} laders nu bruikbaar</div>`;
+          }
         }
+
+        if (charger.status === 'construction') {
+          const steps = charger.construction?.steps || [];
+          if (steps.length > 0) {
+            popup += `<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #e2e8f0;display:grid;gap:2px;">${(Object.keys(constructionStepLabels) as ConstructionStep[]).map((key) => {
+              const done = steps.includes(key);
+              return `<div style="color:${done ? '#16a34a' : '#94a3b8'};display:flex;align-items:center;gap:6px;">
+                <span style="width:14px;height:14px;border-radius:50%;background:${done ? '#16a34a' : 'transparent'};border:1.5px solid ${done ? '#16a34a' : '#cbd5e1'};display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:9px;">${done ? '&#10003;' : ''}</span>
+                <span>${escapeHtml(constructionStepLabels[key])}</span>
+              </div>`;
+            }).join('')}</div>`;
+          }
+          if (charger.construction?.expectedOpenMonth) {
+            popup += `<div style="margin-top:6px;color:#b45309;font-weight:600;">Verwachte opening: ${escapeHtml(charger.construction.expectedOpenMonth)}</div>`;
+          }
+        }
+
+        if (charger.plannedUpgrade && (charger.plannedUpgrade.fromConfigs?.length || charger.plannedUpgrade.toConfigs?.length)) {
+          const fromLines = groupChargerConfigs(normalizeChargerConfigs(charger.plannedUpgrade.fromConfigs));
+          const toLines = groupChargerConfigs(normalizeChargerConfigs(charger.plannedUpgrade.toConfigs));
+          popup += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0;">
+            ${charger.plannedUpgrade.label ? `<div style="font-weight:600;color:#334155;">${escapeHtml(charger.plannedUpgrade.label)}</div>` : ''}
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px;">
+              <span style="color:#dc2626;">${escapeHtml(fromLines.join(', ') || 'huidig')}</span>
+              <span style="color:#64748b;">&#8594;</span>
+              <span style="color:#16a34a;">${escapeHtml(toLines.join(', ') || 'nieuw')}</span>
+            </div>
+            ${charger.plannedUpgrade.expected ? `<div style="color:#64748b;font-size:11px;margin-top:2px;">Verwacht: ${escapeHtml(charger.plannedUpgrade.expected)}</div>` : ''}
+          </div>`;
+        }
+
         popup += `<div style="margin-top:6px;color:#2563eb;font-weight:600;">Max ${maxSpeed} kW</div>`;
         popup += `<div style="margin-top:3px;color:#475569;">${escapeHtml(formatOpeningHoursSummary(charger))}</div>`;
+
+        if (charger.notes) {
+          popup += `<div style="margin-top:6px;color:#64748b;font-size:11px;font-style:italic;">${escapeHtml(charger.notes)}</div>`;
+        }
+
         const extras: string[] = [];
         if (charger.trailerFriendly) extras.push('Aanhangervriendelijk');
         if (charger.inParkingGarage) extras.push('In parkeergarage');
@@ -254,7 +321,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     if (destCoord) {
       markersRef.current.addLayer(L.marker([destCoord.lat, destCoord.lng], { icon: destIcon }));
     }
-  }, [startCoord, destCoord, superchargers, chargingStops, statusTick]);
+  }, [startCoord, destCoord, superchargers, chargingStops, statusTick, showDrafts]);
 
   useEffect(() => {
     const map = mapRef.current;
