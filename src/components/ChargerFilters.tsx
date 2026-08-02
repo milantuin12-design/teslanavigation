@@ -21,9 +21,11 @@ interface Props {
   onChange: (filters: ChargerFilterState) => void;
   chargers: Supercharger[];
   visibleCount: number;
+  owners?: { id: string; name: string }[];
 }
 
-export default function ChargerFilters({ filters, onChange, chargers, visibleCount }: Props) {
+export default function ChargerFilters({ filters, onChange, chargers, visibleCount, owners = [] }: Props) {
+
   const [open, setOpen] = useState(false);
 
   const countries = useMemo(
