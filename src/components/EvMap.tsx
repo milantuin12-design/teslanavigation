@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Supercharger, ChargingStop, RouteResult, ChargerStatus } from '@/lib/tesla-types';
-import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, getOpenStalls, isChargerUsable, parseMaxSpeed } from '@/lib/tesla-utils';
+import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig } from '@/lib/tesla-types';
+import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, getOpenStalls, getTotalStallsFromConfigs, isChargerUsable, normalizeChargerConfigs, parseMaxSpeed } from '@/lib/tesla-utils';
 
 interface EvMapProps {
   startCoord: { lat: number; lng: number } | null;
@@ -17,6 +17,8 @@ interface EvMapProps {
   /** Heading in degrees clockwise from north; map rotates so this faces up when headingUp. */
   heading?: number | null;
   headingUp?: boolean;
+  /** Toon ook niet-gepubliceerde (concept) laders. Standaard verborgen. */
+  showDrafts?: boolean;
 }
 
 const startIcon = L.divIcon({
@@ -33,19 +35,50 @@ const destIcon = L.divIcon({
   iconAnchor: [14, 14],
 });
 
-function chargerIcon(status: ChargerStatus) {
+function chargerIcon(charger: Supercharger, status: ChargerStatus) {
+  // Kleurlogica ongewijzigd: groen = open, rood = gesloten (openingstijden/sluiting), grijs = niet beschikbaar.
   let color = '#22c55e'; // groen = open/beschikbaar
   if (status === 'Niet beschikbaar') color = '#94a3b8'; // grijs
-  else if (status === 'In aanbouw') color = '#3b82f6'; // blauw
+  else if (status === 'In aanbouw') color = '#f59e0b'; // oranje voor in aanbouw
   else if (status === 'Werkzaamheden' || status === 'Druk') color = '#f59e0b'; // oranje
   else if (status === 'Onbekend') color = '#64748b';
   else if (status !== 'Beschikbaar') color = '#ef4444'; // rood: gesloten varianten
-  const ring = status === 'In aanbouw' ? 'border-style:dashed;' : '';
+
+  const isConstruction = status === 'In aanbouw';
+  const hasWorks = charger.status === 'works' || charger.status === 'works_closed';
+  const isLowSpeed = !!charger.lowSpeed;
+
+  const stalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls;
+  const label = stalls ? String(stalls) : '';
+
+  const ringStyle = isConstruction
+    ? 'border:2px dashed #fff;outline:2px dashed rgba(245,158,11,0.9);outline-offset:2px;'
+    : 'border:2px solid #fff;';
+
+  const wrenchGlyph = isConstruction
+    ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);" xmlns="http://www.w3.org/2000/svg"><path d="M21.71 5.29a1 1 0 0 0-1.41 0l-2.13 2.12-1.58-1.58 2.12-2.13a1 1 0 0 0 0-1.41 5.5 5.5 0 0 0-7.44 7.44l-8.1 8.1a2.12 2.12 0 1 0 3 3l8.1-8.1a5.5 5.5 0 0 0 7.44-7.44z" fill="#fff"/></svg>`
+    : '';
+
+  const size = 30;
+  const badges: string[] = [];
+  if (hasWorks) {
+    badges.push(`<div style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#dc2626;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&times;</div>`);
+  }
+  if (isLowSpeed) {
+    badges.push(`<div style="position:absolute;bottom:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#0f172a;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fbbf24;font-size:9px;line-height:1;">&#9660;</div>`);
+  }
+
   return L.divIcon({
     className: 'custom-marker',
-    html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;${ring}box-shadow:0 2px 6px rgba(0,0,0,0.25);"></div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
+    html: `<div style="position:relative;width:${size}px;height:${size}px;">
+      <div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};${ringStyle}box-shadow:0 3px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
+        <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${wrenchGlyph || escapeHtml(label)}</div>
+      </div>
+      ${badges.join('')}
+    </div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -size],
   });
 }
 
