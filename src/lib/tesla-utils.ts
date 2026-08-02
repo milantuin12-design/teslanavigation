@@ -693,12 +693,16 @@ export function describeChargerStatus(charger: Supercharger): string[] {
     lines.push('In aanbouw');
     if (c.plannedStalls) lines.push(`Komt: ${c.plannedStalls} laders${c.version ? ` ${c.version}` : ''}${c.speedKw ? ` ${c.speedKw}kW` : ''}`);
     if (c.progress) lines.push(`Voortgang: ${constructionProgressLabels[c.progress] ?? c.progress}`);
-    if (c.expectedOpen) lines.push(`Verwacht open: ${formatDateNl(c.expectedOpen)}`);
+    if (c.steps && c.steps.length > 0) {
+      lines.push(`Klaar: ${c.steps.map((s) => constructionStepLabels[s] ?? s).join(', ')}`);
+    }
+    if (c.expectedOpenMonth) lines.push(`Verwacht open: ${c.expectedOpenMonth}`);
+    else if (c.expectedOpen) lines.push(`Verwacht open: ${formatDateNl(c.expectedOpen)}`);
     if (c.notes) lines.push(c.notes);
   } else if (status === 'works' || status === 'works_closed') {
     const w = charger.works || {};
     lines.push(status === 'works' ? 'Werkzaamheden — deels open' : 'Dicht door werkzaamheden');
-    if (status === 'works') lines.push(`${getOpenStalls(charger)} van ${getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0} laders open`);
+    if (status === 'works') lines.push(formatStallAvailability(charger));
     if (w.reason) lines.push(`Reden: ${w.reason}`);
     if (w.expectedEnd) lines.push(`Klaar rond: ${formatDateNl(w.expectedEnd)}`);
     if (w.notes) lines.push(w.notes);
@@ -707,8 +711,18 @@ export function describeChargerStatus(charger: Supercharger): string[] {
     lines.push(status === 'temp_closed' ? 'Tijdelijk gesloten' : 'Langdurig gesloten');
     if (c.reason) lines.push(`Reden: ${c.reason}`);
     if (c.until) lines.push(`Tot: ${formatDateNl(c.until)}`);
+    if (charger.reopenAt) lines.push(`Gaat weer open: ${formatDateNl(charger.reopenAt)}`);
     if (c.notes) lines.push(c.notes);
   }
+  const upgrade = charger.plannedUpgrade;
+  if (upgrade && (upgrade.label || (upgrade.toConfigs && upgrade.toConfigs.length > 0))) {
+    const from = (upgrade.fromConfigs ?? []).map(formatChargerConfig).join(' + ');
+    const to = (upgrade.toConfigs ?? []).map(formatChargerConfig).join(' + ');
+    if (from && to) lines.push(`Wordt aangepast: ${from} → ${to}`);
+    else if (upgrade.label) lines.push(`Wordt aangepast: ${upgrade.label}`);
+    if (upgrade.expected) lines.push(`Verwacht: ${upgrade.expected}`);
+  }
+  if (charger.lowSpeed) lines.push('Lage laadsnelheid');
   return lines;
 }
 
@@ -721,13 +735,22 @@ export function matchesChargerFilters(charger: Supercharger, filters: ChargerFil
     if (!filters.versions.some((v) => versions.includes(v))) return false;
   }
   if (filters.trailerOnly && !charger.trailerFriendly) return false;
+  if (filters.lowSpeedOnly && !charger.lowSpeed) return false;
+  if (filters.ownerId && charger.ownerId !== filters.ownerId) return false;
+  const stalls = getTotalStalls(charger);
+  if (filters.exactStalls !== null && filters.exactStalls > 0) {
+    if (stalls !== filters.exactStalls) return false;
+  } else {
+    if (filters.minStalls > 0 && stalls < filters.minStalls) return false;
+    if (filters.maxStalls > 0 && stalls > filters.maxStalls) return false;
+  }
   if (filters.noGarage && charger.inParkingGarage) return false;
   if (filters.noParkingFee && charger.parkingFee) return false;
   if (filters.openNow && !isChargerUsable(charger)) return false;
   if (filters.country && (charger.country || '').toLowerCase() !== filters.country.toLowerCase()) return false;
   if (filters.search) {
     const needle = filters.search.toLowerCase();
-    const haystack = `${charger.name} ${charger.city ?? ''} ${charger.province ?? ''} ${charger.country ?? ''}`.toLowerCase();
+    const haystack = `${charger.name} ${charger.city ?? ''} ${charger.province ?? ''} ${charger.country ?? ''} ${charger.ownerName ?? ''}`.toLowerCase();
     if (!haystack.includes(needle)) return false;
   }
   return true;
