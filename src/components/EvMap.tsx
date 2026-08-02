@@ -184,7 +184,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     superchargers.forEach(charger => {
       try {
         const status = getChargerStatus(charger);
-        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(status, charger) });
+        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status) });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const usable = isChargerUsable(charger);
