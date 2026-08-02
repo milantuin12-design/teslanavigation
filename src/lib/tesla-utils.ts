@@ -640,15 +640,42 @@ export function isChargerUsable(charger: Supercharger, atDate: Date = new Date()
   return isChargerOperationalAt(charger, atDate);
 }
 
+/** Totaal aantal laadplekken (configs of legacy veld). */
+export function getTotalStalls(charger: Supercharger): number {
+  return getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
+}
+
+/** Laadplekken die buiten gebruik zijn door werkzaamheden. */
+export function getOutOfServiceStalls(charger: Supercharger): number {
+  const works = charger.works || {};
+  const fromConfigs = getTotalStallsFromConfigs(works.closedConfigs);
+  if (fromConfigs !== undefined) return fromConfigs;
+  return works.closedStalls ?? 0;
+}
+
 /** Aantal laadplekken dat nu open is (rekening houdend met werkzaamheden). */
 export function getOpenStalls(charger: Supercharger): number {
-  const total = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
+  const total = getTotalStalls(charger);
   const status = charger.status ?? 'operational';
   if (status === 'construction') return 0;
-  if (status === 'works') return Math.max(0, total - (charger.works?.closedStalls ?? 0));
+  if (status === 'works') {
+    const openConfigs = getTotalStallsFromConfigs(charger.works?.openConfigs);
+    if (openConfigs !== undefined) return Math.min(total, openConfigs);
+    return Math.max(0, total - getOutOfServiceStalls(charger));
+  }
   if (status === 'operational') return total;
   return 0;
 }
+
+/** "32 totaal · 20 buiten gebruik · 12 beschikbaar" */
+export function formatStallAvailability(charger: Supercharger): string {
+  const total = getTotalStalls(charger);
+  const open = getOpenStalls(charger);
+  const closed = Math.max(0, total - open);
+  if (closed === 0) return `${total} laadplekken beschikbaar`;
+  return `${total} totaal · ${closed} buiten gebruik · ${open} beschikbaar`;
+}
+
 
 export function formatDateNl(value?: string | null): string {
   if (!value) return '';
