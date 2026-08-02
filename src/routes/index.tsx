@@ -26,6 +26,8 @@ import {
   teslaBatteryKWh,
   defaultChargerFilters,
   type ChargerFilterState,
+  type Waypoint,
+  type CorridorPoint,
 } from "@/lib/tesla-types";
 import {
   getAvailableRange,
