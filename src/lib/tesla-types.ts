@@ -135,7 +135,16 @@ export interface Supercharger {
   construction?: ConstructionInfo;
   works?: WorksInfo;
   closure?: ClosureInfo;
+  ownerId?: string | null;
+  ownerName?: string | null;
+  ownerLogoUrl?: string | null;
+  lowSpeed?: boolean;
+  published?: boolean;
+  notes?: string | null;
+  reopenAt?: string | null;
+  plannedUpgrade?: PlannedUpgrade;
 }
+
 
 
 export interface ChargingStop {
