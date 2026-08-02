@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, Supercharger, WorksInfo } from "./tesla-types";
+import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, PlannedUpgrade, Supercharger, WorksInfo } from "./tesla-types";
 import type { Json } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, normalizeOpeningHours, parseChargerConfigsFromLegacy } from "./tesla-utils";
@@ -23,7 +23,7 @@ function normalizeStallData(totalStalls?: number | null, stallTypes?: string | n
 }
 
 const SELECT_COLS =
-  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure";
+  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure,owner_id,low_speed,published,notes,reopen_at,planned_upgrade";
 
 type Row = {
   id: string;
@@ -50,16 +50,27 @@ type Row = {
   construction: ConstructionInfo | null;
   works: WorksInfo | null;
   closure: ClosureInfo | null;
+  owner_id: string | null;
+  low_speed: boolean | null;
+  published: boolean | null;
+  notes: string | null;
+  reopen_at: string | null;
+  planned_upgrade: PlannedUpgrade | null;
 };
 
 const LIFECYCLE: ChargerLifecycleStatus[] = ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed'];
 
-function rowToCharger(row: Row): Supercharger {
+function rowToCharger(row: Row, owners?: Map<string, { name: string; logo_url: string | null }>): Supercharger {
   const normalized = normalizeStallData(row.total_stalls, row.stall_types);
   const chargerConfigs = normalizeChargerConfigs(row.charger_configs).length > 0
     ? normalizeChargerConfigs(row.charger_configs)
     : parseChargerConfigsFromLegacy(row.stall_types, row.total_stalls, row.max_speed_kw, row.versions);
-  const status = (LIFECYCLE as string[]).includes(row.status ?? '') ? (row.status as ChargerLifecycleStatus) : 'operational';
+  let status = (LIFECYCLE as string[]).includes(row.status ?? '') ? (row.status as ChargerLifecycleStatus) : 'operational';
+  // Tijdelijk gesloten laders gaan automatisch weer open zodra de einddatum voorbij is.
+  if (status === 'temp_closed' && row.reopen_at && new Date(row.reopen_at).getTime() <= Date.now()) {
+    status = 'operational';
+  }
+  const owner = row.owner_id ? owners?.get(row.owner_id) : undefined;
   return {
     id: row.id,
     name: row.name,
@@ -85,6 +96,14 @@ function rowToCharger(row: Row): Supercharger {
     construction: row.construction ?? {},
     works: row.works ?? {},
     closure: row.closure ?? {},
+    ownerId: row.owner_id,
+    ownerName: owner?.name ?? null,
+    ownerLogoUrl: owner?.logo_url ?? null,
+    lowSpeed: !!row.low_speed,
+    published: row.published !== false,
+    notes: row.notes,
+    reopenAt: row.reopen_at,
+    plannedUpgrade: row.planned_upgrade ?? {},
   };
 }
 
@@ -107,7 +126,12 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
       if (!data || data.length < pageSize) break;
     }
 
-    return rows.map(rowToCharger);
+    const { data: ownerRows } = await supabaseAdmin.from("charger_owners").select("id,name,logo_url");
+    const owners = new Map<string, { name: string; logo_url: string | null }>();
+    for (const o of (ownerRows ?? []) as { id: string; name: string; logo_url: string | null }[]) {
+      owners.set(o.id, { name: o.name, logo_url: o.logo_url });
+    }
+    return rows.map((row) => rowToCharger(row, owners));
   }
 );
 
@@ -148,7 +172,10 @@ const chargerInput = z.object({
     version: z.string().max(10).optional(),
     speedKw: z.number().int().min(0).max(1000).optional(),
     expectedOpen: z.string().max(40).optional(),
+    expectedOpenMonth: z.string().max(60).optional(),
     progress: z.enum(["planned", "permit", "groundwork", "cabling", "installing", "testing"]).optional(),
+    steps: z.array(z.string().max(40)).optional(),
+    configs: z.array(z.object({ count: z.number().int().min(1).max(500), version: z.string().min(1).max(10), speedKw: z.number().int().min(1).max(1000) })).optional(),
     notes: z.string().max(500).optional(),
   }).default({}),
   works: z.object({
@@ -156,6 +183,8 @@ const chargerInput = z.object({
     reason: z.string().max(300).optional(),
     expectedEnd: z.string().max(40).optional(),
     notes: z.string().max(500).optional(),
+    closedConfigs: z.array(z.object({ count: z.number().int().min(1).max(500), version: z.string().min(1).max(10), speedKw: z.number().int().min(1).max(1000) })).optional(),
+    openConfigs: z.array(z.object({ count: z.number().int().min(1).max(500), version: z.string().min(1).max(10), speedKw: z.number().int().min(1).max(1000) })).optional(),
   }).default({}),
   closure: z.object({
     reason: z.string().max(300).optional(),
@@ -163,7 +192,19 @@ const chargerInput = z.object({
     until: z.string().max(40).optional(),
     notes: z.string().max(500).optional(),
   }).default({}),
+  ownerId: z.string().uuid().nullable().optional(),
+  lowSpeed: z.boolean().default(false),
+  published: z.boolean().default(true),
+  notes: z.string().max(1000).nullable().optional(),
+  reopenAt: z.string().nullable().optional(),
+  plannedUpgrade: z.object({
+    label: z.string().max(120).optional(),
+    fromConfigs: z.array(z.object({ count: z.number().int().min(1).max(500), version: z.string().min(1).max(10), speedKw: z.number().int().min(1).max(1000) })).optional(),
+    toConfigs: z.array(z.object({ count: z.number().int().min(1).max(500), version: z.string().min(1).max(10), speedKw: z.number().int().min(1).max(1000) })).optional(),
+    expected: z.string().max(60).optional(),
+  }).default({}),
 });
+
 
 
 async function assertAdmin(context: { supabase: unknown; userId: string }) {
@@ -206,6 +247,12 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       construction: data.construction as Json,
       works: data.works as Json,
       closure: data.closure as Json,
+      owner_id: data.ownerId ?? null,
+      low_speed: data.lowSpeed,
+      published: data.published,
+      notes: data.notes ?? null,
+      reopen_at: data.reopenAt || null,
+      planned_upgrade: data.plannedUpgrade as Json,
 
     };
     if (data.id) {

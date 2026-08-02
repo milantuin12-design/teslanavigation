@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.auto_reopen_chargers() FROM anon, authenticated, public;

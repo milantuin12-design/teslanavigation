@@ -25,12 +25,42 @@ export type ChargerLifecycleStatus =
   | 'temp_closed'
   | 'long_closed';
 
+export const CONSTRUCTION_STEPS = [
+  'permit',
+  'groundwork',
+  'cabling',
+  'foundation',
+  'paving',
+  'transformer',
+  'chargers_placed',
+  'testing',
+  'opening',
+] as const;
+
+export type ConstructionStep = (typeof CONSTRUCTION_STEPS)[number];
+
+export const constructionStepLabels: Record<ConstructionStep, string> = {
+  permit: 'Vergunning',
+  groundwork: 'Grondwerk',
+  cabling: 'Bekabeling',
+  foundation: 'Fundering',
+  paving: 'Bestrating',
+  transformer: 'Transformator',
+  chargers_placed: 'Superchargers geplaatst',
+  testing: 'Testfase',
+  opening: 'Opening',
+};
+
 export interface ConstructionInfo {
   plannedStalls?: number;
   version?: string;
   speedKw?: number;
   expectedOpen?: string;
+  /** Vrij tekstveld: "Oktober 2026", "Q1 2027", "Verwacht voorjaar 2027" */
+  expectedOpenMonth?: string;
   progress?: 'planned' | 'permit' | 'groundwork' | 'cabling' | 'installing' | 'testing';
+  steps?: ConstructionStep[];
+  configs?: ChargerConfig[];
   notes?: string;
 }
 
@@ -39,6 +69,17 @@ export interface WorksInfo {
   reason?: string;
   expectedEnd?: string;
   notes?: string;
+  /** Laadplekken die tijdens de werkzaamheden dicht zijn */
+  closedConfigs?: ChargerConfig[];
+  /** Laadplekken die open blijven */
+  openConfigs?: ChargerConfig[];
+}
+
+export interface PlannedUpgrade {
+  label?: string;
+  fromConfigs?: ChargerConfig[];
+  toConfigs?: ChargerConfig[];
+  expected?: string;
 }
 
 export interface ClosureInfo {
@@ -47,6 +88,27 @@ export interface ClosureInfo {
   until?: string;
   notes?: string;
 }
+
+export interface ChargerOwner {
+  id: string;
+  name: string;
+  logoUrl?: string | null;
+  description?: string | null;
+  website?: string | null;
+  contact?: string | null;
+  notes?: string | null;
+}
+
+export interface SiteUpdate {
+  id: string;
+  title: string;
+  body?: string | null;
+  imageUrl?: string | null;
+  importance: 'low' | 'normal' | 'high' | 'critical' | string;
+  publishedAt: string;
+  visible: boolean;
+}
+
 
 export interface Supercharger {
   id?: string;
@@ -73,7 +135,16 @@ export interface Supercharger {
   construction?: ConstructionInfo;
   works?: WorksInfo;
   closure?: ClosureInfo;
+  ownerId?: string | null;
+  ownerName?: string | null;
+  ownerLogoUrl?: string | null;
+  lowSpeed?: boolean;
+  published?: boolean;
+  notes?: string | null;
+  reopenAt?: string | null;
+  plannedUpgrade?: PlannedUpgrade;
 }
+
 
 
 export interface ChargingStop {
@@ -117,6 +188,11 @@ export interface ChargerFilterState {
   openNow: boolean;
   country: string;
   search: string;
+  minStalls: number;
+  maxStalls: number;
+  exactStalls: number | null;
+  ownerId: string;
+  lowSpeedOnly: boolean;
 }
 
 export const defaultChargerFilters: ChargerFilterState = {
@@ -129,7 +205,32 @@ export const defaultChargerFilters: ChargerFilterState = {
   openNow: false,
   country: '',
   search: '',
+  minStalls: 0,
+  maxStalls: 0,
+  exactStalls: null,
+  ownerId: '',
+  lowSpeedOnly: false,
 };
+
+/** Een tussenstop op de route; optioneel met laadwens. */
+export interface Waypoint {
+  id: string;
+  label: string;
+  lat: number;
+  lng: number;
+  charge: boolean;
+  chargeTo: number;
+}
+
+/** Verplichte locatie waar de route binnen X km langs moet komen. */
+export interface CorridorPoint {
+  id: string;
+  label: string;
+  lat: number;
+  lng: number;
+  radiusKm: number;
+}
+
 
 export type WeatherMode = 'summer' | 'winter' | 'fog';
 export type TimeMode = 'day' | 'night';

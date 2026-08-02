@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Supercharger, ChargingStop, RouteResult, ChargerStatus } from '@/lib/tesla-types';
-import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, getOpenStalls, isChargerUsable, parseMaxSpeed } from '@/lib/tesla-utils';
+import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig } from '@/lib/tesla-types';
+import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, getOpenStalls, getTotalStallsFromConfigs, isChargerUsable, normalizeChargerConfigs, parseMaxSpeed } from '@/lib/tesla-utils';
 
 interface EvMapProps {
   startCoord: { lat: number; lng: number } | null;
@@ -17,6 +17,8 @@ interface EvMapProps {
   /** Heading in degrees clockwise from north; map rotates so this faces up when headingUp. */
   heading?: number | null;
   headingUp?: boolean;
+  /** Toon ook niet-gepubliceerde (concept) laders. Standaard verborgen. */
+  showDrafts?: boolean;
 }
 
 const startIcon = L.divIcon({
@@ -33,19 +35,50 @@ const destIcon = L.divIcon({
   iconAnchor: [14, 14],
 });
 
-function chargerIcon(status: ChargerStatus) {
+function chargerIcon(charger: Supercharger, status: ChargerStatus) {
+  // Kleurlogica ongewijzigd: groen = open, rood = gesloten (openingstijden/sluiting), grijs = niet beschikbaar.
   let color = '#22c55e'; // groen = open/beschikbaar
   if (status === 'Niet beschikbaar') color = '#94a3b8'; // grijs
-  else if (status === 'In aanbouw') color = '#3b82f6'; // blauw
+  else if (status === 'In aanbouw') color = '#f59e0b'; // oranje voor in aanbouw
   else if (status === 'Werkzaamheden' || status === 'Druk') color = '#f59e0b'; // oranje
   else if (status === 'Onbekend') color = '#64748b';
   else if (status !== 'Beschikbaar') color = '#ef4444'; // rood: gesloten varianten
-  const ring = status === 'In aanbouw' ? 'border-style:dashed;' : '';
+
+  const isConstruction = status === 'In aanbouw';
+  const hasWorks = charger.status === 'works' || charger.status === 'works_closed';
+  const isLowSpeed = !!charger.lowSpeed;
+
+  const stalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls;
+  const label = stalls ? String(stalls) : '';
+
+  const ringStyle = isConstruction
+    ? 'border:2px dashed #fff;outline:2px dashed rgba(245,158,11,0.9);outline-offset:2px;'
+    : 'border:2px solid #fff;';
+
+  const wrenchGlyph = isConstruction
+    ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);" xmlns="http://www.w3.org/2000/svg"><path d="M21.71 5.29a1 1 0 0 0-1.41 0l-2.13 2.12-1.58-1.58 2.12-2.13a1 1 0 0 0 0-1.41 5.5 5.5 0 0 0-7.44 7.44l-8.1 8.1a2.12 2.12 0 1 0 3 3l8.1-8.1a5.5 5.5 0 0 0 7.44-7.44z" fill="#fff"/></svg>`
+    : '';
+
+  const size = 30;
+  const badges: string[] = [];
+  if (hasWorks) {
+    badges.push(`<div style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#dc2626;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&times;</div>`);
+  }
+  if (isLowSpeed) {
+    badges.push(`<div style="position:absolute;bottom:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#0f172a;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fbbf24;font-size:9px;line-height:1;">&#9660;</div>`);
+  }
+
   return L.divIcon({
     className: 'custom-marker',
-    html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;${ring}box-shadow:0 2px 6px rgba(0,0,0,0.25);"></div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
+    html: `<div style="position:relative;width:${size}px;height:${size}px;">
+      <div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};${ringStyle}box-shadow:0 3px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
+        <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${wrenchGlyph || escapeHtml(label)}</div>
+      </div>
+      ${badges.join('')}
+    </div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -size],
   });
 }
 
@@ -74,7 +107,19 @@ function escapeHtml(value: string): string {
   return value.replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[char] || char);
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp }: EvMapProps) {
+function groupChargerConfigs(configs: ChargerConfig[]): string[] {
+  const grouped = new Map<string, number>();
+  configs.forEach((config) => {
+    const key = `${config.version}|${config.speedKw}`;
+    grouped.set(key, (grouped.get(key) || 0) + config.count);
+  });
+  return Array.from(grouped.entries()).map(([key, count]) => {
+    const [version, speedKw] = key.split('|');
+    return `${count}x ${version} ${speedKw} kW`;
+  });
+}
+
+export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -150,17 +195,27 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
 
     superchargers.forEach(charger => {
       try {
+        if (charger.published === false && !showDrafts) return;
+
         const status = getChargerStatus(charger);
-        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(status) });
+        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status) });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const usable = isChargerUsable(charger);
-        const statusColor = usable ? '#16a34a' : (charger.status === 'construction' ? '#2563eb' : '#dc2626');
+        const statusColor = usable ? '#16a34a' : (charger.status === 'construction' ? '#f59e0b' : '#dc2626');
         const place = [charger.city, charger.province, charger.country].filter(Boolean).join(', ');
-        let popup = `<div style="font-family:system-ui;font-size:13px;min-width:230px;color:#0f172a;">
+        let popup = `<div style="font-family:system-ui;font-size:13px;min-width:240px;color:#0f172a;">
           <strong style="font-size:15px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
           ${place ? `<div style="color:#64748b;font-size:11px;">${escapeHtml(place)}</div>` : ''}
           <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
+
+        if (charger.ownerName) {
+          popup += `<div style="margin-top:4px;display:flex;align-items:center;gap:6px;color:#334155;font-weight:600;">`;
+          if (charger.ownerLogoUrl) {
+            popup += `<img src="${escapeHtml(charger.ownerLogoUrl)}" alt="${escapeHtml(charger.ownerName)}" style="width:16px;height:16px;object-fit:contain;border-radius:3px;" />`;
+          }
+          popup += `<span>${escapeHtml(charger.ownerName)}</span></div>`;
+        }
 
         const statusLines = describeChargerStatus(charger);
         if (statusLines.length > 1) {
@@ -168,15 +223,60 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         }
 
         if (configs.length > 0) {
-          popup += `<div style="margin-top:6px;display:grid;gap:3px;">${configs.map((config) => `<div>${escapeHtml(formatChargerConfig(config))}</div>`).join('')}</div>`;
+          popup += `<div style="margin-top:6px;display:grid;gap:3px;">${groupChargerConfigs(configs).map((line) => `<div>${escapeHtml(line)}</div>`).join('')}</div>`;
         } else if (charger.totalStalls) {
           popup += `<br/><span style="color:#475569;">${charger.totalStalls} laadplekken</span>`;
         }
-        if (charger.status === 'works') {
-          popup += `<div style="margin-top:4px;color:#b45309;font-weight:600;">${getOpenStalls(charger)} laders nu bruikbaar</div>`;
+
+        if (charger.status === 'works' || charger.status === 'works_closed') {
+          const closedConfigs = normalizeChargerConfigs(charger.works?.closedConfigs);
+          if (closedConfigs.length > 0) {
+            const total = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
+            const closed = closedConfigs.reduce((sum, c) => sum + c.count, 0);
+            const available = Math.max(0, total - closed);
+            popup += `<div style="margin-top:4px;color:#b45309;font-weight:600;">${total} totaal · ${closed} buiten gebruik · ${available} beschikbaar</div>`;
+          } else if (charger.status === 'works') {
+            popup += `<div style="margin-top:4px;color:#b45309;font-weight:600;">${getOpenStalls(charger)} laders nu bruikbaar</div>`;
+          }
         }
+
+        if (charger.status === 'construction') {
+          const steps = charger.construction?.steps || [];
+          if (steps.length > 0) {
+            popup += `<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #e2e8f0;display:grid;gap:2px;">${(Object.keys(constructionStepLabels) as ConstructionStep[]).map((key) => {
+              const done = steps.includes(key);
+              return `<div style="color:${done ? '#16a34a' : '#94a3b8'};display:flex;align-items:center;gap:6px;">
+                <span style="width:14px;height:14px;border-radius:50%;background:${done ? '#16a34a' : 'transparent'};border:1.5px solid ${done ? '#16a34a' : '#cbd5e1'};display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:9px;">${done ? '&#10003;' : ''}</span>
+                <span>${escapeHtml(constructionStepLabels[key])}</span>
+              </div>`;
+            }).join('')}</div>`;
+          }
+          if (charger.construction?.expectedOpenMonth) {
+            popup += `<div style="margin-top:6px;color:#b45309;font-weight:600;">Verwachte opening: ${escapeHtml(charger.construction.expectedOpenMonth)}</div>`;
+          }
+        }
+
+        if (charger.plannedUpgrade && (charger.plannedUpgrade.fromConfigs?.length || charger.plannedUpgrade.toConfigs?.length)) {
+          const fromLines = groupChargerConfigs(normalizeChargerConfigs(charger.plannedUpgrade.fromConfigs));
+          const toLines = groupChargerConfigs(normalizeChargerConfigs(charger.plannedUpgrade.toConfigs));
+          popup += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0;">
+            ${charger.plannedUpgrade.label ? `<div style="font-weight:600;color:#334155;">${escapeHtml(charger.plannedUpgrade.label)}</div>` : ''}
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px;">
+              <span style="color:#dc2626;">${escapeHtml(fromLines.join(', ') || 'huidig')}</span>
+              <span style="color:#64748b;">&#8594;</span>
+              <span style="color:#16a34a;">${escapeHtml(toLines.join(', ') || 'nieuw')}</span>
+            </div>
+            ${charger.plannedUpgrade.expected ? `<div style="color:#64748b;font-size:11px;margin-top:2px;">Verwacht: ${escapeHtml(charger.plannedUpgrade.expected)}</div>` : ''}
+          </div>`;
+        }
+
         popup += `<div style="margin-top:6px;color:#2563eb;font-weight:600;">Max ${maxSpeed} kW</div>`;
         popup += `<div style="margin-top:3px;color:#475569;">${escapeHtml(formatOpeningHoursSummary(charger))}</div>`;
+
+        if (charger.notes) {
+          popup += `<div style="margin-top:6px;color:#64748b;font-size:11px;font-style:italic;">${escapeHtml(charger.notes)}</div>`;
+        }
+
         const extras: string[] = [];
         if (charger.trailerFriendly) extras.push('Aanhangervriendelijk');
         if (charger.inParkingGarage) extras.push('In parkeergarage');
@@ -221,7 +321,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     if (destCoord) {
       markersRef.current.addLayer(L.marker([destCoord.lat, destCoord.lng], { icon: destIcon }));
     }
-  }, [startCoord, destCoord, superchargers, chargingStops, statusTick]);
+  }, [startCoord, destCoord, superchargers, chargingStops, statusTick, showDrafts]);
 
   useEffect(() => {
     const map = mapRef.current;
