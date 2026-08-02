@@ -188,6 +188,11 @@ export interface ChargerFilterState {
   openNow: boolean;
   country: string;
   search: string;
+  minStalls: number;
+  maxStalls: number;
+  exactStalls: number | null;
+  ownerId: string;
+  lowSpeedOnly: boolean;
 }
 
 export const defaultChargerFilters: ChargerFilterState = {
@@ -200,7 +205,32 @@ export const defaultChargerFilters: ChargerFilterState = {
   openNow: false,
   country: '',
   search: '',
+  minStalls: 0,
+  maxStalls: 0,
+  exactStalls: null,
+  ownerId: '',
+  lowSpeedOnly: false,
 };
+
+/** Een tussenstop op de route; optioneel met laadwens. */
+export interface Waypoint {
+  id: string;
+  label: string;
+  lat: number;
+  lng: number;
+  charge: boolean;
+  chargeTo: number;
+}
+
+/** Verplichte locatie waar de route binnen X km langs moet komen. */
+export interface CorridorPoint {
+  id: string;
+  label: string;
+  lat: number;
+  lng: number;
+  radiusKm: number;
+}
+
 
 export type WeatherMode = 'summer' | 'winter' | 'fog';
 export type TimeMode = 'day' | 'night';
