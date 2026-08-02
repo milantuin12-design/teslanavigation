@@ -192,7 +192,19 @@ const chargerInput = z.object({
     until: z.string().max(40).optional(),
     notes: z.string().max(500).optional(),
   }).default({}),
+  ownerId: z.string().uuid().nullable().optional(),
+  lowSpeed: z.boolean().default(false),
+  published: z.boolean().default(true),
+  notes: z.string().max(1000).nullable().optional(),
+  reopenAt: z.string().nullable().optional(),
+  plannedUpgrade: z.object({
+    label: z.string().max(120).optional(),
+    fromConfigs: z.array(z.object({ count: z.number().int().min(1).max(500), version: z.string().min(1).max(10), speedKw: z.number().int().min(1).max(1000) })).optional(),
+    toConfigs: z.array(z.object({ count: z.number().int().min(1).max(500), version: z.string().min(1).max(10), speedKw: z.number().int().min(1).max(1000) })).optional(),
+    expected: z.string().max(60).optional(),
+  }).default({}),
 });
+
 
 
 async function assertAdmin(context: { supabase: unknown; userId: string }) {
