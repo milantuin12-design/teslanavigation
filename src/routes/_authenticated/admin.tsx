@@ -223,7 +223,11 @@ function AdminPage() {
             <h1 className="text-2xl md:text-3xl font-bold mt-1">Superchargers beheren</h1>
             <p className="text-sm text-slate-400">{chargers.length} laders totaal</p>
           </div>
-          <Button onClick={openNew} className="bg-red-600 hover:bg-red-700"><Plus className="w-4 h-4 mr-1" /> Nieuw</Button>
+          <div className="flex items-center gap-2">
+            <Link to="/eigenaren"><Button variant="outline" size="sm" className="border-slate-700">Eigenaren</Button></Link>
+            <Link to="/meldingen"><Button variant="outline" size="sm" className="border-slate-700">Meldingen</Button></Link>
+            <Button onClick={openNew} className="bg-red-600 hover:bg-red-700"><Plus className="w-4 h-4 mr-1" /> Nieuw</Button>
+          </div>
         </div>
         <Input placeholder="Zoek op naam of land…" value={search} onChange={(e) => setSearch(e.target.value)} className="bg-slate-800 border-slate-700 mb-4" />
         {loading ? <div>Laden…</div> : (
