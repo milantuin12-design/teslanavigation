@@ -294,9 +294,25 @@ export const publishDrafts = createServerFn({ method: "POST" })
 
 /* ---------------- Reports ---------------- */
 
+export type ReportRow = {
+  id: string;
+  charger_id: string | null;
+  charger_name: string | null;
+  user_id: string | null;
+  contact_email: string | null;
+  category: string;
+  message: string;
+  status: string;
+  admin_note: string | null;
+  photos: string[] | null;
+  lat: number | null;
+  lng: number | null;
+  created_at: string;
+};
+
 export const listReports = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async ({ context }): Promise<ReportRow[]> => {
     await assertAdmin(context);
     const { data, error } = await context.supabase
       .from("charger_reports")
@@ -304,7 +320,7 @@ export const listReports = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(300);
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as Record<string, unknown>[];
+    return (data ?? []) as unknown as ReportRow[];
   });
 
 export const updateReportStatus = createServerFn({ method: "POST" })
