@@ -8,6 +8,7 @@ interface ChargingStopsProps {
   totalDistanceKm: number | null;
   onBatteryChange?: (index: number, newBatteryAfter: number) => void;
   onRemoveCharger?: (index: number) => void;
+  onArrivalChange?: (index: number, arrivalPercent: number) => void;
 }
 
 function formatDuration(min: number): string {
@@ -19,7 +20,7 @@ function formatDuration(min: number): string {
   return `${min}m`;
 }
 
-export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange, onRemoveCharger }: ChargingStopsProps) {
+export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange }: ChargingStopsProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editValue, setEditValue] = useState(80);
 
@@ -100,6 +101,17 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                 <MapPin size={11} />
                 {stop.distanceFromStart} km
               </span>
+              <label className="flex items-center gap-1 text-slate-300" title="Gewenst percentage bij aankomst bij deze Supercharger">
+                Aankomst
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={stop.batteryBefore}
+                  onChange={(event) => onArrivalChange?.(idx, Math.max(1, Math.min(50, Number(event.target.value) || 1)))}
+                  className="w-12 bg-slate-700 border border-slate-600 rounded px-1 py-0.5 text-xs text-white"
+                />%
+              </label>
 
               {isEditing ? (
                 <div className="flex items-center gap-1">

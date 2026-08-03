@@ -887,6 +887,12 @@ function Index() {
     [selectedModel]
   );
 
+  const handleChargerArrivalChange = useCallback((index: number, arrival: number) => {
+    setChargingStops((current) => current.map((stop, stopIndex) => stopIndex === index
+      ? { ...stop, batteryBefore: arrival }
+      : stop));
+  }, []);
+
   const handleRemoveCharger = useCallback((index: number) => {
     setChargingStops((prev) => prev.filter((_, i) => i !== index));
   }, []);
@@ -956,6 +962,7 @@ function Index() {
               totalDistanceKm={route?.totalDistanceKm ?? null}
               onBatteryChange={handleChargerBatteryChange}
               onRemoveCharger={handleRemoveCharger}
+              onArrivalChange={handleChargerArrivalChange}
             />
           </div>
         </div>
