@@ -852,12 +852,18 @@ function Index() {
   // Iedere adminwijziging wordt direct in een actieve navigatie verwerkt.
   const lastHandledRevisionRef = useRef(0);
   useEffect(() => {
-    if (!isNavigating || chargerRevision === 0 || chargerRevision === lastHandledRevisionRef.current) return;
-    if (!currentPosition || !destCoord || isReroutingRef.current) return;
+    if (chargerRevision === 0 || chargerRevision === lastHandledRevisionRef.current) return;
+    const rerouteOrigin = isNavigating ? currentPosition : startCoord;
+    if (!route || !rerouteOrigin || !destCoord || isReroutingRef.current) return;
     lastHandledRevisionRef.current = chargerRevision;
     isReroutingRef.current = true;
     void (async () => {
-      const res = await computeRoute(currentPosition, destCoord, liveBattery, []);
+      const res = await computeRoute(
+        rerouteOrigin,
+        destCoord,
+        isNavigating ? liveBattery : batteryPercent,
+        isNavigating ? [] : waypoints,
+      );
       if (res.ok) {
         setRouteChangedAt(Date.now());
         setRouteChangedStops(res.plan?.stops ?? []);
@@ -865,7 +871,7 @@ function Index() {
       }
       isReroutingRef.current = false;
     })();
-  }, [chargerRevision, computeRoute, currentPosition, destCoord, isNavigating, liveBattery]);
+  }, [batteryPercent, chargerRevision, computeRoute, currentPosition, destCoord, isNavigating, liveBattery, route, startCoord, waypoints]);
 
   // Auto-open charging screen when arrived at (or nearly at) next supercharger
   useEffect(() => {
