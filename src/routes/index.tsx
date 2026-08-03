@@ -160,6 +160,7 @@ function Index() {
   const [headingUp, setHeadingUp] = useState(false);
   const [liveBattery, setLiveBattery] = useState<number>(80);
   const [lastAvailabilityUpdate, setLastAvailabilityUpdate] = useState<string | null>(null);
+  const [chargerRevision, setChargerRevision] = useState(0);
   const [navStartBattery, setNavStartBattery] = useState<number>(80);
   const [navStartKm, setNavStartKm] = useState<number>(0);
   const [routeChangedAt, setRouteChangedAt] = useState<number | null>(null);
@@ -204,6 +205,7 @@ function Index() {
             .then((data) => {
               setSuperchargers(data);
               setLastAvailabilityUpdate(new Date().toISOString());
+              setChargerRevision((revision) => revision + 1);
             })
             .catch(() => {});
         }, 800);
@@ -543,7 +545,7 @@ function Index() {
     const nextPlans: Partial<Record<RouteType, RoutePlan>> = { [routeType]: selected.plan };
     const nextVariants: Partial<Record<RouteType, RouteResult>> = { [routeType]: selected.plan.route };
 
-    if (selected.plan.route.totalDistanceKm >= 1000) {
+    {
       const allTypes: RouteType[] = ["fastest", "fewest", "scenic", "trailer", "manual"];
       await Promise.all(allTypes.filter((type) => type !== routeType).map(async (type) => {
         const planned = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, type, altIndexFor(type));
@@ -847,6 +849,30 @@ function Index() {
     })();
   }, [computeRoute, currentPosition, destCoord, isNavigating, liveBattery, navInfo]);
 
+  // Iedere adminwijziging wordt direct in een actieve navigatie verwerkt.
+  const lastHandledRevisionRef = useRef(0);
+  useEffect(() => {
+    if (chargerRevision === 0 || chargerRevision === lastHandledRevisionRef.current) return;
+    const rerouteOrigin = isNavigating ? currentPosition : startCoord;
+    if (!route || !rerouteOrigin || !destCoord || isReroutingRef.current) return;
+    lastHandledRevisionRef.current = chargerRevision;
+    isReroutingRef.current = true;
+    void (async () => {
+      const res = await computeRoute(
+        rerouteOrigin,
+        destCoord,
+        isNavigating ? liveBattery : batteryPercent,
+        isNavigating ? [] : waypoints,
+      );
+      if (res.ok) {
+        setRouteChangedAt(Date.now());
+        setRouteChangedStops(res.plan?.stops ?? []);
+        setTimeout(() => { setRouteChangedStops(null); setRouteChangedAt(null); }, 12000);
+      }
+      isReroutingRef.current = false;
+    })();
+  }, [batteryPercent, chargerRevision, computeRoute, currentPosition, destCoord, isNavigating, liveBattery, route, startCoord, waypoints]);
+
   // Auto-open charging screen when arrived at (or nearly at) next supercharger
   useEffect(() => {
     if (!isNavigating || !navInfo?.nextCharging || activeChargingStop) return;
@@ -886,6 +912,22 @@ function Index() {
     },
     [selectedModel]
   );
+
+  const handleChargerArrivalChange = useCallback((index: number, arrival: number) => {
+    setChargingStops((current) => current.map((stop, stopIndex) => {
+      if (stopIndex === index) return { ...stop, batteryBefore: arrival };
+      if (stopIndex !== index - 1) return stop;
+      const legKm = Math.max(0, current[index].distanceFromStart - stop.distanceFromStart);
+      const requiredDeparture = Math.min(100, Math.ceil(arrival + (legKm / fullRangeKmActive) * 100));
+      const chargerSpeedKw = effectiveChargeSpeedKw(parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs), selectedModel, carMaxKwOverride);
+      const batteryKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
+      return {
+        ...stop,
+        batteryAfter: requiredDeparture,
+        chargeDurationMin: calculateChargeDuration(stop.batteryBefore, requiredDeparture, batteryKWh, chargerSpeedKw),
+      };
+    }));
+  }, [carMaxKwOverride, fullRangeKmActive, manualRangeKm, selectedModel]);
 
   const handleRemoveCharger = useCallback((index: number) => {
     setChargingStops((prev) => prev.filter((_, i) => i !== index));
@@ -956,6 +998,7 @@ function Index() {
               totalDistanceKm={route?.totalDistanceKm ?? null}
               onBatteryChange={handleChargerBatteryChange}
               onRemoveCharger={handleRemoveCharger}
+              onArrivalChange={handleChargerArrivalChange}
             />
           </div>
         </div>
@@ -967,9 +1010,9 @@ function Index() {
             <AccountMenu />
             {route && (
               <div className="flex flex-wrap gap-2 bg-slate-800/90 backdrop-blur px-2 py-1 rounded-lg border border-slate-700">
-                {(["fastest","fewest","scenic","trailer","manual"] as RouteType[]).map(t => (
+                {(Object.entries(routePlans) as [RouteType, RoutePlan][]).sort(([, a], [, b]) => a.route.totalDistanceKm - b.route.totalDistanceKm).slice(0, 5).map(([t, plan]) => (
                   <button key={t} onClick={() => handleSelectRouteType(t)} className={`px-2 py-1 text-xs rounded ${routeType===t?"bg-red-600 text-white":"text-slate-300 hover:text-white"}`}>
-                    {t==="fastest"?"Snelste":t==="fewest"?"Minste stops":t==="scenic"?"Toeristisch":t==="trailer"?"Aanhanger":"Handmatig"}
+                    {t==="fastest"?"Snelste":t==="fewest"?"Minste stops":t==="scenic"?"Toeristisch":t==="trailer"?"Aanhanger":"Handmatig"} · {plan.route.totalDistanceKm} km
                   </button>
                 ))}
               </div>

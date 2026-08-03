@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Trash2, Pencil, Plus, Truck, X } from "lucide-react";
-import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningDayKey, OpeningHours, WorksInfo } from "@/lib/tesla-types";
+import { Trash2, Pencil, Plus, Truck, X, ChevronDown, EyeOff } from "lucide-react";
+import { CONSTRUCTION_STEPS, constructionStepLabels, type ChargerConfig, type ChargerLifecycleStatus, type ClosureInfo, type ConstructionInfo, type OpeningDayKey, type OpeningHours, type PlannedUpgrade, type WorksInfo } from "@/lib/tesla-types";
 import type { Json } from "@/integrations/supabase/types";
 import { constructionProgressLabels, defaultOpeningHours, lifecycleLabels, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
 
@@ -43,7 +43,14 @@ type Charger = {
   construction: ConstructionInfo | null;
   works: WorksInfo | null;
   closure: ClosureInfo | null;
+  owner_id: string | null;
+  low_speed: boolean;
+  published: boolean;
+  reopen_at: string | null;
+  planned_upgrade: PlannedUpgrade | null;
 };
+
+type Owner = { id: string; name: string };
 
 const emptyCharger = {
   name: "", lat: 0, lng: 0, country: "", province: null as string | null, city: null as string | null,
@@ -57,6 +64,11 @@ const emptyCharger = {
   construction: {} as ConstructionInfo,
   works: {} as WorksInfo,
   closure: {} as ClosureInfo,
+  owner_id: null as string | null,
+  low_speed: false,
+  published: true,
+  reopen_at: null as string | null,
+  planned_upgrade: {} as PlannedUpgrade,
   charger_configs: [{ count: 8, version: "V3", speedKw: 250 }] as ChargerConfig[],
 };
 
@@ -121,6 +133,9 @@ function AdminPage() {
   const [editing, setEditing] = useState<Partial<Charger> | null>(null);
   const [coordsInput, setCoordsInput] = useState("");
   const [loading, setLoading] = useState(true);
+  const [owners, setOwners] = useState<Owner[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -136,13 +151,15 @@ function AdminPage() {
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from("superchargers")
-        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure")
+        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure,owner_id,low_speed,published,reopen_at,planned_upgrade")
         .order("name").range(from, from + 999);
       if (error) { toast.error(error.message); break; }
       rows.push(...(data as Charger[]));
       if (!data || data.length < 1000) break;
     }
     setChargers(rows);
+    const { data: ownerRows } = await supabase.from("charger_owners").select("id,name").order("name");
+    setOwners((ownerRows as Owner[] | null) ?? []);
     setLoading(false);
   }, []);
 
@@ -180,7 +197,11 @@ function AdminPage() {
       construction: (editing.construction || {}) as Json,
       works: (editing.works || {}) as Json,
       closure: (editing.closure || {}) as Json,
-
+      owner_id: editing.owner_id || null,
+      low_speed: !!editing.low_speed,
+      published: editing.published !== false,
+      reopen_at: editing.status === "temp_closed" ? (editing.reopen_at || null) : null,
+      planned_upgrade: (editing.planned_upgrade || {}) as Json,
     };
     if (editing.id) {
       const { error } = await supabase.from("superchargers").update(payload).eq("id", editing.id);
@@ -200,6 +221,29 @@ function AdminPage() {
     const { error } = await supabase.from("superchargers").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("Verwijderd"); load();
+  };
+
+  const setTemporaryClosureDays = (days: number) => {
+    if (!editing) return;
+    const reopen = new Date(Date.now() + Math.max(1, days) * 86400000);
+    setEditing({
+      ...editing,
+      status: "temp_closed",
+      is_available: false,
+      reopen_at: reopen.toISOString(),
+      closure: { ...(editing.closure || {}), until: reopen.toISOString().slice(0, 10) },
+    });
+  };
+
+  const bulkUpdate = async (changes: Partial<Pick<Charger, "trailer_friendly" | "low_speed" | "published" | "owner_id">>) => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    const { error } = await supabase.from("superchargers").update(changes).in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${ids.length} Superchargers bijgewerkt`);
+    setSelectedIds(new Set());
+    setBulkOpen(false);
+    load();
   };
 
   if (isAdmin === null) return <div className="min-h-screen bg-slate-900 text-white p-8">Laden…</div>;
@@ -229,6 +273,22 @@ function AdminPage() {
             <Button onClick={openNew} className="bg-red-600 hover:bg-red-700"><Plus className="w-4 h-4 mr-1" /> Nieuw</Button>
           </div>
         </div>
+        {selectedIds.size > 0 && (
+          <div className="mb-4 flex flex-wrap items-center gap-2 border border-blue-500/40 bg-blue-500/10 p-3 rounded-lg">
+            <span className="text-sm font-semibold mr-2">{selectedIds.size} geselecteerd</span>
+            <Button size="sm" variant="outline" onClick={() => bulkUpdate({ trailer_friendly: true })}>Aanhangervriendelijk</Button>
+            <Button size="sm" variant="outline" onClick={() => bulkUpdate({ low_speed: true })}>Lage snelheid</Button>
+            <Button size="sm" variant="outline" onClick={() => bulkUpdate({ published: false })}><EyeOff className="w-3.5 h-3.5 mr-1" /> Concept</Button>
+            <div className="relative">
+              <Button size="sm" variant="outline" onClick={() => setBulkOpen((value) => !value)}>Eigenaar <ChevronDown className="w-3.5 h-3.5 ml-1" /></Button>
+              {bulkOpen && <div className="absolute z-20 mt-1 min-w-48 border border-slate-700 bg-slate-900 shadow-xl rounded-md p-1">
+                <button className="block w-full text-left px-2 py-1.5 text-sm hover:bg-slate-800" onClick={() => bulkUpdate({ owner_id: null })}>Geen eigenaar</button>
+                {owners.map((owner) => <button key={owner.id} className="block w-full text-left px-2 py-1.5 text-sm hover:bg-slate-800" onClick={() => bulkUpdate({ owner_id: owner.id })}>{owner.name}</button>)}
+              </div>}
+            </div>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Selectie wissen</Button>
+          </div>
+        )}
         <Input placeholder="Zoek op naam of land…" value={search} onChange={(e) => setSearch(e.target.value)} className="bg-slate-800 border-slate-700 mb-4" />
         {loading ? <div>Laden…</div> : (
           <div className="rounded-lg border border-slate-700 overflow-hidden">
@@ -236,17 +296,18 @@ function AdminPage() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-800 sticky top-0">
                   <tr className="text-left">
-                    <th className="p-3">Naam</th><th className="p-3">Land</th><th className="p-3">Laders</th><th className="p-3">Tijden</th><th className="p-3">Status</th><th className="p-3">🚚</th><th className="p-3"></th>
+                    <th className="p-3"><Checkbox checked={filtered.length > 0 && filtered.every((c) => selectedIds.has(c.id))} onCheckedChange={(checked) => setSelectedIds(checked ? new Set(filtered.map((c) => c.id)) : new Set())} /></th><th className="p-3">Naam</th><th className="p-3">Land</th><th className="p-3">Laders</th><th className="p-3">Tijden</th><th className="p-3">Status</th><th className="p-3">🚚</th><th className="p-3"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((c) => (
                     <tr key={c.id} className="border-t border-slate-700 hover:bg-slate-800/50">
+                      <td className="p-3"><Checkbox checked={selectedIds.has(c.id)} onCheckedChange={(checked) => setSelectedIds((current) => { const next = new Set(current); if (checked) next.add(c.id); else next.delete(c.id); return next; })} /></td>
                       <td className="p-3">{c.name}</td>
                       <td className="p-3">{c.country}</td>
                       <td className="p-3 max-w-xs text-slate-300">{configSummary(configsForCharger(c))}</td>
                       <td className="p-3 max-w-sm text-slate-300">{openingSummary(c.opening_hours, c.opening_time, c.closing_time)}</td>
-                      <td className="p-3">{c.is_available === false ? <span className="text-red-400">Niet beschikbaar</span> : <span className="text-green-400">Beschikbaar</span>}</td>
+                      <td className="p-3">{c.status === "temp_closed" || c.status === "long_closed" || c.is_available === false ? <span className="text-slate-300">Niet beschikbaar</span> : c.published === false ? <span className="text-amber-300">Concept</span> : <span className="text-green-400">Beschikbaar</span>}</td>
                       <td className="p-3">{c.trailer_friendly ? "✓" : "-"}</td>
                       <td className="p-3 text-right whitespace-nowrap">
                         <Button size="sm" variant="ghost" onClick={() => openEdit(c)}><Pencil className="w-4 h-4" /></Button>
@@ -279,7 +340,7 @@ function AdminPage() {
                   <Label>Status</Label>
                   <select
                     value={editing.status || "operational"}
-                    onChange={(e) => setEditing({ ...editing, status: e.target.value as ChargerLifecycleStatus })}
+                    onChange={(e) => { const status = e.target.value as ChargerLifecycleStatus; setEditing({ ...editing, status, is_available: status === "temp_closed" || status === "long_closed" || status === "works_closed" ? false : editing.is_available }); }}
                     className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm"
                   >
                     {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{lifecycleLabels[s]}</option>)}
@@ -320,6 +381,16 @@ function AdminPage() {
                       <Label className="text-xs">Toelichting</Label>
                       <Input value={editing.construction?.notes ?? ""} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), notes: e.target.value } })} className="bg-slate-800 border-slate-700" />
                     </div>
+                    <div>
+                      <Label className="text-xs">Verwachte openingsmaand / kwartaal</Label>
+                      <Input placeholder="Bijv. Q1 2027 of voorjaar 2027" value={editing.construction?.expectedOpenMonth ?? ""} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), expectedOpenMonth: e.target.value } })} className="bg-slate-800 border-slate-700" />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Checklist bouwvoortgang</Label>
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        {CONSTRUCTION_STEPS.map((step) => <label key={step} className="flex items-center gap-2 text-xs"><Checkbox checked={(editing.construction?.steps || []).includes(step)} onCheckedChange={(checked) => { const current = editing.construction?.steps || []; const steps = checked ? [...current, step] : current.filter((value) => value !== step); setEditing({ ...editing, construction: { ...(editing.construction || {}), steps } }); }} />{constructionStepLabels[step]}</label>)}
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -341,6 +412,11 @@ function AdminPage() {
                         <Input type="date" value={editing.works?.expectedEnd ?? ""} onChange={(e) => setEditing({ ...editing, works: { ...(editing.works || {}), expectedEnd: e.target.value } })} className="bg-slate-800 border-slate-700" />
                       </div>
                     </div>
+                    <div className="rounded-md border border-slate-700 p-2 space-y-2">
+                      <Label className="text-xs">Wat wordt aangepast?</Label>
+                      <Input placeholder="Bijv. 12x V3 wordt 16x V4" value={editing.planned_upgrade?.label ?? ""} onChange={(e) => setEditing({ ...editing, planned_upgrade: { ...(editing.planned_upgrade || {}), label: e.target.value } })} className="bg-slate-800 border-slate-700" />
+                      <Input placeholder="Wanneer verwacht?" value={editing.planned_upgrade?.expected ?? ""} onChange={(e) => setEditing({ ...editing, planned_upgrade: { ...(editing.planned_upgrade || {}), expected: e.target.value } })} className="bg-slate-800 border-slate-700" />
+                    </div>
                   </div>
                 )}
 
@@ -350,6 +426,13 @@ function AdminPage() {
                       <Label className="text-xs">Reden van sluiting</Label>
                       <Input value={editing.closure?.reason ?? ""} onChange={(e) => setEditing({ ...editing, closure: { ...(editing.closure || {}), reason: e.target.value } })} className="bg-slate-800 border-slate-700" />
                     </div>
+                    {editing.status === "temp_closed" && <div>
+                      <Label className="text-xs">Automatisch heropenen (alleen admin)</Label>
+                      <div className="grid grid-cols-4 gap-2 mt-1">
+                        {[1, 3, 7, 14].map((days) => <Button key={days} type="button" size="sm" variant="outline" onClick={() => setTemporaryClosureDays(days)}>{days} {days === 1 ? "dag" : "dagen"}</Button>)}
+                      </div>
+                      <Input type="datetime-local" value={editing.reopen_at ? editing.reopen_at.slice(0, 16) : ""} onChange={(e) => setEditing({ ...editing, is_available: false, reopen_at: e.target.value ? new Date(e.target.value).toISOString() : null })} className="mt-2 bg-slate-800 border-slate-700" />
+                    </div>}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <Label className="text-xs">Vanaf</Label>
@@ -364,6 +447,13 @@ function AdminPage() {
                 )}
               </div>
 
+              <div>
+                <Label>Eigenaar</Label>
+                <select value={editing.owner_id || ""} onChange={(e) => setEditing({ ...editing, owner_id: e.target.value || null })} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm">
+                  <option value="">Geen eigenaar</option>
+                  {owners.map((owner) => <option key={owner.id} value={owner.id}>{owner.name}</option>)}
+                </select>
+              </div>
               <div>
                 <Label>Laders</Label>
                 <div className="space-y-2 mt-2">
@@ -445,6 +535,14 @@ function AdminPage() {
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={editing.is_available === false} onCheckedChange={(c) => setEditing({ ...editing, is_available: !c })} />
                 Niet beschikbaar (grijs op de kaart)
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={!!editing.low_speed} onCheckedChange={(c) => setEditing({ ...editing, low_speed: !!c })} />
+                Lage laadsnelheid (pijltje omlaag op de kaart)
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={editing.published !== false} onCheckedChange={(c) => setEditing({ ...editing, published: !!c })} />
+                Gepubliceerd (uit = concept, alleen zichtbaar voor admin)
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={!!editing.trailer_friendly} onCheckedChange={(c) => setEditing({ ...editing, trailer_friendly: !!c })} />

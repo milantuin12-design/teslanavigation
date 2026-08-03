@@ -38,14 +38,15 @@ const destIcon = L.divIcon({
 function chargerIcon(charger: Supercharger, status: ChargerStatus) {
   // Kleurlogica ongewijzigd: groen = open, rood = gesloten (openingstijden/sluiting), grijs = niet beschikbaar.
   let color = '#22c55e'; // groen = open/beschikbaar
-  if (status === 'Niet beschikbaar') color = '#94a3b8'; // grijs
+  if (status === 'Niet beschikbaar' || status === 'Langdurig gesloten') color = '#94a3b8'; // grijs
   else if (status === 'In aanbouw') color = '#f59e0b'; // oranje voor in aanbouw
   else if (status === 'Werkzaamheden' || status === 'Druk') color = '#f59e0b'; // oranje
   else if (status === 'Onbekend') color = '#64748b';
   else if (status !== 'Beschikbaar') color = '#ef4444'; // rood: gesloten varianten
 
   const isConstruction = status === 'In aanbouw';
-  const hasWorks = charger.status === 'works' || charger.status === 'works_closed';
+  const hasOpenWorks = charger.status === 'works';
+  const hasClosedWorks = charger.status === 'works_closed';
   const isLowSpeed = !!charger.lowSpeed;
 
   const stalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls;
@@ -61,7 +62,10 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus) {
 
   const size = 30;
   const badges: string[] = [];
-  if (hasWorks) {
+  if (hasOpenWorks) {
+    badges.push(`<div style="position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&#10003;</div>`);
+  }
+  if (hasClosedWorks) {
     badges.push(`<div style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#dc2626;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&times;</div>`);
   }
   if (isLowSpeed) {
@@ -202,7 +206,9 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const usable = isChargerUsable(charger);
-        const statusColor = usable ? '#16a34a' : (charger.status === 'construction' ? '#f59e0b' : '#dc2626');
+        const statusColor = usable
+          ? (charger.status === 'works' ? '#b45309' : '#16a34a')
+          : (charger.status === 'construction' ? '#f59e0b' : charger.status === 'long_closed' || charger.isAvailable === false ? '#64748b' : '#dc2626');
         const place = [charger.city, charger.province, charger.country].filter(Boolean).join(', ');
         let popup = `<div style="font-family:system-ui;font-size:13px;min-width:240px;color:#0f172a;">
           <strong style="font-size:15px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>

@@ -222,6 +222,8 @@ export function calculateChargeDuration(
 
 
 export function isChargerOperationalAt(charger: Supercharger, atDate: Date = new Date()): boolean {
+  const lifecycle = charger.status ?? 'operational';
+  if (lifecycle !== 'operational' && lifecycle !== 'works') return false;
   return charger.isAvailable !== false && isChargerOpenAt(charger, atDate);
 }
 
@@ -611,6 +613,7 @@ export function getStatusColor(status: ChargerStatus): string {
     case 'In aanbouw': return '#3b82f6';
     case 'Onbekend': return '#64748b';
     case 'Niet beschikbaar': return '#94a3b8';
+    case 'Langdurig gesloten': return '#94a3b8';
     default: return '#ef4444';
   }
 }
