@@ -490,7 +490,7 @@ export default function InputPanel({
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
               <Gauge size={13} className="text-blue-400" />
-              Opladen tot: {chargeTarget}% <span className="text-slate-500 text-[10px]">(alleen bij Handmatige route)</span>
+              Opladen tot: {chargeTarget}%
             </label>
             <input
               type="range"
@@ -501,6 +501,31 @@ export default function InputPanel({
               className="w-full h-1.5 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500"
             />
           </div>
+
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
+              <Gauge size={13} className="text-amber-400" />
+              Aankomst bij Supercharger: {chargerArrivalTarget}%
+            </label>
+            <input
+              type="range"
+              min={5}
+              max={40}
+              value={chargerArrivalTarget}
+              onChange={e => onChargerArrivalTargetChange(parseInt(e.target.value))}
+              className="w-full h-1.5 bg-slate-700 rounded-full appearance-none cursor-pointer accent-amber-500"
+            />
+            <label className="mt-2 flex items-center gap-2 text-xs text-slate-300">
+              <input
+                type="checkbox"
+                checked={preferTrailerFriendly}
+                onChange={e => onPreferTrailerFriendlyChange(e.target.checked)}
+                className="accent-blue-500"
+              />
+              Houd rekening met aanhangervriendelijke Superchargers
+            </label>
+          </div>
+
 
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
