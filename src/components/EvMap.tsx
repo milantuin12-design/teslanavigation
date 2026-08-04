@@ -293,7 +293,10 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           </div>`;
         }
 
-        popup += `<div style="margin-top:6px;color:#2563eb;font-weight:600;">Max ${maxSpeed} kW</div>`;
+        if (!hideSpeed && maxSpeed > 0) {
+          popup += `<div style="margin-top:6px;color:#2563eb;font-weight:600;">Max ${maxSpeed} kW</div>`;
+        }
+
         popup += `<div style="margin-top:3px;color:#475569;">${escapeHtml(formatOpeningHoursSummary(charger))}</div>`;
 
         if (charger.notes) {
