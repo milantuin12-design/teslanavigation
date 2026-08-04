@@ -250,9 +250,17 @@ export default function InputPanel({
   }, [onStartChange]);
 
   useEffect(() => {
-    const validWaypoints = waypoints.filter(w => w.coord).map(w => w.coord!);
-    onWaypointsChange(validWaypoints);
+    onWaypointsChange(waypoints.filter(w => w.coord).map(w => ({
+      lat: w.coord!.lat,
+      lng: w.coord!.lng,
+      label: w.input,
+      corridor: w.corridor,
+      radiusKm: w.radiusKm,
+      charge: w.charge,
+      chargeTo: w.chargeTo,
+    })));
   }, [waypoints, onWaypointsChange]);
+
 
   const formatTime = (min: number) => {
     const h = Math.floor(min / 60);
