@@ -952,6 +952,11 @@ function Index() {
               onBatteryChange={setBatteryPercent}
               onArrivalTargetChange={setTargetArrivalPercent}
               onChargeTargetChange={setChargeTargetPercent}
+              onChargerArrivalTargetChange={setChargerArrivalTarget}
+              chargerArrivalTarget={chargerArrivalTarget}
+              preferTrailerFriendly={preferTrailerFriendly}
+              onPreferTrailerFriendlyChange={setPreferTrailerFriendly}
+
               onTrailerChange={(enabled, pct) => { setTrailerEnabled(enabled); setTrailerReductionPercent(pct); }}
               onWeatherModeChange={setWeatherMode}
               onTimeModeChange={setTimeMode}
