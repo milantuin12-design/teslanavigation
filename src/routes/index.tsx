@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import EvMap from "@/components/EvMap";
-import InputPanel from "@/components/InputPanel";
+import InputPanel, { type PlannedWaypoint } from "@/components/InputPanel";
 import ChargingStops from "@/components/ChargingStops";
 import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
