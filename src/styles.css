@@ -142,3 +142,58 @@
     color: var(--color-foreground);
   }
 }
+
+/* ---------------------------------------------------------------
+   2026 look & feel: glas, diepte, zachte animaties
+   --------------------------------------------------------------- */
+@theme inline {
+  --animate-fade-in: fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-rise-in: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-scale-in: scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-shimmer: shimmer 2.4s linear infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@utility glass-panel {
+  background: color-mix(in oklab, oklch(0.21 0.03 260) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid color-mix(in oklab, white 10%, transparent);
+  box-shadow: 0 18px 45px -22px rgb(0 0 0 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+
+@utility elevated-card {
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 12px 30px -18px rgb(0 0 0 / 0.85);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+}
+
+@utility sheen-text {
+  background: linear-gradient(100deg, #fff 20%, #93c5fd 40%, #fff 60%);
+  background-size: 200% auto;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 14px;
+  box-shadow: 0 20px 45px -20px rgb(0 0 0 / 0.6);
+}
