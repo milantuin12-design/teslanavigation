@@ -191,25 +191,25 @@ export default function InputPanel({
     parseOrGeocode(destInput, onDestChange, setDestError);
   }, [destInput, onDestChange, parseOrGeocode]);
 
-  const addWaypoint = useCallback(() => {
+  const addWaypoint = useCallback((corridor: boolean) => {
     setWaypoints(prev => [...prev, {
       id: crypto.randomUUID(),
       input: '',
       coord: null,
       error: '',
+      corridor,
+      radiusKm: 20,
+      charge: false,
+      chargeTo: 80,
     }]);
   }, []);
 
   const removeWaypoint = useCallback((id: string) => {
-    setWaypoints(prev => {
-      const updated = prev.filter(w => w.id !== id);
-      onWaypointsChange(updated.filter(w => w.coord).map(w => w.coord!));
-      return updated;
-    });
-  }, [onWaypointsChange]);
+    setWaypoints(prev => prev.filter(w => w.id !== id));
+  }, []);
 
-  const updateWaypointInput = useCallback((id: string, input: string) => {
-    setWaypoints(prev => prev.map(w => w.id === id ? { ...w, input } : w));
+  const updateWaypoint = useCallback((id: string, patch: Partial<Waypoint>) => {
+    setWaypoints(prev => prev.map(w => w.id === id ? { ...w, ...patch } : w));
   }, []);
 
   const handleWaypointBlur = useCallback((id: string) => {
@@ -217,22 +217,15 @@ export default function InputPanel({
     if (!wp) return;
 
     const updateCoord = (coord: { lat: number; lng: number } | null) => {
-      setWaypoints(prev => prev.map(w =>
-        w.id === id ? { ...w, coord, error: '' } : w
-      ));
-      const allValid = waypoints.filter(w => w.id !== id && w.coord).map(w => w.coord!);
-      if (coord) allValid.push(coord);
-      onWaypointsChange(allValid);
+      setWaypoints(prev => prev.map(w => w.id === id ? { ...w, coord, error: '' } : w));
     };
-
     const setError = (error: string) => {
-      setWaypoints(prev => prev.map(w =>
-        w.id === id ? { ...w, error } : w
-      ));
+      setWaypoints(prev => prev.map(w => w.id === id ? { ...w, error } : w));
     };
 
     parseOrGeocode(wp.input, updateCoord, setError);
-  }, [waypoints, onWaypointsChange, parseOrGeocode]);
+  }, [waypoints, parseOrGeocode]);
+
 
   const handleUseCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
