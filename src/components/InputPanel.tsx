@@ -308,11 +308,11 @@ export default function InputPanel({
           </div>
 
           {waypoints.map((wp, idx) => (
-            <div key={wp.id}>
-              <label className="flex items-center justify-between text-xs font-medium text-slate-400 mb-1.5">
+            <div key={wp.id} className="rounded-lg border border-slate-700/60 bg-slate-800/40 p-2.5 space-y-2">
+              <label className="flex items-center justify-between text-xs font-medium text-slate-400">
                 <span className="flex items-center gap-1.5">
                   <MapPin size={13} className="text-amber-400" />
-                  Via #{idx + 1}
+                  {wp.corridor ? `Langs punt #${idx + 1}` : `Via #${idx + 1}`}
                 </span>
                 <button
                   onClick={() => removeWaypoint(wp.id)}
@@ -324,24 +324,75 @@ export default function InputPanel({
               <input
                 type="text"
                 value={wp.input}
-                onChange={e => updateWaypointInput(wp.id, e.target.value)}
+                onChange={e => updateWaypoint(wp.id, { input: e.target.value })}
                 onBlur={() => handleWaypointBlur(wp.id)}
                 onKeyDown={e => e.key === 'Enter' && handleWaypointBlur(wp.id)}
                 placeholder="Antwerpen of 51.2194, 4.4011"
                 className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/50 transition-all"
                 disabled={isGeocoding}
               />
-              {wp.error && <p className="text-red-400 text-xs mt-1">{wp.error}</p>}
+              {wp.error && <p className="text-red-400 text-xs">{wp.error}</p>}
+
+              {wp.corridor ? (
+                <label className="flex items-center gap-2 text-xs text-slate-300">
+                  Binnen
+                  <input
+                    type="number"
+                    min={1}
+                    max={200}
+                    value={wp.radiusKm}
+                    onChange={e => updateWaypoint(wp.id, { radiusKm: Math.max(1, Number(e.target.value) || 20) })}
+                    className="w-16 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-xs text-white"
+                  />
+                  km van de route
+                </label>
+              ) : (
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="flex items-center gap-2 text-xs text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={wp.charge}
+                      onChange={e => updateWaypoint(wp.id, { charge: e.target.checked })}
+                      className="accent-blue-500"
+                    />
+                    Hier opladen
+                  </label>
+                  {wp.charge && (
+                    <label className="flex items-center gap-1.5 text-xs text-slate-300">
+                      tot
+                      <input
+                        type="number"
+                        min={10}
+                        max={100}
+                        value={wp.chargeTo}
+                        onChange={e => updateWaypoint(wp.id, { chargeTo: Math.min(100, Math.max(10, Number(e.target.value) || 80)) })}
+                        className="w-16 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-xs text-white"
+                      />
+                      %
+                    </label>
+                  )}
+                </div>
+              )}
             </div>
           ))}
 
-          <button
-            onClick={addWaypoint}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-slate-600 text-slate-400 hover:text-slate-300 hover:border-slate-500 transition-all text-sm"
-          >
-            <Plus size={16} />
-            Via punt toevoegen
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => addWaypoint(false)}
+              className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-dashed border-slate-600 text-slate-400 hover:text-slate-300 hover:border-slate-500 transition-all text-xs"
+            >
+              <Plus size={14} />
+              Via punt
+            </button>
+            <button
+              onClick={() => addWaypoint(true)}
+              className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-dashed border-slate-600 text-slate-400 hover:text-slate-300 hover:border-slate-500 transition-all text-xs"
+            >
+              <Plus size={14} />
+              Langs punt
+            </button>
+          </div>
+
 
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
