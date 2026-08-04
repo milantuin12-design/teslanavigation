@@ -7,17 +7,34 @@ interface Waypoint {
   input: string;
   coord: { lat: number; lng: number } | null;
   error: string;
+  /** Corridor = je hoeft er niet heen, maar de route moet er binnen X km langs. */
+  corridor: boolean;
+  radiusKm: number;
+  charge: boolean;
+  chargeTo: number;
+}
+
+export interface PlannedWaypoint {
+  lat: number;
+  lng: number;
+  label: string;
+  corridor: boolean;
+  radiusKm: number;
+  charge: boolean;
+  chargeTo: number;
 }
 
 interface InputPanelProps {
   onStartChange: (coord: { lat: number; lng: number } | null) => void;
   onDestChange: (coord: { lat: number; lng: number } | null) => void;
-  onWaypointsChange: (waypoints: { lat: number; lng: number }[]) => void;
+  onWaypointsChange: (waypoints: PlannedWaypoint[]) => void;
   onModelChange: (model: string) => void;
   onBatteryChange: (pct: number) => void;
   onArrivalTargetChange: (pct: number) => void;
   onChargeTargetChange: (pct: number) => void;
+  onChargerArrivalTargetChange: (pct: number) => void;
   onTrailerChange: (enabled: boolean, reductionPercent: number) => void;
+  onPreferTrailerFriendlyChange: (value: boolean) => void;
   onWeatherModeChange: (mode: WeatherMode) => void;
   onTimeModeChange: (mode: TimeMode) => void;
   onMinChargerSpeedChange: (kw: number) => void;
@@ -29,8 +46,10 @@ interface InputPanelProps {
   batteryPercent: number;
   arrivalTarget: number;
   chargeTarget: number;
+  chargerArrivalTarget: number;
   trailerEnabled: boolean;
   trailerReductionPercent: number;
+  preferTrailerFriendly: boolean;
   weatherMode: WeatherMode;
   timeMode: TimeMode;
   minChargerSpeedKw: number;
@@ -48,6 +67,7 @@ interface InputPanelProps {
   lastAvailabilityUpdate: string | null;
   arrivalPercent: number | null;
 }
+
 
 
 const coordRegex = /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/;
