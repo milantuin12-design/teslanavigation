@@ -102,7 +102,10 @@ const OFF_ROUTE_PERSIST_MS = 8000; // off-route for 8s before rerouting
 function Index() {
   const [startCoord, setStartCoord] = useState<{ lat: number; lng: number } | null>(null);
   const [destCoord, setDestCoord] = useState<{ lat: number; lng: number } | null>(null);
-  const [waypoints, setWaypoints] = useState<{ lat: number; lng: number }[]>([]);
+  const [waypoints, setWaypoints] = useState<PlannedWaypoint[]>([]);
+  const [chargerArrivalTarget, setChargerArrivalTarget] = useState(15);
+  const [preferTrailerFriendly, setPreferTrailerFriendly] = useState(false);
+
   const [selectedModel, setSelectedModel] = useState("Model 3 Long Range AWD");
   const [manualRangeKm, setManualRangeKm] = useState(400);
   const [manualSpeedKw, setManualSpeedKw] = useState(250);
