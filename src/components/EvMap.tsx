@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig } from '@/lib/tesla-types';
-import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, getOpenStalls, getTotalStallsFromConfigs, isChargerUsable, normalizeChargerConfigs, parseMaxSpeed } from '@/lib/tesla-utils';
+import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, getOpenStalls, getTotalStallsFromConfigs, isChargerUsable, normalizeChargerConfigs, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
 
 interface EvMapProps {
   startCoord: { lat: number; lng: number } | null;
@@ -19,7 +19,10 @@ interface EvMapProps {
   headingUp?: boolean;
   /** Toon ook niet-gepubliceerde (concept) laders. Standaard verborgen. */
   showDrafts?: boolean;
+  /** Zoom naar deze locatie zodra hij verandert. */
+  focusCoord?: { lat: number; lng: number } | null;
 }
+
 
 const startIcon = L.divIcon({
   className: 'custom-marker',
@@ -123,7 +126,7 @@ function groupChargerConfigs(configs: ChargerConfig[]): string[] {
   });
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -171,14 +174,23 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     map.on('popupopen', (event: L.PopupEvent) => {
       const node = event.popup.getElement();
       const button = node?.querySelector<HTMLButtonElement>('[data-report-id]');
-      if (!button) return;
-      button.addEventListener('click', () => {
-        window.dispatchEvent(new CustomEvent('sc-report', {
-          detail: { id: button.dataset.reportId || null, name: button.dataset.reportName || '' },
-        }));
-        map.closePopup();
-      }, { once: true });
+      if (button) {
+        button.addEventListener('click', () => {
+          window.dispatchEvent(new CustomEvent('sc-report', {
+            detail: { id: button.dataset.reportId || null, name: button.dataset.reportName || '' },
+          }));
+          map.closePopup();
+        }, { once: true });
+      }
+      const ownerButton = node?.querySelector<HTMLButtonElement>('[data-owner-id]');
+      if (ownerButton) {
+        ownerButton.addEventListener('click', () => {
+          window.dispatchEvent(new CustomEvent('sc-owner', { detail: { id: ownerButton.dataset.ownerId || null } }));
+          map.closePopup();
+        }, { once: true });
+      }
     });
+
 
 
     markersRef.current.addTo(map);
@@ -215,12 +227,14 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           ${place ? `<div style="color:#64748b;font-size:11px;">${escapeHtml(place)}</div>` : ''}
           <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
 
+        const hideSpeed = shouldHideSpeed(charger);
+
         if (charger.ownerName) {
-          popup += `<div style="margin-top:4px;display:flex;align-items:center;gap:6px;color:#334155;font-weight:600;">`;
+          popup += `<button type="button" data-owner-id="${escapeHtml(charger.ownerId ?? '')}" style="margin-top:4px;display:flex;align-items:center;gap:6px;color:#1d4ed8;font-weight:600;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;">`;
           if (charger.ownerLogoUrl) {
             popup += `<img src="${escapeHtml(charger.ownerLogoUrl)}" alt="${escapeHtml(charger.ownerName)}" style="width:16px;height:16px;object-fit:contain;border-radius:3px;" />`;
           }
-          popup += `<span>${escapeHtml(charger.ownerName)}</span></div>`;
+          popup += `<span>${escapeHtml(charger.ownerName)}</span></button>`;
         }
 
         const statusLines = describeChargerStatus(charger);
@@ -228,11 +242,14 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           popup += `<div style="margin-top:4px;display:grid;gap:2px;color:#334155;">${statusLines.slice(1).map((line) => `<div>${escapeHtml(line)}</div>`).join('')}</div>`;
         }
 
-        if (configs.length > 0) {
+        if (hideSpeed) {
+          popup += `<div style="margin-top:6px;color:#b45309;font-weight:600;">Gegevens nog onbekend</div>`;
+        } else if (configs.length > 0) {
           popup += `<div style="margin-top:6px;display:grid;gap:3px;">${groupChargerConfigs(configs).map((line) => `<div>${escapeHtml(line)}</div>`).join('')}</div>`;
         } else if (charger.totalStalls) {
           popup += `<br/><span style="color:#475569;">${charger.totalStalls} laadplekken</span>`;
         }
+
 
         if (charger.status === 'works' || charger.status === 'works_closed') {
           const closedConfigs = normalizeChargerConfigs(charger.works?.closedConfigs);

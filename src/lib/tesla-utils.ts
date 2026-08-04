@@ -344,7 +344,10 @@ export interface CalcChargingOptions {
   excludeParkingGarage?: boolean;
   /** Time of departure — used to filter out chargers that are closed at arrival. */
   departureTime?: Date;
+  /** >1 = meer verbruik (klimmen), <1 = minder verbruik (dalen/regeneratie). */
+  consumptionMultiplier?: number;
 }
+
 
 export function calculateChargingStops(
   route: RouteResult,
@@ -371,7 +374,9 @@ export function calculateChargingStops(
     preferTrailerFriendly = false,
     excludeParkingGarage = false,
     departureTime = new Date(),
+    consumptionMultiplier = 1,
   } = opts;
+
 
 
   const stops: ChargingStop[] = [];
@@ -392,13 +397,15 @@ export function calculateChargingStops(
 
   const nearChargers = findChargersNearRoute(route.coordinates, filtered, 20);
   const routeDist = buildRouteDistanceIndex(route.coordinates);
-  const fullRangeKm = getAvailableRange(modelRangeKm, 100, trailerReductionPercent, weatherMode, timeMode);
+  const safeMultiplier = Math.min(1.6, Math.max(0.75, consumptionMultiplier || 1));
+  const fullRangeKm = getAvailableRange(modelRangeKm, 100, trailerReductionPercent, weatherMode, timeMode) / safeMultiplier;
+
   const kmPerMin = route.totalDistanceKm > 0 && route.totalTimeMin > 0
     ? route.totalDistanceKm / route.totalTimeMin
     : 1.5;
 
   if (nearChargers.length === 0) {
-    const directRange = getAvailableRange(modelRangeKm, batteryPercent, trailerReductionPercent, weatherMode, timeMode);
+    const directRange = getAvailableRange(modelRangeKm, batteryPercent, trailerReductionPercent, weatherMode, timeMode) / safeMultiplier;
     if (route.totalDistanceKm <= directRange) {
       const batteryAtDest = batteryPercent - (route.totalDistanceKm / fullRangeKm * 100);
       return { stops: [], arrivalPercent: Math.round(Math.max(0, batteryAtDest)), unreachable: false };
@@ -471,15 +478,18 @@ export function calculateChargingStops(
       return { stops, arrivalPercent: 0, unreachable: true, reason: 'Geen bereikbare Supercharger binnen actieradius (open op verwachte aankomsttijd)' };
     }
 
-    const goodCandidates = candidates.filter(c => c.batteryAtCharger <= maxArrivalAtChargerPercent);
-    let best: Candidate;
-    if (goodCandidates.length > 0) {
-      goodCandidates.sort((a, b) => scoreCandidate(b, preferTrailerFriendly) - scoreCandidate(a, preferTrailerFriendly));
-      best = goodCandidates[0];
-    } else {
-      candidates.sort((a, b) => scoreCandidate(b, preferTrailerFriendly) - scoreCandidate(a, preferTrailerFriendly));
-      best = candidates[0];
-    }
+    // Kies de lader waar je zo dicht mogelijk bij het gewenste aankomstpercentage uitkomt.
+    const targetSoC = maxArrivalAtChargerPercent;
+    const rank = (c: Candidate) =>
+      Math.abs(c.batteryAtCharger - targetSoC)
+      + c.detourKm * 0.5
+      + (preferTrailerFriendly && c.charger.trailerFriendly ? -8 : 0)
+      + (c.charger.inParkingGarage ? 8 : 0);
+    const feasible = candidates.filter((c) => c.batteryAtCharger >= minSafetyPercent);
+    const pool = feasible.length > 0 ? feasible : candidates;
+    pool.sort((a, b) => rank(a) - rank(b));
+    const best: Candidate = pool[0];
+
 
     const nextChargerDist = findNextChargerDistance(best.routeKm, best.charger, nearChargers, route.coordinates, routeDist);
     const distToDestFromCharger = route.totalDistanceKm - best.routeKm;
@@ -519,9 +529,11 @@ export function calculateChargingStops(
       distanceFromStart: Math.round(best.routeKm),
       chargeDurationMin,
       stopNumber: stops.length + 1,
+      etaMinFromStart: Math.round(elapsedMin + best.distanceTravelled / kmPerMin),
     });
 
     elapsedMin += best.distanceTravelled / kmPerMin + chargeDurationMin;
+
     currentPositionKm = best.routeKm;
     currentBattery = batteryAfter;
   }
@@ -535,10 +547,8 @@ export function calculateChargingStops(
   return { stops, arrivalPercent: Math.round(arrivalBattery), unreachable: false };
 }
 
-function scoreCandidate(candidate: { routeKm: number; detourKm: number; charger: Supercharger }, preferTrailerFriendly: boolean): number {
-  const garagePenalty = candidate.charger.inParkingGarage ? -30 : 0;
-  return candidate.routeKm - candidate.detourKm * 2 + (preferTrailerFriendly && candidate.charger.trailerFriendly ? 80 : 0) + garagePenalty;
-}
+
+
 
 function findNextChargerDistance(
   currentRouteKm: number,
@@ -760,3 +770,70 @@ export function matchesChargerFilters(charger: Supercharger, filters: ChargerFil
 }
 
 
+
+/** Verwacht dat de laadsnelheid verborgen blijft (bouwlocatie zonder bekende gegevens). */
+export function shouldHideSpeed(charger: Supercharger): boolean {
+  if (charger.status !== 'construction') return false;
+  const info = charger.construction ?? {};
+  if (info.dataUnknown) return true;
+  const configs = info.configs ?? [];
+  return configs.length === 0 && !info.speedKw;
+}
+
+/** Verdeel een routelijn in maximaal `count` gelijkmatig verdeelde punten. */
+export function sampleRoutePoints(coords: [number, number][], count = 60): [number, number][] {
+  if (coords.length <= count) return coords;
+  const step = (coords.length - 1) / (count - 1);
+  const out: [number, number][] = [];
+  for (let i = 0; i < count; i++) out.push(coords[Math.round(i * step)]);
+  return out;
+}
+
+/**
+ * Extra/minder verbruik door hoogteverschil.
+ * Klimmen kost energie, dalen levert (deels) energie terug via regeneratie.
+ */
+export function elevationConsumptionMultiplier(
+  elevations: number[],
+  distanceKm: number,
+  massKg = 2100
+): { multiplier: number; ascentM: number; descentM: number } {
+  let ascentM = 0;
+  let descentM = 0;
+  for (let i = 1; i < elevations.length; i++) {
+    const delta = elevations[i] - elevations[i - 1];
+    if (delta > 2) ascentM += delta;
+    else if (delta < -2) descentM += -delta;
+  }
+  if (distanceKm <= 0) return { multiplier: 1, ascentM, descentM };
+  // kWh potentiële energie per meter hoogte, inclusief rendement.
+  const kWhPerMeter = (massKg * 9.81) / 3_600_000;
+  const climbKWh = ascentM * kWhPerMeter / 0.85;
+  const regenKWh = descentM * kWhPerMeter * 0.65;
+  const baselineKWh = distanceKm * 0.17;
+  const multiplier = (baselineKWh + climbKWh - regenKWh) / baselineKWh;
+  return { multiplier: Math.min(1.6, Math.max(0.8, multiplier)), ascentM: Math.round(ascentM), descentM: Math.round(descentM) };
+}
+
+/** Haalt hoogtes op via de gratis Open-Meteo elevation API (geen sleutel nodig). */
+export async function fetchElevationProfile(coords: [number, number][]): Promise<number[] | null> {
+  try {
+    const pts = sampleRoutePoints(coords, 90);
+    const lat = pts.map((p) => p[1].toFixed(4)).join(',');
+    const lng = pts.map((p) => p[0].toFixed(4)).join(',');
+    const res = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lng}`);
+    if (!res.ok) return null;
+    const json = (await res.json()) as { elevation?: number[] };
+    return Array.isArray(json.elevation) ? json.elevation : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Ligt dit punt binnen `radiusKm` van de route (hemelsbreed t.o.v. de weg)? */
+export function passesCorridor(
+  coords: [number, number][],
+  point: { lat: number; lng: number; radiusKm: number }
+): boolean {
+  return distanceToRoute(point.lat, point.lng, coords) <= point.radiusKm;
+}

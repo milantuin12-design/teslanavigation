@@ -62,7 +62,10 @@ export interface ConstructionInfo {
   steps?: ConstructionStep[];
   configs?: ChargerConfig[];
   notes?: string;
+  /** Admin weet nog niets over aantal laders/snelheid — toon dan géén laadsnelheid. */
+  dataUnknown?: boolean;
 }
+
 
 export interface WorksInfo {
   closedStalls?: number;
@@ -235,6 +238,24 @@ export interface CorridorPoint {
 export type WeatherMode = 'summer' | 'winter' | 'fog';
 export type TimeMode = 'day' | 'night';
 export type RouteType = 'fastest' | 'fewest' | 'scenic' | 'trailer' | 'manual';
+
+/** Eén van de (maximaal 5) berekende routevoorstellen. */
+export interface RouteOption {
+  key: string;
+  label: string;
+  route: RouteResult;
+  stops: ChargingStop[];
+  arrivalPercent: number;
+  /** Extra verbruik door hoogteverschil, als factor op het bereik (1 = vlak). */
+  rangeMultiplier: number;
+  ascentM?: number;
+  descentM?: number;
+  trailerFriendlyStops?: number;
+  /** Reistijd inclusief laadtijd. */
+  totalWithChargingMin: number;
+}
+
+
 
 
 export const teslaMaxChargeKw: Record<string, number> = {
