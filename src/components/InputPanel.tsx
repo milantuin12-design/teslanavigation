@@ -123,8 +123,13 @@ export default function InputPanel({
   batteryPercent,
   arrivalTarget,
   chargeTarget,
+  chargerArrivalTarget,
+  onChargerArrivalTargetChange,
+  preferTrailerFriendly,
+  onPreferTrailerFriendlyChange,
   trailerEnabled,
   trailerReductionPercent,
+
   weatherMode,
   timeMode,
   minChargerSpeedKw,
