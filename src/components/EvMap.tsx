@@ -442,6 +442,14 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     }
   }, [currentPosition, isNavigating]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !focusCoord) return;
+    map.flyTo([focusCoord.lat, focusCoord.lng], Math.max(map.getZoom(), 13), { duration: 0.9 });
+  }, [focusCoord]);
+
+
+
   return (
     <div className="w-full h-full min-h-[400px] relative overflow-hidden" style={{ zIndex: 0 }}>
       <div
