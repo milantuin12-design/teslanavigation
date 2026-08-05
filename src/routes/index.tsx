@@ -1042,8 +1042,10 @@ function Index() {
           destCoord={destCoord}
           superchargers={visibleChargers}
           route={route}
-          routeVariants={routeVariants}
-          selectedRouteType={routeType}
+          routeVariants={Object.fromEntries(routeOptions.map((plan, i) => [String(i), plan.route]))}
+          selectedRouteType={String(selectedRouteIndex)}
+          focusCoord={focusCoord}
+
           chargingStops={chargingStops}
           currentPosition={currentPosition}
           isNavigating={isNavigating}
