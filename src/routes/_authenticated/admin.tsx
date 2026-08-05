@@ -134,6 +134,7 @@ function AdminPage() {
   const [coordsInput, setCoordsInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [owners, setOwners] = useState<Owner[]>([]);
+  const [newOwnerName, setNewOwnerName] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
 
