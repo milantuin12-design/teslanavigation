@@ -390,59 +390,66 @@ function Index() {
     return null;
   }, []);
 
-  const computeRoutePlan = useCallback(async (
+  /** Haalt in één keer meerdere echt verschillende routes op (snelweg + alternatieven + binnendoor). */
+  const fetchRouteAlternatives = useCallback(async (
+    start: [number, number],
+    end: [number, number],
+    via: [number, number][],
+  ): Promise<{ route: RouteResult; steps: RouteStep[] }[]> => {
+    const coordString = [start, ...via, end].map((c) => `${c[0]},${c[1]}`).join(";");
+    const baseQuery = `overview=full&geometries=geojson&steps=true&alternatives=3`;
+    const urls = [
+      `https://router.project-osrm.org/route/v1/driving/${coordString}?${baseQuery}`,
+      `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordString}?${baseQuery}&exclude=motorway`,
+    ];
+
+    const parse = async (url: string): Promise<{ route: RouteResult; steps: RouteStep[] }[]> => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!response.ok) return [];
+        const data = await response.json();
+        const routes: OSRMRoute[] = Array.isArray(data.routes) ? data.routes : [];
+        return routes.map((osrmRoute) => {
+          const steps: RouteStep[] = [];
+          for (const leg of osrmRoute.legs ?? []) steps.push(...leg.steps);
+          return {
+            route: {
+              coordinates: osrmRoute.geometry.coordinates,
+              totalDistanceKm: Math.round(osrmRoute.distance / 1000),
+              totalTimeMin: Math.round(osrmRoute.duration / 60),
+            },
+            steps,
+          };
+        });
+      } catch {
+        return [];
+      }
+    };
+
+    const results = (await Promise.all(urls.map(parse))).flat();
+    // Uniek op afstand zodat we echt andere wegen tonen.
+    const unique: { route: RouteResult; steps: RouteStep[] }[] = [];
+    for (const candidate of results) {
+      if (unique.some((u) => Math.abs(u.route.totalDistanceKm - candidate.route.totalDistanceKm) < 5)) continue;
+      unique.push(candidate);
+    }
+    return unique.sort((a, b) => a.route.totalDistanceKm - b.route.totalDistanceKm).slice(0, 5);
+  }, []);
+
+  const batteryCapacityOverride = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined;
+
+  /** Berekent voor één routegeometrie de laadstops op basis van de ingevulde percentages. */
+  const buildPlan = useCallback(async (
+    base: { route: RouteResult; steps: RouteStep[] },
     fromCoord: { lat: number; lng: number },
     toCoord: { lat: number; lng: number },
     fromBattery: number,
     extraWaypoints: { lat: number; lng: number }[],
-    selectedType: RouteType,
-    alternativeIndex: number = 0
-  ): Promise<{ ok: boolean; plan?: RoutePlan; error?: string } > => {
-    const allWaypoints: [number, number][] = extraWaypoints.map((w) => [w.lng, w.lat]);
-
-    const initialResult = await fetchRouteWithInstructions(
-      [fromCoord.lng, fromCoord.lat],
-      [toCoord.lng, toCoord.lat],
-      allWaypoints.length > 0 ? allWaypoints : undefined,
-      alternativeIndex,
-      selectedType === "scenic"
-    );
-
-    if (!initialResult) return { ok: false, error: "Kon geen route vinden." };
-    const { route: initialRoute, steps: initialSteps } = initialResult;
-
-    // Per-variant charging strategy
-    let minChargeTarget: number | undefined;
-    let maxChargeTarget: number | undefined;
-    let chargeTargetForVariant = chargeTargetPercent;
-    let variantMinSpeed = minChargerSpeedKw;
-    let variantMaxArrival = 10;
-    if (selectedType === "fastest") {
-      // Écht snelste: laag laden (curve steilst), korte stops.
-      minChargeTarget = 55; maxChargeTarget = 75; chargeTargetForVariant = 60;
-      variantMinSpeed = minChargerSpeedKw;
-      variantMaxArrival = 15;
-    } else if (selectedType === "fewest") {
-      // Zo min mogelijk stops: bijna vol laden en dieper leegrijden.
-      minChargeTarget = 92; maxChargeTarget = 100; chargeTargetForVariant = 95;
-      variantMinSpeed = Math.max(minChargerSpeedKw, 150);
-      variantMaxArrival = 5;
-    } else if (selectedType === "trailer") {
-      minChargeTarget = 65; maxChargeTarget = 90; chargeTargetForVariant = 75;
-    } else if (selectedType === "manual") {
-      chargeTargetForVariant = chargeTargetPercent;
-    }
-
-    const variantOpts = {
-      chargeTargetPercent: chargeTargetForVariant,
-      minChargeTargetPercent: minChargeTarget,
-      maxChargeTargetPercent: maxChargeTarget,
-      maxArrivalAtChargerPercent: variantMaxArrival,
-      preferTrailerFriendly: selectedType === "trailer",
-      excludeParkingGarage: selectedType === "trailer",
-      minSafetyPercent: selectedType === "fewest" ? 2 : 3,
-    };
-    const result = calculateChargingStops(initialRoute, {
+  ): Promise<RoutePlan | null> => {
+    const result = calculateChargingStops(base.route, {
       modelRangeKm: modelRange,
       batteryPercent: fromBattery,
       trailerReductionPercent: trailerReductionEffective,
@@ -451,80 +458,73 @@ function Index() {
       targetArrivalPercent,
       weatherMode,
       timeMode,
-      minChargerSpeedKw: selectedType === "scenic" ? 0 : variantMinSpeed,
+      minChargerSpeedKw,
       carMaxKwOverride,
-      batteryCapacityKWhOverride: selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined,
-      ...variantOpts,
+      batteryCapacityKWhOverride: batteryCapacityOverride,
+      chargeTargetPercent,
+      maxArrivalAtChargerPercent: chargerArrivalTarget,
+      preferTrailerFriendly,
+      excludeParkingGarage: preferTrailerFriendly,
     });
 
-
-    if (result.unreachable) {
-      return { ok: false, error: result.reason || "Deze route is niet mogelijk." };
+    if (result.unreachable) return null;
+    if (result.stops.length === 0) {
+      return { route: base.route, steps: base.steps, stops: [], arrivalPercent: result.arrivalPercent };
     }
 
-    let finalPlan: RoutePlan = { route: initialRoute, steps: initialSteps, stops: result.stops, arrivalPercent: result.arrivalPercent };
+    const finalWaypoints = [
+      ...extraWaypoints.map((point) => ({ point: [point.lng, point.lat] as [number, number], km: projectOntoRoute(point.lat, point.lng, base.route.coordinates).km })),
+      ...result.stops.map((stop) => ({ point: [stop.charger.lng, stop.charger.lat] as [number, number], km: stop.distanceFromStart })),
+    ].sort((a, b) => a.km - b.km).map((entry) => entry.point);
 
-    if (result.stops.length > 0) {
-      const finalWaypoints = [
-        ...extraWaypoints.map((point) => ({ point: [point.lng, point.lat] as [number, number], km: projectOntoRoute(point.lat, point.lng, initialRoute.coordinates).km })),
-        ...result.stops.map((stop) => ({ point: [stop.charger.lng, stop.charger.lat] as [number, number], km: stop.distanceFromStart })),
-      ]
-        .sort((a, b) => a.km - b.km)
-        .map((entry) => entry.point);
-      const finalResult = await fetchRouteWithInstructions(
-        [fromCoord.lng, fromCoord.lat],
-        [toCoord.lng, toCoord.lat],
-        finalWaypoints,
-        alternativeIndex,
-        selectedType === "scenic"
-      );
-      if (finalResult) {
-        const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
-        const batteryKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
-        const kmPerMin = finalResult.route.totalDistanceKm > 0 && finalResult.route.totalTimeMin > 0
-          ? finalResult.route.totalDistanceKm / finalResult.route.totalTimeMin
-          : 1.5;
-        let runningKm = 0;
-        let runningBattery = fromBattery;
-        let runningMin = 0;
-        const fixedStops = result.stops
-          .map((stop) => ({
-            ...stop,
-            distanceFromStart: Math.round(projectOntoRoute(stop.charger.lat, stop.charger.lng, finalResult.route.coordinates).km),
-          }))
-          .sort((a, b) => a.distanceFromStart - b.distanceFromStart)
-          .map((stop, idx) => {
-            const legKm = Math.max(0, stop.distanceFromStart - runningKm);
-            const batteryBefore = Math.max(0, Math.round(runningBattery - (legKm / fullRange) * 100));
-            const rawChargerKw = parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
-            const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, selectedModel, carMaxKwOverride);
-            const chargeDurationMin = calculateChargeDuration(batteryBefore, stop.batteryAfter, batteryKWh, chargerSpeedKw);
-            const travelMin = legKm / kmPerMin;
-            runningMin += travelMin;
-            const etaMinFromStart = Math.round(runningMin);
-            runningMin += chargeDurationMin;
-            runningKm = stop.distanceFromStart;
-            runningBattery = stop.batteryAfter;
-            return { ...stop, stopNumber: idx + 1, batteryBefore, chargeDurationMin, etaMinFromStart };
-          });
-        const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
-        finalPlan = {
-          route: finalResult.route,
-          steps: finalResult.steps,
-          stops: fixedStops,
-          arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
-        };
-      } else {
-        finalPlan = { route: initialRoute, steps: initialSteps, stops: result.stops, arrivalPercent: result.arrivalPercent };
-      }
+    const finalResult = await fetchRouteWithInstructions(
+      [fromCoord.lng, fromCoord.lat],
+      [toCoord.lng, toCoord.lat],
+      finalWaypoints,
+      0,
+    );
+    if (!finalResult) {
+      return { route: base.route, steps: base.steps, stops: result.stops, arrivalPercent: result.arrivalPercent };
     }
 
-    return { ok: true, plan: finalPlan };
-  }, [fetchRouteWithInstructions, modelRange, trailerReductionEffective, superchargers, selectedModel, targetArrivalPercent, weatherMode, timeMode, chargeTargetPercent, minChargerSpeedKw, carMaxKwOverride, manualRangeKm]);
+    const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
+    const batteryKWh = batteryCapacityOverride ?? (teslaBatteryKWh[selectedModel] || 79);
+    const kmPerMin = finalResult.route.totalDistanceKm > 0 && finalResult.route.totalTimeMin > 0
+      ? finalResult.route.totalDistanceKm / finalResult.route.totalTimeMin
+      : 1.5;
+    let runningKm = 0;
+    let runningBattery = fromBattery;
+    let runningMin = 0;
+    const fixedStops = result.stops
+      .map((stop) => ({
+        ...stop,
+        distanceFromStart: Math.round(projectOntoRoute(stop.charger.lat, stop.charger.lng, finalResult.route.coordinates).km),
+      }))
+      .sort((a, b) => a.distanceFromStart - b.distanceFromStart)
+      .map((stop, idx) => {
+        const legKm = Math.max(0, stop.distanceFromStart - runningKm);
+        const batteryBefore = Math.max(0, Math.round(runningBattery - (legKm / fullRange) * 100));
+        const rawChargerKw = parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
+        const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, selectedModel, carMaxKwOverride);
+        const chargeDurationMin = calculateChargeDuration(batteryBefore, stop.batteryAfter, batteryKWh, chargerSpeedKw);
+        runningMin += legKm / kmPerMin;
+        const etaMinFromStart = Math.round(runningMin);
+        runningMin += chargeDurationMin;
+        runningKm = stop.distanceFromStart;
+        runningBattery = stop.batteryAfter;
+        return { ...stop, stopNumber: idx + 1, batteryBefore, chargeDurationMin, etaMinFromStart };
+      });
+    const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
+    return {
+      route: finalResult.route,
+      steps: finalResult.steps,
+      stops: fixedStops,
+      arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
+    };
+  }, [batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
 
-
-  const applyPlan = useCallback((type: RouteType, plan: RoutePlan) => {
-    setRouteType(type);
+  const applyPlan = useCallback((index: number, plan: RoutePlan) => {
+    setSelectedRouteIndex(index);
     setRoute(plan.route);
     setRouteSteps(plan.steps);
     setChargingStops(plan.stops);
@@ -535,124 +535,48 @@ function Index() {
     fromCoord: { lat: number; lng: number },
     toCoord: { lat: number; lng: number },
     fromBattery: number,
-    extraWaypoints: { lat: number; lng: number }[]
-  ): Promise<{ ok: boolean; error?: string; plan?: RoutePlan } > => {
-    const altIndexFor = (type: RouteType): number => {
-      if (type === "scenic") return 1;
-      if (type === "trailer") return 2;
-      return 0;
-    };
-    const selected = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, routeType, altIndexFor(routeType));
-    if (!selected.ok || !selected.plan) return { ok: false, error: selected.error };
+    extraWaypoints: PlannedWaypoint[],
+  ): Promise<{ ok: boolean; error?: string; plan?: RoutePlan }> => {
+    const via = extraWaypoints.filter((w) => !w.corridor);
+    const corridors = extraWaypoints.filter((w) => w.corridor);
 
-    const nextPlans: Partial<Record<RouteType, RoutePlan>> = { [routeType]: selected.plan };
-    const nextVariants: Partial<Record<RouteType, RouteResult>> = { [routeType]: selected.plan.route };
+    let bases = await fetchRouteAlternatives(
+      [fromCoord.lng, fromCoord.lat],
+      [toCoord.lng, toCoord.lat],
+      via.map((w) => [w.lng, w.lat] as [number, number]),
+    );
+    if (bases.length === 0) return { ok: false, error: "Kon geen route vinden." };
 
-    {
-      const allTypes: RouteType[] = ["fastest", "fewest", "scenic", "trailer", "manual"];
-      await Promise.all(allTypes.filter((type) => type !== routeType).map(async (type) => {
-        const planned = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, type, altIndexFor(type));
-        if (planned.ok && planned.plan) {
-          const plan = planned.plan;
-          nextPlans[type] = plan;
-          nextVariants[type] = plan.route;
-        }
-      }));
-
-      // Garandeer dat "Minste stops" écht minder stops heeft dan "Snelste".
-      const fewest = nextPlans.fewest;
-      const fastest = nextPlans.fastest;
-      if (fewest && fastest && fewest.stops.length >= fastest.stops.length && fastest.stops.length > 0) {
-        const retry = await computeRoutePlan(fromCoord, toCoord, fromBattery, extraWaypoints, "fewest", 0);
-        if (retry.ok && retry.plan && retry.plan.stops.length < fastest.stops.length) {
-          nextPlans.fewest = retry.plan;
-          nextVariants.fewest = retry.plan.route;
-        }
-      }
-    }
-
-    // Als de gebruiker "Snelste" koos, kies de variant met écht de laagste totaaltijd (rijden + laden).
-    if (routeType === "fastest") {
-      const totalTime = (p: RoutePlan) => p.route.totalTimeMin + p.stops.reduce((s, st) => s + st.chargeDurationMin, 0);
-      let bestType: RouteType = "fastest";
-      let bestPlan = selected.plan;
-      for (const [t, p] of Object.entries(nextPlans) as [RouteType, RoutePlan][]) {
-        if (p && totalTime(p) < totalTime(bestPlan) - 1) { bestType = t; bestPlan = p; }
-      }
-      if (bestType !== "fastest") {
-        nextPlans.fastest = bestPlan;
-        nextVariants.fastest = bestPlan.route;
-      }
-      setRoutePlans(nextPlans);
-      setRouteVariants(nextVariants);
-      applyPlan("fastest", bestPlan);
-      return { ok: true, plan: bestPlan };
-    }
-
-    setRoutePlans(nextPlans);
-    setRouteVariants(nextVariants);
-    applyPlan(routeType, selected.plan);
-    return { ok: true, plan: selected.plan };
-  }, [applyPlan, computeRoutePlan, routeType]);
-
-
-  const handleCalculate = useCallback(async () => {
-    setError("");
-    setRoute(null);
-    setRouteVariants({});
-    setRoutePlans({});
-    setChargingStops([]);
-    setRouteSteps([]);
-    setIsNavigating(false);
-    setArrivalPercent(null);
-
-    if (!startCoord || !destCoord) {
-      setError("Voer start- en bestemmingslocatie in");
-      return;
-    }
-    if (superchargers.length === 0) {
-      setError("Superchargers worden nog geladen. Wacht even en probeer opnieuw.");
-      return;
-    }
-
-    setIsCalculating(true);
-    setLiveBattery(batteryPercent);
-    try {
-      const res = await computeRoute(startCoord, destCoord, batteryPercent, waypoints);
-      if (!res.ok) setError(res.error || "Er ging iets mis.");
-    } catch {
-      setError("Er ging iets mis. Probeer opnieuw.");
-    } finally {
-      setIsCalculating(false);
-    }
-  }, [startCoord, destCoord, superchargers, batteryPercent, waypoints, computeRoute]);
-
-  useEffect(() => { handleCalculateRef.current = handleCalculate; }, [handleCalculate]);
-
-
-  const handleSelectRouteType = useCallback(async (type: RouteType) => {
-    const existing = routePlans[type];
-    if (existing) {
-      applyPlan(type, existing);
-      return;
-    }
-    if (!startCoord || !destCoord) return;
-    setRouteType(type);
-    setIsCalculating(true);
-    try {
-      const planned = await computeRoutePlan(startCoord, destCoord, batteryPercent, waypoints, type, type === "scenic" ? 1 : 0);
-      if (planned.ok && planned.plan) {
-        const plan = planned.plan;
-        setRoutePlans((prev) => ({ ...prev, [type]: plan }));
-        setRouteVariants((prev) => ({ ...prev, [type]: plan.route }));
-        applyPlan(type, plan);
+    // "Langs punt": houd alleen routes die binnen de straal blijven; anders forceer het punt erin.
+    if (corridors.length > 0) {
+      const withinCorridor = bases.filter((base) =>
+        corridors.every((c) => distanceToRoute(c.lat, c.lng, base.route.coordinates) <= c.radiusKm),
+      );
+      if (withinCorridor.length > 0) {
+        bases = withinCorridor;
       } else {
-        setError(planned.error || "Deze routevariant lukt niet.");
+        const forced = await fetchRouteAlternatives(
+          [fromCoord.lng, fromCoord.lat],
+          [toCoord.lng, toCoord.lat],
+          [...via, ...corridors].map((w) => [w.lng, w.lat] as [number, number]),
+        );
+        if (forced.length > 0) bases = forced;
       }
-    } finally {
-      setIsCalculating(false);
     }
-  }, [applyPlan, batteryPercent, computeRoutePlan, destCoord, routePlans, startCoord, waypoints]);
+
+    const plans = (await Promise.all(bases.map((base) => buildPlan(base, fromCoord, toCoord, fromBattery, extraWaypoints))))
+      .filter((plan): plan is RoutePlan => plan !== null);
+
+    if (plans.length === 0) return { ok: false, error: "Deze route is niet mogelijk met deze instellingen." };
+
+    plans.sort((a, b) => a.route.totalDistanceKm - b.route.totalDistanceKm);
+    const limited = plans.slice(0, 5);
+    setRouteOptions(limited);
+    applyPlan(0, limited[0]);
+    return { ok: true, plan: limited[0] };
+  }, [applyPlan, buildPlan, fetchRouteAlternatives]);
+
+
 
   const handleStartNavigation = useCallback(() => {
     if (!route) return;
