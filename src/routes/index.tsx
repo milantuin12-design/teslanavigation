@@ -1101,7 +1101,7 @@ function Index() {
                 trailer_reduction: trailerReductionPercent,
                 weather_mode: weatherMode,
                 time_mode: timeMode,
-                route_type: routeType,
+                route_type: `route-${selectedRouteIndex + 1}`,
                 charger_ids: chargingStops.map(s => s.charger.id).filter((x): x is string => !!x),
                 total_distance_km: route.totalDistanceKm,
                 total_time_min: route.totalTimeMin,
