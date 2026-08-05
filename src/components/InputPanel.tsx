@@ -101,6 +101,83 @@ function parseCoordinateInput(input: string): { lat: number; lng: number } | nul
   return { lat, lng };
 }
 
+interface Suggestion { label: string; lat: number; lng: number }
+
+async function searchPlaces(query: string): Promise<Suggestion[]> {
+  if (query.trim().length < 3) return [];
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&q=${encodeURIComponent(query)}`;
+    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data as { display_name: string; lat: string; lon: string }[]).map((item) => ({
+      label: item.display_name,
+      lat: parseFloat(item.lat),
+      lng: parseFloat(item.lon),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/** Adresveld met suggesties (adressen, winkels, campings, POI's). */
+function PlaceField({
+  value,
+  onChange,
+  onPick,
+  placeholder,
+  accent,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onPick: (s: Suggestion) => void;
+  placeholder: string;
+  accent: string;
+  disabled?: boolean;
+}) {
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    if (parseCoordinateInput(value)) { setSuggestions([]); return; }
+    const id = setTimeout(() => { searchPlaces(value).then(setSuggestions); }, 350);
+    return () => clearTimeout(id);
+  }, [value, open]);
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 180)}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={`w-full rounded-lg border border-slate-600/50 bg-slate-800/70 px-3 py-2 text-sm text-white placeholder-slate-500 transition-all focus:border-${accent}-500/50 focus:outline-none focus:ring-2 focus:ring-${accent}-500/40`}
+      />
+      {open && suggestions.length > 0 && (
+        <ul className="absolute z-30 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-slate-700 bg-slate-900/95 shadow-2xl backdrop-blur">
+          {suggestions.map((s, i) => (
+            <li key={`${s.lat}-${s.lng}-${i}`}>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { onPick(s); setOpen(false); setSuggestions([]); }}
+                className="block w-full px-3 py-2 text-left text-xs text-slate-200 transition-colors hover:bg-white/10"
+              >
+                {s.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 const MIN_SPEEDS = [0, 100, 125, 150, 200, 250];
 
 export default function InputPanel({
@@ -299,16 +376,16 @@ export default function InputPanel({
               Start
             </label>
             <div className="flex gap-2">
-              <input
-                type="text"
-                value={startInput}
-                onChange={e => setStartInput(e.target.value)}
-                onBlur={handleStartBlur}
-                onKeyDown={e => e.key === 'Enter' && handleStartBlur()}
-                placeholder="Amsterdam of 52.3676, 4.9041"
-                className="flex-1 bg-slate-800/70 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all"
-                disabled={isGeocoding}
-              />
+              <div className="flex-1">
+                <PlaceField
+                  value={startInput}
+                  onChange={setStartInput}
+                  onPick={(s) => { setStartInput(s.label); setStartError(''); onStartChange({ lat: s.lat, lng: s.lng }); }}
+                  placeholder="Amsterdam, camping of 52.3676, 4.9041"
+                  accent="blue"
+                  disabled={isGeocoding}
+                />
+              </div>
               <button
                 onClick={handleUseCurrentLocation}
                 className="px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
@@ -334,14 +411,12 @@ export default function InputPanel({
                   <X size={14} />
                 </button>
               </label>
-              <input
-                type="text"
+              <PlaceField
                 value={wp.input}
-                onChange={e => updateWaypoint(wp.id, { input: e.target.value })}
-                onBlur={() => handleWaypointBlur(wp.id)}
-                onKeyDown={e => e.key === 'Enter' && handleWaypointBlur(wp.id)}
+                onChange={(v) => updateWaypoint(wp.id, { input: v })}
+                onPick={(s) => updateWaypoint(wp.id, { input: s.label, coord: { lat: s.lat, lng: s.lng }, error: '' })}
                 placeholder="Antwerpen of 51.2194, 4.4011"
-                className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/50 transition-all"
+                accent="amber"
                 disabled={isGeocoding}
               />
               {wp.error && <p className="text-red-400 text-xs">{wp.error}</p>}
@@ -412,14 +487,12 @@ export default function InputPanel({
               <Navigation size={13} className="text-red-400" />
               Bestemming
             </label>
-            <input
-              type="text"
+            <PlaceField
               value={destInput}
-              onChange={e => setDestInput(e.target.value)}
-              onBlur={handleDestBlur}
-              onKeyDown={e => e.key === 'Enter' && handleDestBlur()}
-              placeholder="Berlijn of 52.5200, 13.4050"
-              className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/50 transition-all"
+              onChange={setDestInput}
+              onPick={(s) => { setDestInput(s.label); setDestError(''); onDestChange({ lat: s.lat, lng: s.lng }); }}
+              placeholder="Berlijn, winkel, camping of 52.5200, 13.4050"
+              accent="red"
               disabled={isGeocoding}
             />
             {destError && <p className="text-red-400 text-xs mt-1">{destError}</p>}
