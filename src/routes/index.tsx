@@ -15,19 +15,19 @@ import { toast } from "sonner";
 import { Bookmark } from "lucide-react";
 import ChargerFilters from "@/components/ChargerFilters";
 import ReportChargerDialog, { type ReportTarget } from "@/components/ReportChargerDialog";
+import OwnerPanel from "@/components/OwnerPanel";
+import SiteUpdatesPopup from "@/components/SiteUpdatesPopup";
+import SplashScreen from "@/components/SplashScreen";
 import {
   Supercharger,
   ChargingStop,
   RouteResult,
   WeatherMode,
   TimeMode,
-  RouteType,
   teslaModels,
   teslaBatteryKWh,
   defaultChargerFilters,
   type ChargerFilterState,
-  type Waypoint,
-  type CorridorPoint,
 } from "@/lib/tesla-types";
 import {
   getAvailableRange,
@@ -118,7 +118,6 @@ function Index() {
   const [trailerReductionPercent, setTrailerReductionPercent] = useState(40);
   const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
 
-  const [routeType, setRouteType] = useState<RouteType>("fastest");
 
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
@@ -145,6 +144,16 @@ function Index() {
     };
     window.addEventListener("sc-report", handler);
     return () => window.removeEventListener("sc-report", handler);
+  }, []);
+
+  // Eigenaar aanklikken in de kaart-popup
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ id: string | null }>).detail;
+      if (detail?.id) setOwnerPanelId(detail.id);
+    };
+    window.addEventListener("sc-owner", handler);
+    return () => window.removeEventListener("sc-owner", handler);
   }, []);
 
 
@@ -246,7 +255,6 @@ function Index() {
       setTrailerReductionPercent(data.trailer_reduction);
       setWeatherMode(data.weather_mode as WeatherMode);
       setTimeMode(data.time_mode as TimeMode);
-      setRouteType(data.route_type as RouteType);
       setPendingLoadCalc(true);
       // Clear query
       window.history.replaceState(null, "", window.location.pathname);
@@ -1087,7 +1095,7 @@ function Index() {
         ownerId={ownerPanelId}
         chargers={superchargers}
         onClose={() => setOwnerPanelId(null)}
-        onSelectCharger={(charger) => {
+        onSelectCharger={(charger: Supercharger) => {
           setFocusCoord({ lat: charger.lat, lng: charger.lng });
           setOwnerPanelId(null);
         }}
