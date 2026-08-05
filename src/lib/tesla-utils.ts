@@ -723,10 +723,10 @@ export function describeChargerStatus(charger: Supercharger): string[] {
     const c = charger.closure || {};
     lines.push(status === 'temp_closed' ? 'Tijdelijk gesloten' : 'Langdurig gesloten');
     if (c.reason) lines.push(`Reden: ${c.reason}`);
-    if (c.until) lines.push(`Tot: ${formatDateNl(c.until)}`);
-    if (charger.reopenAt) lines.push(`Gaat weer open: ${formatDateNl(charger.reopenAt)}`);
+    // Heropendatum is bewust alleen intern (admin) — niet tonen op de kaart.
     if (c.notes) lines.push(c.notes);
   }
+
   const upgrade = charger.plannedUpgrade;
   if (upgrade && (upgrade.label || (upgrade.toConfigs && upgrade.toConfigs.length > 0))) {
     const from = (upgrade.fromConfigs ?? []).map(formatChargerConfig).join(' + ');
