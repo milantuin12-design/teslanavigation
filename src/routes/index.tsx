@@ -1120,6 +1120,18 @@ function Index() {
         </DialogContent>
       </Dialog>
       <ReportChargerDialog target={reportTarget} onClose={() => setReportTarget(null)} />
+      <OwnerPanel
+        ownerId={ownerPanelId}
+        chargers={superchargers}
+        onClose={() => setOwnerPanelId(null)}
+        onSelectCharger={(charger) => {
+          setFocusCoord({ lat: charger.lat, lng: charger.lng });
+          setOwnerPanelId(null);
+        }}
+      />
+      <SiteUpdatesPopup />
+      <SplashScreen show={isLoadingChargers} />
+
     </div>
 
   );
