@@ -149,8 +149,11 @@ function Index() {
 
 
   const [route, setRoute] = useState<RouteResult | null>(null);
-  const [routeVariants, setRouteVariants] = useState<Partial<Record<RouteType, RouteResult>>>({});
-  const [routePlans, setRoutePlans] = useState<Partial<Record<RouteType, RoutePlan>>>({});
+  const [routeOptions, setRouteOptions] = useState<RoutePlan[]>([]);
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState(0);
+  const [ownerPanelId, setOwnerPanelId] = useState<string | null>(null);
+  const [focusCoord, setFocusCoord] = useState<{ lat: number; lng: number } | null>(null);
+
   const [chargingStops, setChargingStops] = useState<ChargingStop[]>([]);
   const [arrivalPercent, setArrivalPercent] = useState<number | null>(null);
   const [routeSteps, setRouteSteps] = useState<RouteStep[]>([]);
