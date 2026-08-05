@@ -134,6 +134,7 @@ function AdminPage() {
   const [coordsInput, setCoordsInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [owners, setOwners] = useState<Owner[]>([]);
+  const [newOwnerName, setNewOwnerName] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
 
@@ -235,6 +236,28 @@ function AdminPage() {
     });
   };
 
+  const publishAllDrafts = async () => {
+    const drafts = chargers.filter((c) => c.published === false);
+    if (drafts.length === 0) { toast.info("Geen concepten om te publiceren"); return; }
+    if (!confirm(`${drafts.length} concepten publiceren?`)) return;
+    const { error } = await supabase.from("superchargers").update({ published: true }).eq("published", false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${drafts.length} concepten gepubliceerd`);
+    load();
+  };
+
+  /** Eigenaar op naam: bestaat hij niet, dan maken we hem aan met alleen een titel. */
+  const ensureOwnerByName = async (name: string): Promise<string | null> => {
+    const trimmed = name.trim();
+    if (!trimmed) return null;
+    const existing = owners.find((o) => o.name.toLowerCase() === trimmed.toLowerCase());
+    if (existing) return existing.id;
+    const { data, error } = await supabase.from("charger_owners").insert({ name: trimmed }).select("id,name").single();
+    if (error || !data) { toast.error(error?.message || "Eigenaar aanmaken mislukt"); return null; }
+    setOwners((prev) => [...prev, data as Owner].sort((a, b) => a.name.localeCompare(b.name)));
+    return data.id;
+  };
+
   const bulkUpdate = async (changes: Partial<Pick<Charger, "trailer_friendly" | "low_speed" | "published" | "owner_id">>) => {
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
@@ -270,6 +293,7 @@ function AdminPage() {
           <div className="flex items-center gap-2">
             <Link to="/eigenaren"><Button variant="outline" size="sm" className="border-slate-700">Eigenaren</Button></Link>
             <Link to="/meldingen"><Button variant="outline" size="sm" className="border-slate-700">Meldingen</Button></Link>
+            <Button variant="outline" size="sm" className="border-slate-700" onClick={publishAllDrafts}>Alle concepten publiceren</Button>
             <Button onClick={openNew} className="bg-red-600 hover:bg-red-700"><Plus className="w-4 h-4 mr-1" /> Nieuw</Button>
           </div>
         </div>
@@ -453,7 +477,27 @@ function AdminPage() {
                   <option value="">Geen eigenaar</option>
                   {owners.map((owner) => <option key={owner.id} value={owner.id}>{owner.name}</option>)}
                 </select>
+                <div className="mt-2 flex gap-2">
+                  <Input
+                    placeholder="Of typ een nieuwe eigenaarsnaam…"
+                    value={newOwnerName}
+                    onChange={(e) => setNewOwnerName(e.target.value)}
+                    className="bg-slate-800 border-slate-700"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-slate-700"
+                    onClick={async () => {
+                      const id = await ensureOwnerByName(newOwnerName);
+                      if (id) { setEditing({ ...editing, owner_id: id }); setNewOwnerName(""); toast.success("Eigenaar gekoppeld"); }
+                    }}
+                  >
+                    Koppel
+                  </Button>
+                </div>
               </div>
+
               <div>
                 <Label>Laders</Label>
                 <div className="space-y-2 mt-2">
