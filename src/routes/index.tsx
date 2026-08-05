@@ -1016,15 +1016,20 @@ function Index() {
         {!isNavigating && (
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
             <AccountMenu />
-            {route && (
-              <div className="flex flex-wrap gap-2 bg-slate-800/90 backdrop-blur px-2 py-1 rounded-lg border border-slate-700">
-                {(Object.entries(routePlans) as [RouteType, RoutePlan][]).sort(([, a], [, b]) => a.route.totalDistanceKm - b.route.totalDistanceKm).slice(0, 5).map(([t, plan]) => (
-                  <button key={t} onClick={() => handleSelectRouteType(t)} className={`px-2 py-1 text-xs rounded ${routeType===t?"bg-red-600 text-white":"text-slate-300 hover:text-white"}`}>
-                    {t==="fastest"?"Snelste":t==="fewest"?"Minste stops":t==="scenic"?"Toeristisch":t==="trailer"?"Aanhanger":"Handmatig"} · {plan.route.totalDistanceKm} km
+            {routeOptions.length > 0 && (
+              <div className="glass-panel flex flex-wrap gap-1.5 rounded-xl px-2 py-1.5">
+                {routeOptions.map((plan, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSelectRoute(i)}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${selectedRouteIndex === i ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30" : "text-slate-300 hover:bg-white/10 hover:text-white"}`}
+                  >
+                    Route {i + 1} · {plan.route.totalDistanceKm} km · {plan.stops.length} stop{plan.stops.length === 1 ? "" : "s"}
                   </button>
                 ))}
               </div>
             )}
+
 
             {route && currentUser && (
               <Button size="sm" onClick={() => setSaveOpen(true)} className="bg-red-600 hover:bg-red-700"><Bookmark className="w-4 h-4 mr-1" />Opslaan</Button>
