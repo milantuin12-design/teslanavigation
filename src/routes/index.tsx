@@ -576,6 +576,42 @@ function Index() {
     return { ok: true, plan: limited[0] };
   }, [applyPlan, buildPlan, fetchRouteAlternatives]);
 
+  const handleCalculate = useCallback(async () => {
+    setError("");
+    setRoute(null);
+    setRouteOptions([]);
+    setChargingStops([]);
+    setRouteSteps([]);
+    setIsNavigating(false);
+    setArrivalPercent(null);
+
+    if (!startCoord || !destCoord) {
+      setError("Voer start- en bestemmingslocatie in");
+      return;
+    }
+    if (superchargers.length === 0) {
+      setError("Superchargers worden nog geladen. Wacht even en probeer opnieuw.");
+      return;
+    }
+
+    setIsCalculating(true);
+    setLiveBattery(batteryPercent);
+    try {
+      const res = await computeRoute(startCoord, destCoord, batteryPercent, waypoints);
+      if (!res.ok) setError(res.error || "Er ging iets mis.");
+    } catch {
+      setError("Er ging iets mis. Probeer opnieuw.");
+    } finally {
+      setIsCalculating(false);
+    }
+  }, [startCoord, destCoord, superchargers, batteryPercent, waypoints, computeRoute]);
+
+  useEffect(() => { handleCalculateRef.current = handleCalculate; }, [handleCalculate]);
+
+  const handleSelectRoute = useCallback((index: number) => {
+    const plan = routeOptions[index];
+    if (plan) applyPlan(index, plan);
+  }, [applyPlan, routeOptions]);
 
 
   const handleStartNavigation = useCallback(() => {
