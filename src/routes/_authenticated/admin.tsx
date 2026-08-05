@@ -476,7 +476,27 @@ function AdminPage() {
                   <option value="">Geen eigenaar</option>
                   {owners.map((owner) => <option key={owner.id} value={owner.id}>{owner.name}</option>)}
                 </select>
+                <div className="mt-2 flex gap-2">
+                  <Input
+                    placeholder="Of typ een nieuwe eigenaarsnaam…"
+                    value={newOwnerName}
+                    onChange={(e) => setNewOwnerName(e.target.value)}
+                    className="bg-slate-800 border-slate-700"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-slate-700"
+                    onClick={async () => {
+                      const id = await ensureOwnerByName(newOwnerName);
+                      if (id) { setEditing({ ...editing, owner_id: id }); setNewOwnerName(""); toast.success("Eigenaar gekoppeld"); }
+                    }}
+                  >
+                    Koppel
+                  </Button>
+                </div>
               </div>
+
               <div>
                 <Label>Laders</Label>
                 <div className="space-y-2 mt-2">
