@@ -391,7 +391,11 @@ export default function InputPanel({
               <div className="flex-1">
                 <PlaceField
                   value={startInput}
-                  onChange={setStartInput}
+                  onChange={(value) => {
+                    setStartInput(value);
+                    const coord = parseCoordinateInput(value);
+                    if (coord) { setStartError(''); onStartChange(coord); }
+                  }}
                   onPick={(s) => { setStartInput(s.label); setStartError(''); onStartChange({ lat: s.lat, lng: s.lng }); }}
                   placeholder="Amsterdam, camping of 52.3676, 4.9041"
                   accent="blue"
@@ -426,7 +430,10 @@ export default function InputPanel({
               </label>
               <PlaceField
                 value={wp.input}
-                onChange={(v) => updateWaypoint(wp.id, { input: v })}
+                onChange={(value) => {
+                  const coord = parseCoordinateInput(value);
+                  updateWaypoint(wp.id, { input: value, ...(coord ? { coord, error: '' } : {}) });
+                }}
                 onPick={(s) => updateWaypoint(wp.id, { input: s.label, coord: { lat: s.lat, lng: s.lng }, error: '' })}
                 placeholder="Antwerpen of 51.2194, 4.4011"
                 accent="amber"
@@ -503,7 +510,11 @@ export default function InputPanel({
             </label>
             <PlaceField
               value={destInput}
-              onChange={setDestInput}
+              onChange={(value) => {
+                setDestInput(value);
+                const coord = parseCoordinateInput(value);
+                if (coord) { setDestError(''); onDestChange(coord); }
+              }}
               onPick={(s) => { setDestInput(s.label); setDestError(''); onDestChange({ lat: s.lat, lng: s.lng }); }}
               placeholder="Berlijn, winkel, camping of 52.5200, 13.4050"
               accent="red"
