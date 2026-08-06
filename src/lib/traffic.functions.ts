@@ -1,45 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
-
-const pointSchema = z.object({ lat: z.number(), lng: z.number() });
-
-const input = z.object({
-  origin: pointSchema,
-  destination: pointSchema,
-  waypoints: z.array(pointSchema).max(20).default([]),
-  avoidHighways: z.boolean().default(false),
-  alternatives: z.boolean().default(true),
-});
-
-function decodePolyline(encoded: string): [number, number][] {
-  const coords: [number, number][] = [];
-  let index = 0;
-  let lat = 0;
-  let lng = 0;
-  while (index < encoded.length) {
-    let result = 0;
-    let shift = 0;
-    let byte: number;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lat += result & 1 ? ~(result >> 1) : result >> 1;
-
-    result = 0;
-    shift = 0;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lng += result & 1 ? ~(result >> 1) : result >> 1;
-
-    coords.push([lng / 1e5, lat / 1e5]);
-  }
-  return coords;
-}
+import { decodeTrafficPolyline, trafficInput } from "./traffic.server";
 
 export type TrafficRoute = {
   coordinates: [number, number][];
@@ -54,7 +14,7 @@ export type TrafficRoute = {
  * verkeersbron beschikbaar is, zodat de client op de offline berekening terugvalt.
  */
 export const fetchTrafficRoutes = createServerFn({ method: "POST" })
-  .inputValidator((raw: unknown) => input.parse(raw))
+  .inputValidator((raw: unknown) => trafficInput.parse(raw))
   .handler(async ({ data }): Promise<TrafficRoute[] | null> => {
     const key = process.env["GOOGLE_MAPS_API_KEY"];
     if (!key) return null;
@@ -103,7 +63,7 @@ export const fetchTrafficRoutes = createServerFn({ method: "POST" })
           const encoded = r.polyline?.encodedPolyline;
           if (!encoded) return null;
           return {
-            coordinates: decodePolyline(encoded),
+            coordinates: decodeTrafficPolyline(encoded),
             totalDistanceKm: Math.round(((r.distanceMeters ?? 0) / 1000) * 10) / 10,
             totalTimeMin: Math.round(secs / 60),
             delayMin: Math.max(0, Math.round((secs - staticSecs) / 60)),

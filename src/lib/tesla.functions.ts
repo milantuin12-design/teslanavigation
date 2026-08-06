@@ -60,7 +60,9 @@ type Row = {
 
 const LIFECYCLE: ChargerLifecycleStatus[] = ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed'];
 
-function rowToCharger(row: Row, owners?: Map<string, { name: string; logo_url: string | null }>): Supercharger {
+type OwnerRow = { name: string; logo_url: string | null; description: string | null; website: string | null; contact: string | null; notes: string | null };
+
+function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
   const normalized = normalizeStallData(row.total_stalls, row.stall_types);
   const chargerConfigs = normalizeChargerConfigs(row.charger_configs).length > 0
     ? normalizeChargerConfigs(row.charger_configs)
@@ -82,7 +84,9 @@ function rowToCharger(row: Row, owners?: Map<string, { name: string; logo_url: s
     country: row.country ?? undefined,
     province: row.province ?? undefined,
     city: row.city ?? undefined,
-    maxSpeedKw: getMaxSpeedFromConfigs(chargerConfigs) ?? row.max_speed_kw ?? undefined,
+    // max_speed_kw is an effective site limit and may deliberately be lower
+    // than the hardware rating in charger_configs.
+    maxSpeedKw: row.max_speed_kw ?? getMaxSpeedFromConfigs(chargerConfigs) ?? undefined,
     versions: getVersionsFromConfigs(chargerConfigs).length > 0 ? getVersionsFromConfigs(chargerConfigs) : row.versions ?? [],
     chargerConfigs,
     openingHours: normalizeOpeningHours(row.opening_hours, row.opening_time, row.closing_time),
@@ -99,6 +103,10 @@ function rowToCharger(row: Row, owners?: Map<string, { name: string; logo_url: s
     ownerId: row.owner_id,
     ownerName: owner?.name ?? null,
     ownerLogoUrl: owner?.logo_url ?? null,
+    ownerDescription: owner?.description ?? null,
+    ownerWebsite: owner?.website ?? null,
+    ownerContact: owner?.contact ?? null,
+    ownerNotes: owner?.notes ?? null,
     lowSpeed: !!row.low_speed,
     published: row.published !== false,
     notes: row.notes,
@@ -126,10 +134,10 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
       if (!data || data.length < pageSize) break;
     }
 
-    const { data: ownerRows } = await supabaseAdmin.from("charger_owners").select("id,name,logo_url");
-    const owners = new Map<string, { name: string; logo_url: string | null }>();
-    for (const o of (ownerRows ?? []) as { id: string; name: string; logo_url: string | null }[]) {
-      owners.set(o.id, { name: o.name, logo_url: o.logo_url });
+    const { data: ownerRows } = await supabaseAdmin.from("charger_owners").select("id,name,logo_url,description,website,contact,notes");
+    const owners = new Map<string, OwnerRow>();
+    for (const o of (ownerRows ?? []) as (OwnerRow & { id: string })[]) {
+      owners.set(o.id, o);
     }
     return rows.map((row) => rowToCharger(row, owners));
   }

@@ -16,6 +16,10 @@ export default function OwnerPanel({ ownerId, chargers, onClose, onSelectCharger
   const first = owned[0];
   const name = first?.ownerName ?? "Onbekende eigenaar";
   const logo = first?.ownerLogoUrl ?? null;
+  const description = first?.ownerDescription ?? null;
+  const website = first?.ownerWebsite ?? null;
+  const contact = first?.ownerContact ?? null;
+  const notes = first?.ownerNotes ?? null;
 
   return (
     <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm animate-fade-in">
@@ -38,6 +42,19 @@ export default function OwnerPanel({ ownerId, chargers, onClose, onSelectCharger
             <X size={18} />
           </button>
         </div>
+
+        {(description || website || contact || notes) && (
+          <div className="mt-4 space-y-2 border-y border-slate-700/70 py-3 text-sm text-slate-300">
+            {description && <p>{description}</p>}
+            {website && (
+              <a href={website} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-blue-300 hover:text-blue-200">
+                <ExternalLink size={14} /> Website bekijken
+              </a>
+            )}
+            {contact && <p><span className="text-slate-500">Contact:</span> {contact}</p>}
+            {notes && <p className="text-xs text-slate-400">{notes}</p>}
+          </div>
+        )}
 
         <ul className="mt-4 space-y-1.5 overflow-y-auto pr-1">
           {owned.map((charger) => (
