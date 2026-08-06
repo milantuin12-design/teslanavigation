@@ -21,6 +21,7 @@ interface EvMapProps {
   showDrafts?: boolean;
   /** Zoom naar deze locatie zodra hij verandert. */
   focusCoord?: { lat: number; lng: number } | null;
+  waypoints?: { lat: number; lng: number; label: string; corridor: boolean; charge: boolean; chargeTo: number }[];
 }
 
 
@@ -34,6 +35,13 @@ const startIcon = L.divIcon({
 const destIcon = L.divIcon({
   className: 'custom-marker',
   html: `<div style="width:28px;height:28px;border-radius:50%;background:#ef4444;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;">B</div>`,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});
+
+const waypointIcon = L.divIcon({
+  className: 'custom-marker',
+  html: `<div style="width:28px;height:28px;border-radius:50%;background:#16a34a;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:800;">T</div>`,
   iconSize: [28, 28],
   iconAnchor: [14, 14],
 });
@@ -126,7 +134,7 @@ function groupChargerConfigs(configs: ChargerConfig[]): string[] {
   });
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [] }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -347,7 +355,15 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     if (destCoord) {
       markersRef.current.addLayer(L.marker([destCoord.lat, destCoord.lng], { icon: destIcon }));
     }
-  }, [startCoord, destCoord, superchargers, chargingStops, statusTick, showDrafts]);
+    waypoints.forEach((waypoint) => {
+      const marker = L.marker([waypoint.lat, waypoint.lng], { icon: waypointIcon });
+      const detail = waypoint.corridor
+        ? `Route binnen de ingestelde straal`
+        : waypoint.charge ? `Tussenstop · opladen tot ${waypoint.chargeTo}%` : 'Tussenstop';
+      marker.bindPopup(`<div style="font-family:system-ui;font-size:13px"><strong>${escapeHtml(waypoint.label || 'Tussenstop')}</strong><br/>${detail}</div>`);
+      markersRef.current.addLayer(marker);
+    });
+  }, [startCoord, destCoord, superchargers, chargingStops, statusTick, showDrafts, waypoints]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -382,7 +398,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           const latLngs: L.LatLngExpression[] = variantRoute.coordinates.map(([lng, lat]) => [lat, lng] as L.LatLngExpression);
           const selected = type === selectedRouteType;
           const polyline = L.polyline(latLngs, {
-            color: selected ? '#3b82f6' : '#94a3b8',
+            color: selected ? ((variantRoute.trafficDelayMin ?? 0) >= 20 ? '#ef4444' : (variantRoute.trafficDelayMin ?? 0) >= 8 ? '#f59e0b' : '#3b82f6') : '#94a3b8',
             weight: selected ? 5 : 3,
             opacity: selected ? 0.95 : 0.55,
             smoothFactor: 1,
@@ -405,7 +421,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         );
 
         const polyline = L.polyline(latLngs, {
-          color: '#3b82f6',
+          color: (route.trafficDelayMin ?? 0) >= 20 ? '#ef4444' : (route.trafficDelayMin ?? 0) >= 8 ? '#f59e0b' : '#3b82f6',
           weight: 4,
           opacity: 0.85,
           smoothFactor: 1,
@@ -424,7 +440,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     const map = mapRef.current;
     if (!map || !isNavigating || !currentPosition) return;
     const now = Date.now();
-    if (now < followPausedUntilRef.current || now - lastAutoPanRef.current < 300) return;
+    if (now < followPausedUntilRef.current || now - lastAutoPanRef.current < 80) return;
     lastAutoPanRef.current = now;
 
     const targetZoom = 16;
@@ -434,11 +450,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         duration: 1.2,
       });
     } else {
-      map.panTo([currentPosition.lat, currentPosition.lng], {
-        animate: true,
-        duration: 1.2,
-        easeLinearity: 0.25,
-      });
+      // GPS itself is interpolated; another overlapping Leaflet animation causes jitter.
+      map.panTo([currentPosition.lat, currentPosition.lng], { animate: false });
     }
   }, [currentPosition, isNavigating]);
 

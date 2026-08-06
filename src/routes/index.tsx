@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import EvMap from "@/components/EvMap";
 import InputPanel, { type PlannedWaypoint } from "@/components/InputPanel";
 import ChargingStops from "@/components/ChargingStops";
@@ -40,7 +41,10 @@ import {
   haversineDistance,
   isChargerOperationalAt,
   matchesChargerFilters,
+  elevationConsumptionMultiplier,
+  fetchElevationProfile,
 } from "@/lib/tesla-utils";
+import { fetchTrafficRoutes } from "@/lib/traffic.functions";
 
 import { listSuperchargers } from "@/lib/tesla.functions";
 
@@ -117,6 +121,8 @@ function Index() {
   const [trailerEnabled, setTrailerEnabled] = useState(false);
   const [trailerReductionPercent, setTrailerReductionPercent] = useState(40);
   const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
+  const [avoidLowSpeed, setAvoidLowSpeed] = useState(false);
+  const [onlineTraffic, setOnlineTraffic] = useState(false);
 
 
   const [saveOpen, setSaveOpen] = useState(false);
@@ -167,6 +173,7 @@ function Index() {
   const [arrivalPercent, setArrivalPercent] = useState<number | null>(null);
   const [routeSteps, setRouteSteps] = useState<RouteStep[]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [calculationProgress, setCalculationProgress] = useState(0);
   const [error, setError] = useState("");
   const [isLoadingChargers, setIsLoadingChargers] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -185,6 +192,8 @@ function Index() {
   const prevPositionRef = useRef<{ lat: number; lng: number } | null>(null);
   const displayedPositionRef = useRef<{ lat: number; lng: number } | null>(null);
   const gpsAnimationFrameRef = useRef<number | null>(null);
+  const calculationIdRef = useRef(0);
+  const fetchTrafficRoutesFn = useServerFn(fetchTrafficRoutes);
 
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
@@ -302,7 +311,8 @@ function Index() {
           }
           const start = performance.now();
           const durationMs = 1100;
-          const animate = (now: number) => {
+           let lastPaint = 0;
+           const animate = (now: number) => {
             const t = Math.min(1, (now - start) / durationMs);
             const eased = 1 - Math.pow(1 - t, 3);
             const interpolated = {
@@ -310,7 +320,11 @@ function Index() {
               lng: from.lng + (newPos.lng - from.lng) * eased,
             };
             displayedPositionRef.current = interpolated;
-            setCurrentPosition(interpolated);
+             // 20fps is visually smooth while avoiding a full React/map redraw at 60fps.
+             if (now - lastPaint >= 50 || t >= 1) {
+               lastPaint = now;
+               setCurrentPosition(interpolated);
+             }
             if (t < 1) gpsAnimationFrameRef.current = requestAnimationFrame(animate);
           };
           gpsAnimationFrameRef.current = requestAnimationFrame(animate);
@@ -371,7 +385,7 @@ function Index() {
     for (const osrmUrl of osrmUrls) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
+         const timeoutId = setTimeout(() => controller.abort(), 5500);
         const response = await fetch(osrmUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
         if (response.ok) {
@@ -460,6 +474,12 @@ function Index() {
     fromBattery: number,
     extraWaypoints: { lat: number; lng: number }[],
   ): Promise<RoutePlan | null> => {
+    const elevationProfile = await fetchElevationProfile(base.route.coordinates);
+    const elevation = elevationProfile
+      ? elevationConsumptionMultiplier(elevationProfile, base.route.totalDistanceKm)
+      : { multiplier: 1, ascentM: 0, descentM: 0 };
+    const folkestone = distanceToRoute(51.096, 1.132, base.route.coordinates) < 15;
+    const coquelles = distanceToRoute(50.934, 1.811, base.route.coordinates) < 15;
     const result = calculateChargingStops(base.route, {
       modelRangeKm: modelRange,
       batteryPercent: fromBattery,
@@ -476,6 +496,9 @@ function Index() {
       maxArrivalAtChargerPercent: chargerArrivalTarget,
       preferTrailerFriendly,
       excludeParkingGarage: preferTrailerFriendly,
+      avoidLowSpeed,
+      allowEurotunnel: folkestone && coquelles,
+      consumptionMultiplier: elevation.multiplier,
     });
 
     if (result.unreachable) return null;
@@ -527,12 +550,12 @@ function Index() {
       });
     const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
     return {
-      route: finalResult.route,
+      route: { ...finalResult.route, trafficDelayMin: base.route.trafficDelayMin },
       steps: finalResult.steps,
       stops: fixedStops,
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
     };
-  }, [batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
+  }, [avoidLowSpeed, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
 
   const applyPlan = useCallback((index: number, plan: RoutePlan) => {
     setSelectedRouteIndex(index);
@@ -548,14 +571,30 @@ function Index() {
     fromBattery: number,
     extraWaypoints: PlannedWaypoint[],
   ): Promise<{ ok: boolean; error?: string; plan?: RoutePlan }> => {
+    const calculationId = ++calculationIdRef.current;
     const via = extraWaypoints.filter((w) => !w.corridor);
     const corridors = extraWaypoints.filter((w) => w.corridor);
+    setCalculationProgress(8);
 
-    let bases = await fetchRouteAlternatives(
+    const basePromise = fetchRouteAlternatives(
       [fromCoord.lng, fromCoord.lat],
       [toCoord.lng, toCoord.lat],
       via.map((w) => [w.lng, w.lat] as [number, number]),
     );
+    const trafficPromise = onlineTraffic
+      ? fetchTrafficRoutesFn({ data: { origin: fromCoord, destination: toCoord, waypoints: via.map(({ lat, lng }) => ({ lat, lng })), avoidHighways: false, alternatives: true } })
+      : Promise.resolve(null);
+    const [offlineBases, trafficRoutes] = await Promise.all([basePromise, trafficPromise]);
+    if (calculationId !== calculationIdRef.current) return { ok: false, error: "Berekening vervangen." };
+    setCalculationProgress(32);
+    let bases = offlineBases;
+    if (trafficRoutes && trafficRoutes.length > 0) {
+      const trafficBases = trafficRoutes.map((trafficRoute) => ({
+        route: { coordinates: trafficRoute.coordinates, totalDistanceKm: trafficRoute.totalDistanceKm, totalTimeMin: trafficRoute.totalTimeMin, trafficDelayMin: trafficRoute.delayMin },
+        steps: [] as RouteStep[],
+      }));
+      bases = [...trafficBases, ...bases].filter((candidate, index, all) => all.findIndex((other) => Math.abs(other.route.totalDistanceKm - candidate.route.totalDistanceKm) < 3) === index).slice(0, 5);
+    }
     if (bases.length === 0) return { ok: false, error: "Kon geen route vinden." };
 
     // "Langs punt": houd alleen routes die binnen de straal blijven; anders forceer het punt erin.
@@ -574,9 +613,17 @@ function Index() {
         if (forced.length > 0) bases = forced;
       }
     }
+    setCalculationProgress(48);
 
-    const plans = (await Promise.all(bases.map((base) => buildPlan(base, fromCoord, toCoord, fromBattery, extraWaypoints))))
+    let completed = 0;
+    const plans = (await Promise.all(bases.map(async (base) => {
+      const plan = await buildPlan(base, fromCoord, toCoord, fromBattery, extraWaypoints);
+      completed += 1;
+      if (calculationId === calculationIdRef.current) setCalculationProgress(48 + Math.round((completed / bases.length) * 47));
+      return plan;
+    })))
       .filter((plan): plan is RoutePlan => plan !== null);
+    if (calculationId !== calculationIdRef.current) return { ok: false, error: "Berekening vervangen." };
 
     if (plans.length === 0) return { ok: false, error: "Deze route is niet mogelijk met deze instellingen." };
 
@@ -584,17 +631,13 @@ function Index() {
     const limited = plans.slice(0, 5);
     setRouteOptions(limited);
     applyPlan(0, limited[0]);
+    setCalculationProgress(100);
     return { ok: true, plan: limited[0] };
-  }, [applyPlan, buildPlan, fetchRouteAlternatives]);
+  }, [applyPlan, buildPlan, fetchRouteAlternatives, fetchTrafficRoutesFn, onlineTraffic]);
 
   const handleCalculate = useCallback(async () => {
     setError("");
-    setRoute(null);
-    setRouteOptions([]);
-    setChargingStops([]);
-    setRouteSteps([]);
     setIsNavigating(false);
-    setArrivalPercent(null);
 
     if (!startCoord || !destCoord) {
       setError("Voer start- en bestemmingslocatie in");
@@ -606,6 +649,7 @@ function Index() {
     }
 
     setIsCalculating(true);
+    setCalculationProgress(2);
     setLiveBattery(batteryPercent);
     try {
       const res = await computeRoute(startCoord, destCoord, batteryPercent, waypoints);
@@ -932,6 +976,8 @@ function Index() {
               onWeatherModeChange={setWeatherMode}
               onTimeModeChange={setTimeMode}
               onMinChargerSpeedChange={setMinChargerSpeedKw}
+              onAvoidLowSpeedChange={setAvoidLowSpeed}
+              onOnlineTrafficChange={setOnlineTraffic}
               onManualRangeChange={setManualRangeKm}
               onManualSpeedChange={setManualSpeedKw}
               manualRangeKm={manualRangeKm}
@@ -948,7 +994,10 @@ function Index() {
               weatherMode={weatherMode}
               timeMode={timeMode}
               minChargerSpeedKw={minChargerSpeedKw}
+              avoidLowSpeed={avoidLowSpeed}
+              onlineTraffic={onlineTraffic}
               isCalculating={isCalculating}
+              calculationProgress={calculationProgress}
               totalDistanceKm={route?.totalDistanceKm ?? null}
               totalTimeMin={route?.totalTimeMin ?? null}
               chargingStopsCount={chargingStops.length}
@@ -1027,6 +1076,7 @@ function Index() {
           isNavigating={isNavigating}
           heading={currentHeading}
           headingUp={headingUp}
+          waypoints={waypoints}
         />
 
         {isNavigating && (

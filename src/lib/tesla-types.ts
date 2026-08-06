@@ -141,6 +141,10 @@ export interface Supercharger {
   ownerId?: string | null;
   ownerName?: string | null;
   ownerLogoUrl?: string | null;
+  ownerDescription?: string | null;
+  ownerWebsite?: string | null;
+  ownerContact?: string | null;
+  ownerNotes?: string | null;
   lowSpeed?: boolean;
   published?: boolean;
   notes?: string | null;
@@ -166,6 +170,8 @@ export interface RouteResult {
   coordinates: [number, number][];
   totalDistanceKm: number;
   totalTimeMin: number;
+  /** Live vertraging t.o.v. vrije doorstroming. */
+  trafficDelayMin?: number;
 }
 
 export type ChargerStatus =

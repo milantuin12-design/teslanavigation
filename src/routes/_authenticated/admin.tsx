@@ -183,7 +183,7 @@ function AdminPage() {
       country: editing.country || "",
       total_stalls: totalFromConfigs(editing.charger_configs),
       stall_types: configSummary(editing.charger_configs).replaceAll(" · ", " - "),
-      max_speed_kw: maxSpeedFromConfigs(editing.charger_configs),
+      max_speed_kw: editing.max_speed_kw ?? maxSpeedFromConfigs(editing.charger_configs),
       versions: versionsFromConfigs(editing.charger_configs),
       opening_hours: normalizeOpeningHours(editing.opening_hours, editing.opening_time, editing.closing_time) as unknown as Json,
       opening_time: editing.opening_time || null,
@@ -531,6 +531,11 @@ function AdminPage() {
                   </Button>
                   <p className="text-xs text-slate-400">Voorbeeld: 8 V2 laders 150kW en 16 V3 laders 250kW.</p>
                 </div>
+              </div>
+              <div>
+                <Label>Werkelijke maximale snelheid (optioneel)</Label>
+                <Input type="number" min={1} value={editing.max_speed_kw ?? ""} onChange={(e) => setEditing({ ...editing, max_speed_kw: e.target.value ? parseInt(e.target.value) : null })} placeholder="Bijv. 50 wanneer 150kW-hardware begrensd is" className="bg-slate-800 border-slate-700" />
+                <p className="mt-1 text-xs text-slate-400">Overschrijft de snelheid van de laderregels voor route- en laadtijdberekeningen.</p>
               </div>
               <div>
                 <Label>Versies</Label>

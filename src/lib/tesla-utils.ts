@@ -161,8 +161,11 @@ export function formatOpeningHoursSummary(charger: Supercharger): string {
 
 export function parseMaxSpeed(stallTypes?: string, maxSpeedKw?: number, chargerConfigs?: ChargerConfig[]): number {
   const configSpeed = getMaxSpeedFromConfigs(chargerConfigs);
-  if (configSpeed) return configSpeed;
+  // A manually entered site limit can intentionally be lower than the
+  // hardware rating (for example V2 hardware capped at 50kW).
+  if (typeof maxSpeedKw === 'number' && maxSpeedKw > 0 && configSpeed) return Math.min(maxSpeedKw, configSpeed);
   if (typeof maxSpeedKw === 'number' && maxSpeedKw > 0) return maxSpeedKw;
+  if (configSpeed) return configSpeed;
   if (!stallTypes) return 150;
   const speeds = stallTypes.match(/(\d+)\s*kw/gi);
   if (speeds && speeds.length > 0) return Math.max(...speeds.map(s => parseInt(s, 10)));
@@ -342,6 +345,10 @@ export interface CalcChargingOptions {
   preferTrailerFriendly?: boolean;
   /** Exclude chargers inside parking garages (trailer routes cannot enter). */
   excludeParkingGarage?: boolean;
+  /** Vermijd locaties die door de admin als lage laadsnelheid zijn gemarkeerd. */
+  avoidLowSpeed?: boolean;
+  /** Eurotunnel-laders zijn alleen geldig wanneer de route daadwerkelijk door de tunnel gaat. */
+  allowEurotunnel?: boolean;
   /** Time of departure — used to filter out chargers that are closed at arrival. */
   departureTime?: Date;
   /** >1 = meer verbruik (klimmen), <1 = minder verbruik (dalen/regeneratie). */
@@ -373,6 +380,8 @@ export function calculateChargingStops(
     trailerOnly = false,
     preferTrailerFriendly = false,
     excludeParkingGarage = false,
+    avoidLowSpeed = false,
+    allowEurotunnel = false,
     departureTime = new Date(),
     consumptionMultiplier = 1,
   } = opts;
@@ -387,8 +396,11 @@ export function calculateChargingStops(
 
   let filtered = chargers.filter(c => {
     const lifecycle = c.status ?? 'operational';
+    if (c.published === false) return false;
     if (lifecycle !== 'operational' && lifecycle !== 'works') return false;
     if (c.isAvailable === false) return false;
+    if (avoidLowSpeed && c.lowSpeed) return false;
+    if (!allowEurotunnel && /eurotunnel/i.test(c.name)) return false;
     return parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) >= minChargerSpeedKw;
   });
 
@@ -821,7 +833,10 @@ export async function fetchElevationProfile(coords: [number, number][]): Promise
     const pts = sampleRoutePoints(coords, 90);
     const lat = pts.map((p) => p[1].toFixed(4)).join(',');
     const lng = pts.map((p) => p[0].toFixed(4)).join(',');
-    const res = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lng}`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2500);
+    const res = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lng}`, { signal: controller.signal });
+    clearTimeout(timeout);
     if (!res.ok) return null;
     const json = (await res.json()) as { elevation?: number[] };
     return Array.isArray(json.elevation) ? json.elevation : null;

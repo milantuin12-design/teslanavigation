@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Moon, Gauge } from 'lucide-react';
+import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Moon, Gauge, LoaderCircle } from 'lucide-react';
 import { teslaModels, WeatherMode, TimeMode, teslaMaxChargeKw } from '@/lib/tesla-types';
 
 interface Waypoint {
@@ -38,6 +38,8 @@ interface InputPanelProps {
   onWeatherModeChange: (mode: WeatherMode) => void;
   onTimeModeChange: (mode: TimeMode) => void;
   onMinChargerSpeedChange: (kw: number) => void;
+  onAvoidLowSpeedChange: (value: boolean) => void;
+  onOnlineTrafficChange: (value: boolean) => void;
   onManualRangeChange?: (km: number) => void;
   onManualSpeedChange?: (kw: number) => void;
   onCalculate: () => void;
@@ -53,9 +55,12 @@ interface InputPanelProps {
   weatherMode: WeatherMode;
   timeMode: TimeMode;
   minChargerSpeedKw: number;
+  avoidLowSpeed: boolean;
+  onlineTraffic: boolean;
   manualRangeKm?: number;
   manualSpeedKw?: number;
   isCalculating: boolean;
+  calculationProgress: number;
   totalDistanceKm: number | null;
   totalTimeMin: number | null;
   chargingStopsCount: number;
@@ -128,6 +133,7 @@ function PlaceField({
   placeholder,
   accent,
   disabled,
+  onFieldBlur,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -135,6 +141,7 @@ function PlaceField({
   placeholder: string;
   accent: string;
   disabled?: boolean;
+  onFieldBlur?: () => void;
 }) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
@@ -153,7 +160,7 @@ function PlaceField({
         value={value}
         onChange={(e) => { onChange(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 180)}
+        onBlur={() => { onFieldBlur?.(); setTimeout(() => setOpen(false), 180); }}
         placeholder={placeholder}
         disabled={disabled}
         className={`w-full rounded-lg border border-slate-600/50 bg-slate-800/70 px-3 py-2 text-sm text-white placeholder-slate-500 transition-all focus:border-${accent}-500/50 focus:outline-none focus:ring-2 focus:ring-${accent}-500/40`}
@@ -192,6 +199,8 @@ export default function InputPanel({
   onWeatherModeChange,
   onTimeModeChange,
   onMinChargerSpeedChange,
+  onAvoidLowSpeedChange,
+  onOnlineTrafficChange,
   onManualRangeChange,
   onManualSpeedChange,
   onCalculate,
@@ -210,10 +219,13 @@ export default function InputPanel({
   weatherMode,
   timeMode,
   minChargerSpeedKw,
+  avoidLowSpeed,
+  onlineTraffic,
   manualRangeKm = 400,
   manualSpeedKw = 250,
 
   isCalculating,
+  calculationProgress,
   totalDistanceKm,
   totalTimeMin,
   chargingStopsCount,
@@ -384,6 +396,7 @@ export default function InputPanel({
                   placeholder="Amsterdam, camping of 52.3676, 4.9041"
                   accent="blue"
                   disabled={isGeocoding}
+                  onFieldBlur={handleStartBlur}
                 />
               </div>
               <button
@@ -418,6 +431,7 @@ export default function InputPanel({
                 placeholder="Antwerpen of 51.2194, 4.4011"
                 accent="amber"
                 disabled={isGeocoding}
+                onFieldBlur={() => handleWaypointBlur(wp.id)}
               />
               {wp.error && <p className="text-red-400 text-xs">{wp.error}</p>}
 
@@ -494,6 +508,7 @@ export default function InputPanel({
               placeholder="Berlijn, winkel, camping of 52.5200, 13.4050"
               accent="red"
               disabled={isGeocoding}
+              onFieldBlur={handleDestBlur}
             />
             {destError && <p className="text-red-400 text-xs mt-1">{destError}</p>}
           </div>
@@ -659,7 +674,16 @@ export default function InputPanel({
                 </p>
               ) : null;
             })()}
+            <label className="mt-2 flex items-center gap-2 text-xs text-slate-300">
+              <input type="checkbox" checked={avoidLowSpeed} onChange={(e) => onAvoidLowSpeedChange(e.target.checked)} className="accent-blue-500" />
+              Lage laadsnelheid vermijden
+            </label>
           </div>
+
+          <label className="flex items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-800/40 p-3 text-xs text-slate-300">
+            <input type="checkbox" checked={onlineTraffic} onChange={(e) => onOnlineTrafficChange(e.target.checked)} className="accent-green-500" />
+            Online: files en wegwerkzaamheden meenemen
+          </label>
 
           {/* Weather */}
           <div>
@@ -760,8 +784,16 @@ export default function InputPanel({
             disabled={isCalculating || isGeocoding}
             className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg transition-all text-sm shadow-lg shadow-blue-600/20"
           >
-            {isCalculating || isGeocoding ? 'Berekenen...' : 'Route berekenen'}
+            <span className="flex items-center justify-center gap-2">
+              {(isCalculating || isGeocoding) && <LoaderCircle size={16} className="animate-spin" />}
+              {isCalculating ? `Route berekenen · ${calculationProgress}%` : isGeocoding ? 'Locatie zoeken…' : 'Route berekenen'}
+            </span>
           </button>
+          {isCalculating && (
+            <div className="-mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800" role="progressbar" aria-valuenow={calculationProgress} aria-valuemin={0} aria-valuemax={100}>
+              <div className="h-full rounded-full bg-blue-500 transition-[width] duration-300 ease-out" style={{ width: `${calculationProgress}%` }} />
+            </div>
+          )}
 
           {hasRoute && (
             <button
