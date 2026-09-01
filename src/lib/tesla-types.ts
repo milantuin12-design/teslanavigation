@@ -131,6 +131,8 @@ export interface Supercharger {
   openingTime?: string | null; // "HH:MM"
   closingTime?: string | null;
   trailerFriendly?: boolean;
+  /** Ondersteunde laadstekkers (alleen 'Type 2' en 'CCS' worden gebruikt). */
+  connectors?: string[];
   isAvailable?: boolean;
   parkingFee?: boolean;
   inParkingGarage?: boolean;
