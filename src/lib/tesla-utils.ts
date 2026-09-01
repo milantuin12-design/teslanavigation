@@ -412,6 +412,8 @@ export function calculateChargingStops(
     if (c.isAvailable === false) return false;
     if (avoidLowSpeed && c.lowSpeed) return false;
     if (!allowEurotunnel && /eurotunnel/i.test(c.name)) return false;
+    // Alleen Type 2 / CCS. Zonder CCS-adapter (Model S/X vóór 2019) vervallen CCS-only locaties.
+    if (ccsBlocked && !canUseConnectors(normalizeConnectors(c.connectors), { ccsBlocked: true })) return false;
     return parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) >= minChargerSpeedKw;
   });
 
@@ -421,7 +423,13 @@ export function calculateChargingStops(
   const nearChargers = findChargersNearRoute(route.coordinates, filtered, 20);
   const routeDist = buildRouteDistanceIndex(route.coordinates);
   const safeMultiplier = Math.min(1.6, Math.max(0.75, consumptionMultiplier || 1));
-  const fullRangeKm = getAvailableRange(modelRangeKm, 100, trailerReductionPercent, weatherMode, timeMode) / safeMultiplier;
+  const packKWh = usableBatteryKWh || batteryCapacityKWhOverride || teslaBatteryKWh[modelName] || 79;
+  // Energie-gebaseerd bereik wanneer een verbruik bekend is; anders de km-schatting.
+  const fullRangeKm = consumptionKWh100 && consumptionKWh100 > 0
+    ? rangeFromEnergy(packKWh, consumptionKWh100)
+    : getAvailableRange(modelRangeKm, 100, trailerReductionPercent, weatherMode, timeMode) / safeMultiplier;
+  const kWhPerPercent = packKWh / 100;
+
 
   const kmPerMin = route.totalDistanceKm > 0 && route.totalTimeMin > 0
     ? route.totalDistanceKm / route.totalTimeMin
