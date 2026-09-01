@@ -353,6 +353,13 @@ export interface CalcChargingOptions {
   departureTime?: Date;
   /** >1 = meer verbruik (klimmen), <1 = minder verbruik (dalen/regeneratie). */
   consumptionMultiplier?: number;
+  /** Verbruik in kWh/100 km. Aanwezig = energie-gebaseerde berekening. */
+  consumptionKWh100?: number;
+  /** Bruikbare accucapaciteit in kWh (voor de energieberekening). */
+  usableBatteryKWh?: number;
+  /** CCS niet bruikbaar (Model S/X vóór 2019 zonder CCS-adapter). */
+  ccsBlocked?: boolean;
+
 }
 
 
