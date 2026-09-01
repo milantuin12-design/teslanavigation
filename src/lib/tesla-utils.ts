@@ -1,3 +1,4 @@
+import { canUseConnectors, normalizeConnectors, rangeFromEnergy } from './energy';
 import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, TimeMode, teslaBatteryKWh, teslaMaxChargeKw, ChargerConfig, OpeningHours, OpeningDayKey, ChargerLifecycleStatus, ChargerFilterState, constructionStepLabels } from './tesla-types';
 
 export function parseCoordinates(input: string): { lat: number; lng: number } | null {
@@ -353,13 +354,31 @@ export interface CalcChargingOptions {
   departureTime?: Date;
   /** >1 = meer verbruik (klimmen), <1 = minder verbruik (dalen/regeneratie). */
   consumptionMultiplier?: number;
+  /** Verbruik in kWh/100 km. Aanwezig = energie-gebaseerde berekening. */
+  consumptionKWh100?: number;
+  /** Bruikbare accucapaciteit in kWh (voor de energieberekening). */
+  usableBatteryKWh?: number;
+  /** CCS niet bruikbaar (Model S/X vóór 2019 zonder CCS-adapter). */
+  ccsBlocked?: boolean;
+
 }
 
+
+/** Concrete alternatieven wanneer een route niet haalbaar is. */
+function buildSuggestions(ctx: { chargeTargetPercent: number; batteryPercent: number }): string[] {
+  const out: string[] = [];
+  if (ctx.batteryPercent < 95) out.push(`Vertrek met een hoger startpercentage (nu ${Math.round(ctx.batteryPercent)}%).`);
+  if (ctx.chargeTargetPercent < 100) out.push(`Laad langer door: zet "opladen tot" hoger dan ${Math.round(ctx.chargeTargetPercent)}%.`);
+  out.push('Verlaag de minimale laadsnelheid of sta laders met lage snelheid toe.');
+  out.push('Kies een extra laadstop of een andere route (bijv. via een grotere weg).');
+  out.push('Verlaag het gewenste aankomstpercentage op de bestemming.');
+  return out;
+}
 
 export function calculateChargingStops(
   route: RouteResult,
   opts: CalcChargingOptions
-): { stops: ChargingStop[]; arrivalPercent: number; unreachable: boolean; reason?: string } {
+): { stops: ChargingStop[]; arrivalPercent: number; unreachable: boolean; reason?: string; suggestions?: string[] } {
   const {
     modelRangeKm,
     batteryPercent,
@@ -384,7 +403,11 @@ export function calculateChargingStops(
     allowEurotunnel = false,
     departureTime = new Date(),
     consumptionMultiplier = 1,
+    consumptionKWh100,
+    usableBatteryKWh,
+    ccsBlocked = false,
   } = opts;
+
 
 
 
@@ -401,6 +424,8 @@ export function calculateChargingStops(
     if (c.isAvailable === false) return false;
     if (avoidLowSpeed && c.lowSpeed) return false;
     if (!allowEurotunnel && /eurotunnel/i.test(c.name)) return false;
+    // Alleen Type 2 / CCS. Zonder CCS-adapter (Model S/X vóór 2019) vervallen CCS-only locaties.
+    if (ccsBlocked && !canUseConnectors(normalizeConnectors(c.connectors), { ccsBlocked: true })) return false;
     return parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) >= minChargerSpeedKw;
   });
 
@@ -410,7 +435,13 @@ export function calculateChargingStops(
   const nearChargers = findChargersNearRoute(route.coordinates, filtered, 20);
   const routeDist = buildRouteDistanceIndex(route.coordinates);
   const safeMultiplier = Math.min(1.6, Math.max(0.75, consumptionMultiplier || 1));
-  const fullRangeKm = getAvailableRange(modelRangeKm, 100, trailerReductionPercent, weatherMode, timeMode) / safeMultiplier;
+  const packKWh = usableBatteryKWh || batteryCapacityKWhOverride || teslaBatteryKWh[modelName] || 79;
+  // Energie-gebaseerd bereik wanneer een verbruik bekend is; anders de km-schatting.
+  const fullRangeKm = consumptionKWh100 && consumptionKWh100 > 0
+    ? rangeFromEnergy(packKWh, consumptionKWh100)
+    : getAvailableRange(modelRangeKm, 100, trailerReductionPercent, weatherMode, timeMode) / safeMultiplier;
+  const kWhPerPercent = packKWh / 100;
+
 
   const kmPerMin = route.totalDistanceKm > 0 && route.totalTimeMin > 0
     ? route.totalDistanceKm / route.totalTimeMin
@@ -422,7 +453,13 @@ export function calculateChargingStops(
       const batteryAtDest = batteryPercent - (route.totalDistanceKm / fullRangeKm * 100);
       return { stops: [], arrivalPercent: Math.round(Math.max(0, batteryAtDest)), unreachable: false };
     }
-    return { stops: [], arrivalPercent: 0, unreachable: true, reason: 'Geen geschikte Superchargers gevonden langs de route' };
+    return {
+      stops: [],
+      arrivalPercent: 0,
+      unreachable: true,
+      reason: 'Geen geschikte Superchargers gevonden langs de route',
+      suggestions: buildSuggestions({ chargeTargetPercent, batteryPercent }),
+    };
   }
 
   let currentBattery = batteryPercent;
@@ -487,7 +524,13 @@ export function calculateChargingStops(
         stops.forEach((stop, idx) => { stop.stopNumber = idx + 1; });
         return { stops, arrivalPercent: Math.round(arrivalBattery), unreachable: false };
       }
-      return { stops, arrivalPercent: 0, unreachable: true, reason: 'Geen bereikbare Supercharger binnen actieradius (open op verwachte aankomsttijd)' };
+      return {
+        stops,
+        arrivalPercent: 0,
+        unreachable: true,
+        reason: 'Geen bereikbare Supercharger binnen actieradius (open op de verwachte aankomsttijd)',
+        suggestions: buildSuggestions({ chargeTargetPercent, batteryPercent }),
+      };
     }
 
     // Kies de lader waar je zo dicht mogelijk bij het gewenste aankomstpercentage uitkomt.
@@ -534,12 +577,15 @@ export function calculateChargingStops(
     );
 
 
+    const batteryBeforeRounded = Math.round(Math.max(minSafetyPercent, best.batteryAtCharger));
     stops.push({
       charger: best.charger,
-      batteryBefore: Math.round(Math.max(minSafetyPercent, best.batteryAtCharger)),
+      batteryBefore: batteryBeforeRounded,
       batteryAfter: Math.round(batteryAfter),
       distanceFromStart: Math.round(best.routeKm),
       chargeDurationMin,
+      energyUsedKWh: Math.round((best.distanceTravelled / 100) * (consumptionKWh100 || (kWhPerPercent * 100) / Math.max(1, fullRangeKm) * 100) * 10) / 10,
+      energyChargedKWh: Math.round(Math.max(0, Math.round(batteryAfter) - batteryBeforeRounded) * kWhPerPercent * 10) / 10,
       stopNumber: stops.length + 1,
       etaMinFromStart: Math.round(elapsedMin + best.distanceTravelled / kmPerMin),
     });
@@ -553,7 +599,13 @@ export function calculateChargingStops(
   const finalRemaining = route.totalDistanceKm - currentPositionKm;
   const arrivalBattery = Math.max(0, currentBattery - (finalRemaining / fullRangeKm) * 100);
   if (arrivalBattery < 0) {
-    return { stops, arrivalPercent: 0, unreachable: true, reason: 'Niet genoeg bereik om bestemming te bereiken' };
+    return {
+      stops,
+      arrivalPercent: 0,
+      unreachable: true,
+      reason: 'Niet genoeg energie om de bestemming te bereiken',
+      suggestions: buildSuggestions({ chargeTargetPercent, batteryPercent }),
+    };
   }
   stops.forEach((stop, idx) => { stop.stopNumber = idx + 1; });
   return { stops, arrivalPercent: Math.round(arrivalBattery), unreachable: false };

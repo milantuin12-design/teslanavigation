@@ -131,6 +131,8 @@ export interface Supercharger {
   openingTime?: string | null; // "HH:MM"
   closingTime?: string | null;
   trailerFriendly?: boolean;
+  /** Ondersteunde laadstekkers (alleen 'Type 2' en 'CCS' worden gebruikt). */
+  connectors?: string[];
   isAvailable?: boolean;
   parkingFee?: boolean;
   inParkingGarage?: boolean;
@@ -163,6 +165,11 @@ export interface ChargingStop {
   stopNumber?: number;
   /** Minutes from departure until arrival at this stop. */
   etaMinFromStart?: number;
+  /** Energie verbruikt op het traject naar deze stop (kWh). */
+  energyUsedKWh?: number;
+  /** Energie die hier bijgeladen wordt (kWh). */
+  energyChargedKWh?: number;
+
 }
 
 
