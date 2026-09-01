@@ -163,6 +163,11 @@ export interface ChargingStop {
   stopNumber?: number;
   /** Minutes from departure until arrival at this stop. */
   etaMinFromStart?: number;
+  /** Energie verbruikt op het traject naar deze stop (kWh). */
+  energyUsedKWh?: number;
+  /** Energie die hier bijgeladen wordt (kWh). */
+  energyChargedKWh?: number;
+
 }
 
 
