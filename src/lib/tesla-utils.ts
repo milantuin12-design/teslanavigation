@@ -391,7 +391,11 @@ export function calculateChargingStops(
     allowEurotunnel = false,
     departureTime = new Date(),
     consumptionMultiplier = 1,
+    consumptionKWh100,
+    usableBatteryKWh,
+    ccsBlocked = false,
   } = opts;
+
 
 
 
