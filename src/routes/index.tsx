@@ -3,6 +3,8 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import EvMap from "@/components/EvMap";
 import InputPanel, { type PlannedWaypoint } from "@/components/InputPanel";
+import { estimateConsumption, needsCcsAdapter, type RouteWeather } from "@/lib/energy";
+import { fetchRouteWeather } from "@/lib/weather";
 import ChargingStops from "@/components/ChargingStops";
 import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
@@ -123,6 +125,14 @@ function Index() {
   const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
   const [avoidLowSpeed, setAvoidLowSpeed] = useState(false);
   const [onlineTraffic, setOnlineTraffic] = useState(false);
+  const [consumptionMode, setConsumptionMode] = useState<'auto' | 'manual'>('auto');
+  const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(18);
+  const [modelYear, setModelYear] = useState<number>(2022);
+  const [hasCcsAdapter, setHasCcsAdapter] = useState(true);
+  const [autoConsumption, setAutoConsumption] = useState<number | null>(null);
+  const [routeWeather, setRouteWeather] = useState<RouteWeather | null>(null);
+  const [energySummary, setEnergySummary] = useState<{ usedKWh: number; chargedKWh: number; kWh100: number } | null>(null);
+  const [routeAdvice, setRouteAdvice] = useState<string[]>([]);
 
 
   const [saveOpen, setSaveOpen] = useState(false);
@@ -200,6 +210,8 @@ function Index() {
   const modelRange = selectedModel === "Handmatig" ? manualRangeKm : teslaModels[selectedModel];
   const carMaxKwOverride = selectedModel === "Handmatig" ? manualSpeedKw : undefined;
   const availableRange = getAvailableRange(modelRange, batteryPercent, trailerReductionEffective, weatherMode, timeMode);
+  const packKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
+  const ccsBlocked = needsCcsAdapter(selectedModel, modelYear) && !hasCcsAdapter;
 
 
   useEffect(() => {
@@ -474,10 +486,32 @@ function Index() {
     fromBattery: number,
     extraWaypoints: { lat: number; lng: number }[],
   ): Promise<RoutePlan | null> => {
-    const elevationProfile = await fetchElevationProfile(base.route.coordinates);
+    const [elevationProfile, weather] = await Promise.all([
+      fetchElevationProfile(base.route.coordinates),
+      fetchRouteWeather(base.route.coordinates),
+    ]);
     const elevation = elevationProfile
       ? elevationConsumptionMultiplier(elevationProfile, base.route.totalDistanceKm)
       : { multiplier: 1, ascentM: 0, descentM: 0 };
+    const avgSpeedKmh = base.route.totalTimeMin > 0
+      ? (base.route.totalDistanceKm / base.route.totalTimeMin) * 60
+      : 90;
+    const auto = estimateConsumption({
+      modelName: selectedModel,
+      batteryKWh: packKWh,
+      rangeKm: modelRange,
+      avgSpeedKmh,
+      weatherMode,
+      timeMode,
+      trailerReductionPercent: trailerReductionEffective,
+      elevationMultiplier: elevation.multiplier,
+      weather,
+    });
+    const consumptionKWh100 = consumptionMode === 'manual'
+      ? Math.max(9, Math.min(60, manualConsumptionKWh100))
+      : auto.kWh100;
+    setAutoConsumption(auto.kWh100);
+    setRouteWeather(weather);
     const folkestone = distanceToRoute(51.096, 1.132, base.route.coordinates) < 15;
     const coquelles = distanceToRoute(50.934, 1.811, base.route.coordinates) < 15;
     const result = calculateChargingStops(base.route, {
@@ -499,9 +533,21 @@ function Index() {
       avoidLowSpeed,
       allowEurotunnel: folkestone && coquelles,
       consumptionMultiplier: elevation.multiplier,
+      consumptionKWh100,
+      usableBatteryKWh: packKWh,
+      ccsBlocked,
     });
 
-    if (result.unreachable) return null;
+    if (result.unreachable) {
+      if (result.suggestions?.length) setRouteAdvice(result.suggestions);
+      return null;
+    }
+    setRouteAdvice([]);
+    setEnergySummary({
+      usedKWh: Math.round((base.route.totalDistanceKm / 100) * consumptionKWh100),
+      chargedKWh: Math.round(result.stops.reduce((sum, stop) => sum + (stop.energyChargedKWh ?? 0), 0)),
+      kWh100: consumptionKWh100,
+    });
     if (result.stops.length === 0) {
       return { route: base.route, steps: base.steps, stops: [], arrivalPercent: result.arrivalPercent };
     }
@@ -555,7 +601,7 @@ function Index() {
       stops: fixedStops,
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
     };
-  }, [avoidLowSpeed, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
+  }, [ccsBlocked, consumptionMode, manualConsumptionKWh100, packKWh, avoidLowSpeed, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
 
   const applyPlan = useCallback((index: number, plan: RoutePlan) => {
     setSelectedRouteIndex(index);
@@ -996,6 +1042,19 @@ function Index() {
               minChargerSpeedKw={minChargerSpeedKw}
               avoidLowSpeed={avoidLowSpeed}
               onlineTraffic={onlineTraffic}
+              consumptionMode={consumptionMode}
+              onConsumptionModeChange={setConsumptionMode}
+              manualConsumptionKWh100={manualConsumptionKWh100}
+              onManualConsumptionChange={setManualConsumptionKWh100}
+              autoConsumptionKWh100={autoConsumption}
+              routeWeather={routeWeather}
+              energySummary={energySummary}
+              routeAdvice={routeAdvice}
+              modelYear={modelYear}
+              onModelYearChange={setModelYear}
+              hasCcsAdapter={hasCcsAdapter}
+              onCcsAdapterChange={setHasCcsAdapter}
+              ccsBlocked={ccsBlocked}
               isCalculating={isCalculating}
               calculationProgress={calculationProgress}
               totalDistanceKm={route?.totalDistanceKm ?? null}
