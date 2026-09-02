@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Moon, Gauge, LoaderCircle } from 'lucide-react';
 import { teslaModels, WeatherMode, TimeMode, teslaMaxChargeKw } from '@/lib/tesla-types';
+import type { RouteWeather } from '@/lib/energy';
 
 interface Waypoint {
   id: string;
@@ -71,6 +72,19 @@ interface InputPanelProps {
   isNavigating: boolean;
   lastAvailabilityUpdate: string | null;
   arrivalPercent: number | null;
+  consumptionMode: 'auto' | 'manual';
+  onConsumptionModeChange: (mode: 'auto' | 'manual') => void;
+  manualConsumptionKWh100: number;
+  onManualConsumptionChange: (kwh: number) => void;
+  autoConsumptionKWh100: number | null;
+  routeWeather: RouteWeather | null;
+  energySummary: { usedKWh: number; chargedKWh: number; kWh100: number } | null;
+  routeAdvice: string[];
+  modelYear: number;
+  onModelYearChange: (year: number) => void;
+  hasCcsAdapter: boolean;
+  onCcsAdapterChange: (value: boolean) => void;
+  ccsBlocked: boolean;
 }
 
 
