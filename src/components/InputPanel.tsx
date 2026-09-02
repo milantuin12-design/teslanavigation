@@ -250,6 +250,19 @@ export default function InputPanel({
   isNavigating,
   lastAvailabilityUpdate,
   arrivalPercent,
+  consumptionMode,
+  onConsumptionModeChange,
+  manualConsumptionKWh100,
+  onManualConsumptionChange,
+  autoConsumptionKWh100,
+  routeWeather,
+  energySummary,
+  routeAdvice,
+  modelYear,
+  onModelYearChange,
+  hasCcsAdapter,
+  onCcsAdapterChange,
+  ccsBlocked,
 }: InputPanelProps) {
   const [startInput, setStartInput] = useState('');
   const [destInput, setDestInput] = useState('');
