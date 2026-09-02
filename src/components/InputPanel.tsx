@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Moon, Gauge, LoaderCircle } from 'lucide-react';
 import { teslaModels, WeatherMode, TimeMode, teslaMaxChargeKw } from '@/lib/tesla-types';
+import type { RouteWeather } from '@/lib/energy';
 
 interface Waypoint {
   id: string;
@@ -71,6 +72,19 @@ interface InputPanelProps {
   isNavigating: boolean;
   lastAvailabilityUpdate: string | null;
   arrivalPercent: number | null;
+  consumptionMode: 'auto' | 'manual';
+  onConsumptionModeChange: (mode: 'auto' | 'manual') => void;
+  manualConsumptionKWh100: number;
+  onManualConsumptionChange: (kwh: number) => void;
+  autoConsumptionKWh100: number | null;
+  routeWeather: RouteWeather | null;
+  energySummary: { usedKWh: number; chargedKWh: number; kWh100: number } | null;
+  routeAdvice: string[];
+  modelYear: number;
+  onModelYearChange: (year: number) => void;
+  hasCcsAdapter: boolean;
+  onCcsAdapterChange: (value: boolean) => void;
+  ccsBlocked: boolean;
 }
 
 
@@ -236,6 +250,19 @@ export default function InputPanel({
   isNavigating,
   lastAvailabilityUpdate,
   arrivalPercent,
+  consumptionMode,
+  onConsumptionModeChange,
+  manualConsumptionKWh100,
+  onManualConsumptionChange,
+  autoConsumptionKWh100,
+  routeWeather,
+  energySummary,
+  routeAdvice,
+  modelYear,
+  onModelYearChange,
+  hasCcsAdapter,
+  onCcsAdapterChange,
+  ccsBlocked,
 }: InputPanelProps) {
   const [startInput, setStartInput] = useState('');
   const [destInput, setDestInput] = useState('');
@@ -573,6 +600,37 @@ export default function InputPanel({
                 </div>
               </div>
             )}
+            {/model\s*(s|x)/i.test(selectedModel) && (
+              <div className="mt-2 space-y-2 rounded-lg border border-slate-700/60 bg-slate-800/40 p-2.5">
+                <div>
+                  <label className="text-[11px] text-slate-400">Bouwjaar</label>
+                  <input
+                    type="number"
+                    min={2012}
+                    max={2026}
+                    value={modelYear}
+                    onChange={(e) => onModelYearChange(parseInt(e.target.value) || 2022)}
+                    className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
+                  />
+                </div>
+                {modelYear < 2019 && (
+                  <label className="flex items-center gap-2 text-xs text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={hasCcsAdapter}
+                      onChange={(e) => onCcsAdapterChange(e.target.checked)}
+                      className="accent-blue-500"
+                    />
+                    CCS-adapter aanwezig
+                  </label>
+                )}
+                {ccsBlocked && (
+                  <p className="text-[10px] text-amber-400/90">
+                    ⚠ Zonder CCS-adapter kan deze auto niet laden op CCS-only Superchargers; die worden overgeslagen.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
 
@@ -645,6 +703,73 @@ export default function InputPanel({
               className="w-full h-1.5 bg-slate-700 rounded-full appearance-none cursor-pointer accent-red-500"
             />
           </div>
+
+          {/* Verbruik: automatisch of handmatig */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
+              <Gauge size={13} className="text-emerald-400" />
+              Verbruik
+            </label>
+            <div className="grid grid-cols-2 gap-1">
+              {(['auto', 'manual'] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => onConsumptionModeChange(m)}
+                  className={`px-2 py-1.5 rounded text-[11px] font-medium transition-all ${
+                    consumptionMode === m ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  }`}
+                >
+                  {m === 'auto' ? 'Automatisch' : 'Handmatig'}
+                </button>
+              ))}
+            </div>
+            {consumptionMode === 'manual' ? (
+              <div className="mt-2">
+                <label className="text-[11px] text-slate-400">Verbruik (kWh/100 km)</label>
+                <input
+                  type="number"
+                  min={9}
+                  max={60}
+                  step={0.5}
+                  value={manualConsumptionKWh100}
+                  onChange={(e) => onManualConsumptionChange(parseFloat(e.target.value) || 18)}
+                  className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
+                />
+              </div>
+            ) : (
+              <div className="mt-2 text-[11px] text-slate-400 space-y-0.5">
+                {autoConsumptionKWh100 !== null && (
+                  <p>Geschat verbruik: <span className="text-emerald-300 font-medium">{autoConsumptionKWh100.toFixed(1)} kWh/100 km</span></p>
+                )}
+                {routeWeather && (
+                  <p>
+                    Weer langs route: {routeWeather.tempC}°C, wind {routeWeather.windMs} m/s
+                    {routeWeather.precipitationMm > 0.05 ? `, regen ${routeWeather.precipitationMm} mm` : ''}
+                    {routeWeather.snowfallCm > 0.05 ? `, sneeuw ${routeWeather.snowfallCm} cm` : ''}
+                    {routeWeather.fogFraction > 0.05 ? ', mist' : ''}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Energieoverzicht + advies */}
+          {energySummary && (
+            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-[11px] text-slate-300 space-y-0.5">
+              <p className="font-semibold text-emerald-300 text-xs mb-1">Energieoverzicht</p>
+              <p>Verbruik: {energySummary.kWh100.toFixed(1)} kWh/100 km</p>
+              <p>Verbruikt: {energySummary.usedKWh.toFixed(1)} kWh</p>
+              <p>Bijgeladen: {energySummary.chargedKWh.toFixed(1)} kWh</p>
+            </div>
+          )}
+          {routeAdvice.length > 0 && (
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-[11px] text-amber-200 space-y-1">
+              <p className="font-semibold text-xs">Route niet ideaal — opties:</p>
+              {routeAdvice.map((tip, i) => (
+                <p key={i}>• {tip}</p>
+              ))}
+            </div>
+          )}
 
           {/* Min charger speed — show orange warning when car can't use 250kW */}
           <div>

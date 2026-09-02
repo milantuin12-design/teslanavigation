@@ -484,7 +484,7 @@ function Index() {
     fromCoord: { lat: number; lng: number },
     toCoord: { lat: number; lng: number },
     fromBattery: number,
-    extraWaypoints: { lat: number; lng: number }[],
+    extraWaypoints: PlannedWaypoint[],
   ): Promise<RoutePlan | null> => {
     const [elevationProfile, weather] = await Promise.all([
       fetchElevationProfile(base.route.coordinates),
@@ -575,6 +575,13 @@ function Index() {
     let runningKm = 0;
     let runningBattery = fromBattery;
     let runningMin = 0;
+    // Laad-tussenstops (gebruiker laadt bij een eigen tussenstop) meenemen in de simulatie.
+    const chargingWpEvents = extraWaypoints
+      .filter((wp) => wp.charge && !wp.corridor)
+      .map((wp) => ({
+        km: Math.round(projectOntoRoute(wp.lat, wp.lng, finalResult.route.coordinates).km),
+        chargeTo: Math.max(10, Math.min(100, wp.chargeTo || 80)),
+      }));
     const fixedStops = result.stops
       .map((stop) => ({
         ...stop,
@@ -582,6 +589,18 @@ function Index() {
       }))
       .sort((a, b) => a.distanceFromStart - b.distanceFromStart)
       .map((stop, idx) => {
+        // Verwerk eerst laad-tussenstops die vóór deze Supercharger liggen.
+        while (chargingWpEvents.length > 0 && chargingWpEvents[0].km <= stop.distanceFromStart) {
+          const wp = chargingWpEvents.shift()!;
+          const wpLegKm = Math.max(0, wp.km - runningKm);
+          runningMin += wpLegKm / kmPerMin;
+          runningBattery = Math.max(0, runningBattery - (wpLegKm / fullRange) * 100);
+          if (wp.chargeTo > runningBattery) {
+            runningMin += calculateChargeDuration(Math.round(runningBattery), wp.chargeTo, batteryKWh, 50);
+            runningBattery = wp.chargeTo;
+          }
+          runningKm = wp.km;
+        }
         const legKm = Math.max(0, stop.distanceFromStart - runningKm);
         const batteryBefore = Math.max(0, Math.round(runningBattery - (legKm / fullRange) * 100));
         const rawChargerKw = parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
@@ -594,6 +613,18 @@ function Index() {
         runningBattery = stop.batteryAfter;
         return { ...stop, stopNumber: idx + 1, batteryBefore, chargeDurationMin, etaMinFromStart };
       });
+    // Resterende laad-tussenstops ná de laatste Supercharger.
+    while (chargingWpEvents.length > 0) {
+      const wp = chargingWpEvents.shift()!;
+      const wpLegKm = Math.max(0, wp.km - runningKm);
+      runningMin += wpLegKm / kmPerMin;
+      runningBattery = Math.max(0, runningBattery - (wpLegKm / fullRange) * 100);
+      if (wp.chargeTo > runningBattery) {
+        runningMin += calculateChargeDuration(Math.round(runningBattery), wp.chargeTo, batteryKWh, 50);
+        runningBattery = wp.chargeTo;
+      }
+      runningKm = wp.km;
+    }
     const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
     return {
       route: { ...finalResult.route, trafficDelayMin: base.route.trafficDelayMin },
