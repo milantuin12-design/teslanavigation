@@ -484,7 +484,7 @@ function Index() {
     fromCoord: { lat: number; lng: number },
     toCoord: { lat: number; lng: number },
     fromBattery: number,
-    extraWaypoints: { lat: number; lng: number }[],
+    extraWaypoints: PlannedWaypoint[],
   ): Promise<RoutePlan | null> => {
     const [elevationProfile, weather] = await Promise.all([
       fetchElevationProfile(base.route.coordinates),
@@ -577,10 +577,10 @@ function Index() {
     let runningMin = 0;
     // Laad-tussenstops (gebruiker laadt bij een eigen tussenstop) meenemen in de simulatie.
     const chargingWpEvents = extraWaypoints
-      .filter((wp) => (wp as PlannedWaypoint).charge)
+      .filter((wp) => wp.charge && !wp.corridor)
       .map((wp) => ({
         km: Math.round(projectOntoRoute(wp.lat, wp.lng, finalResult.route.coordinates).km),
-        chargeTo: Math.max(10, Math.min(100, (wp as PlannedWaypoint).chargeTo || 80)),
+        chargeTo: Math.max(10, Math.min(100, wp.chargeTo || 80)),
       }));
     const fixedStops = result.stops
       .map((stop) => ({
