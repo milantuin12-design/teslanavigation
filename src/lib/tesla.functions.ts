@@ -116,32 +116,85 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
 }
 
 
+/**
+ * Local-first: de meegeleverde dataset (src/data/superchargers.json) is de basis.
+ * Lukt het ophalen van de cloud-overlay niet, dan blijft de app gewoon werken met
+ * de lokale data — een mislukte update verwijdert dus nooit Superchargers.
+ */
 export const listSuperchargers = createServerFn({ method: "GET" }).handler(
   async (): Promise<Supercharger[]> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const pageSize = 1000;
-    const rows: Row[] = [];
-
-    for (let from = 0; ; from += pageSize) {
-      const { data, error } = await supabaseAdmin
-        .from("superchargers")
-        .select(SELECT_COLS)
-        .order("name")
-        .range(from, from + pageSize - 1);
-
-      if (error) throw new Error(error.message);
-      rows.push(...((data as unknown as Row[]) ?? []));
-      if (!data || data.length < pageSize) break;
-    }
-
-    const { data: ownerRows } = await supabaseAdmin.from("charger_owners").select("id,name,logo_url,description,website,contact,notes");
+    const { localChargerDataset } = await import("./local-chargers.server");
+    const localRows = localChargerDataset.chargers as unknown as Row[];
     const owners = new Map<string, OwnerRow>();
-    for (const o of (ownerRows ?? []) as (OwnerRow & { id: string })[]) {
-      owners.set(o.id, o);
+    for (const o of localChargerDataset.owners ?? []) owners.set(o.id, o);
+
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const pageSize = 1000;
+      const rows: Row[] = [];
+
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabaseAdmin
+          .from("superchargers")
+          .select(SELECT_COLS)
+          .order("name")
+          .range(from, from + pageSize - 1);
+
+        if (error) throw new Error(error.message);
+        rows.push(...((data as unknown as Row[]) ?? []));
+        if (!data || data.length < pageSize) break;
+      }
+
+      // Lege of duidelijk incomplete respons = storing: val terug op lokale data.
+      if (rows.length === 0 || rows.length < localRows.length * 0.5) {
+        throw new Error("cloud dataset incomplete");
+      }
+
+      const { data: ownerRows } = await supabaseAdmin
+        .from("charger_owners")
+        .select("id,name,logo_url,description,website,contact,notes");
+      for (const o of (ownerRows ?? []) as (OwnerRow & { id: string })[]) {
+        owners.set(o.id, o);
+      }
+      return rows.map((row) => rowToCharger(row, owners));
+    } catch {
+      return localRows.map((row) => rowToCharger(row, owners));
     }
-    return rows.map((row) => rowToCharger(row, owners));
   }
 );
+
+/** Importeert een eerder geëxporteerde back-up. Voegt toe en werkt bij, verwijdert nooit. */
+export const importSuperchargers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ chargers: z.array(z.record(z.unknown())).min(1).max(20000) }).parse(input)
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const allowed = new Set(SELECT_COLS.split(","));
+    const rows = data.chargers
+      .map((raw) => {
+        const row: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(raw)) {
+          if (allowed.has(key) && value !== undefined) row[key] = value;
+        }
+        return row;
+      })
+      .filter((row) => typeof row.name === "string" && typeof row.lat === "number" && typeof row.lng === "number");
+
+    let imported = 0;
+    for (let i = 0; i < rows.length; i += 500) {
+      const batch = rows.slice(i, i + 500);
+      const { error } = await supabaseAdmin
+        .from("superchargers")
+        .upsert(batch as never, { onConflict: "id" });
+      if (error) throw new Error(error.message);
+      imported += batch.length;
+    }
+    return { imported };
+  });
+
 
 const chargerInput = z.object({
   id: z.string().uuid().optional(),
