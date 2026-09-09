@@ -411,6 +411,66 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_models: {
+        Row: {
+          battery_kwh: number | null
+          brand: string
+          connectors: string[]
+          consumption_kwh100: number | null
+          created_at: string
+          id: string
+          image_url: string | null
+          max_charge_kw: number | null
+          model: string
+          notes: string | null
+          published: boolean
+          range_km: number | null
+          trim: string | null
+          updated_at: string
+          usable_kwh: number | null
+          year_from: number | null
+          year_to: number | null
+        }
+        Insert: {
+          battery_kwh?: number | null
+          brand?: string
+          connectors?: string[]
+          consumption_kwh100?: number | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          max_charge_kw?: number | null
+          model: string
+          notes?: string | null
+          published?: boolean
+          range_km?: number | null
+          trim?: string | null
+          updated_at?: string
+          usable_kwh?: number | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Update: {
+          battery_kwh?: number | null
+          brand?: string
+          connectors?: string[]
+          consumption_kwh100?: number | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          max_charge_kw?: number | null
+          model?: string
+          notes?: string | null
+          published?: boolean
+          range_km?: number | null
+          trim?: string | null
+          updated_at?: string
+          usable_kwh?: number | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
