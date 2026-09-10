@@ -248,6 +248,34 @@ function AdminPage() {
     load();
   };
 
+  /** Back-up: alle laders als JSON-bestand, zodat de data mee kan naar een nieuwe versie. */
+  const exportData = () => {
+    if (chargers.length === 0) { toast.info("Geen data om te exporteren"); return; }
+    const payload = { version: 1, exportedAt: new Date().toISOString(), chargers };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `superchargers-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${chargers.length} Superchargers geëxporteerd`);
+  };
+
+  /** Import voegt toe en werkt bij; bestaande laders worden nooit verwijderd. */
+  const importData = async (file: File) => {
+    try {
+      const parsed = JSON.parse(await file.text()) as { chargers?: unknown } | unknown[];
+      const list = Array.isArray(parsed) ? parsed : (parsed.chargers as unknown[] | undefined);
+      if (!Array.isArray(list) || list.length === 0) { toast.error("Geen laders in dit bestand"); return; }
+      const result = await runImport({ data: { chargers: list as Record<string, unknown>[] } });
+      toast.success(`${result.imported} Superchargers geïmporteerd`);
+      load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Importeren mislukt");
+    }
+  };
+
   /** Eigenaar op naam: bestaat hij niet, dan maken we hem aan met alleen een titel. */
   const ensureOwnerByName = async (name: string): Promise<string | null> => {
     const trimmed = name.trim();
