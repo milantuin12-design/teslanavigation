@@ -1,4 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useServerFn } from '@tanstack/react-start';
+import { listVehicleModels, lookupLicensePlate } from '@/lib/vehicles.functions';
+import { vehicleKey, type VehicleModel } from '@/lib/vehicle-types';
 import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Moon, Gauge, LoaderCircle } from 'lucide-react';
 import { teslaModels, WeatherMode, TimeMode, teslaMaxChargeKw } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
@@ -272,6 +275,61 @@ export default function InputPanel({
   const [mobileExpanded, setMobileExpanded] = useState(true);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [editingTrailer, setEditingTrailer] = useState(false);
+  const [vehicles, setVehicles] = useState<VehicleModel[]>([]);
+  const [plate, setPlate] = useState('');
+  const [plateBusy, setPlateBusy] = useState(false);
+  const [plateMessage, setPlateMessage] = useState('');
+
+  const fetchVehicles = useServerFn(listVehicleModels);
+  const lookupPlate = useServerFn(lookupLicensePlate);
+
+  useEffect(() => {
+    let active = true;
+    fetchVehicles({})
+      .then((list) => { if (active) setVehicles(list.filter(v => v.published)); })
+      .catch(() => { /* voertuigenlijst is optioneel */ });
+    return () => { active = false; };
+  }, [fetchVehicles]);
+
+  /** Past een voertuig uit de database toe op de planner. */
+  const applyVehicle = useCallback((vehicle: VehicleModel) => {
+    const key = vehicleKey(vehicle);
+    if (Object.prototype.hasOwnProperty.call(teslaModels, key)) {
+      onModelChange(key);
+      return;
+    }
+    onModelChange('Handmatig');
+    if (vehicle.rangeKm) onManualRangeChange?.(vehicle.rangeKm);
+    if (vehicle.maxChargeKw) onManualSpeedChange?.(vehicle.maxChargeKw);
+    if (vehicle.consumptionKWh100) {
+      onConsumptionModeChange('manual');
+      onManualConsumptionChange(vehicle.consumptionKWh100);
+    }
+  }, [onModelChange, onManualRangeChange, onManualSpeedChange, onConsumptionModeChange, onManualConsumptionChange]);
+
+  const handlePlateLookup = useCallback(async () => {
+    const value = plate.trim();
+    if (value.length < 4) { setPlateMessage('Vul een geldig kenteken in.'); return; }
+    setPlateBusy(true);
+    setPlateMessage('');
+    try {
+      const result = await lookupPlate({ data: { plate: value } });
+      if (result.matchedVehicleId) {
+        const match = vehicles.find(v => v.id === result.matchedVehicleId);
+        if (match) {
+          applyVehicle(match);
+          setPlateMessage(`Gevonden: ${match.brand} ${vehicleKey(match)}`);
+        } else {
+          setPlateMessage(result.message || 'Kies je auto handmatig.');
+        }
+      } else {
+        setPlateMessage(result.message || 'Niet gevonden. Kies je auto handmatig.');
+      }
+    } catch {
+      setPlateMessage('Kentekencheck mislukt. Kies je auto handmatig.');
+    }
+    setPlateBusy(false);
+  }, [plate, lookupPlate, vehicles, applyVehicle]);
 
   const parseOrGeocode = useCallback(async (
     input: string,
@@ -574,6 +632,48 @@ export default function InputPanel({
               ))}
               <option value="Handmatig">Handmatig (eigen instellingen)</option>
             </select>
+
+            <div className="mt-2 flex gap-2">
+              <input
+                value={plate}
+                onChange={(e) => setPlate(e.target.value.toUpperCase())}
+                onKeyDown={(e) => { if (e.key === 'Enter') handlePlateLookup(); }}
+                placeholder="Kenteken, bijv. 12-ABC-3"
+                className="flex-1 bg-slate-800/70 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white uppercase placeholder:normal-case"
+              />
+              <button
+                onClick={handlePlateLookup}
+                disabled={plateBusy}
+                className="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-white transition-colors disabled:opacity-50"
+              >
+                {plateBusy ? 'Zoeken…' : 'Zoek auto'}
+              </button>
+            </div>
+            {plateMessage && <p className="text-[11px] text-slate-400 mt-1">{plateMessage}</p>}
+
+            {vehicles.length > 0 && (
+              <div className="mt-2">
+                <label className="text-[11px] text-slate-400">Uit de voertuigendatabase</label>
+                <select
+                  defaultValue=""
+                  onChange={(e) => {
+                    const found = vehicles.find(v => v.id === e.target.value);
+                    if (found) applyVehicle(found);
+                  }}
+                  className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white"
+                >
+                  <option value="">Kies een voertuig…</option>
+                  {vehicles.map(v => (
+                    <option key={v.id} value={v.id}>
+                      {v.brand} {vehicleKey(v)}
+                      {v.batteryKWh ? ` · ${v.batteryKWh} kWh` : ''}
+                      {v.rangeKm ? ` · ${v.rangeKm} km` : ''}
+                      {v.maxChargeKw ? ` · ${v.maxChargeKw} kW` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             {selectedModel === 'Handmatig' && (
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <div>

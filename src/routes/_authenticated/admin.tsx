@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { importSuperchargers } from "@/lib/tesla.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -137,6 +139,8 @@ function AdminPage() {
   const [newOwnerName, setNewOwnerName] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const runImport = useServerFn(importSuperchargers);
 
   useEffect(() => {
     (async () => {
@@ -246,6 +250,34 @@ function AdminPage() {
     load();
   };
 
+  /** Back-up: alle laders als JSON-bestand, zodat de data mee kan naar een nieuwe versie. */
+  const exportData = () => {
+    if (chargers.length === 0) { toast.info("Geen data om te exporteren"); return; }
+    const payload = { version: 1, exportedAt: new Date().toISOString(), chargers };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `superchargers-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${chargers.length} Superchargers geëxporteerd`);
+  };
+
+  /** Import voegt toe en werkt bij; bestaande laders worden nooit verwijderd. */
+  const importData = async (file: File) => {
+    try {
+      const parsed = JSON.parse(await file.text()) as { chargers?: unknown } | unknown[];
+      const list = Array.isArray(parsed) ? parsed : (parsed.chargers as unknown[] | undefined);
+      if (!Array.isArray(list) || list.length === 0) { toast.error("Geen laders in dit bestand"); return; }
+      const result = await runImport({ data: { chargers: list as Record<string, unknown>[] } });
+      toast.success(`${result.imported} Superchargers geïmporteerd`);
+      load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Importeren mislukt");
+    }
+  };
+
   /** Eigenaar op naam: bestaat hij niet, dan maken we hem aan met alleen een titel. */
   const ensureOwnerByName = async (name: string): Promise<string | null> => {
     const trimmed = name.trim();
@@ -293,7 +325,17 @@ function AdminPage() {
           <div className="flex items-center gap-2">
             <Link to="/eigenaren"><Button variant="outline" size="sm" className="border-slate-700">Eigenaren</Button></Link>
             <Link to="/meldingen"><Button variant="outline" size="sm" className="border-slate-700">Meldingen</Button></Link>
+            <Link to="/voertuigen"><Button variant="outline" size="sm" className="border-slate-700">Voertuigen</Button></Link>
             <Button variant="outline" size="sm" className="border-slate-700" onClick={publishAllDrafts}>Alle concepten publiceren</Button>
+            <Button variant="outline" size="sm" className="border-slate-700" onClick={exportData}>Exporteer back-up</Button>
+            <Button variant="outline" size="sm" className="border-slate-700" onClick={() => fileRef.current?.click()}>Importeer back-up</Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json"
+              className="hidden"
+              onChange={(e) => { const file = e.target.files?.[0]; if (file) importData(file); e.target.value = ""; }}
+            />
             <Button onClick={openNew} className="bg-red-600 hover:bg-red-700"><Plus className="w-4 h-4 mr-1" /> Nieuw</Button>
           </div>
         </div>
