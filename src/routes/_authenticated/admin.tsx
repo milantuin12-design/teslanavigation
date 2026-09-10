@@ -139,6 +139,8 @@ function AdminPage() {
   const [newOwnerName, setNewOwnerName] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const runImport = useServerFn(importSuperchargers);
 
   useEffect(() => {
     (async () => {
