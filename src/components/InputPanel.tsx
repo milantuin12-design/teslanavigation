@@ -1,4 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useServerFn } from '@tanstack/react-start';
+import { listVehicleModels, lookupLicensePlate } from '@/lib/vehicles.functions';
+import { vehicleKey, type VehicleModel } from '@/lib/vehicle-types';
 import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Moon, Gauge, LoaderCircle } from 'lucide-react';
 import { teslaModels, WeatherMode, TimeMode, teslaMaxChargeKw } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
