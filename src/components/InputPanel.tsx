@@ -272,6 +272,61 @@ export default function InputPanel({
   const [mobileExpanded, setMobileExpanded] = useState(true);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [editingTrailer, setEditingTrailer] = useState(false);
+  const [vehicles, setVehicles] = useState<VehicleModel[]>([]);
+  const [plate, setPlate] = useState('');
+  const [plateBusy, setPlateBusy] = useState(false);
+  const [plateMessage, setPlateMessage] = useState('');
+
+  const fetchVehicles = useServerFn(listVehicleModels);
+  const lookupPlate = useServerFn(lookupLicensePlate);
+
+  useEffect(() => {
+    let active = true;
+    fetchVehicles({})
+      .then((list) => { if (active) setVehicles(list.filter(v => v.published)); })
+      .catch(() => { /* voertuigenlijst is optioneel */ });
+    return () => { active = false; };
+  }, [fetchVehicles]);
+
+  /** Past een voertuig uit de database toe op de planner. */
+  const applyVehicle = useCallback((vehicle: VehicleModel) => {
+    const key = vehicleKey(vehicle);
+    if (Object.prototype.hasOwnProperty.call(teslaModels, key)) {
+      onModelChange(key);
+      return;
+    }
+    onModelChange('Handmatig');
+    if (vehicle.rangeKm) onManualRangeChange?.(vehicle.rangeKm);
+    if (vehicle.maxChargeKw) onManualSpeedChange?.(vehicle.maxChargeKw);
+    if (vehicle.consumptionKWh100) {
+      onConsumptionModeChange('manual');
+      onManualConsumptionChange(vehicle.consumptionKWh100);
+    }
+  }, [onModelChange, onManualRangeChange, onManualSpeedChange, onConsumptionModeChange, onManualConsumptionChange]);
+
+  const handlePlateLookup = useCallback(async () => {
+    const value = plate.trim();
+    if (value.length < 4) { setPlateMessage('Vul een geldig kenteken in.'); return; }
+    setPlateBusy(true);
+    setPlateMessage('');
+    try {
+      const result = await lookupPlate({ data: { plate: value } });
+      if (result.matchedVehicleId) {
+        const match = vehicles.find(v => v.id === result.matchedVehicleId);
+        if (match) {
+          applyVehicle(match);
+          setPlateMessage(`Gevonden: ${match.brand} ${vehicleKey(match)}`);
+        } else {
+          setPlateMessage(result.message || 'Kies je auto handmatig.');
+        }
+      } else {
+        setPlateMessage(result.message || 'Niet gevonden. Kies je auto handmatig.');
+      }
+    } catch {
+      setPlateMessage('Kentekencheck mislukt. Kies je auto handmatig.');
+    }
+    setPlateBusy(false);
+  }, [plate, lookupPlate, vehicles, applyVehicle]);
 
   const parseOrGeocode = useCallback(async (
     input: string,
