@@ -41,6 +41,36 @@ export type Database = {
         }
         Relationships: []
       }
+      charger_changes: {
+        Row: {
+          action: string
+          changed_by: string | null
+          changed_fields: Json
+          charger_id: string | null
+          charger_name: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          action?: string
+          changed_by?: string | null
+          changed_fields?: Json
+          charger_id?: string | null
+          charger_name?: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          changed_fields?: Json
+          charger_id?: string | null
+          charger_name?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       charger_owners: {
         Row: {
           contact: string | null
@@ -136,6 +166,42 @@ export type Database = {
           },
         ]
       }
+      languages: {
+        Row: {
+          code: string
+          created_at: string
+          enabled: boolean
+          is_default: boolean
+          name: string
+          native_name: string
+          rtl: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          enabled?: boolean
+          is_default?: boolean
+          name: string
+          native_name: string
+          rtl?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          enabled?: boolean
+          is_default?: boolean
+          name?: string
+          native_name?: string
+          rtl?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           blocked: boolean
@@ -169,6 +235,41 @@ export type Database = {
         }
         Relationships: []
       }
+      report_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_admin: boolean
+          report_id: string
+          sender_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          report_id: string
+          sender_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          report_id?: string
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_messages_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "charger_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_routes: {
         Row: {
           battery_percent: number
@@ -180,7 +281,10 @@ export type Database = {
           id: string
           model_name: string
           name: string
+          payload: Json
           route_type: string
+          share_token: string | null
+          shared: boolean
           start_address: string | null
           start_lat: number
           start_lng: number
@@ -203,7 +307,10 @@ export type Database = {
           id?: string
           model_name: string
           name: string
+          payload?: Json
           route_type?: string
+          share_token?: string | null
+          shared?: boolean
           start_address?: string | null
           start_lat: number
           start_lng: number
@@ -226,7 +333,10 @@ export type Database = {
           id?: string
           model_name?: string
           name?: string
+          payload?: Json
           route_type?: string
+          share_token?: string | null
+          shared?: boolean
           start_address?: string | null
           start_lat?: number
           start_lng?: number
@@ -299,6 +409,7 @@ export type Database = {
           opening_hours: Json
           opening_time: string | null
           owner_id: string | null
+          owner_name: string | null
           parking_fee: boolean
           planned_upgrade: Json
           province: string | null
@@ -333,6 +444,7 @@ export type Database = {
           opening_hours?: Json
           opening_time?: string | null
           owner_id?: string | null
+          owner_name?: string | null
           parking_fee?: boolean
           planned_upgrade?: Json
           province?: string | null
@@ -367,6 +479,7 @@ export type Database = {
           opening_hours?: Json
           opening_time?: string | null
           owner_id?: string | null
+          owner_name?: string | null
           parking_fee?: boolean
           planned_upgrade?: Json
           province?: string | null
@@ -387,6 +500,41 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "charger_owners"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      translations: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          lang_code: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          lang_code: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          lang_code?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translations_lang_code_fkey"
+            columns: ["lang_code"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
           },
         ]
       }

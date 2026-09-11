@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.log_charger_change() FROM PUBLIC, anon, authenticated;
