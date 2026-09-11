@@ -23,7 +23,7 @@ function normalizeStallData(totalStalls?: number | null, stallTypes?: string | n
 }
 
 const SELECT_COLS =
-  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure,owner_id,low_speed,published,notes,reopen_at,planned_upgrade";
+  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,notes,reopen_at,planned_upgrade";
 
 type Row = {
   id: string;
@@ -51,6 +51,7 @@ type Row = {
   works: WorksInfo | null;
   closure: ClosureInfo | null;
   owner_id: string | null;
+  owner_name: string | null;
   low_speed: boolean | null;
   published: boolean | null;
   notes: string | null;
@@ -101,8 +102,8 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
     works: row.works ?? {},
     closure: row.closure ?? {},
     ownerId: row.owner_id,
-    ownerName: owner?.name ?? null,
-    ownerLogoUrl: owner?.logo_url ?? null,
+    ownerName: row.owner_name ?? owner?.name ?? null,
+    ownerLogoUrl: row.owner_name ? null : owner?.logo_url ?? null,
     ownerDescription: owner?.description ?? null,
     ownerWebsite: owner?.website ?? null,
     ownerContact: owner?.contact ?? null,
