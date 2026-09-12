@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GedeeldTokenRouteImport } from './routes/gedeeld.$token'
 import { Route as AuthenticatedWijzigingenRouteImport } from './routes/_authenticated/wijzigingen'
 import { Route as AuthenticatedVoertuigenRouteImport } from './routes/_authenticated/voertuigen'
 import { Route as AuthenticatedTalenRouteImport } from './routes/_authenticated/talen'
@@ -34,6 +35,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GedeeldTokenRoute = GedeeldTokenRouteImport.update({
+  id: '/gedeeld/$token',
+  path: '/gedeeld/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedWijzigingenRoute =
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/talen': typeof AuthenticatedTalenRoute
   '/voertuigen': typeof AuthenticatedVoertuigenRoute
   '/wijzigingen': typeof AuthenticatedWijzigingenRoute
+  '/gedeeld/$token': typeof GedeeldTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/talen': typeof AuthenticatedTalenRoute
   '/voertuigen': typeof AuthenticatedVoertuigenRoute
   '/wijzigingen': typeof AuthenticatedWijzigingenRoute
+  '/gedeeld/$token': typeof GedeeldTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/_authenticated/talen': typeof AuthenticatedTalenRoute
   '/_authenticated/voertuigen': typeof AuthenticatedVoertuigenRoute
   '/_authenticated/wijzigingen': typeof AuthenticatedWijzigingenRoute
+  '/gedeeld/$token': typeof GedeeldTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
     | '/talen'
     | '/voertuigen'
     | '/wijzigingen'
+    | '/gedeeld/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -152,6 +162,7 @@ export interface FileRouteTypes {
     | '/talen'
     | '/voertuigen'
     | '/wijzigingen'
+    | '/gedeeld/$token'
   id:
     | '__root__'
     | '/'
@@ -166,12 +177,14 @@ export interface FileRouteTypes {
     | '/_authenticated/talen'
     | '/_authenticated/voertuigen'
     | '/_authenticated/wijzigingen'
+    | '/gedeeld/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  GedeeldTokenRoute: typeof GedeeldTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -195,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gedeeld/$token': {
+      id: '/gedeeld/$token'
+      path: '/gedeeld/$token'
+      fullPath: '/gedeeld/$token'
+      preLoaderRoute: typeof GedeeldTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/wijzigingen': {
@@ -294,6 +314,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  GedeeldTokenRoute: GedeeldTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
