@@ -3,7 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User as UserIcon, LogOut, Shield, BookmarkCheck, LogIn } from "lucide-react";
+import { User as UserIcon, LogOut, Shield, BookmarkCheck, LogIn, MessageSquare } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 export function AccountMenu() {
@@ -42,6 +42,9 @@ export function AccountMenu() {
       <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 text-white">
         <DropdownMenuItem onClick={() => navigate({ to: "/mijn-routes" })}>
           <BookmarkCheck className="w-4 h-4 mr-2" /> Mijn routes
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate({ to: "/mijn-meldingen" })}>
+          <MessageSquare className="w-4 h-4 mr-2" /> Mijn meldingen
         </DropdownMenuItem>
         {isAdmin && (
           <DropdownMenuItem onClick={() => navigate({ to: "/admin" })}>
