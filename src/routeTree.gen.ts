@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedWijzigingenRouteImport } from './routes/_authenticated/wijzigingen'
 import { Route as AuthenticatedVoertuigenRouteImport } from './routes/_authenticated/voertuigen'
+import { Route as AuthenticatedTalenRouteImport } from './routes/_authenticated/talen'
 import { Route as AuthenticatedMijnRoutesRouteImport } from './routes/_authenticated/mijn-routes'
 import { Route as AuthenticatedMeldingenRouteImport } from './routes/_authenticated/meldingen'
 import { Route as AuthenticatedGebruikersRouteImport } from './routes/_authenticated/gebruikers'
@@ -33,9 +35,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWijzigingenRoute =
+  AuthenticatedWijzigingenRouteImport.update({
+    id: '/wijzigingen',
+    path: '/wijzigingen',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedVoertuigenRoute = AuthenticatedVoertuigenRouteImport.update({
   id: '/voertuigen',
   path: '/voertuigen',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTalenRoute = AuthenticatedTalenRouteImport.update({
+  id: '/talen',
+  path: '/talen',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMijnRoutesRoute = AuthenticatedMijnRoutesRouteImport.update({
@@ -72,7 +85,9 @@ export interface FileRoutesByFullPath {
   '/gebruikers': typeof AuthenticatedGebruikersRoute
   '/meldingen': typeof AuthenticatedMeldingenRoute
   '/mijn-routes': typeof AuthenticatedMijnRoutesRoute
+  '/talen': typeof AuthenticatedTalenRoute
   '/voertuigen': typeof AuthenticatedVoertuigenRoute
+  '/wijzigingen': typeof AuthenticatedWijzigingenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -82,7 +97,9 @@ export interface FileRoutesByTo {
   '/gebruikers': typeof AuthenticatedGebruikersRoute
   '/meldingen': typeof AuthenticatedMeldingenRoute
   '/mijn-routes': typeof AuthenticatedMijnRoutesRoute
+  '/talen': typeof AuthenticatedTalenRoute
   '/voertuigen': typeof AuthenticatedVoertuigenRoute
+  '/wijzigingen': typeof AuthenticatedWijzigingenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -94,7 +111,9 @@ export interface FileRoutesById {
   '/_authenticated/gebruikers': typeof AuthenticatedGebruikersRoute
   '/_authenticated/meldingen': typeof AuthenticatedMeldingenRoute
   '/_authenticated/mijn-routes': typeof AuthenticatedMijnRoutesRoute
+  '/_authenticated/talen': typeof AuthenticatedTalenRoute
   '/_authenticated/voertuigen': typeof AuthenticatedVoertuigenRoute
+  '/_authenticated/wijzigingen': typeof AuthenticatedWijzigingenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -106,7 +125,9 @@ export interface FileRouteTypes {
     | '/gebruikers'
     | '/meldingen'
     | '/mijn-routes'
+    | '/talen'
     | '/voertuigen'
+    | '/wijzigingen'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -116,7 +137,9 @@ export interface FileRouteTypes {
     | '/gebruikers'
     | '/meldingen'
     | '/mijn-routes'
+    | '/talen'
     | '/voertuigen'
+    | '/wijzigingen'
   id:
     | '__root__'
     | '/'
@@ -127,7 +150,9 @@ export interface FileRouteTypes {
     | '/_authenticated/gebruikers'
     | '/_authenticated/meldingen'
     | '/_authenticated/mijn-routes'
+    | '/_authenticated/talen'
     | '/_authenticated/voertuigen'
+    | '/_authenticated/wijzigingen'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -159,11 +184,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/wijzigingen': {
+      id: '/_authenticated/wijzigingen'
+      path: '/wijzigingen'
+      fullPath: '/wijzigingen'
+      preLoaderRoute: typeof AuthenticatedWijzigingenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/voertuigen': {
       id: '/_authenticated/voertuigen'
       path: '/voertuigen'
       fullPath: '/voertuigen'
       preLoaderRoute: typeof AuthenticatedVoertuigenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/talen': {
+      id: '/_authenticated/talen'
+      path: '/talen'
+      fullPath: '/talen'
+      preLoaderRoute: typeof AuthenticatedTalenRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/mijn-routes': {
@@ -210,7 +249,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGebruikersRoute: typeof AuthenticatedGebruikersRoute
   AuthenticatedMeldingenRoute: typeof AuthenticatedMeldingenRoute
   AuthenticatedMijnRoutesRoute: typeof AuthenticatedMijnRoutesRoute
+  AuthenticatedTalenRoute: typeof AuthenticatedTalenRoute
   AuthenticatedVoertuigenRoute: typeof AuthenticatedVoertuigenRoute
+  AuthenticatedWijzigingenRoute: typeof AuthenticatedWijzigingenRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -219,7 +260,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGebruikersRoute: AuthenticatedGebruikersRoute,
   AuthenticatedMeldingenRoute: AuthenticatedMeldingenRoute,
   AuthenticatedMijnRoutesRoute: AuthenticatedMijnRoutesRoute,
+  AuthenticatedTalenRoute: AuthenticatedTalenRoute,
   AuthenticatedVoertuigenRoute: AuthenticatedVoertuigenRoute,
+  AuthenticatedWijzigingenRoute: AuthenticatedWijzigingenRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

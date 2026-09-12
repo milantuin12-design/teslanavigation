@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { listReports, updateReportStatus, type ReportRow } from "@/lib/admin.functions";
+import { ReportChat } from "@/components/ReportChat";
 
 export const Route = createFileRoute("/_authenticated/meldingen")({
   ssr: false,
@@ -143,6 +144,8 @@ function ReportCard({ report, onSaved }: { report: ReportRow; onSaved: () => voi
           Opslaan
         </Button>
       </div>
+
+      <ReportChat reportId={report.id} asAdmin />
     </div>
   );
 }
