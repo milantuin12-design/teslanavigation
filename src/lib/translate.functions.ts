@@ -17,7 +17,9 @@ export const translateTexts = createServerFn({ method: "POST" })
     let admin: Awaited<typeof import("@/integrations/supabase/client.server")>["supabaseAdmin"] | null = null;
     try {
       admin = (await import("@/integrations/supabase/client.server")).supabaseAdmin;
-      const { data: rows } = await admin.from("translations").select("key,value").eq("lang_code", data.lang).in("key", texts);
+      const q = admin.from("translations").select("key,value").eq("lang_code", data.lang).in("key", texts);
+      const timeout = new Promise<{ data: null }>((r) => setTimeout(() => r({ data: null }), 2500));
+      const { data: rows } = (await Promise.race([q, timeout])) as { data: { key: string; value: string }[] | null };
       for (const r of rows ?? []) out[r.key] = r.value;
     } catch {
       /* database niet bereikbaar: ga door met AI */
@@ -54,7 +56,7 @@ export const translateTexts = createServerFn({ method: "POST" })
         }
       }
       if (admin && toSave.length) {
-        await admin.from("translations").upsert(toSave, { onConflict: "lang_code,key", ignoreDuplicates: true });
+        void admin.from("translations").upsert(toSave, { onConflict: "lang_code,key", ignoreDuplicates: true }).then(() => {}, () => {});
       }
     } catch {
       /* AI niet beschikbaar: Nederlands blijft staan */
