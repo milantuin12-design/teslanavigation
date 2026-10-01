@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/meldingen")({
   notFoundComponent: MeldingenNotFound,
 });
 
-function MeldingenError({ error }: { error: Error }) {
+function MeldingenError({ error }: { error: any }) {
   return (
     <div className="min-h-screen bg-slate-900 text-white p-8">
       <h1 className="text-2xl font-bold">Er ging iets mis</h1>

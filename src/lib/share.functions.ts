@@ -15,7 +15,8 @@ export type SharedRoute = {
   batteryPercent: number;
   totalDistanceKm: number | null;
   totalTimeMin: number | null;
-  payload: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: Record<string, any>;
 };
 
 /** Publieke lezing van een gedeelde route (alleen met geldig deel-token). */
@@ -58,7 +59,7 @@ export const getSharedRoute = createServerFn({ method: "GET" })
         batteryPercent: row.battery_percent,
         totalDistanceKm: row.total_distance_km,
         totalTimeMin: row.total_time_min,
-        payload: (row.payload as Record<string, unknown>) ?? {},
+        payload: (row.payload as Record<string, any>) ?? {},
       };
     } catch {
       return null;

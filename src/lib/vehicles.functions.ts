@@ -144,7 +144,7 @@ export const lookupLicensePlate = createServerFn({ method: "POST" })
       });
       clearTimeout(timer);
       if (!res.ok) return { ...base, message: "Kentekenregister niet bereikbaar. Kies je auto handmatig." };
-      const rows = (await res.json()) as { merk?: string; handelsbenaming?: string; datum_eerste_toelating?: string }[];
+      const rows = (await res.json()) as { merk?: string; handelsbenaming?: string; datum_eerste_toelating?: string; massa_ledig_voertuig?: string; variant?: string; uitvoering?: string }[];
       if (!Array.isArray(rows) || rows.length === 0) {
         return { ...base, message: "Kenteken niet gevonden. Kies je auto handmatig." };
       }
@@ -158,11 +158,26 @@ export const lookupLicensePlate = createServerFn({ method: "POST" })
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data: vehicles } = await supabaseAdmin.from("vehicle_models").select(COLS);
         const list = ((vehicles as unknown as Row[]) ?? []).map(toVehicle);
-        const haystack = `${brand} ${tradeName}`.toUpperCase();
+        const haystack = `${brand} ${tradeName} ${row.variant ?? ""} ${row.uitvoering ?? ""}`.toUpperCase();
+        // Aandrijving schatten op leeggewicht (RDW kent geen AWD/RWD-veld).
+        const mass = Number(row.massa_ledig_voertuig || 0);
+        const isY = /MODEL\s*Y/.test(haystack);
+        const is3 = /MODEL\s*3/.test(haystack);
+        let drive: "AWD" | "RWD" | null = null;
+        if (/AWD|DUAL|PERFORMANCE|LONG\s*RANGE/.test(haystack)) drive = "AWD";
+        else if (mass > 0 && is3) drive = mass >= 1800 ? "AWD" : "RWD";
+        else if (mass > 0 && isY) drive = mass >= 1960 ? "AWD" : "RWD";
         let bestScore = 0;
         for (const v of list) {
           const words = `${v.brand} ${v.model} ${v.trim ?? ""}`.toUpperCase().split(/\s+/).filter(Boolean);
-          const score = words.reduce((sum, w) => sum + (haystack.includes(w) ? w.length : 0), 0);
+          let score = words.reduce((sum, w) => sum + (haystack.includes(w) ? w.length : 0), 0);
+          const label = `${v.model} ${v.trim ?? ""}`.toUpperCase();
+          const vAwd = /AWD|DUAL|PERFORMANCE|LONG\s*RANGE/.test(label);
+          const vRwd = /RWD|STANDARD|REAR/.test(label) && !vAwd;
+          if (drive === "AWD") score += vAwd ? 6 : vRwd ? -6 : 0;
+          if (drive === "RWD") score += vRwd ? 6 : vAwd ? -6 : 0;
+          if (year && v.yearFrom && year < v.yearFrom) score -= 3;
+          if (year && v.yearTo && year > v.yearTo) score -= 3;
           if (score > bestScore) {
             bestScore = score;
             matchedVehicleId = v.id;

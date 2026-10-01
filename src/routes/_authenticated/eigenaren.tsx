@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/eigenaren")({
   notFoundComponent: EigenarenNotFound,
 });
 
-function EigenarenError({ error }: { error: Error }) {
+function EigenarenError({ error }: { error: any }) {
   return (
     <div className="min-h-screen bg-slate-900 text-white p-8">
       <h1 className="text-2xl font-bold">Er ging iets mis</h1>
