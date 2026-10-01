@@ -9,6 +9,7 @@ import ChargingStops from "@/components/ChargingStops";
 import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
+import { LanguageSwitcher } from "@/components/LanguageProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -1125,7 +1126,10 @@ function Index() {
       <div className="flex-1 relative">
         {!isNavigating && (
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
-            <AccountMenu />
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <AccountMenu />
+            </div>
             {routeOptions.length > 0 && (
               <div className="glass-panel flex flex-wrap gap-1.5 rounded-xl px-2 py-1.5">
                 {routeOptions.map((plan, i) => (
