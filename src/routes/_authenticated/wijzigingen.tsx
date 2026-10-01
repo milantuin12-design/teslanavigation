@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/wijzigingen")({
     ],
   }),
   component: ChangesPage,
-  errorComponent: ({ error }: { error: Error }) => (
+  errorComponent: ({ error }: { error: any }) => (
     <div className="min-h-screen bg-slate-900 text-white p-8">
       <h1 className="text-2xl font-bold">Er ging iets mis</h1>
       <p className="mt-2 text-slate-400">{error.message}</p>
