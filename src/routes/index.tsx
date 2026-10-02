@@ -1034,7 +1034,7 @@ function Index() {
   return (
     <div className="h-screen w-screen flex flex-col lg:flex-row bg-slate-900 text-white overflow-hidden">
       {!isNavigating && (
-        <Button asChild size="sm" variant="outline" className="lg:hidden fixed right-3 top-1.5 z-[1500] bg-background border-border" title="Recente Superchargerwijzigingen">
+        <Button asChild size="sm" variant="outline" className="dark lg:hidden fixed right-3 top-1.5 z-[1500] bg-background text-foreground border-border" title="Recente Superchargerwijzigingen">
           <Link to="/recente-wijzigingen"><History className="size-4" aria-hidden="true" /> Wijzigingen</Link>
         </Button>
       )}
@@ -1134,7 +1134,7 @@ function Index() {
         {!isNavigating && (
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
-              <Button asChild size="sm" variant="outline" className="hidden lg:inline-flex bg-background/90 border-border" title="Recente Superchargerwijzigingen">
+              <Button asChild size="sm" variant="outline" className="dark hidden lg:inline-flex bg-background/90 text-foreground border-border" title="Recente Superchargerwijzigingen">
                 <Link to="/recente-wijzigingen"><History className="size-4" aria-hidden="true" /><span className="hidden sm:inline">Wijzigingen</span><span className="sr-only sm:hidden">Recente wijzigingen</span></Link>
               </Button>
               <LanguageSwitcher />
