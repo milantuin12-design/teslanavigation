@@ -395,6 +395,8 @@ export type Database = {
           closure: Json
           construction: Json
           country: string
+          data_source: string
+          hidden: boolean
           id: string
           in_parking_garage: boolean
           is_available: boolean
@@ -411,16 +413,22 @@ export type Database = {
           owner_id: string | null
           owner_name: string | null
           parking_fee: boolean
+          permanently_closed_at: string | null
+          photos: string[]
           planned_upgrade: Json
           province: string | null
           published: boolean
           reopen_at: string | null
+          source_ref: string | null
+          source_updated_at: string | null
+          stall_states: Json
           stall_types: string | null
           status: string
           total_stalls: number | null
           trailer_friendly: boolean
           updated_at: string
           versions: string[] | null
+          voting: Json
           works: Json
         }
         Insert: {
@@ -430,6 +438,8 @@ export type Database = {
           closure?: Json
           construction?: Json
           country: string
+          data_source?: string
+          hidden?: boolean
           id?: string
           in_parking_garage?: boolean
           is_available?: boolean
@@ -446,16 +456,22 @@ export type Database = {
           owner_id?: string | null
           owner_name?: string | null
           parking_fee?: boolean
+          permanently_closed_at?: string | null
+          photos?: string[]
           planned_upgrade?: Json
           province?: string | null
           published?: boolean
           reopen_at?: string | null
+          source_ref?: string | null
+          source_updated_at?: string | null
+          stall_states?: Json
           stall_types?: string | null
           status?: string
           total_stalls?: number | null
           trailer_friendly?: boolean
           updated_at?: string
           versions?: string[] | null
+          voting?: Json
           works?: Json
         }
         Update: {
@@ -465,6 +481,8 @@ export type Database = {
           closure?: Json
           construction?: Json
           country?: string
+          data_source?: string
+          hidden?: boolean
           id?: string
           in_parking_garage?: boolean
           is_available?: boolean
@@ -481,16 +499,22 @@ export type Database = {
           owner_id?: string | null
           owner_name?: string | null
           parking_fee?: boolean
+          permanently_closed_at?: string | null
+          photos?: string[]
           planned_upgrade?: Json
           province?: string | null
           published?: boolean
           reopen_at?: string | null
+          source_ref?: string | null
+          source_updated_at?: string | null
+          stall_states?: Json
           stall_types?: string | null
           status?: string
           total_stalls?: number | null
           trailer_friendly?: boolean
           updated_at?: string
           versions?: string[] | null
+          voting?: Json
           works?: Json
         }
         Relationships: [
