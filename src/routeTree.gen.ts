@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RecenteWijzigingenRouteImport } from './routes/recente-wijzigingen'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -23,6 +24,11 @@ import { Route as AuthenticatedGebruikersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedEigenarenRouteImport } from './routes/_authenticated/eigenaren'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
+const RecenteWijzigingenRoute = RecenteWijzigingenRouteImport.update({
+  id: '/recente-wijzigingen',
+  path: '/recente-wijzigingen',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -93,6 +99,7 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/recente-wijzigingen': typeof RecenteWijzigingenRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/eigenaren': typeof AuthenticatedEigenarenRoute
   '/gebruikers': typeof AuthenticatedGebruikersRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/recente-wijzigingen': typeof RecenteWijzigingenRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/eigenaren': typeof AuthenticatedEigenarenRoute
   '/gebruikers': typeof AuthenticatedGebruikersRoute
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/recente-wijzigingen': typeof RecenteWijzigingenRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/eigenaren': typeof AuthenticatedEigenarenRoute
   '/_authenticated/gebruikers': typeof AuthenticatedGebruikersRoute
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/recente-wijzigingen'
     | '/admin'
     | '/eigenaren'
     | '/gebruikers'
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/recente-wijzigingen'
     | '/admin'
     | '/eigenaren'
     | '/gebruikers'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/recente-wijzigingen'
     | '/_authenticated/admin'
     | '/_authenticated/eigenaren'
     | '/_authenticated/gebruikers'
@@ -184,11 +196,19 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  RecenteWijzigingenRoute: typeof RecenteWijzigingenRoute
   GedeeldTokenRoute: typeof GedeeldTokenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/recente-wijzigingen': {
+      id: '/recente-wijzigingen'
+      path: '/recente-wijzigingen'
+      fullPath: '/recente-wijzigingen'
+      preLoaderRoute: typeof RecenteWijzigingenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -314,6 +334,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  RecenteWijzigingenRoute: RecenteWijzigingenRoute,
   GedeeldTokenRoute: GedeeldTokenRoute,
 }
 export const routeTree = rootRouteImport

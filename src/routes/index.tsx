@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import EvMap from "@/components/EvMap";
@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Bookmark } from "lucide-react";
+import { Bookmark, History } from "lucide-react";
 import ChargerFilters from "@/components/ChargerFilters";
 import ReportChargerDialog, { type ReportTarget } from "@/components/ReportChargerDialog";
 import OwnerPanel from "@/components/OwnerPanel";
@@ -68,6 +68,8 @@ export const Route = createFileRoute("/")({
         content:
           "Plan je Tesla rit met automatische Supercharger stops, live beschikbaarheid en navigatie.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Index,
@@ -1032,6 +1034,11 @@ function Index() {
   return (
     <div className="h-screen w-screen flex flex-col lg:flex-row bg-slate-900 text-white overflow-hidden">
       {!isNavigating && (
+        <Button asChild size="sm" variant="outline" className="dark lg:hidden fixed right-3 top-1.5 z-[1500] bg-background text-foreground border-border" title="Recente Superchargerwijzigingen">
+          <Link to="/recente-wijzigingen"><History className="size-4" aria-hidden="true" /> Wijzigingen</Link>
+        </Button>
+      )}
+      {!isNavigating && (
         <div className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-700/50 flex flex-col overflow-hidden">
           <div
             className="flex-1 overflow-y-auto overscroll-contain"
@@ -1127,6 +1134,9 @@ function Index() {
         {!isNavigating && (
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
+              <Button asChild size="sm" variant="outline" className="dark hidden lg:inline-flex bg-background/90 text-foreground border-border" title="Recente Superchargerwijzigingen">
+                <Link to="/recente-wijzigingen"><History className="size-4" aria-hidden="true" /><span className="hidden sm:inline">Wijzigingen</span><span className="sr-only sm:hidden">Recente wijzigingen</span></Link>
+              </Button>
               <LanguageSwitcher />
               <AccountMenu />
             </div>
