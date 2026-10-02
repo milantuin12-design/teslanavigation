@@ -9,58 +9,58 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as GedeeldTokenRouteImport } from './routes/gedeeld.$token'
-import { Route as AuthenticatedWijzigingenRouteImport } from './routes/_authenticated/wijzigingen'
-import { Route as AuthenticatedVoertuigenRouteImport } from './routes/_authenticated/voertuigen'
-import { Route as AuthenticatedTalenRouteImport } from './routes/_authenticated/talen'
-import { Route as AuthenticatedMijnRoutesRouteImport } from './routes/_authenticated/mijn-routes'
-import { Route as AuthenticatedMijnMeldingenRouteImport } from './routes/_authenticated/mijn-meldingen'
-import { Route as AuthenticatedMeldingenRouteImport } from './routes/_authenticated/meldingen'
-import { Route as AuthenticatedGebruikersRouteImport } from './routes/_authenticated/gebruikers'
-import { Route as AuthenticatedEigenarenRouteImport } from './routes/_authenticated/eigenaren'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as RecenteWijzigingenRouteImport } from './routes/recente-wijzigingen'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedEigenarenRouteImport } from './routes/_authenticated/eigenaren'
+import { Route as AuthenticatedGebruikersRouteImport } from './routes/_authenticated/gebruikers'
+import { Route as AuthenticatedMeldingenRouteImport } from './routes/_authenticated/meldingen'
+import { Route as AuthenticatedMijnMeldingenRouteImport } from './routes/_authenticated/mijn-meldingen'
+import { Route as AuthenticatedMijnRoutesRouteImport } from './routes/_authenticated/mijn-routes'
+import { Route as AuthenticatedTalenRouteImport } from './routes/_authenticated/talen'
+import { Route as AuthenticatedVoertuigenRouteImport } from './routes/_authenticated/voertuigen'
+import { Route as AuthenticatedWijzigingenRouteImport } from './routes/_authenticated/wijzigingen'
+import { Route as GedeeldTokenRouteImport } from './routes/gedeeld.$token'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GedeeldTokenRoute = GedeeldTokenRouteImport.update({
-  id: '/gedeeld/$token',
-  path: '/gedeeld/$token',
+const RecenteWijzigingenRoute = RecenteWijzigingenRouteImport.update({
+  id: '/recente-wijzigingen',
+  path: '/recente-wijzigingen',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedWijzigingenRoute =
-  AuthenticatedWijzigingenRouteImport.update({
-    id: '/wijzigingen',
-    path: '/wijzigingen',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedVoertuigenRoute = AuthenticatedVoertuigenRouteImport.update({
-  id: '/voertuigen',
-  path: '/voertuigen',
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedTalenRoute = AuthenticatedTalenRouteImport.update({
-  id: '/talen',
-  path: '/talen',
+const AuthenticatedEigenarenRoute = AuthenticatedEigenarenRouteImport.update({
+  id: '/eigenaren',
+  path: '/eigenaren',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedMijnRoutesRoute = AuthenticatedMijnRoutesRouteImport.update({
-  id: '/mijn-routes',
-  path: '/mijn-routes',
+const AuthenticatedGebruikersRoute = AuthenticatedGebruikersRouteImport.update({
+  id: '/gebruikers',
+  path: '/gebruikers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMeldingenRoute = AuthenticatedMeldingenRouteImport.update({
+  id: '/meldingen',
+  path: '/meldingen',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMijnMeldingenRoute =
@@ -69,30 +69,37 @@ const AuthenticatedMijnMeldingenRoute =
     path: '/mijn-meldingen',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedMeldingenRoute = AuthenticatedMeldingenRouteImport.update({
-  id: '/meldingen',
-  path: '/meldingen',
+const AuthenticatedMijnRoutesRoute = AuthenticatedMijnRoutesRouteImport.update({
+  id: '/mijn-routes',
+  path: '/mijn-routes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedGebruikersRoute = AuthenticatedGebruikersRouteImport.update({
-  id: '/gebruikers',
-  path: '/gebruikers',
+const AuthenticatedTalenRoute = AuthenticatedTalenRouteImport.update({
+  id: '/talen',
+  path: '/talen',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedEigenarenRoute = AuthenticatedEigenarenRouteImport.update({
-  id: '/eigenaren',
-  path: '/eigenaren',
+const AuthenticatedVoertuigenRoute = AuthenticatedVoertuigenRouteImport.update({
+  id: '/voertuigen',
+  path: '/voertuigen',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const AuthenticatedWijzigingenRoute =
+  AuthenticatedWijzigingenRouteImport.update({
+    id: '/wijzigingen',
+    path: '/wijzigingen',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const GedeeldTokenRoute = GedeeldTokenRouteImport.update({
+  id: '/gedeeld/$token',
+  path: '/gedeeld/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/recente-wijzigingen': typeof RecenteWijzigingenRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/eigenaren': typeof AuthenticatedEigenarenRoute
   '/gebruikers': typeof AuthenticatedGebruikersRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/recente-wijzigingen': typeof RecenteWijzigingenRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/eigenaren': typeof AuthenticatedEigenarenRoute
   '/gebruikers': typeof AuthenticatedGebruikersRoute
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/recente-wijzigingen': typeof RecenteWijzigingenRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/eigenaren': typeof AuthenticatedEigenarenRoute
   '/_authenticated/gebruikers': typeof AuthenticatedGebruikersRoute
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/recente-wijzigingen'
     | '/admin'
     | '/eigenaren'
     | '/gebruikers'
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/recente-wijzigingen'
     | '/admin'
     | '/eigenaren'
     | '/gebruikers'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/recente-wijzigingen'
     | '/_authenticated/admin'
     | '/_authenticated/eigenaren'
     | '/_authenticated/gebruikers'
@@ -184,16 +196,17 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  RecenteWijzigingenRoute: typeof RecenteWijzigingenRoute
   GedeeldTokenRoute: typeof GedeeldTokenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -203,67 +216,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/gedeeld/$token': {
-      id: '/gedeeld/$token'
-      path: '/gedeeld/$token'
-      fullPath: '/gedeeld/$token'
-      preLoaderRoute: typeof GedeeldTokenRouteImport
+    '/recente-wijzigingen': {
+      id: '/recente-wijzigingen'
+      path: '/recente-wijzigingen'
+      fullPath: '/recente-wijzigingen'
+      preLoaderRoute: typeof RecenteWijzigingenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/wijzigingen': {
-      id: '/_authenticated/wijzigingen'
-      path: '/wijzigingen'
-      fullPath: '/wijzigingen'
-      preLoaderRoute: typeof AuthenticatedWijzigingenRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/voertuigen': {
-      id: '/_authenticated/voertuigen'
-      path: '/voertuigen'
-      fullPath: '/voertuigen'
-      preLoaderRoute: typeof AuthenticatedVoertuigenRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/talen': {
-      id: '/_authenticated/talen'
-      path: '/talen'
-      fullPath: '/talen'
-      preLoaderRoute: typeof AuthenticatedTalenRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/mijn-routes': {
-      id: '/_authenticated/mijn-routes'
-      path: '/mijn-routes'
-      fullPath: '/mijn-routes'
-      preLoaderRoute: typeof AuthenticatedMijnRoutesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/mijn-meldingen': {
-      id: '/_authenticated/mijn-meldingen'
-      path: '/mijn-meldingen'
-      fullPath: '/mijn-meldingen'
-      preLoaderRoute: typeof AuthenticatedMijnMeldingenRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/meldingen': {
-      id: '/_authenticated/meldingen'
-      path: '/meldingen'
-      fullPath: '/meldingen'
-      preLoaderRoute: typeof AuthenticatedMeldingenRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/gebruikers': {
-      id: '/_authenticated/gebruikers'
-      path: '/gebruikers'
-      fullPath: '/gebruikers'
-      preLoaderRoute: typeof AuthenticatedGebruikersRouteImport
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/eigenaren': {
@@ -273,12 +244,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEigenarenRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+    '/_authenticated/gebruikers': {
+      id: '/_authenticated/gebruikers'
+      path: '/gebruikers'
+      fullPath: '/gebruikers'
+      preLoaderRoute: typeof AuthenticatedGebruikersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/meldingen': {
+      id: '/_authenticated/meldingen'
+      path: '/meldingen'
+      fullPath: '/meldingen'
+      preLoaderRoute: typeof AuthenticatedMeldingenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mijn-meldingen': {
+      id: '/_authenticated/mijn-meldingen'
+      path: '/mijn-meldingen'
+      fullPath: '/mijn-meldingen'
+      preLoaderRoute: typeof AuthenticatedMijnMeldingenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mijn-routes': {
+      id: '/_authenticated/mijn-routes'
+      path: '/mijn-routes'
+      fullPath: '/mijn-routes'
+      preLoaderRoute: typeof AuthenticatedMijnRoutesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/talen': {
+      id: '/_authenticated/talen'
+      path: '/talen'
+      fullPath: '/talen'
+      preLoaderRoute: typeof AuthenticatedTalenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/voertuigen': {
+      id: '/_authenticated/voertuigen'
+      path: '/voertuigen'
+      fullPath: '/voertuigen'
+      preLoaderRoute: typeof AuthenticatedVoertuigenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/wijzigingen': {
+      id: '/_authenticated/wijzigingen'
+      path: '/wijzigingen'
+      fullPath: '/wijzigingen'
+      preLoaderRoute: typeof AuthenticatedWijzigingenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/gedeeld/$token': {
+      id: '/gedeeld/$token'
+      path: '/gedeeld/$token'
+      fullPath: '/gedeeld/$token'
+      preLoaderRoute: typeof GedeeldTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -314,6 +334,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  RecenteWijzigingenRoute: RecenteWijzigingenRoute,
   GedeeldTokenRoute: GedeeldTokenRoute,
 }
 export const routeTree = rootRouteImport
