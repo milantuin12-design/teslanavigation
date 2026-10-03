@@ -53,15 +53,29 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus) {
   else if (status === 'In aanbouw') color = '#f59e0b'; // oranje voor in aanbouw
   else if (status === 'Werkzaamheden' || status === 'Druk') color = '#f59e0b'; // oranje
   else if (status === 'Onbekend') color = '#64748b';
+  else if (status === 'Voting') color = '#3b82f6';
+  else if (status === 'Plan' || status === 'Vergunning verleend') color = '#a855f7';
+  else if (status === 'Wordt uitgebreid') color = '#22c55e';
+  else if (status === 'Permanent gesloten') color = '#0f172a';
+  else if (status === 'Tijdelijk gesloten') color = '#cbd5e1';
   else if (status !== 'Beschikbaar') color = '#ef4444'; // rood: gesloten varianten
 
+  if (status === 'Voting') {
+    return L.divIcon({
+      className: 'custom-marker',
+      html: `<div title="Voting" style="width:12px;height:12px;border-radius:50%;background:#3b82f6;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>`,
+      iconSize: [12, 12], iconAnchor: [6, 6], popupAnchor: [0, -6],
+    });
+  }
+
   const isConstruction = status === 'In aanbouw';
-  const hasOpenWorks = charger.status === 'works';
+  const hasOpenWorks = charger.status === 'works' || charger.status === 'expanding';
   const hasClosedWorks = charger.status === 'works_closed';
   const isLowSpeed = !!charger.lowSpeed;
 
   const stalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls;
-  const label = stalls ? String(stalls) : '';
+  const usableNow = stalls && (charger.status === 'operational' || charger.status === 'works' || charger.status === 'expanding' || !charger.status) ? getOpenStalls(charger) : stalls;
+  const label = usableNow !== undefined && stalls ? String(usableNow) : '';
 
   const ringStyle = isConstruction
     ? 'border:2px dashed #fff;outline:2px dashed rgba(245,158,11,0.9);outline-offset:2px;'
@@ -220,6 +234,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     superchargers.forEach(charger => {
       try {
         if (charger.published === false && !showDrafts) return;
+        if (!isVisibleOnMap(charger)) return;
 
         const status = getChargerStatus(charger);
         const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status) });
@@ -236,6 +251,9 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
 
         const hideSpeed = shouldHideSpeed(charger);
+        if (charger.photos && charger.photos.length > 0) {
+          popup += `<div style="margin-top:6px;display:flex;gap:4px;overflow-x:auto;">${charger.photos.slice(0, 4).map((u) => `<img src="${escapeHtml(u)}" alt="" loading="lazy" style="width:110px;height:72px;object-fit:cover;border-radius:6px;flex:none;" />`).join('')}</div>`;
+        }
 
         if (charger.ownerName) {
           popup += `<button type="button" data-owner-id="${escapeHtml(charger.ownerId ?? '')}" style="margin-top:4px;display:flex;align-items:center;gap:6px;color:#1d4ed8;font-weight:600;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;">`;

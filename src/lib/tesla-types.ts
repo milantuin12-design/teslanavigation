@@ -219,7 +219,12 @@ export type ChargerStatus =
   | 'Werkzaamheden'
   | 'Dicht door werkzaamheden'
   | 'Tijdelijk gesloten'
-  | 'Langdurig gesloten';
+  | 'Langdurig gesloten'
+  | 'Voting'
+  | 'Plan'
+  | 'Vergunning verleend'
+  | 'Wordt uitgebreid'
+  | 'Permanent gesloten';
 
 export interface ChargerFilterState {
   statuses: ChargerLifecycleStatus[];
