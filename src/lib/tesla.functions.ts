@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, PlannedUpgrade, Supercharger, WorksInfo } from "./tesla-types";
+import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, PlannedUpgrade, StallState, Supercharger, VotingInfo, WorksInfo } from "./tesla-types";
 import type { Json } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, normalizeOpeningHours, parseChargerConfigsFromLegacy } from "./tesla-utils";
@@ -23,7 +23,7 @@ function normalizeStallData(totalStalls?: number | null, stallTypes?: string | n
 }
 
 const SELECT_COLS =
-  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,notes,reopen_at,planned_upgrade";
+  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,notes,reopen_at,planned_upgrade,stall_states,permanently_closed_at,data_source,voting,hidden,photos";
 
 type Row = {
   id: string;
@@ -57,9 +57,15 @@ type Row = {
   notes: string | null;
   reopen_at: string | null;
   planned_upgrade: PlannedUpgrade | null;
+  stall_states?: StallState[] | null;
+  permanently_closed_at?: string | null;
+  data_source?: string | null;
+  voting?: VotingInfo | null;
+  hidden?: boolean | null;
+  photos?: string[] | null;
 };
 
-const LIFECYCLE: ChargerLifecycleStatus[] = ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed'];
+const LIFECYCLE: ChargerLifecycleStatus[] = ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed', 'voting', 'plan', 'permit', 'expanding', 'permanent_closed'];
 
 type OwnerRow = { name: string; logo_url: string | null; description: string | null; website: string | null; contact: string | null; notes: string | null };
 
@@ -113,6 +119,12 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
     notes: row.notes,
     reopenAt: row.reopen_at,
     plannedUpgrade: row.planned_upgrade ?? {},
+    stallStates: Array.isArray(row.stall_states) ? row.stall_states : [],
+    permanentlyClosedAt: row.permanently_closed_at ?? null,
+    dataSource: row.data_source === 'automatic' ? 'automatic' : 'manual',
+    voting: row.voting ?? {},
+    hidden: !!row.hidden,
+    photos: row.photos ?? [],
   };
 }
 
@@ -228,7 +240,12 @@ const chargerInput = z.object({
   inParkingGarage: z.boolean().default(false),
   province: z.string().max(100).optional(),
   city: z.string().max(100).optional(),
-  status: z.enum(["operational", "construction", "works", "works_closed", "temp_closed", "long_closed"]).default("operational"),
+  status: z.enum(["operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed"]).default("operational"),
+  stallStates: z.array(z.object({ stall: z.number().int().min(1).max(500), condition: z.enum(["available", "defect", "blocked", "maintenance", "other"]), note: z.string().max(300).optional(), until: z.string().max(40).nullable().optional() })).max(500).optional(),
+  dataSource: z.enum(["manual", "automatic"]).optional(),
+  hidden: z.boolean().optional(),
+  photos: z.array(z.string().url().max(1000)).max(20).optional(),
+  voting: z.object({ votes: z.number().int().min(0).optional(), rank: z.number().int().min(0).optional(), url: z.string().max(500).optional() }).optional(),
   construction: z.object({
     plannedStalls: z.number().int().min(0).max(500).optional(),
     version: z.string().max(10).optional(),
@@ -315,6 +332,11 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       notes: data.notes ?? null,
       reopen_at: data.reopenAt || null,
       planned_upgrade: data.plannedUpgrade as Json,
+      ...(data.stallStates ? { stall_states: data.stallStates as unknown as Json } : {}),
+      ...(data.dataSource ? { data_source: data.dataSource } : {}),
+      ...(data.hidden !== undefined ? { hidden: data.hidden } : {}),
+      ...(data.photos ? { photos: data.photos } : {}),
+      ...(data.voting ? { voting: data.voting as Json } : {}),
 
     };
     if (data.id) {

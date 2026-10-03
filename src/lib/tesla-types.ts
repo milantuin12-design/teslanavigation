@@ -23,7 +23,28 @@ export type ChargerLifecycleStatus =
   | 'works'
   | 'works_closed'
   | 'temp_closed'
-  | 'long_closed';
+  | 'long_closed'
+  | 'voting'
+  | 'plan'
+  | 'permit'
+  | 'expanding'
+  | 'permanent_closed';
+
+export type StallCondition = 'available' | 'defect' | 'blocked' | 'maintenance' | 'other';
+
+/** Status van één laadplek (alleen afwijkende plekken hoeven opgeslagen te worden). */
+export interface StallState {
+  stall: number;
+  condition: StallCondition;
+  note?: string;
+  until?: string | null;
+}
+
+export interface VotingInfo {
+  votes?: number;
+  rank?: number;
+  url?: string;
+}
 
 export const CONSTRUCTION_STEPS = [
   'permit',
@@ -152,6 +173,12 @@ export interface Supercharger {
   notes?: string | null;
   reopenAt?: string | null;
   plannedUpgrade?: PlannedUpgrade;
+  stallStates?: StallState[];
+  permanentlyClosedAt?: string | null;
+  dataSource?: 'manual' | 'automatic';
+  voting?: VotingInfo;
+  hidden?: boolean;
+  photos?: string[];
 }
 
 
@@ -192,7 +219,12 @@ export type ChargerStatus =
   | 'Werkzaamheden'
   | 'Dicht door werkzaamheden'
   | 'Tijdelijk gesloten'
-  | 'Langdurig gesloten';
+  | 'Langdurig gesloten'
+  | 'Voting'
+  | 'Plan'
+  | 'Vergunning verleend'
+  | 'Wordt uitgebreid'
+  | 'Permanent gesloten';
 
 export interface ChargerFilterState {
   statuses: ChargerLifecycleStatus[];
@@ -212,7 +244,7 @@ export interface ChargerFilterState {
 }
 
 export const defaultChargerFilters: ChargerFilterState = {
-  statuses: ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed'],
+  statuses: ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed', 'voting', 'plan', 'permit', 'expanding', 'permanent_closed'],
   minSpeedKw: 0,
   versions: [],
   trailerOnly: false,

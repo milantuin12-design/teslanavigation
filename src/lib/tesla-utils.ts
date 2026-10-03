@@ -227,7 +227,8 @@ export function calculateChargeDuration(
 
 export function isChargerOperationalAt(charger: Supercharger, atDate: Date = new Date()): boolean {
   const lifecycle = charger.status ?? 'operational';
-  if (lifecycle !== 'operational' && lifecycle !== 'works') return false;
+  if (lifecycle !== 'operational' && lifecycle !== 'works' && lifecycle !== 'expanding') return false;
+  if (getTotalStalls(charger) > 0 && getOpenStalls(charger, atDate) <= 0) return false;
   return charger.isAvailable !== false && isChargerOpenAt(charger, atDate);
 }
 
@@ -237,9 +238,15 @@ export function getChargerStatus(charger: Supercharger, atDate: Date = new Date(
   if (lifecycle === 'works_closed') return 'Dicht door werkzaamheden';
   if (lifecycle === 'temp_closed') return 'Tijdelijk gesloten';
   if (lifecycle === 'long_closed') return 'Langdurig gesloten';
+  if (lifecycle === 'permanent_closed') return 'Permanent gesloten';
+  if (lifecycle === 'voting') return 'Voting';
+  if (lifecycle === 'plan') return 'Plan';
+  if (lifecycle === 'permit') return 'Vergunning verleend';
+  if (getTotalStalls(charger) > 0 && getOpenStalls(charger, atDate) <= 0) return 'Niet beschikbaar';
   if (charger.isAvailable === false) return 'Niet beschikbaar';
   if (!isChargerOpenAt(charger, atDate)) return 'Gesloten';
   if (lifecycle === 'works') return 'Werkzaamheden';
+  if (lifecycle === 'expanding') return 'Wordt uitgebreid';
   if (charger.totalStalls === undefined || charger.occupiedStalls === undefined) return 'Onbekend';
   const available = charger.totalStalls - charger.occupiedStalls;
   if (available === 0) return 'Vol';
@@ -420,12 +427,15 @@ export function calculateChargingStops(
   let filtered = chargers.filter(c => {
     const lifecycle = c.status ?? 'operational';
     if (c.published === false) return false;
-    if (lifecycle !== 'operational' && lifecycle !== 'works') return false;
+    if (lifecycle !== 'operational' && lifecycle !== 'works' && lifecycle !== 'expanding') return false;
     if (c.isAvailable === false) return false;
+    // Een locatie met 0 bruikbare laadplekken is nooit een laadstop.
+    if (getTotalStalls(c) > 0 && getOpenStalls(c) <= 0) return false;
     if (avoidLowSpeed && c.lowSpeed) return false;
     if (!allowEurotunnel && /eurotunnel/i.test(c.name)) return false;
     // Alleen Type 2 / CCS. Zonder CCS-adapter (Model S/X vóór 2019) vervallen CCS-only locaties.
-    if (ccsBlocked && !canUseConnectors(normalizeConnectors(c.connectors), { ccsBlocked: true })) return false;
+    // Zonder CCS-adapter: alleen V2 Superchargers (die hebben de Tesla/Type 2-kabel).
+    if (ccsBlocked && !hasV2Stalls(c)) return false;
     return parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) >= minChargerSpeedKw;
   });
 
@@ -688,6 +698,10 @@ export function getStatusColor(status: ChargerStatus): string {
     case 'Onbekend': return '#64748b';
     case 'Niet beschikbaar': return '#94a3b8';
     case 'Langdurig gesloten': return '#94a3b8';
+    case 'Voting': return '#3b82f6';
+    case 'Plan': case 'Vergunning verleend': return '#a855f7';
+    case 'Wordt uitgebreid': return '#22c55e';
+    case 'Permanent gesloten': return '#0f172a';
     default: return '#ef4444';
   }
 }
@@ -699,7 +713,48 @@ export const lifecycleLabels: Record<ChargerLifecycleStatus, string> = {
   works_closed: 'Dicht door werkzaamheden',
   temp_closed: 'Tijdelijk gesloten',
   long_closed: 'Langdurig gesloten',
+  voting: 'Voting',
+  plan: 'Plan',
+  permit: 'Vergunning verleend',
+  expanding: 'Wordt uitgebreid',
+  permanent_closed: 'Permanent gesloten',
 };
+
+export const stallConditionLabels: Record<string, string> = {
+  available: 'Beschikbaar',
+  defect: 'Defect',
+  blocked: 'Geblokkeerd',
+  maintenance: 'Onderhoud',
+  other: 'Andere reden',
+};
+
+/** Heeft deze locatie V2-laadplekken? */
+export function hasV2Stalls(charger: Supercharger): boolean {
+  const configs = getChargerConfigs(charger);
+  if (configs.length > 0) return configs.some((c) => String(c.version).toUpperCase() === 'V2');
+  return (charger.versions ?? []).some((v) => String(v).toUpperCase() === 'V2');
+}
+
+/** Laadplekken die nu (nog) buiten gebruik zijn volgens de admin. */
+export function getActiveStallIssues(charger: Supercharger, atDate: Date = new Date()) {
+  return (charger.stallStates ?? []).filter((s) => {
+    if (!s || s.condition === 'available') return false;
+    if (s.until) { const t = new Date(s.until).getTime(); if (!isNaN(t) && t <= atDate.getTime()) return false; }
+    return true;
+  });
+}
+
+const PERMANENT_VISIBLE_MS = 14 * 24 * 3600 * 1000;
+
+/** Hoort deze lader op de normale kaart? (verborgen of >14 dagen permanent gesloten = nee) */
+export function isVisibleOnMap(charger: Supercharger, now: number = Date.now()): boolean {
+  if (charger.hidden) return false;
+  if (charger.status === 'permanent_closed') {
+    const t = charger.permanentlyClosedAt ? new Date(charger.permanentlyClosedAt).getTime() : NaN;
+    if (!isNaN(t) && now - t > PERMANENT_VISIBLE_MS) return false;
+  }
+  return true;
+}
 
 export const constructionProgressLabels: Record<string, string> = {
   planned: 'Gepland',
@@ -731,16 +786,16 @@ export function getOutOfServiceStalls(charger: Supercharger): number {
 }
 
 /** Aantal laadplekken dat nu open is (rekening houdend met werkzaamheden). */
-export function getOpenStalls(charger: Supercharger): number {
+export function getOpenStalls(charger: Supercharger, atDate: Date = new Date()): number {
   const total = getTotalStalls(charger);
   const status = charger.status ?? 'operational';
-  if (status === 'construction') return 0;
+  const issues = getActiveStallIssues(charger, atDate).length;
   if (status === 'works') {
     const openConfigs = getTotalStallsFromConfigs(charger.works?.openConfigs);
-    if (openConfigs !== undefined) return Math.min(total, openConfigs);
-    return Math.max(0, total - getOutOfServiceStalls(charger));
+    const base = openConfigs !== undefined ? Math.min(total, openConfigs) : Math.max(0, total - getOutOfServiceStalls(charger));
+    return Math.max(0, base - issues);
   }
-  if (status === 'operational') return total;
+  if (status === 'operational' || status === 'expanding') return Math.max(0, total - issues);
   return 0;
 }
 
@@ -750,7 +805,7 @@ export function formatStallAvailability(charger: Supercharger): string {
   const open = getOpenStalls(charger);
   const closed = Math.max(0, total - open);
   if (closed === 0) return `${total} laadplekken beschikbaar`;
-  return `${total} totaal · ${closed} buiten gebruik · ${open} beschikbaar`;
+  return `${open} / ${total} beschikbaar`;
 }
 
 
@@ -783,6 +838,15 @@ export function describeChargerStatus(charger: Supercharger): string[] {
     if (w.reason) lines.push(`Reden: ${w.reason}`);
     if (w.expectedEnd) lines.push(`Klaar rond: ${formatDateNl(w.expectedEnd)}`);
     if (w.notes) lines.push(w.notes);
+  } else if (status === 'voting') {
+    lines.push('Tesla Voting');
+    if (charger.voting?.votes) lines.push(`Stemmen: ${charger.voting.votes}`);
+    if (charger.voting?.rank) lines.push(`Rang: #${charger.voting.rank}`);
+  } else if (status === 'plan' || status === 'permit') {
+    lines.push(status === 'plan' ? 'Gepland' : 'Vergunning verleend');
+  } else if (status === 'permanent_closed') {
+    lines.push('Permanent gesloten');
+    if (charger.permanentlyClosedAt) lines.push(`Gesloten sinds ${formatDateNl(charger.permanentlyClosedAt)}`);
   } else if (status === 'temp_closed' || status === 'long_closed') {
     const c = charger.closure || {};
     lines.push(status === 'temp_closed' ? 'Tijdelijk gesloten' : 'Langdurig gesloten');
@@ -790,6 +854,16 @@ export function describeChargerStatus(charger: Supercharger): string[] {
     // Heropendatum is bewust alleen intern (admin) — niet tonen op de kaart.
     if (c.notes) lines.push(c.notes);
   }
+
+  if (status === 'operational' || status === 'expanding' || status === 'works') {
+    const issues = getActiveStallIssues(charger);
+    const total = getTotalStalls(charger);
+    if (issues.length > 0 && total > 0) {
+      lines.push(`${getOpenStalls(charger)} / ${total} beschikbaar`);
+      for (const i of issues) lines.push(`Plek ${i.stall}: ${stallConditionLabels[i.condition] ?? i.condition}${i.note ? ` — ${i.note}` : ''}`);
+    }
+  }
+  if (lines.length === 0 && status === 'expanding') lines.push('Wordt uitgebreid');
 
   const upgrade = charger.plannedUpgrade;
   if (upgrade && (upgrade.label || (upgrade.toConfigs && upgrade.toConfigs.length > 0))) {

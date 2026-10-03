@@ -200,7 +200,7 @@ const bulkInput = z.object({
     lowSpeed: z.boolean().optional(),
     published: z.boolean().optional(),
     ownerId: z.string().uuid().nullable().optional(),
-    status: z.enum(["operational", "construction", "works", "works_closed", "temp_closed", "long_closed"]).optional(),
+    status: z.enum(["operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed"]).optional(),
     country: z.string().max(100).optional(),
     province: z.string().max(100).optional(),
     maxSpeedKw: z.number().int().min(0).max(1000).optional(),

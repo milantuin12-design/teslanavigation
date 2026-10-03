@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Trash2, Pencil, Plus, Truck, X, ChevronDown, EyeOff } from "lucide-react";
-import { CONSTRUCTION_STEPS, constructionStepLabels, type ChargerConfig, type ChargerLifecycleStatus, type ClosureInfo, type ConstructionInfo, type OpeningDayKey, type OpeningHours, type PlannedUpgrade, type WorksInfo } from "@/lib/tesla-types";
+import { CONSTRUCTION_STEPS, constructionStepLabels, type ChargerConfig, type ChargerLifecycleStatus, type ClosureInfo, type ConstructionInfo, type OpeningDayKey, type OpeningHours, type PlannedUpgrade, type StallState, type StallCondition, type WorksInfo } from "@/lib/tesla-types";
 import type { Json } from "@/integrations/supabase/types";
 import { constructionProgressLabels, defaultOpeningHours, lifecycleLabels, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
 
@@ -50,6 +50,11 @@ type Charger = {
   published: boolean;
   reopen_at: string | null;
   planned_upgrade: PlannedUpgrade | null;
+  stall_states?: StallState[] | null;
+  data_source?: string | null;
+  hidden?: boolean | null;
+  photos?: string[] | null;
+  permanently_closed_at?: string | null;
 };
 
 type Owner = { id: string; name: string };
@@ -71,11 +76,15 @@ const emptyCharger = {
   published: true,
   reopen_at: null as string | null,
   planned_upgrade: {} as PlannedUpgrade,
+  stall_states: [] as StallState[],
+  data_source: "manual" as string,
+  hidden: false,
+  photos: [] as string[],
   charger_configs: [{ count: 8, version: "V3", speedKw: 250 }] as ChargerConfig[],
 };
 
 const STATUS_OPTIONS: ChargerLifecycleStatus[] = [
-  "operational", "construction", "works", "works_closed", "temp_closed", "long_closed",
+  "operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed",
 ];
 
 const PROGRESS_OPTIONS = ["planned", "permit", "groundwork", "cabling", "installing", "testing"] as const;
@@ -156,7 +165,7 @@ function AdminPage() {
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from("superchargers")
-        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure,owner_id,low_speed,published,reopen_at,planned_upgrade")
+        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure,owner_id,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at")
         .order("name").range(from, from + 999);
       if (error) { toast.error(error.message); break; }
       rows.push(...(data as Charger[]));
@@ -207,6 +216,10 @@ function AdminPage() {
       published: editing.published !== false,
       reopen_at: editing.status === "temp_closed" ? (editing.reopen_at || null) : null,
       planned_upgrade: (editing.planned_upgrade || {}) as Json,
+      stall_states: (editing.stall_states || []).filter((x) => x.condition !== "available") as unknown as Json,
+      data_source: editing.data_source === "automatic" ? "automatic" : "manual",
+      hidden: !!editing.hidden,
+      photos: (editing.photos || []).map((u) => u.trim()).filter(Boolean),
     };
     if (editing.id) {
       const { error } = await supabase.from("superchargers").update(payload).eq("id", editing.id);
@@ -489,6 +502,27 @@ function AdminPage() {
                   </div>
                 )}
 
+                <StallEditor
+                  total={(editing.charger_configs || []).reduce((n, c) => n + (Number(c.count) || 0), 0) || editing.total_stalls || 0}
+                  value={editing.stall_states || []}
+                  onChange={(stall_states) => setEditing({ ...editing, stall_states })}
+                />
+
+                <div className="space-y-2 rounded-lg border border-slate-700 p-3">
+                  <Label className="text-xs">Foto's (één link per regel, alleen zichtbaar in detailvenster)</Label>
+                  <textarea rows={2} value={(editing.photos || []).join("\n")} onChange={(e) => setEditing({ ...editing, photos: e.target.value.split("\n") })} className="w-full rounded-md bg-slate-800 border border-slate-700 p-2 text-sm" />
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <label className="flex items-center gap-2">Bron
+                      <select value={editing.data_source || "manual"} onChange={(e) => setEditing({ ...editing, data_source: e.target.value })} className="rounded bg-slate-800 border border-slate-700 px-2 py-1">
+                        <option value="manual">Handmatig</option>
+                        <option value="automatic">Automatisch</option>
+                      </select>
+                    </label>
+                    <label className="flex items-center gap-2"><input type="checkbox" checked={!!editing.hidden} onChange={(e) => setEditing({ ...editing, hidden: e.target.checked })} /> Verbergen op kaart</label>
+                  </div>
+                  {editing.status === "permanent_closed" && <p className="text-xs text-slate-400">Permanent gesloten blijft 14 dagen zichtbaar (zwart) en verdwijnt daarna van de kaart; de gegevens blijven bewaard.</p>}
+                </div>
+
                 {(editing.status === "temp_closed" || editing.status === "long_closed") && (
                   <div className="space-y-2">
                     <div>
@@ -658,6 +692,49 @@ function AdminPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+
+const CONDITIONS: { value: StallCondition; label: string }[] = [
+  { value: "available", label: "Beschikbaar" },
+  { value: "defect", label: "Defect" },
+  { value: "blocked", label: "Geblokkeerd" },
+  { value: "maintenance", label: "Onderhoud" },
+  { value: "other", label: "Andere reden" },
+];
+
+function StallEditor({ total, value, onChange }: { total: number; value: StallState[]; onChange: (v: StallState[]) => void }) {
+  const count = Math.min(Math.max(0, total), 100);
+  if (count === 0) return null;
+  const get = (n: number) => value.find((s) => s.stall === n) ?? { stall: n, condition: "available" as StallCondition };
+  const set = (n: number, patch: Partial<StallState>) => {
+    const next = { ...get(n), ...patch };
+    onChange([...value.filter((s) => s.stall !== n), next].sort((a, b) => a.stall - b.stall));
+  };
+  const broken = value.filter((s) => s.condition !== "available").length;
+  return (
+    <div className="space-y-2 rounded-lg border border-slate-700 p-3">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs">Laadplekken (live voor gebruikers)</Label>
+        <span className="text-xs text-slate-300">{Math.max(0, count - broken)} / {count} beschikbaar</span>
+      </div>
+      <div className="grid gap-1 max-h-64 overflow-y-auto">
+        {Array.from({ length: count }, (_, i) => i + 1).map((n) => {
+          const s = get(n);
+          return (
+            <div key={n} className="grid grid-cols-[2.5rem_8rem_1fr_9rem] gap-1 items-center text-xs">
+              <span className="text-slate-400">#{n}</span>
+              <select value={s.condition} onChange={(e) => set(n, { condition: e.target.value as StallCondition })} className={`rounded border border-slate-700 px-1 py-1 ${s.condition === "available" ? "bg-slate-800" : "bg-red-950"}`}>
+                {CONDITIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </select>
+              <input disabled={s.condition === "available"} placeholder="Toelichting" value={s.note ?? ""} onChange={(e) => set(n, { note: e.target.value })} className="rounded bg-slate-800 border border-slate-700 px-1 py-1 disabled:opacity-40" />
+              <input disabled={s.condition === "available"} type="datetime-local" title="Tot (optioneel)" value={s.until ? s.until.slice(0, 16) : ""} onChange={(e) => set(n, { until: e.target.value ? new Date(e.target.value).toISOString() : null })} className="rounded bg-slate-800 border border-slate-700 px-1 py-1 disabled:opacity-40" />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
