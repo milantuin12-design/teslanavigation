@@ -5,15 +5,20 @@ import { defaultChargerFilters } from "@/lib/tesla-types";
 import { lifecycleLabels } from "@/lib/tesla-utils";
 
 const STATUS_ORDER: ChargerLifecycleStatus[] = [
-  "operational",
-  "works",
+  "voting",
+  "plan",
+  "permit",
   "construction",
+  "operational",
+  "expanding",
+  "works",
   "works_closed",
   "temp_closed",
   "long_closed",
+  "permanent_closed",
 ];
 
-const SPEEDS = [0, 100, 125, 150, 250];
+const SPEEDS = [0, 100, 125, 150, 200, 250];
 const VERSIONS = ["V2", "V3", "V4"];
 
 interface Props {

@@ -75,7 +75,7 @@ const emptyCharger = {
 };
 
 const STATUS_OPTIONS: ChargerLifecycleStatus[] = [
-  "operational", "construction", "works", "works_closed", "temp_closed", "long_closed",
+  "operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed",
 ];
 
 const PROGRESS_OPTIONS = ["planned", "permit", "groundwork", "cabling", "installing", "testing"] as const;
