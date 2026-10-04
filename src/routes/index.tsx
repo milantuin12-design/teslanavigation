@@ -131,6 +131,8 @@ function Index() {
   const [consumptionMode, setConsumptionMode] = useState<'auto' | 'manual'>('auto');
   const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(18);
   const [modelYear, setModelYear] = useState<number>(2022);
+  const [tripDate, setTripDate] = useState<string>("");
+  const [manualWeather, setManualWeather] = useState<{ tempC?: number; windMs?: number; precipitationMm?: number }>({});
   const [hasCcsAdapter, setHasCcsAdapter] = useState(true);
   const [autoConsumption, setAutoConsumption] = useState<number | null>(null);
   const [routeWeather, setRouteWeather] = useState<RouteWeather | null>(null);
@@ -489,10 +491,21 @@ function Index() {
     fromBattery: number,
     extraWaypoints: PlannedWaypoint[],
   ): Promise<RoutePlan | null> => {
-    const [elevationProfile, weather] = await Promise.all([
+    const [elevationProfile, fetchedWeather] = await Promise.all([
       fetchElevationProfile(base.route.coordinates),
-      fetchRouteWeather(base.route.coordinates),
+      fetchRouteWeather(base.route.coordinates, tripDate || undefined),
     ]);
+    // Handmatig: ingevuld weer gaat vóór de verwachting.
+    let weather: RouteWeather | null = fetchedWeather;
+    if (consumptionMode === 'manual' && (manualWeather.tempC !== undefined || manualWeather.windMs !== undefined || manualWeather.precipitationMm !== undefined)) {
+      weather = {
+        tempC: manualWeather.tempC ?? fetchedWeather?.tempC ?? 15,
+        windMs: manualWeather.windMs ?? fetchedWeather?.windMs ?? 3,
+        precipitationMm: manualWeather.precipitationMm ?? fetchedWeather?.precipitationMm ?? 0,
+        snowfallCm: fetchedWeather?.snowfallCm ?? 0,
+        fogFraction: fetchedWeather?.fogFraction ?? 0,
+      };
+    }
     const elevation = elevationProfile
       ? elevationConsumptionMultiplier(elevationProfile, base.route.totalDistanceKm)
       : { multiplier: 1, ascentM: 0, descentM: 0 };
@@ -510,7 +523,7 @@ function Index() {
       elevationMultiplier: elevation.multiplier,
       weather,
     });
-    const consumptionKWh100 = consumptionMode === 'manual'
+    const consumptionKWh100 = consumptionMode === 'manual' && manualConsumptionKWh100 > 0
       ? Math.max(9, Math.min(60, manualConsumptionKWh100))
       : auto.kWh100;
     setAutoConsumption(auto.kWh100);
@@ -649,7 +662,7 @@ function Index() {
       stops: [...fixedStops, ...wpStops].sort((a, b) => a.distanceFromStart - b.distanceFromStart).map((st, i) => ({ ...st, stopNumber: i + 1 })),
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
     };
-  }, [ccsBlocked, consumptionMode, manualConsumptionKWh100, packKWh, avoidLowSpeed, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
+  }, [ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
 
   const applyPlan = useCallback((index: number, plan: RoutePlan) => {
     setSelectedRouteIndex(index);
@@ -1104,6 +1117,10 @@ function Index() {
               energySummary={energySummary}
               routeAdvice={routeAdvice}
               modelYear={modelYear}
+              tripDate={tripDate}
+              onTripDateChange={setTripDate}
+              manualWeather={manualWeather}
+              onManualWeatherChange={setManualWeather}
               onModelYearChange={setModelYear}
               hasCcsAdapter={hasCcsAdapter}
               onCcsAdapterChange={setHasCcsAdapter}
