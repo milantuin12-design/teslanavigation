@@ -129,8 +129,10 @@ function Index() {
   const [avoidLowSpeed, setAvoidLowSpeed] = useState(false);
   const [onlineTraffic, setOnlineTraffic] = useState(false);
   const [consumptionMode, setConsumptionMode] = useState<'auto' | 'manual'>('auto');
-  const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(18);
+  const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(0);
   const [modelYear, setModelYear] = useState<number>(2022);
+  const [tripDate, setTripDate] = useState<string>("");
+  const [manualWeather, setManualWeather] = useState<{ tempC?: number; windMs?: number; precipitationMm?: number }>({});
   const [hasCcsAdapter, setHasCcsAdapter] = useState(true);
   const [autoConsumption, setAutoConsumption] = useState<number | null>(null);
   const [routeWeather, setRouteWeather] = useState<RouteWeather | null>(null);
@@ -212,9 +214,15 @@ function Index() {
 
   const modelRange = selectedModel === "Handmatig" ? manualRangeKm : teslaModels[selectedModel];
   const carMaxKwOverride = selectedModel === "Handmatig" ? manualSpeedKw : undefined;
-  const availableRange = getAvailableRange(modelRange, batteryPercent, trailerReductionEffective, weatherMode, timeMode);
   const packKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
   const ccsBlocked = needsCcsAdapter(selectedModel, modelYear) && !hasCcsAdapter;
+  const [autoConsumptionKWh100State, setAutoConsumptionState] = useState<number | null>(null);
+  // Bereik volgt uitsluitend uit verbruik (kWh/100 km), niet uit een vaste km-waarde.
+  const effectiveKWh100 = consumptionMode === 'manual' && manualConsumptionKWh100 > 0
+    ? manualConsumptionKWh100
+    : (autoConsumptionKWh100State ?? Math.max(13, (packKWh / Math.max(1, modelRange)) * 100 * 1.1) * (1 + trailerReductionEffective / 100));
+  const fullEnergyRangeKm = Math.max(50, (packKWh / effectiveKWh100) * 100);
+  const availableRange = fullEnergyRangeKm * batteryPercent / 100;
 
 
   useEffect(() => {
@@ -489,10 +497,21 @@ function Index() {
     fromBattery: number,
     extraWaypoints: PlannedWaypoint[],
   ): Promise<RoutePlan | null> => {
-    const [elevationProfile, weather] = await Promise.all([
+    const [elevationProfile, fetchedWeather] = await Promise.all([
       fetchElevationProfile(base.route.coordinates),
-      fetchRouteWeather(base.route.coordinates),
+      fetchRouteWeather(base.route.coordinates, tripDate || undefined),
     ]);
+    // Handmatig: ingevuld weer gaat vóór de verwachting.
+    let weather: RouteWeather | null = fetchedWeather;
+    if (consumptionMode === 'manual' && (manualWeather.tempC !== undefined || manualWeather.windMs !== undefined || manualWeather.precipitationMm !== undefined)) {
+      weather = {
+        tempC: manualWeather.tempC ?? fetchedWeather?.tempC ?? 15,
+        windMs: manualWeather.windMs ?? fetchedWeather?.windMs ?? 3,
+        precipitationMm: manualWeather.precipitationMm ?? fetchedWeather?.precipitationMm ?? 0,
+        snowfallCm: fetchedWeather?.snowfallCm ?? 0,
+        fogFraction: fetchedWeather?.fogFraction ?? 0,
+      };
+    }
     const elevation = elevationProfile
       ? elevationConsumptionMultiplier(elevationProfile, base.route.totalDistanceKm)
       : { multiplier: 1, ascentM: 0, descentM: 0 };
@@ -510,10 +529,11 @@ function Index() {
       elevationMultiplier: elevation.multiplier,
       weather,
     });
-    const consumptionKWh100 = consumptionMode === 'manual'
+    const consumptionKWh100 = consumptionMode === 'manual' && manualConsumptionKWh100 > 0
       ? Math.max(9, Math.min(60, manualConsumptionKWh100))
       : auto.kWh100;
     setAutoConsumption(auto.kWh100);
+    setAutoConsumptionState(auto.kWh100);
     setRouteWeather(weather);
     const folkestone = distanceToRoute(51.096, 1.132, base.route.coordinates) < 15;
     const coquelles = distanceToRoute(50.934, 1.811, base.route.coordinates) < 15;
@@ -551,7 +571,7 @@ function Index() {
       chargedKWh: Math.round(result.stops.reduce((sum, stop) => sum + (stop.energyChargedKWh ?? 0), 0)),
       kWh100: consumptionKWh100,
     });
-    if (result.stops.length === 0) {
+    if (result.stops.length === 0 && !extraWaypoints.some((wp) => wp.charge && !wp.corridor)) {
       return { route: base.route, steps: base.steps, stops: [], arrivalPercent: result.arrivalPercent };
     }
 
@@ -570,8 +590,9 @@ function Index() {
       return { route: base.route, steps: base.steps, stops: result.stops, arrivalPercent: result.arrivalPercent };
     }
 
-    const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
-    const batteryKWh = batteryCapacityOverride ?? (teslaBatteryKWh[selectedModel] || 79);
+    // Uitsluitend op verbruik: bereik = bruikbare kWh / kWh per km.
+    const fullRange = Math.max(50, (packKWh / consumptionKWh100) * 100);
+    const batteryKWh = batteryCapacityOverride ?? packKWh;
     const kmPerMin = finalResult.route.totalDistanceKm > 0 && finalResult.route.totalTimeMin > 0
       ? finalResult.route.totalDistanceKm / finalResult.route.totalTimeMin
       : 1.5;
@@ -581,10 +602,39 @@ function Index() {
     // Laad-tussenstops (gebruiker laadt bij een eigen tussenstop) meenemen in de simulatie.
     const chargingWpEvents = extraWaypoints
       .filter((wp) => wp.charge && !wp.corridor)
-      .map((wp) => ({
-        km: Math.round(projectOntoRoute(wp.lat, wp.lng, finalResult.route.coordinates).km),
-        chargeTo: Math.max(10, Math.min(100, wp.chargeTo || 80)),
-      }));
+      .map((wp) => {
+        // Laadt de gebruiker bij een tussenstop, neem dan de lader daar mee:
+        // een Tesla Supercharger binnen 1,5 km, anders een lader van derden op die plek.
+        let nearest: Supercharger | null = null;
+        let best = 1.5;
+        for (const c of superchargers) {
+          const d = haversineDistance(wp.lat, wp.lng, c.lat, c.lng);
+          if (d < best) { best = d; nearest = c; }
+        }
+        const charger: Supercharger = nearest ?? { name: `Lader van derden · ${wp.label || 'tussenstop'}`, lat: wp.lat, lng: wp.lng, maxSpeedKw: 50, status: 'operational' };
+        return {
+          km: Math.round(projectOntoRoute(wp.lat, wp.lng, finalResult.route.coordinates).km),
+          chargeTo: Math.max(10, Math.min(100, wp.chargeTo || 80)),
+          charger,
+          kw: nearest ? effectiveChargeSpeedKw(parseMaxSpeed(nearest.stallTypes, nearest.maxSpeedKw, nearest.chargerConfigs), selectedModel, carMaxKwOverride) : 50,
+        };
+      });
+    const wpStops: ChargingStop[] = [];
+    const runWp = (wp: (typeof chargingWpEvents)[number]) => {
+      const wpLegKm = Math.max(0, wp.km - runningKm);
+      runningMin += wpLegKm / kmPerMin;
+      runningBattery = Math.max(0, runningBattery - (wpLegKm / fullRange) * 100);
+      const before = Math.round(runningBattery);
+      const eta = Math.round(runningMin);
+      let dur = 0;
+      if (wp.chargeTo > runningBattery) {
+        dur = calculateChargeDuration(before, wp.chargeTo, batteryKWh, wp.kw);
+        runningMin += dur;
+        runningBattery = wp.chargeTo;
+      }
+      runningKm = wp.km;
+      wpStops.push({ charger: wp.charger, batteryBefore: before, batteryAfter: Math.round(runningBattery), distanceFromStart: wp.km, chargeDurationMin: dur, etaMinFromStart: eta, energyChargedKWh: Math.max(0, (runningBattery - before) / 100 * batteryKWh) });
+    };
     const fixedStops = result.stops
       .map((stop) => ({
         ...stop,
@@ -594,15 +644,7 @@ function Index() {
       .map((stop, idx) => {
         // Verwerk eerst laad-tussenstops die vóór deze Supercharger liggen.
         while (chargingWpEvents.length > 0 && chargingWpEvents[0].km <= stop.distanceFromStart) {
-          const wp = chargingWpEvents.shift()!;
-          const wpLegKm = Math.max(0, wp.km - runningKm);
-          runningMin += wpLegKm / kmPerMin;
-          runningBattery = Math.max(0, runningBattery - (wpLegKm / fullRange) * 100);
-          if (wp.chargeTo > runningBattery) {
-            runningMin += calculateChargeDuration(Math.round(runningBattery), wp.chargeTo, batteryKWh, 50);
-            runningBattery = wp.chargeTo;
-          }
-          runningKm = wp.km;
+          runWp(chargingWpEvents.shift()!);
         }
         const legKm = Math.max(0, stop.distanceFromStart - runningKm);
         const batteryBefore = Math.max(0, Math.round(runningBattery - (legKm / fullRange) * 100));
@@ -618,24 +660,16 @@ function Index() {
       });
     // Resterende laad-tussenstops ná de laatste Supercharger.
     while (chargingWpEvents.length > 0) {
-      const wp = chargingWpEvents.shift()!;
-      const wpLegKm = Math.max(0, wp.km - runningKm);
-      runningMin += wpLegKm / kmPerMin;
-      runningBattery = Math.max(0, runningBattery - (wpLegKm / fullRange) * 100);
-      if (wp.chargeTo > runningBattery) {
-        runningMin += calculateChargeDuration(Math.round(runningBattery), wp.chargeTo, batteryKWh, 50);
-        runningBattery = wp.chargeTo;
-      }
-      runningKm = wp.km;
+      runWp(chargingWpEvents.shift()!);
     }
     const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
     return {
       route: { ...finalResult.route, trafficDelayMin: base.route.trafficDelayMin },
       steps: finalResult.steps,
-      stops: fixedStops,
+      stops: [...fixedStops, ...wpStops].sort((a, b) => a.distanceFromStart - b.distanceFromStart).map((st, i) => ({ ...st, stopNumber: i + 1 })),
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
     };
-  }, [ccsBlocked, consumptionMode, manualConsumptionKWh100, packKWh, avoidLowSpeed, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
+  }, [ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
 
   const applyPlan = useCallback((index: number, plan: RoutePlan) => {
     setSelectedRouteIndex(index);
@@ -775,8 +809,8 @@ function Index() {
 
   // Estimated current battery based on distance traveled from nav start
   const fullRangeKmActive = useMemo(() => {
-    return getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
-  }, [modelRange, trailerReductionEffective, weatherMode, timeMode]);
+    return fullEnergyRangeKm;
+  }, [fullEnergyRangeKm]);
 
   const estimatedBattery = useMemo(() => {
     if (!isNavigating || !positionProj) return null;
@@ -895,7 +929,7 @@ function Index() {
     if (!isNavigating || !navInfo || !currentPosition || !destCoord || !route) return;
     if (isReroutingRef.current) return;
     if (!navInfo.nextCharging) return;
-    const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
+    const fullRange = fullEnergyRangeKm;
     const neededForNext = (navInfo.nextCharging.kmFromHere / fullRange) * 100 + 3;
 
     // Find the stop AFTER next (within current chargingStops)
@@ -929,7 +963,7 @@ function Index() {
         isReroutingRef.current = false;
       })();
     }
-  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, timeMode, computeRoute, chargingStops, positionProj]);
+  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, fullEnergyRangeKm, trailerReductionEffective, weatherMode, timeMode, computeRoute, chargingStops, positionProj]);
 
   useEffect(() => {
     if (!isNavigating || !navInfo?.nextCharging || !currentPosition || !destCoord) return;
@@ -1090,6 +1124,10 @@ function Index() {
               energySummary={energySummary}
               routeAdvice={routeAdvice}
               modelYear={modelYear}
+              tripDate={tripDate}
+              onTripDateChange={setTripDate}
+              manualWeather={manualWeather}
+              onManualWeatherChange={setManualWeather}
               onModelYearChange={setModelYear}
               hasCcsAdapter={hasCcsAdapter}
               onCcsAdapterChange={setHasCcsAdapter}

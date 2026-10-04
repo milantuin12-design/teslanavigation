@@ -204,6 +204,18 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           map.closePopup();
         }, { once: true });
       }
+      node?.querySelectorAll<HTMLImageElement>('img[data-photo]').forEach((img) => {
+        img.addEventListener('dblclick', () => {
+          const overlay = document.createElement('div');
+          overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+          const big = document.createElement('img');
+          big.src = img.dataset.photo || img.src;
+          big.style.cssText = 'max-width:94vw;max-height:92vh;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.6);';
+          overlay.appendChild(big);
+          overlay.addEventListener('click', () => overlay.remove());
+          document.body.appendChild(overlay);
+        });
+      });
       const ownerButton = node?.querySelector<HTMLButtonElement>('[data-owner-id]');
       if (ownerButton) {
         ownerButton.addEventListener('click', () => {
@@ -252,7 +264,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
 
         const hideSpeed = shouldHideSpeed(charger);
         if (charger.photos && charger.photos.length > 0) {
-          popup += `<div style="margin-top:6px;display:flex;gap:4px;overflow-x:auto;">${charger.photos.slice(0, 4).map((u) => `<img src="${escapeHtml(u)}" alt="" loading="lazy" style="width:110px;height:72px;object-fit:cover;border-radius:6px;flex:none;" />`).join('')}</div>`;
+          popup += `<div style="margin-top:6px;display:flex;gap:4px;overflow-x:auto;">${charger.photos.slice(0, 4).map((u) => `<img data-photo="${escapeHtml(u)}" title="Dubbelklik om te vergroten" src="${escapeHtml(u)}" alt="" loading="lazy" style="cursor:zoom-in;width:110px;height:72px;object-fit:cover;border-radius:6px;flex:none;" />`).join('')}</div>`;
         }
 
         if (charger.ownerName) {
