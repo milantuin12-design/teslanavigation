@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useServerFn } from '@tanstack/react-start';
-import { listVehicleModels, lookupLicensePlate } from '@/lib/vehicles.functions';
 import { vehicleKey, type VehicleModel } from '@/lib/vehicle-types';
 import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Moon, Gauge, LoaderCircle } from 'lucide-react';
 import { teslaModels, WeatherMode, TimeMode, teslaMaxChargeKw } from '@/lib/tesla-types';
@@ -84,6 +83,10 @@ interface InputPanelProps {
   energySummary: { usedKWh: number; chargedKWh: number; kWh100: number } | null;
   routeAdvice: string[];
   modelYear: number;
+  tripDate: string;
+  onTripDateChange: (value: string) => void;
+  manualWeather: { tempC?: number; windMs?: number; precipitationMm?: number };
+  onManualWeatherChange: (value: { tempC?: number; windMs?: number; precipitationMm?: number }) => void;
   onModelYearChange: (year: number) => void;
   hasCcsAdapter: boolean;
   onCcsAdapterChange: (value: boolean) => void;
@@ -262,6 +265,10 @@ export default function InputPanel({
   energySummary,
   routeAdvice,
   modelYear,
+  tripDate,
+  onTripDateChange,
+  manualWeather,
+  onManualWeatherChange,
   onModelYearChange,
   hasCcsAdapter,
   onCcsAdapterChange,
@@ -275,62 +282,6 @@ export default function InputPanel({
   const [mobileExpanded, setMobileExpanded] = useState(true);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [editingTrailer, setEditingTrailer] = useState(false);
-  const [vehicles, setVehicles] = useState<VehicleModel[]>([]);
-  const [plate, setPlate] = useState('');
-  const [plateBusy, setPlateBusy] = useState(false);
-  const [plateMessage, setPlateMessage] = useState('');
-
-  const fetchVehicles = useServerFn(listVehicleModels);
-  const lookupPlate = useServerFn(lookupLicensePlate);
-
-  useEffect(() => {
-    let active = true;
-    fetchVehicles({})
-      .then((list) => { if (active) setVehicles(list.filter(v => v.published)); })
-      .catch(() => { /* voertuigenlijst is optioneel */ });
-    return () => { active = false; };
-  }, [fetchVehicles]);
-
-  /** Past een voertuig uit de database toe op de planner. */
-  const applyVehicle = useCallback((vehicle: VehicleModel) => {
-    const key = vehicleKey(vehicle);
-    if (Object.prototype.hasOwnProperty.call(teslaModels, key)) {
-      onModelChange(key);
-      return;
-    }
-    onModelChange('Handmatig');
-    if (vehicle.rangeKm) onManualRangeChange?.(vehicle.rangeKm);
-    if (vehicle.maxChargeKw) onManualSpeedChange?.(vehicle.maxChargeKw);
-    if (vehicle.consumptionKWh100) {
-      onConsumptionModeChange('manual');
-      onManualConsumptionChange(vehicle.consumptionKWh100);
-    }
-  }, [onModelChange, onManualRangeChange, onManualSpeedChange, onConsumptionModeChange, onManualConsumptionChange]);
-
-  const handlePlateLookup = useCallback(async () => {
-    const value = plate.trim();
-    if (value.length < 4) { setPlateMessage('Vul een geldig kenteken in.'); return; }
-    setPlateBusy(true);
-    setPlateMessage('');
-    try {
-      const result = await lookupPlate({ data: { plate: value } });
-      if (result.matchedVehicleId) {
-        const match = vehicles.find(v => v.id === result.matchedVehicleId);
-        if (match) {
-          applyVehicle(match);
-          setPlateMessage(`Gevonden: ${match.brand} ${vehicleKey(match)}`);
-        } else {
-          setPlateMessage(result.message || 'Kies je auto handmatig.');
-        }
-      } else {
-        setPlateMessage(result.message || 'Niet gevonden. Kies je auto handmatig.');
-      }
-    } catch {
-      setPlateMessage('Kentekencheck mislukt. Kies je auto handmatig.');
-    }
-    setPlateBusy(false);
-  }, [plate, lookupPlate, vehicles, applyVehicle]);
-
   const parseOrGeocode = useCallback(async (
     input: string,
     setCoord: (c: { lat: number; lng: number } | null) => void,
@@ -633,47 +584,17 @@ export default function InputPanel({
               <option value="Handmatig">Handmatig (eigen instellingen)</option>
             </select>
 
-            <div className="mt-2 flex gap-2">
+            <div className="mt-2">
+              <label className="text-[11px] text-slate-400">Bouwjaar (optioneel)</label>
               <input
-                value={plate}
-                onChange={(e) => setPlate(e.target.value.toUpperCase())}
-                onKeyDown={(e) => { if (e.key === 'Enter') handlePlateLookup(); }}
-                placeholder="Kenteken, bijv. 12-ABC-3"
-                className="flex-1 bg-slate-800/70 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white uppercase placeholder:normal-case"
+                type="number"
+                min={2012}
+                max={2026}
+                value={modelYear}
+                onChange={(e) => onModelYearChange(parseInt(e.target.value) || 2022)}
+                className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
               />
-              <button
-                onClick={handlePlateLookup}
-                disabled={plateBusy}
-                className="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-white transition-colors disabled:opacity-50"
-              >
-                {plateBusy ? 'Zoeken…' : 'Zoek auto'}
-              </button>
             </div>
-            {plateMessage && <p className="text-[11px] text-slate-400 mt-1">{plateMessage}</p>}
-
-            {vehicles.length > 0 && (
-              <div className="mt-2">
-                <label className="text-[11px] text-slate-400">Uit de voertuigendatabase</label>
-                <select
-                  defaultValue=""
-                  onChange={(e) => {
-                    const found = vehicles.find(v => v.id === e.target.value);
-                    if (found) applyVehicle(found);
-                  }}
-                  className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white"
-                >
-                  <option value="">Kies een voertuig…</option>
-                  {vehicles.map(v => (
-                    <option key={v.id} value={v.id}>
-                      {v.brand} {vehicleKey(v)}
-                      {v.batteryKWh ? ` · ${v.batteryKWh} kWh` : ''}
-                      {v.rangeKm ? ` · ${v.rangeKm} km` : ''}
-                      {v.maxChargeKw ? ` · ${v.maxChargeKw} kW` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
             {selectedModel === 'Handmatig' && (
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <div>
@@ -700,19 +621,8 @@ export default function InputPanel({
                 </div>
               </div>
             )}
-            {/model\s*(s|x)/i.test(selectedModel) && (
+            {/model\s*(s|x)/i.test(selectedModel) && modelYear < 2019 && (
               <div className="mt-2 space-y-2 rounded-lg border border-slate-700/60 bg-slate-800/40 p-2.5">
-                <div>
-                  <label className="text-[11px] text-slate-400">Bouwjaar</label>
-                  <input
-                    type="number"
-                    min={2012}
-                    max={2026}
-                    value={modelYear}
-                    onChange={(e) => onModelYearChange(parseInt(e.target.value) || 2022)}
-                    className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
-                  />
-                </div>
                 {modelYear < 2019 && (
                   <label className="flex items-center gap-2 text-xs text-slate-300">
                     <input
@@ -823,18 +733,54 @@ export default function InputPanel({
                 </button>
               ))}
             </div>
+            <div className="mt-2">
+              <label className="text-[11px] text-slate-400">Reisdag (weer van die dag, max 2 weken vooruit)</label>
+              <input
+                type="date"
+                min={new Date().toISOString().slice(0, 10)}
+                max={new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)}
+                value={tripDate || new Date().toISOString().slice(0, 10)}
+                onChange={(e) => onTripDateChange(e.target.value)}
+                className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
+              />
+            </div>
             {consumptionMode === 'manual' ? (
-              <div className="mt-2">
-                <label className="text-[11px] text-slate-400">Verbruik (kWh/100 km)</label>
-                <input
-                  type="number"
-                  min={9}
-                  max={60}
-                  step={0.5}
-                  value={manualConsumptionKWh100}
-                  onChange={(e) => onManualConsumptionChange(parseFloat(e.target.value) || 18)}
-                  className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
-                />
+              <div className="mt-2 space-y-2">
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    ['tempC', 'Temp (°C)', 1],
+                    ['windMs', 'Wind (m/s)', 1],
+                    ['precipitationMm', 'Regen (mm/u)', 0.1],
+                  ] as const).map(([k, label, step]) => (
+                    <div key={k}>
+                      <label className="text-[11px] text-slate-400">{label}</label>
+                      <input
+                        type="number"
+                        step={step}
+                        placeholder="verwachting"
+                        value={manualWeather[k] ?? ''}
+                        onChange={(e) => onManualWeatherChange({ ...manualWeather, [k]: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
+                        className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white placeholder:text-slate-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400">Verbruik (kWh/100 km) — leeg = berekend uit weer</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={60}
+                    step={0.5}
+                    placeholder="automatisch"
+                    value={manualConsumptionKWh100 > 0 ? manualConsumptionKWh100 : ''}
+                    onChange={(e) => onManualConsumptionChange(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white placeholder:text-slate-500"
+                  />
+                </div>
+                {autoConsumptionKWh100 !== null && manualConsumptionKWh100 <= 0 && (
+                  <p className="text-[11px] text-slate-400">Berekend verbruik: <span className="text-emerald-300 font-medium">{autoConsumptionKWh100.toFixed(1)} kWh/100 km</span></p>
+                )}
               </div>
             ) : (
               <div className="mt-2 text-[11px] text-slate-400 space-y-0.5">
