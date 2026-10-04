@@ -911,6 +911,8 @@ export function matchesChargerFilters(charger: Supercharger, filters: ChargerFil
 
 /** Verwacht dat de laadsnelheid verborgen blijft (bouwlocatie zonder bekende gegevens). */
 export function shouldHideSpeed(charger: Supercharger): boolean {
+  // Geen aantal laadplekken ingesteld → ook geen laadsnelheid tonen.
+  if (!getTotalStalls(charger)) return true;
   if (charger.status !== 'construction') return false;
   const info = charger.construction ?? {};
   if (info.dataUnknown) return true;

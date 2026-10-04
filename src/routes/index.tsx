@@ -129,7 +129,7 @@ function Index() {
   const [avoidLowSpeed, setAvoidLowSpeed] = useState(false);
   const [onlineTraffic, setOnlineTraffic] = useState(false);
   const [consumptionMode, setConsumptionMode] = useState<'auto' | 'manual'>('auto');
-  const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(18);
+  const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(0);
   const [modelYear, setModelYear] = useState<number>(2022);
   const [tripDate, setTripDate] = useState<string>("");
   const [manualWeather, setManualWeather] = useState<{ tempC?: number; windMs?: number; precipitationMm?: number }>({});
@@ -214,9 +214,15 @@ function Index() {
 
   const modelRange = selectedModel === "Handmatig" ? manualRangeKm : teslaModels[selectedModel];
   const carMaxKwOverride = selectedModel === "Handmatig" ? manualSpeedKw : undefined;
-  const availableRange = getAvailableRange(modelRange, batteryPercent, trailerReductionEffective, weatherMode, timeMode);
   const packKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
   const ccsBlocked = needsCcsAdapter(selectedModel, modelYear) && !hasCcsAdapter;
+  const [autoConsumptionKWh100State, setAutoConsumptionState] = useState<number | null>(null);
+  // Bereik volgt uitsluitend uit verbruik (kWh/100 km), niet uit een vaste km-waarde.
+  const effectiveKWh100 = consumptionMode === 'manual' && manualConsumptionKWh100 > 0
+    ? manualConsumptionKWh100
+    : (autoConsumptionKWh100State ?? Math.max(13, (packKWh / Math.max(1, modelRange)) * 100 * 1.1) * (1 + trailerReductionEffective / 100));
+  const fullEnergyRangeKm = Math.max(50, (packKWh / effectiveKWh100) * 100);
+  const availableRange = fullEnergyRangeKm * batteryPercent / 100;
 
 
   useEffect(() => {
@@ -527,6 +533,7 @@ function Index() {
       ? Math.max(9, Math.min(60, manualConsumptionKWh100))
       : auto.kWh100;
     setAutoConsumption(auto.kWh100);
+    setAutoConsumptionState(auto.kWh100);
     setRouteWeather(weather);
     const folkestone = distanceToRoute(51.096, 1.132, base.route.coordinates) < 15;
     const coquelles = distanceToRoute(50.934, 1.811, base.route.coordinates) < 15;
@@ -802,8 +809,8 @@ function Index() {
 
   // Estimated current battery based on distance traveled from nav start
   const fullRangeKmActive = useMemo(() => {
-    return getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
-  }, [modelRange, trailerReductionEffective, weatherMode, timeMode]);
+    return fullEnergyRangeKm;
+  }, [fullEnergyRangeKm]);
 
   const estimatedBattery = useMemo(() => {
     if (!isNavigating || !positionProj) return null;
@@ -922,7 +929,7 @@ function Index() {
     if (!isNavigating || !navInfo || !currentPosition || !destCoord || !route) return;
     if (isReroutingRef.current) return;
     if (!navInfo.nextCharging) return;
-    const fullRange = getAvailableRange(modelRange, 100, trailerReductionEffective, weatherMode, timeMode);
+    const fullRange = fullEnergyRangeKm;
     const neededForNext = (navInfo.nextCharging.kmFromHere / fullRange) * 100 + 3;
 
     // Find the stop AFTER next (within current chargingStops)
@@ -956,7 +963,7 @@ function Index() {
         isReroutingRef.current = false;
       })();
     }
-  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, trailerReductionEffective, weatherMode, timeMode, computeRoute, chargingStops, positionProj]);
+  }, [liveBattery, isNavigating, navInfo, currentPosition, destCoord, route, modelRange, fullEnergyRangeKm, trailerReductionEffective, weatherMode, timeMode, computeRoute, chargingStops, positionProj]);
 
   useEffect(() => {
     if (!isNavigating || !navInfo?.nextCharging || !currentPosition || !destCoord) return;

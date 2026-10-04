@@ -389,7 +389,7 @@ function AdminPage() {
                       <td className="p-3">{c.country}</td>
                       <td className="p-3 max-w-xs text-slate-300">{configSummary(configsForCharger(c))}</td>
                       <td className="p-3 max-w-sm text-slate-300">{openingSummary(c.opening_hours, c.opening_time, c.closing_time)}</td>
-                      <td className="p-3">{c.status === "temp_closed" || c.status === "long_closed" || c.is_available === false ? <span className="text-slate-300">Niet beschikbaar</span> : c.published === false ? <span className="text-amber-300">Concept</span> : <span className="text-green-400">Beschikbaar</span>}</td>
+                      <td className="p-3">{c.published === false ? <span className="text-amber-300">Concept</span> : c.status && c.status !== "operational" ? <span className={c.status === "expanding" ? "text-green-400" : c.status === "construction" ? "text-orange-300" : c.status === "voting" ? "text-blue-300" : c.status === "plan" || c.status === "permit" ? "text-purple-300" : "text-slate-300"}>{lifecycleLabels[c.status] ?? c.status}</span> : c.is_available === false ? <span className="text-slate-300">Niet beschikbaar</span> : <span className="text-green-400">Beschikbaar</span>}</td>
                       <td className="p-3">{c.trailer_friendly ? "✓" : "-"}</td>
                       <td className="p-3 text-right whitespace-nowrap">
                         <Button size="sm" variant="ghost" onClick={() => openEdit(c)}><Pencil className="w-4 h-4" /></Button>
