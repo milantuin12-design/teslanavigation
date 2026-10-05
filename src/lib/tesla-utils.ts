@@ -242,6 +242,7 @@ export function getChargerStatus(charger: Supercharger, atDate: Date = new Date(
   if (lifecycle === 'voting') return 'Voting';
   if (lifecycle === 'plan') return 'Plan';
   if (lifecycle === 'permit') return 'Vergunning verleend';
+  if (lifecycle === 'unknown') return 'Onbekend';
   if (getTotalStalls(charger) > 0 && getOpenStalls(charger, atDate) <= 0) return 'Niet beschikbaar';
   if (charger.isAvailable === false) return 'Niet beschikbaar';
   if (!isChargerOpenAt(charger, atDate)) return 'Gesloten';
@@ -766,6 +767,7 @@ export const lifecycleLabels: Record<ChargerLifecycleStatus, string> = {
   permit: 'Vergunning verleend',
   expanding: 'Wordt uitgebreid',
   permanent_closed: 'Permanent gesloten',
+  unknown: 'Onbekend',
 };
 
 export const stallConditionLabels: Record<string, string> = {
