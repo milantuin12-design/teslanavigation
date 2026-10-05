@@ -367,6 +367,10 @@ export interface CalcChargingOptions {
   usableBatteryKWh?: number;
   /** CCS niet bruikbaar (Model S/X vóór 2019 zonder CCS-adapter). */
   ccsBlocked?: boolean;
+  /** Verplichte laadmomenten bij tussenstops (km langs de route). */
+  forcedStops?: { routeKm: number; chargeTo: number; charger: Supercharger; kw: number }[];
+  /** Laders die de gebruiker heeft geweigerd (bijv. status Onbekend). */
+  excludeIds?: string[];
 
 }
 
@@ -413,7 +417,11 @@ export function calculateChargingStops(
     consumptionKWh100,
     usableBatteryKWh,
     ccsBlocked = false,
+    forcedStops = [],
+    excludeIds = [],
   } = opts;
+  const pendingForced = [...forcedStops].sort((a, b) => a.routeKm - b.routeKm);
+  const excluded = new Set(excludeIds);
 
 
 
@@ -427,7 +435,8 @@ export function calculateChargingStops(
   let filtered = chargers.filter(c => {
     const lifecycle = c.status ?? 'operational';
     if (c.published === false) return false;
-    if (lifecycle !== 'operational' && lifecycle !== 'works' && lifecycle !== 'expanding') return false;
+    if (c.id && excluded.has(c.id)) return false;
+    if (lifecycle !== 'operational' && lifecycle !== 'works' && lifecycle !== 'expanding' && lifecycle !== 'unknown') return false;
     if (c.isAvailable === false) return false;
     // Een locatie met 0 bruikbare laadplekken is nooit een laadstop.
     if (getTotalStalls(c) > 0 && getOpenStalls(c) <= 0) return false;
@@ -457,7 +466,7 @@ export function calculateChargingStops(
     ? route.totalDistanceKm / route.totalTimeMin
     : 1.5;
 
-  if (nearChargers.length === 0) {
+  if (nearChargers.length === 0 && pendingForced.length === 0) {
     const directRange = getAvailableRange(modelRangeKm, batteryPercent, trailerReductionPercent, weatherMode, timeMode) / safeMultiplier;
     if (route.totalDistanceKm <= directRange) {
       const batteryAtDest = batteryPercent - (route.totalDistanceKm / fullRangeKm * 100);
@@ -483,8 +492,39 @@ export function calculateChargingStops(
     iterations++;
     const remainingToDest = route.totalDistanceKm - currentPositionKm;
 
+    // Verplicht laden bij een tussenstop: daarna gewoon verder met het bereik van dat percentage.
+    while (pendingForced.length > 0 && pendingForced[0].routeKm <= currentPositionKm + 0.5) pendingForced.shift();
+    const nextForced = pendingForced[0];
+    if (nextForced) {
+      const legKm = nextForced.routeKm - currentPositionKm;
+      const atForced = currentBattery - (legKm / fullRangeKm) * 100;
+      if (atForced >= minSafetyPercent) {
+        pendingForced.shift();
+        const before = Math.round(atForced);
+        const after = Math.max(before, Math.min(100, nextForced.chargeTo));
+        const kWhNow = batteryCapacityKWhOverride || teslaBatteryKWh[modelName] || 79;
+        const dur = calculateChargeDuration(before, after, kWhNow, nextForced.kw);
+        stops.push({
+          charger: nextForced.charger,
+          batteryBefore: before,
+          batteryAfter: after,
+          distanceFromStart: Math.round(nextForced.routeKm),
+          chargeDurationMin: dur,
+          energyUsedKWh: Math.round(legKm / 100 * (consumptionKWh100 || 18) * 10) / 10,
+          energyChargedKWh: Math.round((after - before) * kWhPerPercent * 10) / 10,
+          stopNumber: stops.length + 1,
+          etaMinFromStart: Math.round(elapsedMin + legKm / kmPerMin),
+          forced: true,
+        });
+        elapsedMin += legKm / kmPerMin + dur;
+        currentPositionKm = nextForced.routeKm;
+        currentBattery = after;
+        continue;
+      }
+    }
+
     const batteryNeededForDest = (remainingToDest / fullRangeKm) * 100 + targetArrivalPercent;
-    if (currentBattery >= batteryNeededForDest) {
+    if (!nextForced && currentBattery >= batteryNeededForDest) {
       const arrivalBattery = Math.max(0, currentBattery - (remainingToDest / fullRangeKm) * 100);
       stops.forEach((stop, idx) => { stop.stopNumber = idx + 1; });
       return { stops, arrivalPercent: Math.round(arrivalBattery), unreachable: false };
@@ -510,6 +550,7 @@ export function calculateChargingStops(
         c.lat, c.lng
       );
       if (chargerRouteKm <= currentPositionKm + 20) continue;
+      if (nextForced && chargerRouteKm >= nextForced.routeKm) continue;
       const travelKm = (chargerRouteKm - currentPositionKm) + distFromRoute;
       if (travelKm > usableRange) continue;
 
@@ -529,7 +570,7 @@ export function calculateChargingStops(
     }
 
     if (candidates.length === 0) {
-      if (usableRange + minSafetyPercent / 100 * fullRangeKm >= remainingToDest) {
+      if (!nextForced && usableRange + minSafetyPercent / 100 * fullRangeKm >= remainingToDest) {
         const arrivalBattery = Math.max(0, currentBattery - (remainingToDest / fullRangeKm) * 100);
         stops.forEach((stop, idx) => { stop.stopNumber = idx + 1; });
         return { stops, arrivalPercent: Math.round(arrivalBattery), unreachable: false };
@@ -550,15 +591,20 @@ export function calculateChargingStops(
       + c.detourKm * 0.5
       + (preferTrailerFriendly && c.charger.trailerFriendly ? -8 : 0)
       + (c.charger.inParkingGarage ? 8 : 0);
+    const capPct = typeof maxChargeTargetPercent === 'number' ? maxChargeTargetPercent : 100;
     const feasible = candidates.filter((c) => c.batteryAtCharger >= minSafetyPercent);
-    const pool = feasible.length > 0 ? feasible : candidates;
+    // Zo min mogelijk laadstops: kan je vanaf een lader de bestemming halen, kies dan alleen uit die laders.
+    const finishing = nextForced ? [] : feasible.filter((c) =>
+      ((route.totalDistanceKm - c.routeKm) / fullRangeKm) * 100 + targetArrivalPercent <= capPct);
+    const pool = finishing.length > 0 ? finishing : feasible.length > 0 ? feasible : candidates;
     pool.sort((a, b) => rank(a) - rank(b));
     const best: Candidate = pool[0];
 
 
     const nextChargerDist = findNextChargerDistance(best.routeKm, best.charger, nearChargers, route.coordinates, routeDist);
     const distToDestFromCharger = route.totalDistanceKm - best.routeKm;
-    const useDestAsNext = nextChargerDist === null || nextChargerDist > distToDestFromCharger;
+    const canFinish = !nextForced && ((distToDestFromCharger / fullRangeKm) * 100 + targetArrivalPercent) <= capPct;
+    const useDestAsNext = canFinish || nextChargerDist === null || nextChargerDist > distToDestFromCharger;
     const nextLegDistance = useDestAsNext ? distToDestFromCharger : nextChargerDist!;
     const batteryNeededForNextLeg = (nextLegDistance / fullRangeKm) * 100;
 
@@ -570,7 +616,9 @@ export function calculateChargingStops(
     }
     const floor = typeof minChargeTargetPercent === 'number' ? minChargeTargetPercent : chargeTargetPercent;
     const cap = typeof maxChargeTargetPercent === 'number' ? maxChargeTargetPercent : 100;
-    let batteryAfter = useDestAsNext
+    let batteryAfter = canFinish
+      ? Math.min(cap, Math.ceil(minBatteryNeeded))
+      : useDestAsNext
       ? Math.min(cap, Math.max(Math.ceil(minBatteryNeeded), floor))
       : Math.max(floor, Math.ceil(minBatteryNeeded));
     batteryAfter = Math.min(cap, Math.max(batteryAfter, Math.ceil(minBatteryNeeded)));
