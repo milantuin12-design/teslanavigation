@@ -28,13 +28,18 @@ export type ChargerLifecycleStatus =
   | 'plan'
   | 'permit'
   | 'expanding'
-  | 'permanent_closed';
+  | 'permanent_closed'
+  | 'unknown';
 
 export type StallCondition = 'available' | 'defect' | 'blocked' | 'maintenance' | 'other';
 
 /** Status van één laadplek (alleen afwijkende plekken hoeven opgeslagen te worden). */
 export interface StallState {
   stall: number;
+  /** Optionele naam, bijv. "2B". */
+  name?: string;
+  version?: string;
+  speedKw?: number;
   condition: StallCondition;
   note?: string;
   until?: string | null;
@@ -190,6 +195,8 @@ export interface ChargingStop {
   distanceFromStart: number;
   chargeDurationMin: number;
   stopNumber?: number;
+  /** Verplicht laadmoment bij een tussenstop (lader van derden of Supercharger). */
+  forced?: boolean;
   /** Minutes from departure until arrival at this stop. */
   etaMinFromStart?: number;
   /** Energie verbruikt op het traject naar deze stop (kWh). */
@@ -244,7 +251,7 @@ export interface ChargerFilterState {
 }
 
 export const defaultChargerFilters: ChargerFilterState = {
-  statuses: ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed', 'voting', 'plan', 'permit', 'expanding', 'permanent_closed'],
+  statuses: ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed', 'voting', 'plan', 'permit', 'expanding', 'permanent_closed', 'unknown'],
   minSpeedKw: 0,
   versions: [],
   trailerOnly: false,
