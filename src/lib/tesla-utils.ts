@@ -910,7 +910,7 @@ export function describeChargerStatus(charger: Supercharger): string[] {
     const total = getTotalStalls(charger);
     if (issues.length > 0 && total > 0) {
       lines.push(`${getOpenStalls(charger)} / ${total} beschikbaar`);
-      for (const i of issues) lines.push(`Plek ${i.stall}: ${stallConditionLabels[i.condition] ?? i.condition}${i.note ? ` — ${i.note}` : ''}`);
+      for (const i of issues) lines.push(`${i.name ? `${i.name} ` : ''}Dicht${i.version ? ` (${i.version}${i.speedKw ? ` ${i.speedKw}kW` : ''})` : ''}, reden: ${stallConditionLabels[i.condition] ?? i.condition}${i.note ? ` — ${i.note}` : ''}`);
     }
   }
   if (lines.length === 0 && status === 'expanding') lines.push('Wordt uitgebreid');
