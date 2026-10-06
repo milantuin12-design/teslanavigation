@@ -16,6 +16,7 @@ const STATUS_ORDER: ChargerLifecycleStatus[] = [
   "temp_closed",
   "long_closed",
   "permanent_closed",
+  "unknown",
 ];
 
 const SPEEDS = [0, 100, 125, 150, 200, 250];
