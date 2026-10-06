@@ -68,7 +68,16 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus) {
     });
   }
 
+  if (status === 'Plan') {
+    return L.divIcon({
+      className: 'custom-marker',
+      html: `<div title="Plan" style="width:10px;height:10px;border-radius:50%;background:#a855f7;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>`,
+      iconSize: [10, 10], iconAnchor: [5, 5], popupAnchor: [0, -5],
+    });
+  }
+
   const isConstruction = status === 'In aanbouw';
+  const isPermit = status === 'Vergunning verleend';
   const hasOpenWorks = charger.status === 'works' || charger.status === 'expanding';
   const hasClosedWorks = charger.status === 'works_closed';
   const isLowSpeed = !!charger.lowSpeed;
@@ -83,6 +92,8 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus) {
 
   const wrenchGlyph = isConstruction
     ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);" xmlns="http://www.w3.org/2000/svg"><path d="M21.71 5.29a1 1 0 0 0-1.41 0l-2.13 2.12-1.58-1.58 2.12-2.13a1 1 0 0 0 0-1.41 5.5 5.5 0 0 0-7.44 7.44l-8.1 8.1a2.12 2.12 0 1 0 3 3l8.1-8.1a5.5 5.5 0 0 0 7.44-7.44z" fill="#fff"/></svg>`
+    : isPermit
+    ? `<svg width="12" height="13" viewBox="0 0 24 24" fill="none" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);" xmlns="http://www.w3.org/2000/svg"><path d="M6 2h9l5 5v15H6z" fill="#fff"/><path d="M15 2v5h5" fill="#e9d5ff"/><path d="M9 12h8M9 15h8M9 18h5" stroke="#a855f7" stroke-width="1.6"/></svg>`
     : '';
 
   const size = 30;

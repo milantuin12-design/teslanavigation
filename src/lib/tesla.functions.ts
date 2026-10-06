@@ -65,7 +65,7 @@ type Row = {
   photos?: string[] | null;
 };
 
-const LIFECYCLE: ChargerLifecycleStatus[] = ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed', 'voting', 'plan', 'permit', 'expanding', 'permanent_closed'];
+const LIFECYCLE: ChargerLifecycleStatus[] = ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed', 'voting', 'plan', 'permit', 'expanding', 'permanent_closed', 'unknown'];
 
 type OwnerRow = { name: string; logo_url: string | null; description: string | null; website: string | null; contact: string | null; notes: string | null };
 
@@ -240,7 +240,7 @@ const chargerInput = z.object({
   inParkingGarage: z.boolean().default(false),
   province: z.string().max(100).optional(),
   city: z.string().max(100).optional(),
-  status: z.enum(["operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed"]).default("operational"),
+  status: z.enum(["operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed", "unknown"]).default("operational"),
   stallStates: z.array(z.object({ stall: z.number().int().min(1).max(500), condition: z.enum(["available", "defect", "blocked", "maintenance", "other"]), note: z.string().max(300).optional(), until: z.string().max(40).nullable().optional() })).max(500).optional(),
   dataSource: z.enum(["manual", "automatic"]).optional(),
   hidden: z.boolean().optional(),

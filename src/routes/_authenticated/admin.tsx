@@ -46,6 +46,7 @@ type Charger = {
   works: WorksInfo | null;
   closure: ClosureInfo | null;
   owner_id: string | null;
+  owner_name?: string | null;
   low_speed: boolean;
   published: boolean;
   reopen_at: string | null;
@@ -84,7 +85,7 @@ const emptyCharger = {
 };
 
 const STATUS_OPTIONS: ChargerLifecycleStatus[] = [
-  "operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed",
+  "operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed", "unknown",
 ];
 
 const PROGRESS_OPTIONS = ["planned", "permit", "groundwork", "cabling", "installing", "testing"] as const;
@@ -165,7 +166,7 @@ function AdminPage() {
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from("superchargers")
-        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure,owner_id,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at")
+        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at")
         .order("name").range(from, from + 999);
       if (error) { toast.error(error.message); break; }
       rows.push(...(data as Charger[]));
@@ -212,6 +213,8 @@ function AdminPage() {
       works: (editing.works || {}) as Json,
       closure: (editing.closure || {}) as Json,
       owner_id: editing.owner_id || null,
+      owner_name: editing.owner_name?.trim() || null,
+      ...(editing.status === "permanent_closed" && editing.permanently_closed_at ? { permanently_closed_at: editing.permanently_closed_at } : {}),
       low_speed: !!editing.low_speed,
       published: editing.published !== false,
       reopen_at: editing.status === "temp_closed" ? (editing.reopen_at || null) : null,
@@ -503,7 +506,6 @@ function AdminPage() {
                 )}
 
                 <StallEditor
-                  total={(editing.charger_configs || []).reduce((n, c) => n + (Number(c.count) || 0), 0) || editing.total_stalls || 0}
                   value={editing.stall_states || []}
                   onChange={(stall_states) => setEditing({ ...editing, stall_states })}
                 />
@@ -520,6 +522,7 @@ function AdminPage() {
                     </label>
                     <label className="flex items-center gap-2"><input type="checkbox" checked={!!editing.hidden} onChange={(e) => setEditing({ ...editing, hidden: e.target.checked })} /> Verbergen op kaart</label>
                   </div>
+                  {editing.status === "permanent_closed" && <div><Label className="text-xs">Datum permanent gesloten</Label><Input type="date" value={editing.permanently_closed_at ? editing.permanently_closed_at.slice(0, 10) : ""} onChange={(e) => setEditing({ ...editing, permanently_closed_at: e.target.value ? new Date(e.target.value + "T12:00:00").toISOString() : null })} className="mt-1 bg-slate-800 border-slate-700" /></div>}
                   {editing.status === "permanent_closed" && <p className="text-xs text-slate-400">Permanent gesloten blijft 14 dagen zichtbaar (zwart) en verdwijnt daarna van de kaart; de gegevens blijven bewaard.</p>}
                 </div>
 
@@ -574,6 +577,11 @@ function AdminPage() {
                   >
                     Koppel
                   </Button>
+                </div>
+                <div className="mt-2">
+                  <Label className="text-xs">Of alleen tekst (bijv. een hotelnaam — geen profiel, geen link)</Label>
+                  <Input placeholder="Bijv. Van der Valk Hotel" value={editing.owner_name ?? ""} onChange={(e) => setEditing({ ...editing, owner_name: e.target.value })} className="mt-1 bg-slate-800 border-slate-700" />
+                  {editing.owner_name?.trim() && <p className="mt-1 text-[11px] text-slate-400">Deze tekst wordt als eigenaar getoond bij deze lader.</p>}
                 </div>
               </div>
 
@@ -705,36 +713,31 @@ const CONDITIONS: { value: StallCondition; label: string }[] = [
   { value: "other", label: "Andere reden" },
 ];
 
-function StallEditor({ total, value, onChange }: { total: number; value: StallState[]; onChange: (v: StallState[]) => void }) {
-  const count = Math.min(Math.max(0, total), 100);
-  if (count === 0) return null;
-  const get = (n: number) => value.find((s) => s.stall === n) ?? { stall: n, condition: "available" as StallCondition };
-  const set = (n: number, patch: Partial<StallState>) => {
-    const next = { ...get(n), ...patch };
-    onChange([...value.filter((s) => s.stall !== n), next].sort((a, b) => a.stall - b.stall));
-  };
-  const broken = value.filter((s) => s.condition !== "available").length;
+function StallEditor({ value, onChange }: { value: StallState[]; onChange: (v: StallState[]) => void }) {
+  const closed = value.filter((x) => x.condition !== "available");
+  const update = (i: number, patch: Partial<StallState>) => onChange(closed.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+  const add = () => onChange([...closed, { stall: Math.max(0, ...closed.map((x) => x.stall)) + 1, condition: "defect", version: "V3", speedKw: 250 }]);
   return (
     <div className="space-y-2 rounded-lg border border-slate-700 p-3">
       <div className="flex items-center justify-between">
-        <Label className="text-xs">Laadplekken (live voor gebruikers)</Label>
-        <span className="text-xs text-slate-300">{Math.max(0, count - broken)} / {count} beschikbaar</span>
+        <Label className="text-xs">Gesloten laders (live voor gebruikers)</Label>
+        <Button type="button" size="sm" variant="outline" className="border-slate-700" onClick={add}>+ Gesloten lader</Button>
       </div>
-      <div className="grid gap-1 max-h-64 overflow-y-auto">
-        {Array.from({ length: count }, (_, i) => i + 1).map((n) => {
-          const s = get(n);
-          return (
-            <div key={n} className="grid grid-cols-[2.5rem_8rem_1fr_9rem] gap-1 items-center text-xs">
-              <span className="text-slate-400">#{n}</span>
-              <select value={s.condition} onChange={(e) => set(n, { condition: e.target.value as StallCondition })} className={`rounded border border-slate-700 px-1 py-1 ${s.condition === "available" ? "bg-slate-800" : "bg-red-950"}`}>
-                {CONDITIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-              </select>
-              <input disabled={s.condition === "available"} placeholder="Toelichting" value={s.note ?? ""} onChange={(e) => set(n, { note: e.target.value })} className="rounded bg-slate-800 border border-slate-700 px-1 py-1 disabled:opacity-40" />
-              <input disabled={s.condition === "available"} type="datetime-local" title="Tot (optioneel)" value={s.until ? s.until.slice(0, 16) : ""} onChange={(e) => set(n, { until: e.target.value ? new Date(e.target.value).toISOString() : null })} className="rounded bg-slate-800 border border-slate-700 px-1 py-1 disabled:opacity-40" />
-            </div>
-          );
-        })}
-      </div>
+      {closed.length === 0 && <p className="text-xs text-slate-400">Alle laders open.</p>}
+      {closed.map((s, i) => (
+        <div key={s.stall} className="grid grid-cols-2 sm:grid-cols-[5rem_4.5rem_5rem_8rem_1fr_auto] gap-1 items-center text-xs">
+          <input placeholder="Naam (2B)" value={s.name ?? ""} onChange={(e) => update(i, { name: e.target.value })} className="rounded bg-slate-800 border border-slate-700 px-1 py-1" />
+          <select value={s.version ?? "V3"} onChange={(e) => { const v = e.target.value; update(i, { version: v, speedKw: v === "V2" ? 150 : 250 }); }} className="rounded bg-slate-800 border border-slate-700 px-1 py-1">
+            {["V2", "V3", "V4"].map((v) => <option key={v} value={v}>{v}</option>)}
+          </select>
+          <input type="number" min={1} title="kW" value={s.speedKw ?? ""} onChange={(e) => update(i, { speedKw: parseInt(e.target.value) || undefined })} className="rounded bg-slate-800 border border-slate-700 px-1 py-1" />
+          <select value={s.condition} onChange={(e) => update(i, { condition: e.target.value as StallCondition })} className="rounded bg-red-950 border border-slate-700 px-1 py-1">
+            {CONDITIONS.filter((c) => c.value !== "available").map((c) => <option key={c.value} value={c.value}>Reden: {c.label}</option>)}
+          </select>
+          <input placeholder="Toelichting (optioneel)" value={s.note ?? ""} onChange={(e) => update(i, { note: e.target.value })} className="rounded bg-slate-800 border border-slate-700 px-1 py-1" />
+          <button type="button" onClick={() => onChange(closed.filter((_, j) => j !== i))} className="px-2 text-red-400" aria-label="Verwijderen">✕</button>
+        </div>
+      ))}
     </div>
   );
 }
