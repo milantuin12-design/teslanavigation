@@ -91,6 +91,28 @@ interface InputPanelProps {
   hasCcsAdapter: boolean;
   onCcsAdapterChange: (value: boolean) => void;
   ccsBlocked: boolean;
+  prefill?: { start: string; dest: string; key: number } | null;
+}
+
+/** Laagst mogelijke bouwjaar per model. */
+export function minYearForModel(model: string): number {
+  if (/model\s*3/i.test(model)) return 2017;
+  if (/model\s*y/i.test(model)) return 2020;
+  if (/model\s*x/i.test(model)) return 2015;
+  if (/model\s*s/i.test(model)) return 2012;
+  return 2010;
+}
+
+/** Extra verbruik door aanhanger/caravan, als % bereikverlies (rol- + luchtweerstand bij ~85 km/u). */
+export function trailerRangeLossPercent(kind: 'trailer' | 'caravan', weightKg: number, widthM: number, heightM: number): number {
+  const v = 85 / 3.6;
+  const rolling = 0.012 * Math.max(0, weightKg) * 9.81; // N
+  const frontal = kind === 'caravan' ? Math.max(0.5, widthM * heightM - 1.6) : 0.4; // deel dat boven/naast de auto uitsteekt
+  const cd = kind === 'caravan' ? 0.35 : 0.3;
+  const aero = 0.5 * 1.2 * cd * frontal * v * v; // N
+  const extraKWh100 = ((rolling + aero) * 100000) / 3.6e6 / 0.9;
+  const base = 17;
+  return Math.round(Math.max(5, Math.min(70, (extraKWh100 / (base + extraKWh100)) * 100)));
 }
 
 
@@ -273,6 +295,7 @@ export default function InputPanel({
   hasCcsAdapter,
   onCcsAdapterChange,
   ccsBlocked,
+  prefill,
 }: InputPanelProps) {
   const [startInput, setStartInput] = useState('');
   const [destInput, setDestInput] = useState('');
@@ -281,7 +304,23 @@ export default function InputPanel({
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
   const [mobileExpanded, setMobileExpanded] = useState(true);
   const [isGeocoding, setIsGeocoding] = useState(false);
-  const [editingTrailer, setEditingTrailer] = useState(false);
+  const [trailerKind, setTrailerKind] = useState<'trailer' | 'caravan'>('trailer');
+  const [trailerWeight, setTrailerWeight] = useState(750);
+  const [caravanWidth, setCaravanWidth] = useState(2.3);
+  const [caravanHeight, setCaravanHeight] = useState(2.6);
+  const trailerLoss = trailerRangeLossPercent(trailerKind, trailerWeight, caravanWidth, caravanHeight);
+  useEffect(() => {
+    if (trailerEnabled && trailerLoss !== trailerReductionPercent) onTrailerChange(true, trailerLoss);
+  }, [trailerEnabled, trailerLoss, trailerReductionPercent, onTrailerChange]);
+  useEffect(() => {
+    if (!prefill) return;
+    setStartInput(prefill.start);
+    setDestInput(prefill.dest);
+  }, [prefill]);
+  const minYear = minYearForModel(selectedModel);
+  useEffect(() => {
+    if (modelYear < minYear) onModelYearChange(minYear);
+  }, [modelYear, minYear, onModelYearChange]);
   const parseOrGeocode = useCallback(async (
     input: string,
     setCoord: (c: { lat: number; lng: number } | null) => void,
@@ -578,7 +617,7 @@ export default function InputPanel({
             >
               {Object.keys(teslaModels).map(model => (
                 <option key={model} value={model}>
-                  {model} ({teslaModels[model]} km)
+                  {model}
                 </option>
               ))}
               <option value="Handmatig">Handmatig (eigen instellingen)</option>
@@ -588,10 +627,11 @@ export default function InputPanel({
               <label className="text-[11px] text-slate-400">Bouwjaar (optioneel)</label>
               <input
                 type="number"
-                min={2012}
+                min={minYear}
                 max={2026}
                 value={modelYear}
                 onChange={(e) => onModelYearChange(parseInt(e.target.value) || 2022)}
+                onBlur={(e) => { const y = parseInt(e.target.value) || minYear; onModelYearChange(Math.max(minYear, Math.min(2026, y))); }}
                 className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
               />
             </div>
@@ -733,19 +773,71 @@ export default function InputPanel({
                 </button>
               ))}
             </div>
+            {consumptionMode === 'manual' ? (
+              <div className="mt-2 space-y-2">
             <div className="mt-2">
-              <label className="text-[11px] text-slate-400">Reisdag (weer van die dag, max 2 weken vooruit)</label>
+              <label className="text-[11px] text-slate-400">Reisdag (optioneel, max 2 weken vooruit)</label>
               <input
                 type="date"
                 min={new Date().toISOString().slice(0, 10)}
                 max={new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)}
-                value={tripDate || new Date().toISOString().slice(0, 10)}
+                value={tripDate}
                 onChange={(e) => onTripDateChange(e.target.value)}
                 className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
               />
+              {tripDate && <button type="button" onClick={() => onTripDateChange('')} className="mt-1 text-[11px] text-slate-400 underline">Reisdag wissen (vandaag)</button>}
             </div>
-            {consumptionMode === 'manual' ? (
-              <div className="mt-2 space-y-2">
+          {/* Weather */}
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Weer</label>
+            <div className="grid grid-cols-3 gap-1">
+              {([
+                { mode: 'summer' as WeatherMode, label: 'Zomer', icon: Sun },
+                { mode: 'winter' as WeatherMode, label: 'Winter', icon: CloudSnow },
+                { mode: 'fog' as WeatherMode, label: 'Mist', icon: CloudSnow },
+              ]).map(({ mode, label, icon: Icon }) => (
+                <button
+                  key={mode}
+                  onClick={() => onWeatherModeChange(mode)}
+                  className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg border text-xs font-medium transition-all ${
+                    weatherMode === mode
+                      ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
+                      : 'bg-slate-800/50 border-slate-600/50 text-slate-400 hover:text-slate-300'
+                  }`}
+                >
+                  <Icon size={14} />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Time of day (dag / nacht) — separate from season */}
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Tijd van de dag</label>
+            <div className="grid grid-cols-3 gap-1">
+              {([
+                { mode: 'day' as TimeMode, label: 'Dag', icon: Sun },
+                { mode: 'night' as TimeMode, label: 'Nacht', icon: Moon },
+              ]).map(({ mode, label, icon: Icon }) => (
+                <button
+                  key={mode}
+                  onClick={() => onTimeModeChange(mode)}
+                  className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg border text-xs font-medium transition-all ${
+                    timeMode === mode
+                      ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300'
+                      : 'bg-slate-800/50 border-slate-600/50 text-slate-400 hover:text-slate-300'
+                  }`}
+                >
+                  <Icon size={14} />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+
+
                 <div className="grid grid-cols-3 gap-2">
                   {([
                     ['tempC', 'Temp (°C)', 1],
@@ -867,91 +959,47 @@ export default function InputPanel({
             Online: files en wegwerkzaamheden meenemen
           </label>
 
-          {/* Weather */}
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Weer</label>
-            <div className="grid grid-cols-3 gap-1">
-              {([
-                { mode: 'summer' as WeatherMode, label: 'Zomer', icon: Sun },
-                { mode: 'winter' as WeatherMode, label: 'Winter (-20%)', icon: CloudSnow },
-                { mode: 'fog' as WeatherMode, label: 'Mist (-10%)', icon: CloudSnow },
-              ]).map(({ mode, label, icon: Icon }) => (
-                <button
-                  key={mode}
-                  onClick={() => onWeatherModeChange(mode)}
-                  className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg border text-xs font-medium transition-all ${
-                    weatherMode === mode
-                      ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
-                      : 'bg-slate-800/50 border-slate-600/50 text-slate-400 hover:text-slate-300'
-                  }`}
-                >
-                  <Icon size={14} />
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Time of day (dag / nacht) — separate from season */}
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Tijd van de dag</label>
-            <div className="grid grid-cols-3 gap-1">
-              {([
-                { mode: 'day' as TimeMode, label: 'Dag', icon: Sun },
-                { mode: 'night' as TimeMode, label: 'Nacht (-5%)', icon: Moon },
-              ]).map(({ mode, label, icon: Icon }) => (
-                <button
-                  key={mode}
-                  onClick={() => onTimeModeChange(mode)}
-                  className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg border text-xs font-medium transition-all ${
-                    timeMode === mode
-                      ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300'
-                      : 'bg-slate-800/50 border-slate-600/50 text-slate-400 hover:text-slate-300'
-                  }`}
-                >
-                  <Icon size={14} />
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-
-          {/* Trailer with double-click for custom */}
+          {/* Aanhanger / caravan */}
           <div>
             <button
-              onClick={() => onTrailerChange(!trailerEnabled, trailerReductionPercent)}
-              onDoubleClick={() => setEditingTrailer(true)}
+              onClick={() => onTrailerChange(!trailerEnabled, trailerLoss)}
               className={`w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-sm font-medium ${
                 trailerEnabled
                   ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
                   : 'bg-slate-800/50 border-slate-600/50 text-slate-400 hover:text-slate-300'
               }`}
-              title="Klik om aan/uit te zetten, dubbelklik om % aan te passen"
             >
               <Truck size={16} />
-              Aanhanger {trailerEnabled ? `(-${trailerReductionPercent}%)` : ''}
+              {trailerEnabled ? (trailerKind === 'caravan' ? 'Caravan' : 'Aanhanger') : 'Aanhanger / caravan'}
             </button>
-            {editingTrailer && (
-              <div className="mt-2 bg-slate-800 border border-slate-600 rounded-lg p-3 space-y-2">
-                <div className="text-xs text-slate-300">Bereikverlies door aanhanger</div>
-                <input
-                  type="range"
-                  min={10}
-                  max={70}
-                  value={trailerReductionPercent}
-                  onChange={(e) => onTrailerChange(trailerEnabled, parseInt(e.target.value))}
-                  className="w-full accent-amber-500"
-                />
-                <div className="flex items-center justify-between">
-                  <span className="text-amber-300 font-bold text-sm">-{trailerReductionPercent}%</span>
-                  <button
-                    onClick={() => setEditingTrailer(false)}
-                    className="text-xs px-2 py-1 bg-slate-700 rounded hover:bg-slate-600"
-                  >
-                    Klaar
-                  </button>
+            {trailerEnabled && (
+              <div className="mt-2 bg-slate-800/60 border border-slate-700 rounded-lg p-3 space-y-2">
+                <div className="grid grid-cols-2 gap-1">
+                  {(['trailer', 'caravan'] as const).map((k) => (
+                    <button key={k} onClick={() => setTrailerKind(k)} className={`px-2 py-1.5 rounded text-[11px] font-medium ${trailerKind === k ? 'bg-amber-600 text-white' : 'bg-slate-800 text-slate-400'}`}>
+                      {k === 'trailer' ? 'Aanhanger' : 'Caravan'}
+                    </button>
+                  ))}
                 </div>
+                <div className={`grid gap-2 ${trailerKind === 'caravan' ? 'grid-cols-3' : 'grid-cols-1'}`}>
+                  <div>
+                    <label className="text-[11px] text-slate-400">Gewicht (kg)</label>
+                    <input type="number" min={50} max={3500} value={trailerWeight} onChange={(e) => setTrailerWeight(parseInt(e.target.value) || 0)} className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white" />
+                  </div>
+                  {trailerKind === 'caravan' && (
+                    <>
+                      <div>
+                        <label className="text-[11px] text-slate-400">Breedte (m)</label>
+                        <input type="number" step={0.1} min={1} max={2.6} value={caravanWidth} onChange={(e) => setCaravanWidth(parseFloat(e.target.value) || 0)} className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white" />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-slate-400">Hoogte (m)</label>
+                        <input type="number" step={0.1} min={1} max={4} value={caravanHeight} onChange={(e) => setCaravanHeight(parseFloat(e.target.value) || 0)} className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white" />
+                      </div>
+                    </>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-400">Extra verbruik door {trailerKind === 'caravan' ? 'gewicht en wind' : 'gewicht'}: ongeveer <span className="text-amber-300 font-medium">{Math.round(trailerLoss / (100 - trailerLoss) * 100)}% meer</span></p>
               </div>
             )}
           </div>
