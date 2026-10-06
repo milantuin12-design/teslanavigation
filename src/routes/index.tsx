@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Bookmark, History } from "lucide-react";
+import { Bookmark, History, SlidersHorizontal, AlertTriangle } from "lucide-react";
 import ChargerFilters from "@/components/ChargerFilters";
 import ReportChargerDialog, { type ReportTarget } from "@/components/ReportChargerDialog";
 import OwnerPanel from "@/components/OwnerPanel";
@@ -293,11 +293,43 @@ function Index() {
       setTrailerReductionPercent(data.trailer_reduction);
       setWeatherMode(data.weather_mode as WeatherMode);
       setTimeMode(data.time_mode as TimeMode);
-      setPendingLoadCalc(true);
+      const payload = (data.payload ?? {}) as { plan?: RoutePlan; settings?: Record<string, unknown>; waypoints?: PlannedWaypoint[]; startLabel?: string; destLabel?: string };
+      const st = payload.settings ?? {};
+      if (typeof st.targetArrivalPercent === "number") setTargetArrivalPercent(st.targetArrivalPercent);
+      if (typeof st.chargeTargetPercent === "number") setChargeTargetPercent(st.chargeTargetPercent);
+      if (typeof st.chargerArrivalTarget === "number") setChargerArrivalTarget(st.chargerArrivalTarget);
+      if (typeof st.modelYear === "number") setModelYear(st.modelYear);
+      if (Array.isArray(payload.waypoints)) setWaypoints(payload.waypoints);
+      setPrefill({
+        start: data.start_address || payload.startLabel || `${data.start_lat.toFixed(5)}, ${data.start_lng.toFixed(5)}`,
+        dest: data.end_address || payload.destLabel || `${data.end_lat.toFixed(5)}, ${data.end_lng.toFixed(5)}`,
+        key: Date.now(),
+      });
+      if (payload.plan?.route?.coordinates?.length) {
+        // Meteen tonen zoals opgeslagen — geen herberekening nodig.
+        setRouteOptions([payload.plan]);
+        setSelectedRouteIndex(0);
+        setRoute(payload.plan.route);
+        setRouteSteps(payload.plan.steps ?? []);
+        setChargingStops(payload.plan.stops ?? []);
+        setArrivalPercent(payload.plan.arrivalPercent ?? null);
+        setLiveBattery(data.battery_percent);
+        toast.success("Route geladen");
+      } else {
+        setPendingLoadCalc(true);
+      }
       // Clear query
       window.history.replaceState(null, "", window.location.pathname);
     })();
   }, []);
+
+  useEffect(() => { setExcludedChargerIds([]); setAcceptedUnknownIds([]); }, [startCoord, destCoord]);
+  const recalcAfterExcludeRef = useRef(false);
+  useEffect(() => {
+    if (!recalcAfterExcludeRef.current) return;
+    recalcAfterExcludeRef.current = false;
+    handleCalculateRef.current?.();
+  }, [excludedChargerIds]);
 
   // Once superchargers are loaded and a pending load is queued, calculate
   const handleCalculateRef = useRef<(() => void) | null>(null);
@@ -752,13 +784,15 @@ function Index() {
     setLiveBattery(batteryPercent);
     try {
       const res = await computeRoute(startCoord, destCoord, batteryPercent, waypoints);
+      const risky = res.plan?.stops.find((st) => st.charger.status === "unknown" && !(st.charger.id && acceptedUnknownIds.includes(st.charger.id)));
+      if (risky) setRiskCharger(risky.charger);
       if (!res.ok) setError(res.error || "Er ging iets mis.");
     } catch {
       setError("Er ging iets mis. Probeer opnieuw.");
     } finally {
       setIsCalculating(false);
     }
-  }, [startCoord, destCoord, superchargers, batteryPercent, waypoints, computeRoute]);
+  }, [startCoord, destCoord, superchargers, batteryPercent, waypoints, computeRoute, acceptedUnknownIds]);
 
   useEffect(() => { handleCalculateRef.current = handleCalculate; }, [handleCalculate]);
 
@@ -1064,6 +1098,7 @@ function Index() {
             style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
           >
             <InputPanel
+              prefill={prefill}
               onStartChange={setStartCoord}
               onDestChange={setDestCoord}
               onWaypointsChange={setWaypoints}
@@ -1130,14 +1165,7 @@ function Index() {
               lastAvailabilityUpdate={lastAvailabilityUpdate}
               arrivalPercent={arrivalPercent}
             />
-            <div className="px-5 pb-5 -mt-2">
-              <ChargerFilters
-                filters={chargerFilters}
-                onChange={setChargerFilters}
-                chargers={superchargers}
-                visibleCount={visibleChargers.length}
-              />
-            </div>
+
           </div>
 
 
@@ -1160,9 +1188,17 @@ function Index() {
               <Button asChild size="sm" variant="outline" className="dark hidden lg:inline-flex bg-background/90 text-foreground border-border" title="Recente Superchargerwijzigingen">
                 <Link to="/recente-wijzigingen"><History className="size-4" aria-hidden="true" /><span className="hidden sm:inline">Wijzigingen</span><span className="sr-only sm:hidden">Recente wijzigingen</span></Link>
               </Button>
+              <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setFiltersOpen((v) => !v)} title="Filters">
+                <SlidersHorizontal className="size-4" aria-hidden="true" /><span className="hidden sm:inline">Filters</span>
+              </Button>
               <LanguageSwitcher />
               <AccountMenu />
             </div>
+            {filtersOpen && (
+              <div className="glass-panel w-[min(340px,90vw)] max-h-[70vh] overflow-y-auto rounded-xl p-3">
+                <ChargerFilters filters={chargerFilters} onChange={setChargerFilters} chargers={superchargers} visibleCount={visibleChargers.length} />
+              </div>
+            )}
             {routeOptions.length > 0 && (
               <div className="glass-panel flex flex-wrap gap-1.5 rounded-xl px-2 py-1.5">
                 {routeOptions.map((plan, i) => (
@@ -1258,12 +1294,35 @@ function Index() {
                 time_mode: timeMode,
                 route_type: `route-${selectedRouteIndex + 1}`,
                 charger_ids: chargingStops.map(s => s.charger.id).filter((x): x is string => !!x),
+                payload: JSON.parse(JSON.stringify({
+                  plan: { route, steps: routeSteps, stops: chargingStops, arrivalPercent: arrivalPercent ?? 0 },
+                  waypoints,
+                  settings: { targetArrivalPercent, chargeTargetPercent, chargerArrivalTarget, modelYear },
+                })),
                 total_distance_km: route.totalDistanceKm,
                 total_time_min: route.totalTimeMin,
               });
               if (error) toast.error(error.message);
               else { toast.success("Route opgeslagen"); setSaveOpen(false); setSaveName(""); }
             }}>Opslaan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!riskCharger} onOpenChange={(o) => { if (!o) setRiskCharger(null); }}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="size-5 text-amber-400" />Status onbekend</DialogTitle></DialogHeader>
+          <p className="text-sm text-slate-300">Wil je het risico aangaan om <strong>{riskCharger?.name}</strong> te gebruiken? Status = Onbekend.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              const id = riskCharger?.id;
+              setRiskCharger(null);
+              if (id) { recalcAfterExcludeRef.current = true; setExcludedChargerIds((prev) => [...prev, id]); }
+            }}>Nee, andere Supercharger</Button>
+            <Button className="bg-amber-600 hover:bg-amber-700" onClick={() => {
+              const id = riskCharger?.id;
+              if (id) setAcceptedUnknownIds((prev) => [...prev, id]);
+              setRiskCharger(null);
+            }}>Ja, gebruiken</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
