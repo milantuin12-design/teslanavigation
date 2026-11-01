@@ -99,6 +99,30 @@ export function setLocalSettings(patch: Record<string, unknown>): Record<string,
   return next;
 }
 
+/** Wachtrij voor admin-wijzigingen als de cloud eruit ligt. */
+export interface PendingAdminChange {
+  type: "upsert" | "delete";
+  id?: string;
+  payload?: Record<string, unknown>;
+  queuedAt: string;
+}
+
+const ADMIN_QUEUE_KEY = `${PREFIX}admin-queue`;
+
+export function queueAdminChange(change: Omit<PendingAdminChange, "queuedAt">): void {
+  const list = readLocal<PendingAdminChange[]>(ADMIN_QUEUE_KEY, []);
+  list.push({ ...change, queuedAt: new Date().toISOString() });
+  writeLocal(ADMIN_QUEUE_KEY, list);
+}
+
+export function getPendingAdminChanges(): PendingAdminChange[] {
+  return readLocal<PendingAdminChange[]>(ADMIN_QUEUE_KEY, []);
+}
+
+export function clearPendingAdminChanges(): void {
+  writeLocal(ADMIN_QUEUE_KEY, []);
+}
+
 /** Back-up van alle lokale gegevens (routes + instellingen + taal). */
 export function exportLocalData(): void {
   const payload = {

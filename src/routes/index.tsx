@@ -216,6 +216,8 @@ function Index() {
   const displayedPositionRef = useRef<{ lat: number; lng: number } | null>(null);
   const gpsAnimationFrameRef = useRef<number | null>(null);
   const calculationIdRef = useRef(0);
+  // Cache voor hoogte + weer per traject, zodat 5 routevarianten niet 5x het netwerk raken.
+  const elevationWeatherCacheRef = useRef<Map<string, [number[] | null, import("@/lib/energy").RouteWeather | null]>>(new Map());
   const fetchTrafficRoutesFn = useServerFn(fetchTrafficRoutes);
 
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
@@ -546,10 +548,25 @@ function Index() {
     fromBattery: number,
     extraWaypoints: PlannedWaypoint[],
   ): Promise<RoutePlan | null> => {
-    const [elevationProfile, fetchedWeather] = await Promise.all([
+    // Hoogte en weer zijn voor alle routevarianten vrijwel gelijk: cache op
+    // afgeronde begin-/eindpunt zodat 5 varianten niet 5x het netwerk raken.
+    const first = base.route.coordinates[0];
+    const last = base.route.coordinates[base.route.coordinates.length - 1];
+    const cacheKey = first && last
+      ? `${first[0].toFixed(1)},${first[1].toFixed(1)}>${last[0].toFixed(1)},${last[1].toFixed(1)}|${tripDate || 'nu'}`
+      : null;
+    const cached = cacheKey ? elevationWeatherCacheRef.current.get(cacheKey) : undefined;
+    const [elevationProfile, fetchedWeather] = cached ?? await Promise.all([
       fetchElevationProfile(base.route.coordinates),
       fetchRouteWeather(base.route.coordinates, tripDate || undefined),
     ]);
+    if (cacheKey && !cached) {
+      elevationWeatherCacheRef.current.set(cacheKey, [elevationProfile, fetchedWeather]);
+      if (elevationWeatherCacheRef.current.size > 12) {
+        const oldest = elevationWeatherCacheRef.current.keys().next().value;
+        if (oldest) elevationWeatherCacheRef.current.delete(oldest);
+      }
+    }
     // Handmatig: ingevuld weer gaat vóór de verwachting.
     let weather: RouteWeather | null = fetchedWeather;
     if (consumptionMode === 'manual' && (manualWeather.tempC !== undefined || manualWeather.windMs !== undefined || manualWeather.precipitationMm !== undefined)) {
@@ -692,7 +709,7 @@ function Index() {
       });
     const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
     return {
-      route: { ...finalResult.route, trafficDelayMin: base.route.trafficDelayMin },
+      route: { ...finalResult.route, trafficDelayMin: base.route.trafficDelayMin, trafficSegments: base.route.trafficSegments },
       steps: finalResult.steps,
       stops: fixedStops,
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
@@ -732,7 +749,7 @@ function Index() {
     let bases = offlineBases;
     if (trafficRoutes && trafficRoutes.length > 0) {
       const trafficBases = trafficRoutes.map((trafficRoute) => ({
-        route: { coordinates: trafficRoute.coordinates, totalDistanceKm: trafficRoute.totalDistanceKm, totalTimeMin: trafficRoute.totalTimeMin, trafficDelayMin: trafficRoute.delayMin },
+        route: { coordinates: trafficRoute.coordinates, totalDistanceKm: trafficRoute.totalDistanceKm, totalTimeMin: trafficRoute.totalTimeMin, trafficDelayMin: trafficRoute.delayMin, trafficSegments: trafficRoute.slowSegments },
         steps: [] as RouteStep[],
       }));
       bases = [...trafficBases, ...bases].filter((candidate, index, all) => all.findIndex((other) => Math.abs(other.route.totalDistanceKm - candidate.route.totalDistanceKm) < 3) === index).slice(0, 5);
@@ -1219,6 +1236,11 @@ function Index() {
                     className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${selectedRouteIndex === i ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30" : "text-slate-300 hover:bg-white/10 hover:text-white"}`}
                   >
                     Route {i + 1} · {plan.route.totalDistanceKm} km · {plan.stops.length} stop{plan.stops.length === 1 ? "" : "s"}
+                    {(plan.route.trafficDelayMin ?? 0) > 0 && (
+                      <span className={plan.route.trafficDelayMin! >= 20 ? "text-red-400" : "text-amber-400"}>
+                        {" "}· +{plan.route.trafficDelayMin} min file
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>

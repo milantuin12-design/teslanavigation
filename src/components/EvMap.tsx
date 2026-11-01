@@ -165,6 +165,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
   const routeRef = useRef<L.Polyline | null>(null);
   const routeVariantsRef = useRef<L.LayerGroup>(L.layerGroup());
+  const trafficLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const currentMarkerRef = useRef<L.Marker | null>(null);
   const followPausedUntilRef = useRef(0);
   const lastAutoPanRef = useRef(0);
@@ -240,6 +241,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
 
     markersRef.current.addTo(map);
     routeVariantsRef.current.addTo(map);
+    trafficLayerRef.current.addTo(map);
     mapRef.current = map;
 
     return () => {
@@ -432,6 +434,43 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     try {
       if (routeRef.current) { map.removeLayer(routeRef.current); routeRef.current = null; }
       routeVariantsRef.current.clearLayers();
+      trafficLayerRef.current.clearLayers();
+
+      // Tekent rode/oranje stukken en een file-icoon op de geselecteerde route.
+      const drawTraffic = (r: RouteResult) => {
+        const segments = r.trafficSegments ?? [];
+        if (segments.length === 0) return;
+        let worst: { lat: number; lng: number } | null = null;
+        let worstLen = 0;
+        for (const seg of segments) {
+          const slice = r.coordinates.slice(seg.startIndex, seg.endIndex + 1);
+          if (slice.length < 2) continue;
+          const latLngs = slice.map(([lng, lat]) => [lat, lng] as L.LatLngExpression);
+          trafficLayerRef.current.addLayer(L.polyline(latLngs, {
+            color: seg.severity === 'jam' ? '#dc2626' : '#f59e0b',
+            weight: 7,
+            opacity: 0.75,
+            smoothFactor: 1,
+          }));
+          if (seg.severity === 'jam' && slice.length > worstLen) {
+            worstLen = slice.length;
+            const mid = slice[Math.floor(slice.length / 2)];
+            worst = { lat: mid[1], lng: mid[0] };
+          }
+        }
+        if (worst) {
+          const w = worst as { lat: number; lng: number };
+          trafficLayerRef.current.addLayer(L.marker([w.lat, w.lng], {
+            icon: L.divIcon({
+              className: '',
+              html: '<div style="background:#dc2626;color:#fff;border-radius:9999px;padding:3px 8px;font:600 11px system-ui;box-shadow:0 1px 4px rgba(0,0,0,.4);white-space:nowrap">🚗 File</div>',
+              iconSize: [60, 22],
+              iconAnchor: [30, 26],
+            }),
+            interactive: false,
+          }));
+        }
+      };
 
       const variantEntries = Object.entries(routeVariants || {}).filter((entry): entry is [string, RouteResult] => !!entry[1]);
       if (variantEntries.length > 1) {
@@ -449,6 +488,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         });
 
         const selectedRoute = routeVariants?.[selectedRouteType || ''] || route;
+        if (selectedRoute) drawTraffic(selectedRoute);
         if (selectedRoute && selectedRoute.coordinates.length > 0 && !isNavigating) {
           const bounds = L.latLngBounds(selectedRoute.coordinates.map(([lng, lat]) => [lat, lng] as L.LatLngExpression));
           map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
@@ -469,6 +509,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         }).addTo(map);
 
         routeRef.current = polyline;
+        drawTraffic(route);
 
         if (latLngs.length > 1 && !isNavigating) {
           map.fitBounds(polyline.getBounds(), { padding: [40, 40], maxZoom: 13 });
