@@ -488,6 +488,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         });
 
         const selectedRoute = routeVariants?.[selectedRouteType || ''] || route;
+        if (selectedRoute) drawTraffic(selectedRoute);
         if (selectedRoute && selectedRoute.coordinates.length > 0 && !isNavigating) {
           const bounds = L.latLngBounds(selectedRoute.coordinates.map(([lng, lat]) => [lat, lng] as L.LatLngExpression));
           map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
@@ -508,6 +509,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         }).addTo(map);
 
         routeRef.current = polyline;
+        drawTraffic(route);
 
         if (latLngs.length > 1 && !isNavigating) {
           map.fitBounds(polyline.getBounds(), { padding: [40, 40], maxZoom: 13 });
