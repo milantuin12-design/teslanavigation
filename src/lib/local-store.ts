@@ -39,6 +39,25 @@ export function writeLocal(key: string, value: unknown): void {
   }
 }
 
+/** Laat een cloudverzoek na `ms` opgeven zodat de app nooit blijft hangen. */
+export function withTimeout<T>(p: PromiseLike<T>, ms = 1000): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error("cloud timeout")), ms);
+    Promise.resolve(p).then(
+      (v) => { clearTimeout(t); resolve(v); },
+      (e) => { clearTimeout(t); reject(e); },
+    );
+  });
+}
+
+/** Volledige kopie van een opgeslagen route (rij uit saved_routes), lokaal bewaard. */
+export function cacheSavedRouteRow(row: { id: string } & Record<string, unknown>): void {
+  writeLocal(`${PREFIX}saved-route:${row.id}`, row);
+}
+export function getCachedSavedRouteRow<T>(id: string): T | null {
+  return readLocal<T | null>(`${PREFIX}saved-route:${id}`, null);
+}
+
 export interface LocalRoute {
   id: string;
   name: string;

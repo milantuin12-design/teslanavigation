@@ -11,6 +11,8 @@ import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher } from "@/components/LanguageProvider";
 import { supabase } from "@/integrations/supabase/client";
+import { withTimeout, cacheSavedRouteRow, getCachedSavedRouteRow, saveLocalRoute, type LocalRoute } from "@/lib/local-store";
+import type { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -283,8 +285,17 @@ function Index() {
     const loadId = params.get("load");
     if (!loadId) return;
     (async () => {
-      const { data, error } = await supabase.from("saved_routes").select("*").eq("id", loadId).maybeSingle();
-      if (error || !data) { toast.error("Route niet gevonden"); return; }
+      type SavedRow = Database["public"]["Tables"]["saved_routes"]["Row"];
+      // Lokaal eerst: direct inladen, ook als de cloud stilstaat.
+      let data: SavedRow | null = getCachedSavedRouteRow<SavedRow>(loadId);
+      if (!data) {
+        try {
+          const res = await withTimeout(supabase.from("saved_routes").select("*").eq("id", loadId).maybeSingle(), 1500);
+          data = (res.data as SavedRow | null) ?? null;
+          if (data) cacheSavedRouteRow(data as unknown as { id: string } & Record<string, unknown>);
+        } catch { data = null; }
+      }
+      if (!data) { toast.error("Route niet gevonden (offline en niet lokaal bewaard)"); return; }
       setStartCoord({ lat: data.start_lat, lng: data.start_lng });
       setDestCoord({ lat: data.end_lat, lng: data.end_lng });
       setSelectedModel(data.model_name);
@@ -1281,7 +1292,8 @@ function Index() {
             <Button variant="outline" onClick={() => setSaveOpen(false)}>Annuleren</Button>
             <Button className="bg-red-600 hover:bg-red-700" onClick={async () => {
               if (!currentUser || !startCoord || !destCoord || !route) return;
-              const { error } = await supabase.from("saved_routes").insert({
+              const row = {
+                id: crypto.randomUUID(),
                 user_id: currentUser.id,
                 name: saveName || "Naamloze route",
                 start_lat: startCoord.lat, start_lng: startCoord.lng,
@@ -1301,9 +1313,17 @@ function Index() {
                 })),
                 total_distance_km: route.totalDistanceKm,
                 total_time_min: route.totalTimeMin,
-              });
-              if (error) toast.error(error.message);
-              else { toast.success("Route opgeslagen"); setSaveOpen(false); setSaveName(""); }
+              };
+              // Altijd eerst lokaal bewaren; cloud is een extra kopie.
+              cacheSavedRouteRow({ ...row, start_address: null, end_address: null, created_at: new Date().toISOString() });
+              saveLocalRoute({ id: row.id, name: row.name, createdAt: new Date().toISOString() } as LocalRoute);
+              let cloudOk = false;
+              try {
+                const { error } = await withTimeout(supabase.from("saved_routes").insert(row), 2000);
+                cloudOk = !error;
+              } catch { cloudOk = false; }
+              toast.success(cloudOk ? "Route opgeslagen" : "Route lokaal opgeslagen (cloud niet bereikbaar)");
+              setSaveOpen(false); setSaveName("");
             }}>Opslaan</Button>
           </DialogFooter>
         </DialogContent>
