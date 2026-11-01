@@ -164,6 +164,27 @@ function AdminPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    // Eerst eventuele wijzigingen versturen die in de wachtrij stonden (cloud was weg).
+    const pending = getPendingAdminChanges();
+    if (pending.length > 0) {
+      let failed = false;
+      for (const change of pending) {
+        try {
+          if (change.type === "delete" && change.id) {
+            const { error } = await supabase.from("superchargers").delete().eq("id", change.id);
+            if (error) failed = true;
+          } else if (change.type === "upsert" && change.payload) {
+            const { error } = await supabase.from("superchargers").upsert(change.payload as never);
+            if (error) failed = true;
+          }
+        } catch { failed = true; }
+        if (failed) break;
+      }
+      if (!failed) {
+        clearPendingAdminChanges();
+        toast.success("Wachtrij met wijzigingen verstuurd naar de cloud");
+      }
+    }
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from("superchargers")
