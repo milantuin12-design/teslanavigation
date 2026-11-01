@@ -141,35 +141,37 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
     const owners = new Map<string, OwnerRow>();
     for (const o of localChargerDataset.owners ?? []) owners.set(o.id, o);
 
-    try {
+    // Cloud krijgt maximaal ~1 seconde; daarna draait de app op de ingebouwde data.
+    const cloud = async () => {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const pageSize = 1000;
       const rows: Row[] = [];
-
       for (let from = 0; ; from += pageSize) {
         const { data, error } = await supabaseAdmin
           .from("superchargers")
           .select(SELECT_COLS)
           .order("name")
           .range(from, from + pageSize - 1);
-
         if (error) throw new Error(error.message);
         rows.push(...((data as unknown as Row[]) ?? []));
         if (!data || data.length < pageSize) break;
       }
-
-      // Lege of duidelijk incomplete respons = storing: val terug op lokale data.
       if (rows.length === 0 || rows.length < localRows.length * 0.5) {
         throw new Error("cloud dataset incomplete");
       }
-
       const { data: ownerRows } = await supabaseAdmin
         .from("charger_owners")
         .select("id,name,logo_url,description,website,contact,notes");
-      for (const o of (ownerRows ?? []) as (OwnerRow & { id: string })[]) {
-        owners.set(o.id, o);
-      }
-      return rows.map((row) => rowToCharger(row, owners));
+      return { rows, ownerRows: (ownerRows ?? []) as (OwnerRow & { id: string })[] };
+    };
+
+    try {
+      const result = await new Promise<Awaited<ReturnType<typeof cloud>>>((resolve, reject) => {
+        const t = setTimeout(() => reject(new Error("cloud timeout")), 1200);
+        cloud().then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
+      });
+      for (const o of result.ownerRows) owners.set(o.id, o);
+      return result.rows.map((row) => rowToCharger(row, owners));
     } catch {
       return localRows.map((row) => rowToCharger(row, owners));
     }
