@@ -1,13 +1,31 @@
 import { createServerFn } from "@tanstack/react-start";
 import { decodeTrafficPolyline, trafficInput } from "./traffic.server";
 
+export type TrafficSegment = {
+  /** Index in de polyline waar het trage stuk begint. */
+  startIndex: number;
+  /** Index in de polyline waar het trage stuk eindigt. */
+  endIndex: number;
+  severity: "slow" | "jam";
+};
+
 export type TrafficRoute = {
   coordinates: [number, number][];
   totalDistanceKm: number;
   totalTimeMin: number;
   /** Vertraging in minuten door verkeer t.o.v. vrije doorstroming. */
   delayMin: number;
+  /** Stukken van de route met file of traag verkeer. */
+  slowSegments: TrafficSegment[];
 };
+
+function trafficApiKey(): string | undefined {
+  return (
+    process.env["GOOGLE_MAPS_API_KEY"] ||
+    (import.meta.env["VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY"] as string | undefined) ||
+    undefined
+  );
+}
 
 /**
  * Live routes met files en wegwerkzaamheden. Geeft null terug als er geen
@@ -16,7 +34,7 @@ export type TrafficRoute = {
 export const fetchTrafficRoutes = createServerFn({ method: "POST" })
   .inputValidator((raw: unknown) => trafficInput.parse(raw))
   .handler(async ({ data }): Promise<TrafficRoute[] | null> => {
-    const key = process.env["GOOGLE_MAPS_API_KEY"];
+    const key = trafficApiKey();
     if (!key) return null;
 
     const body = {
@@ -40,7 +58,7 @@ export const fetchTrafficRoutes = createServerFn({ method: "POST" })
           "Content-Type": "application/json",
           "X-Goog-Api-Key": key,
           "X-Goog-FieldMask":
-            "routes.duration,routes.staticDuration,routes.distanceMeters,routes.polyline.encodedPolyline",
+            "routes.duration,routes.staticDuration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.travelAdvisory.speedReadingIntervals",
         },
         body: JSON.stringify(body),
       });
@@ -51,6 +69,13 @@ export const fetchTrafficRoutes = createServerFn({ method: "POST" })
           staticDuration?: string;
           distanceMeters?: number;
           polyline?: { encodedPolyline?: string };
+          travelAdvisory?: {
+            speedReadingIntervals?: {
+              startPolylinePointIndex?: number;
+              endPolylinePointIndex?: number;
+              speed?: "NORMAL" | "SLOW" | "TRAFFIC_JAM";
+            }[];
+          };
         }[];
       };
       const routes = json.routes ?? [];
@@ -62,11 +87,21 @@ export const fetchTrafficRoutes = createServerFn({ method: "POST" })
           const staticSecs = Number((r.staticDuration ?? r.duration ?? "0s").replace("s", "")) || secs;
           const encoded = r.polyline?.encodedPolyline;
           if (!encoded) return null;
+          const coordinates = decodeTrafficPolyline(encoded);
+          const slowSegments: TrafficSegment[] = (r.travelAdvisory?.speedReadingIntervals ?? [])
+            .filter((i) => i.speed === "SLOW" || i.speed === "TRAFFIC_JAM")
+            .map((i) => ({
+              startIndex: Math.max(0, i.startPolylinePointIndex ?? 0),
+              endIndex: Math.min(coordinates.length - 1, i.endPolylinePointIndex ?? coordinates.length - 1),
+              severity: (i.speed === "TRAFFIC_JAM" ? "jam" : "slow") as "slow" | "jam",
+            }))
+            .filter((s) => s.endIndex > s.startIndex);
           return {
-            coordinates: decodeTrafficPolyline(encoded),
+            coordinates,
             totalDistanceKm: Math.round(((r.distanceMeters ?? 0) / 1000) * 10) / 10,
             totalTimeMin: Math.round(secs / 60),
             delayMin: Math.max(0, Math.round((secs - staticSecs) / 60)),
+            slowSegments,
           } satisfies TrafficRoute;
         })
         .filter((r): r is TrafficRoute => r !== null);
