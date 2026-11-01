@@ -241,6 +241,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
 
     markersRef.current.addTo(map);
     routeVariantsRef.current.addTo(map);
+    trafficLayerRef.current.addTo(map);
     mapRef.current = map;
 
     return () => {
