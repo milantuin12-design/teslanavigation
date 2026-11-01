@@ -732,7 +732,7 @@ function Index() {
     let bases = offlineBases;
     if (trafficRoutes && trafficRoutes.length > 0) {
       const trafficBases = trafficRoutes.map((trafficRoute) => ({
-        route: { coordinates: trafficRoute.coordinates, totalDistanceKm: trafficRoute.totalDistanceKm, totalTimeMin: trafficRoute.totalTimeMin, trafficDelayMin: trafficRoute.delayMin },
+        route: { coordinates: trafficRoute.coordinates, totalDistanceKm: trafficRoute.totalDistanceKm, totalTimeMin: trafficRoute.totalTimeMin, trafficDelayMin: trafficRoute.delayMin, trafficSegments: trafficRoute.slowSegments },
         steps: [] as RouteStep[],
       }));
       bases = [...trafficBases, ...bases].filter((candidate, index, all) => all.findIndex((other) => Math.abs(other.route.totalDistanceKm - candidate.route.totalDistanceKm) < 3) === index).slice(0, 5);

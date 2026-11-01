@@ -213,6 +213,8 @@ export interface RouteResult {
   totalTimeMin: number;
   /** Live vertraging t.o.v. vrije doorstroming. */
   trafficDelayMin?: number;
+  /** Stukken van de route met file of traag verkeer (polyline-indexen). */
+  trafficSegments?: { startIndex: number; endIndex: number; severity: 'slow' | 'jam' }[];
 }
 
 export type ChargerStatus =
