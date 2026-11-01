@@ -165,6 +165,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
   const routeRef = useRef<L.Polyline | null>(null);
   const routeVariantsRef = useRef<L.LayerGroup>(L.layerGroup());
+  const trafficLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const currentMarkerRef = useRef<L.Marker | null>(null);
   const followPausedUntilRef = useRef(0);
   const lastAutoPanRef = useRef(0);

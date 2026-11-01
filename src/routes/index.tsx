@@ -217,7 +217,7 @@ function Index() {
   const gpsAnimationFrameRef = useRef<number | null>(null);
   const calculationIdRef = useRef(0);
   // Cache voor hoogte + weer per traject, zodat 5 routevarianten niet 5x het netwerk raken.
-  const elevationWeatherCacheRef = useRef<Map<string, [number[] | null, import("@/lib/weather").RouteWeather | null]>>(new Map());
+  const elevationWeatherCacheRef = useRef<Map<string, [number[] | null, import("@/lib/energy").RouteWeather | null]>>(new Map());
   const fetchTrafficRoutesFn = useServerFn(fetchTrafficRoutes);
 
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
