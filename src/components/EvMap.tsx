@@ -434,6 +434,43 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     try {
       if (routeRef.current) { map.removeLayer(routeRef.current); routeRef.current = null; }
       routeVariantsRef.current.clearLayers();
+      trafficLayerRef.current.clearLayers();
+
+      // Tekent rode/oranje stukken en een file-icoon op de geselecteerde route.
+      const drawTraffic = (r: RouteResult) => {
+        const segments = r.trafficSegments ?? [];
+        if (segments.length === 0) return;
+        let worst: { lat: number; lng: number } | null = null;
+        let worstLen = 0;
+        for (const seg of segments) {
+          const slice = r.coordinates.slice(seg.startIndex, seg.endIndex + 1);
+          if (slice.length < 2) continue;
+          const latLngs = slice.map(([lng, lat]) => [lat, lng] as L.LatLngExpression);
+          trafficLayerRef.current.addLayer(L.polyline(latLngs, {
+            color: seg.severity === 'jam' ? '#dc2626' : '#f59e0b',
+            weight: 7,
+            opacity: 0.75,
+            smoothFactor: 1,
+          }));
+          if (seg.severity === 'jam' && slice.length > worstLen) {
+            worstLen = slice.length;
+            const mid = slice[Math.floor(slice.length / 2)];
+            worst = { lat: mid[1], lng: mid[0] };
+          }
+        }
+        if (worst) {
+          const w = worst as { lat: number; lng: number };
+          trafficLayerRef.current.addLayer(L.marker([w.lat, w.lng], {
+            icon: L.divIcon({
+              className: '',
+              html: '<div style="background:#dc2626;color:#fff;border-radius:9999px;padding:3px 8px;font:600 11px system-ui;box-shadow:0 1px 4px rgba(0,0,0,.4);white-space:nowrap">🚗 File</div>',
+              iconSize: [60, 22],
+              iconAnchor: [30, 26],
+            }),
+            interactive: false,
+          }));
+        }
+      };
 
       const variantEntries = Object.entries(routeVariants || {}).filter((entry): entry is [string, RouteResult] => !!entry[1]);
       if (variantEntries.length > 1) {
