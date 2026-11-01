@@ -546,10 +546,25 @@ function Index() {
     fromBattery: number,
     extraWaypoints: PlannedWaypoint[],
   ): Promise<RoutePlan | null> => {
-    const [elevationProfile, fetchedWeather] = await Promise.all([
+    // Hoogte en weer zijn voor alle routevarianten vrijwel gelijk: cache op
+    // afgeronde begin-/eindpunt zodat 5 varianten niet 5x het netwerk raken.
+    const first = base.route.coordinates[0];
+    const last = base.route.coordinates[base.route.coordinates.length - 1];
+    const cacheKey = first && last
+      ? `${first[0].toFixed(1)},${first[1].toFixed(1)}>${last[0].toFixed(1)},${last[1].toFixed(1)}|${tripDate || 'nu'}`
+      : null;
+    const cached = cacheKey ? elevationWeatherCacheRef.current.get(cacheKey) : undefined;
+    const [elevationProfile, fetchedWeather] = cached ?? await Promise.all([
       fetchElevationProfile(base.route.coordinates),
       fetchRouteWeather(base.route.coordinates, tripDate || undefined),
     ]);
+    if (cacheKey && !cached) {
+      elevationWeatherCacheRef.current.set(cacheKey, [elevationProfile, fetchedWeather]);
+      if (elevationWeatherCacheRef.current.size > 12) {
+        const oldest = elevationWeatherCacheRef.current.keys().next().value;
+        if (oldest) elevationWeatherCacheRef.current.delete(oldest);
+      }
+    }
     // Handmatig: ingevuld weer gaat vóór de verwachting.
     let weather: RouteWeather | null = fetchedWeather;
     if (consumptionMode === 'manual' && (manualWeather.tempC !== undefined || manualWeather.windMs !== undefined || manualWeather.precipitationMm !== undefined)) {
@@ -692,7 +707,7 @@ function Index() {
       });
     const finalLegKm = Math.max(0, finalResult.route.totalDistanceKm - runningKm);
     return {
-      route: { ...finalResult.route, trafficDelayMin: base.route.trafficDelayMin },
+      route: { ...finalResult.route, trafficDelayMin: base.route.trafficDelayMin, trafficSegments: base.route.trafficSegments },
       steps: finalResult.steps,
       stops: fixedStops,
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
