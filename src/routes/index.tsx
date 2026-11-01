@@ -1236,6 +1236,11 @@ function Index() {
                     className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${selectedRouteIndex === i ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30" : "text-slate-300 hover:bg-white/10 hover:text-white"}`}
                   >
                     Route {i + 1} · {plan.route.totalDistanceKm} km · {plan.stops.length} stop{plan.stops.length === 1 ? "" : "s"}
+                    {(plan.route.trafficDelayMin ?? 0) > 0 && (
+                      <span className={plan.route.trafficDelayMin! >= 20 ? "text-red-400" : "text-amber-400"}>
+                        {" "}· +{plan.route.trafficDelayMin} min file
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
