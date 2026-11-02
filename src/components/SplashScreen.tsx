@@ -18,7 +18,7 @@ export default function SplashScreen({ show }: { show: boolean }) {
 
   return (
     <div
-      className={`fixed inset-0 z-[3000] grid place-items-center bg-slate-950 transition-opacity duration-500 ${show ? "opacity-100" : "opacity-0"}`}
+      className={`fixed inset-0 z-[3000] grid place-items-center bg-slate-950 transition-opacity duration-500 ${show ? "opacity-100" : "opacity-0 pointer-events-none"}`}
     >
       <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(60%_50%_at_50%_35%,rgba(59,130,246,0.25),transparent_70%)]" />
       <div className="relative flex flex-col items-center gap-5">

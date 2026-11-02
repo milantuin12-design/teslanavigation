@@ -1,9 +1,13 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import { vehicleKey, type VehicleModel } from '@/lib/vehicle-types';
 import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Moon, Gauge, LoaderCircle } from 'lucide-react';
 import { teslaModels, WeatherMode, TimeMode, teslaMaxChargeKw } from '@/lib/tesla-types';
+import type { Supercharger } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
+
+/** Laadwens bij een tussenstop: niet laden, planner beslist, alleen als het nodig is, of altijd laden. */
+export type WaypointChargeMode = 'none' | 'auto' | 'needed' | 'forced';
 
 interface Waypoint {
   id: string;
@@ -15,6 +19,11 @@ interface Waypoint {
   radiusKm: number;
   charge: boolean;
   chargeTo: number;
+  chargeMode: WaypointChargeMode;
+  /** Zelf gekozen Supercharger bij deze tussenstop. */
+  chargerId: string | null;
+  /** Gekozen Supercharger mag niet automatisch vervangen worden. */
+  locked: boolean;
 }
 
 export interface PlannedWaypoint {
@@ -25,12 +34,16 @@ export interface PlannedWaypoint {
   radiusKm: number;
   charge: boolean;
   chargeTo: number;
+  chargeMode: WaypointChargeMode;
+  chargerId?: string | null;
+  locked?: boolean;
 }
 
 interface InputPanelProps {
   onStartChange: (coord: { lat: number; lng: number } | null) => void;
   onDestChange: (coord: { lat: number; lng: number } | null) => void;
   onWaypointsChange: (waypoints: PlannedWaypoint[]) => void;
+  superchargers: Supercharger[];
   onModelChange: (model: string) => void;
   onBatteryChange: (pct: number) => void;
   onArrivalTargetChange: (pct: number) => void;
@@ -233,6 +246,7 @@ export default function InputPanel({
   onStartChange,
   onDestChange,
   onWaypointsChange,
+  superchargers,
   onModelChange,
   onBatteryChange,
   onArrivalTargetChange,
@@ -370,8 +384,16 @@ export default function InputPanel({
       radiusKm: 20,
       charge: false,
       chargeTo: 80,
+      chargeMode: 'none' as WaypointChargeMode,
+      chargerId: null,
+      locked: false,
     }]);
   }, []);
+
+  const sortedChargers = useMemo(
+    () => [...superchargers].sort((a, b) => a.name.localeCompare(b.name)),
+    [superchargers],
+  );
 
   const removeWaypoint = useCallback((id: string) => {
     setWaypoints(prev => prev.filter(w => w.id !== id));
@@ -425,8 +447,11 @@ export default function InputPanel({
       label: w.input,
       corridor: w.corridor,
       radiusKm: w.radiusKm,
-      charge: w.charge,
+      charge: w.chargeMode === 'forced' || w.charge,
       chargeTo: w.chargeTo,
+      chargeMode: w.chargeMode,
+      chargerId: w.chargerId,
+      locked: w.locked,
     })));
   }, [waypoints, onWaypointsChange]);
 
@@ -531,28 +556,61 @@ export default function InputPanel({
                   km van de route
                 </label>
               ) : (
-                <div className="flex flex-wrap items-center gap-3">
-                  <label className="flex items-center gap-2 text-xs text-slate-300">
-                    <input
-                      type="checkbox"
-                      checked={wp.charge}
-                      onChange={e => updateWaypoint(wp.id, { charge: e.target.checked })}
-                      className="accent-blue-500"
-                    />
-                    Hier opladen
-                  </label>
-                  {wp.charge && (
-                    <label className="flex items-center gap-1.5 text-xs text-slate-300">
-                      tot
+                <div className="space-y-2">
+                  <select
+                    value={wp.chargerId ?? ''}
+                    onChange={(e) => {
+                      const id = e.target.value || null;
+                      const sc = id ? sortedChargers.find((c) => c.id === id) : null;
+                      updateWaypoint(wp.id, sc
+                        ? { chargerId: id, input: sc.name, coord: { lat: sc.lat, lng: sc.lng }, error: '' }
+                        : { chargerId: null });
+                    }}
+                    className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1.5 text-xs text-white"
+                  >
+                    <option value="">Supercharger kiezen (optioneel)</option>
+                    {sortedChargers.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}{c.city ? ` — ${c.city}` : ''}</option>
+                    ))}
+                  </select>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <select
+                      value={wp.chargeMode}
+                      onChange={(e) => {
+                        const mode = e.target.value as WaypointChargeMode;
+                        updateWaypoint(wp.id, { chargeMode: mode, charge: mode === 'forced' });
+                      }}
+                      className="bg-slate-700 border border-slate-600 rounded px-2 py-1 text-xs text-white"
+                    >
+                      <option value="none">Niet laden</option>
+                      <option value="auto">Automatisch bepalen</option>
+                      <option value="needed">Indien nodig laden</option>
+                      <option value="forced">Verplicht laden</option>
+                    </select>
+                    {wp.chargeMode === 'forced' && (
+                      <label className="flex items-center gap-1.5 text-xs text-slate-300">
+                        tot
+                        <input
+                          type="number"
+                          min={10}
+                          max={100}
+                          value={wp.chargeTo}
+                          onChange={e => updateWaypoint(wp.id, { chargeTo: Math.min(100, Math.max(10, Number(e.target.value) || 80)) })}
+                          className="w-16 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-xs text-white"
+                        />
+                        %
+                      </label>
+                    )}
+                  </div>
+                  {wp.chargerId && (
+                    <label className="flex items-center gap-2 text-xs text-slate-300">
                       <input
-                        type="number"
-                        min={10}
-                        max={100}
-                        value={wp.chargeTo}
-                        onChange={e => updateWaypoint(wp.id, { chargeTo: Math.min(100, Math.max(10, Number(e.target.value) || 80)) })}
-                        className="w-16 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-xs text-white"
+                        type="checkbox"
+                        checked={wp.locked}
+                        onChange={(e) => updateWaypoint(wp.id, { locked: e.target.checked })}
+                        className="accent-blue-500"
                       />
-                      %
+                      Deze Supercharger mag niet vervangen worden
                     </label>
                   )}
                 </div>

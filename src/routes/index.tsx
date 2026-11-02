@@ -603,15 +603,19 @@ function Index() {
     setRouteWeather(weather);
     const folkestone = distanceToRoute(51.096, 1.132, base.route.coordinates) < 15;
     const coquelles = distanceToRoute(50.934, 1.811, base.route.coordinates) < 15;
-    // Laden bij een tussenstop: lader daar (Supercharger binnen 1,5 km, anders lader van derden met echte naam).
+    // Laden bij een tussenstop: zelf gekozen Supercharger (vergrendeld = nooit vervangen),
+    // anders Supercharger binnen 1,5 km, anders lader van derden met echte naam.
     const forcedStops = await Promise.all(extraWaypoints
-      .filter((wp) => wp.charge && !wp.corridor)
+      .filter((wp) => !wp.corridor && ((wp.locked && wp.chargerId) || wp.chargeMode === 'forced' || wp.charge))
       .map(async (wp) => {
-        let nearest: Supercharger | null = null;
+        const picked = wp.chargerId ? superchargers.find((c) => c.id === wp.chargerId) ?? null : null;
+        let nearest: Supercharger | null = picked;
         let best = 1.5;
-        for (const c of superchargers) {
-          const d = haversineDistance(wp.lat, wp.lng, c.lat, c.lng);
-          if (d < best) { best = d; nearest = c; }
+        if (!nearest) {
+          for (const c of superchargers) {
+            const d = haversineDistance(wp.lat, wp.lng, c.lat, c.lng);
+            if (d < best) { best = d; nearest = c; }
+          }
         }
         const charger: Supercharger = nearest ?? await lookupThirdPartyCharger(wp.lat, wp.lng, wp.label);
         return {
@@ -1130,6 +1134,7 @@ function Index() {
               onStartChange={setStartCoord}
               onDestChange={setDestCoord}
               onWaypointsChange={setWaypoints}
+              superchargers={superchargers}
               onModelChange={setSelectedModel}
               onBatteryChange={setBatteryPercent}
               onArrivalTargetChange={setTargetArrivalPercent}
