@@ -556,28 +556,61 @@ export default function InputPanel({
                   km van de route
                 </label>
               ) : (
-                <div className="flex flex-wrap items-center gap-3">
-                  <label className="flex items-center gap-2 text-xs text-slate-300">
-                    <input
-                      type="checkbox"
-                      checked={wp.charge}
-                      onChange={e => updateWaypoint(wp.id, { charge: e.target.checked })}
-                      className="accent-blue-500"
-                    />
-                    Hier opladen
-                  </label>
-                  {wp.charge && (
-                    <label className="flex items-center gap-1.5 text-xs text-slate-300">
-                      tot
+                <div className="space-y-2">
+                  <select
+                    value={wp.chargerId ?? ''}
+                    onChange={(e) => {
+                      const id = e.target.value || null;
+                      const sc = id ? sortedChargers.find((c) => c.id === id) : null;
+                      updateWaypoint(wp.id, sc
+                        ? { chargerId: id, input: sc.name, coord: { lat: sc.lat, lng: sc.lng }, error: '' }
+                        : { chargerId: null });
+                    }}
+                    className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1.5 text-xs text-white"
+                  >
+                    <option value="">Supercharger kiezen (optioneel)</option>
+                    {sortedChargers.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}{c.city ? ` — ${c.city}` : ''}</option>
+                    ))}
+                  </select>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <select
+                      value={wp.chargeMode}
+                      onChange={(e) => {
+                        const mode = e.target.value as WaypointChargeMode;
+                        updateWaypoint(wp.id, { chargeMode: mode, charge: mode === 'forced' });
+                      }}
+                      className="bg-slate-700 border border-slate-600 rounded px-2 py-1 text-xs text-white"
+                    >
+                      <option value="none">Niet laden</option>
+                      <option value="auto">Automatisch bepalen</option>
+                      <option value="needed">Indien nodig laden</option>
+                      <option value="forced">Verplicht laden</option>
+                    </select>
+                    {wp.chargeMode === 'forced' && (
+                      <label className="flex items-center gap-1.5 text-xs text-slate-300">
+                        tot
+                        <input
+                          type="number"
+                          min={10}
+                          max={100}
+                          value={wp.chargeTo}
+                          onChange={e => updateWaypoint(wp.id, { chargeTo: Math.min(100, Math.max(10, Number(e.target.value) || 80)) })}
+                          className="w-16 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-xs text-white"
+                        />
+                        %
+                      </label>
+                    )}
+                  </div>
+                  {wp.chargerId && (
+                    <label className="flex items-center gap-2 text-xs text-slate-300">
                       <input
-                        type="number"
-                        min={10}
-                        max={100}
-                        value={wp.chargeTo}
-                        onChange={e => updateWaypoint(wp.id, { chargeTo: Math.min(100, Math.max(10, Number(e.target.value) || 80)) })}
-                        className="w-16 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-xs text-white"
+                        type="checkbox"
+                        checked={wp.locked}
+                        onChange={(e) => updateWaypoint(wp.id, { locked: e.target.checked })}
+                        className="accent-blue-500"
                       />
-                      %
+                      Deze Supercharger mag niet vervangen worden
                     </label>
                   )}
                 </div>
