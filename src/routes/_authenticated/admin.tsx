@@ -246,14 +246,23 @@ function AdminPage() {
       hidden: !!editing.hidden,
       photos: (editing.photos || []).map((u) => u.trim()).filter(Boolean),
     };
-    if (editing.id) {
-      const { error } = await supabase.from("superchargers").update(payload).eq("id", editing.id);
-      if (error) { toast.error(error.message); return; }
-      toast.success("Bijgewerkt");
-    } else {
-      const { error } = await supabase.from("superchargers").insert(payload);
-      if (error) { toast.error(error.message); return; }
-      toast.success("Toegevoegd");
+    try {
+      if (editing.id) {
+        const { error } = await supabase.from("superchargers").update(payload).eq("id", editing.id);
+        if (error) throw new Error(error.message);
+        toast.success("Bijgewerkt");
+      } else {
+        const { error } = await supabase.from("superchargers").insert(payload);
+        if (error) throw new Error(error.message);
+        toast.success("Toegevoegd");
+      }
+    } catch {
+      // Cloud onbereikbaar: wijziging lokaal in wachtrij, wordt later alsnog verstuurd.
+      queueAdminChange({ type: "upsert", id: editing.id, payload: editing.id ? { id: editing.id, ...payload } : payload });
+      if (editing.id) setChargers((prev) => prev.map((c) => (c.id === editing.id ? ({ ...c, ...payload } as Charger) : c)));
+      toast.warning("Cloud onbereikbaar — wijziging lokaal in wachtrij gezet");
+      setEditing(null);
+      return;
     }
     setEditing(null);
     load();
@@ -261,9 +270,17 @@ function AdminPage() {
 
   const remove = async (id: string) => {
     if (!confirm("Weet je zeker dat je deze supercharger wilt verwijderen?")) return;
-    const { error } = await supabase.from("superchargers").delete().eq("id", id);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Verwijderd"); load();
+    try {
+      const { error } = await supabase.from("superchargers").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+      toast.success("Verwijderd");
+    } catch {
+      queueAdminChange({ type: "delete", id });
+      setChargers((prev) => prev.filter((c) => c.id !== id));
+      toast.warning("Cloud onbereikbaar — verwijdering in wachtrij gezet");
+      return;
+    }
+    load();
   };
 
   const setTemporaryClosureDays = (days: number) => {

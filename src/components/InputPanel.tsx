@@ -1,9 +1,13 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import { vehicleKey, type VehicleModel } from '@/lib/vehicle-types';
 import { MapPin, Battery, Zap, Car, Truck, Navigation, ChevronDown, ChevronUp, Plus, X, Locate, Compass, CloudSnow, Sun, Moon, Gauge, LoaderCircle } from 'lucide-react';
 import { teslaModels, WeatherMode, TimeMode, teslaMaxChargeKw } from '@/lib/tesla-types';
+import type { Supercharger } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
+
+/** Laadwens bij een tussenstop: niet laden, planner beslist, alleen als het nodig is, of altijd laden. */
+export type WaypointChargeMode = 'none' | 'auto' | 'needed' | 'forced';
 
 interface Waypoint {
   id: string;
@@ -15,6 +19,11 @@ interface Waypoint {
   radiusKm: number;
   charge: boolean;
   chargeTo: number;
+  chargeMode: WaypointChargeMode;
+  /** Zelf gekozen Supercharger bij deze tussenstop. */
+  chargerId: string | null;
+  /** Gekozen Supercharger mag niet automatisch vervangen worden. */
+  locked: boolean;
 }
 
 export interface PlannedWaypoint {
@@ -25,6 +34,9 @@ export interface PlannedWaypoint {
   radiusKm: number;
   charge: boolean;
   chargeTo: number;
+  chargeMode: WaypointChargeMode;
+  chargerId?: string | null;
+  locked?: boolean;
 }
 
 interface InputPanelProps {
