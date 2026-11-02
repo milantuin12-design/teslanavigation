@@ -43,6 +43,7 @@ interface InputPanelProps {
   onStartChange: (coord: { lat: number; lng: number } | null) => void;
   onDestChange: (coord: { lat: number; lng: number } | null) => void;
   onWaypointsChange: (waypoints: PlannedWaypoint[]) => void;
+  superchargers: Supercharger[];
   onModelChange: (model: string) => void;
   onBatteryChange: (pct: number) => void;
   onArrivalTargetChange: (pct: number) => void;
@@ -382,8 +383,16 @@ export default function InputPanel({
       radiusKm: 20,
       charge: false,
       chargeTo: 80,
+      chargeMode: 'none' as WaypointChargeMode,
+      chargerId: null,
+      locked: false,
     }]);
   }, []);
+
+  const sortedChargers = useMemo(
+    () => [...superchargers].sort((a, b) => a.name.localeCompare(b.name)),
+    [superchargers],
+  );
 
   const removeWaypoint = useCallback((id: string) => {
     setWaypoints(prev => prev.filter(w => w.id !== id));
