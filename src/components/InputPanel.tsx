@@ -246,6 +246,7 @@ export default function InputPanel({
   onStartChange,
   onDestChange,
   onWaypointsChange,
+  superchargers,
   onModelChange,
   onBatteryChange,
   onArrivalTargetChange,
@@ -446,8 +447,11 @@ export default function InputPanel({
       label: w.input,
       corridor: w.corridor,
       radiusKm: w.radiusKm,
-      charge: w.charge,
+      charge: w.chargeMode === 'forced' || w.charge,
       chargeTo: w.chargeTo,
+      chargeMode: w.chargeMode,
+      chargerId: w.chargerId,
+      locked: w.locked,
     })));
   }, [waypoints, onWaypointsChange]);
 
