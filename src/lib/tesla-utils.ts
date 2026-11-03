@@ -750,7 +750,7 @@ export function getStatusColor(status: ChargerStatus): string {
     case 'Niet beschikbaar': return '#94a3b8';
     case 'Langdurig gesloten': return '#94a3b8';
     case 'Voting': return '#3b82f6';
-    case 'Plan': case 'Vergunning verleend': return '#a855f7';
+    case 'Plan': case 'Vergunning aangevraagd': return '#a855f7';
     case 'Wordt uitgebreid': return '#22c55e';
     case 'Permanent gesloten': return '#0f172a';
     default: return '#ef4444';
