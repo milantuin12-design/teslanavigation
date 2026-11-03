@@ -279,6 +279,7 @@ export default function InputPanel({
   timeMode,
   minChargerSpeedKw,
   avoidLowSpeed,
+  avoidParkingFee,
   onlineTraffic,
   manualRangeKm = 400,
   manualSpeedKw = 250,

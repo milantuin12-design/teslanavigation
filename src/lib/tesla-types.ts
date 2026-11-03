@@ -245,7 +245,7 @@ export type ChargerStatus =
   | 'Langdurig gesloten'
   | 'Voting'
   | 'Plan'
-  | 'Vergunning verleend'
+  | 'Vergunning aangevraagd'
   | 'Wordt uitgebreid'
   | 'Permanent gesloten';
 
