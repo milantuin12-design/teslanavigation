@@ -11,6 +11,32 @@ interface ChargingStopsProps {
   onArrivalChange?: (index: number, arrivalPercent: number) => void;
 }
 
+function parkingCost(stop: ChargingStop): number | null {
+  const c = stop.charger;
+  if (!c.parkingFee) return null;
+  if (typeof c.parkingFeeAmount === 'number' && c.parkingFeeAmount > 0) return c.parkingFeeAmount;
+  const free = c.parkingFreeMinutes ?? 0;
+  const perMin = c.parkingPerMinutes ?? 0;
+  const perEuro = c.parkingPerEuro ?? 0;
+  if (perMin > 0 && perEuro > 0) {
+    const billable = Math.max(0, stop.chargeDurationMin - free);
+    return Math.ceil(billable / perMin) * perEuro;
+  }
+  return null;
+}
+
+function chargingCost(stop: ChargingStop): number | null {
+  const price = stop.charger.pricePerKwh;
+  if (typeof price !== 'number' || price <= 0) return null;
+  const kwh = stop.energyChargedKWh ?? 0;
+  if (kwh <= 0) return null;
+  return kwh * price;
+}
+
+function formatEuro(n: number): string {
+  return `€ ${n.toFixed(2).replace('.', ',')}`;
+}
+
 function formatDuration(min: number): string {
   if (min >= 60) {
     const h = Math.floor(min / 60);
@@ -81,7 +107,7 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                   <button
                     onClick={() => onRemoveCharger(idx)}
                     className="p-1 text-slate-500 hover:text-red-400 transition-colors"
-                    title="Verwijder stop"
+                    title="Liever niet hier laden — zoek een andere Supercharger"
                   >
                     <X size={12} />
                   </button>
@@ -154,6 +180,29 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                   {stallCountLabel}
                 </span>
               )}
+              {(() => {
+                const park = parkingCost(stop);
+                const charge = chargingCost(stop);
+                return (
+                  <>
+                    {charge !== null && (
+                      <span className="flex items-center gap-1 text-emerald-300" title="Geschatte laadkosten">
+                        💶 {formatEuro(charge)}
+                      </span>
+                    )}
+                    {park !== null && (
+                      <span className="flex items-center gap-1 text-orange-300" title="Geschatte parkeerkosten tijdens het laden">
+                        🅿️ {formatEuro(park)}
+                      </span>
+                    )}
+                    {stop.charger.parkingFee && park === null && (
+                      <span className="flex items-center gap-1 text-orange-300/70" title="Parkeergeld verplicht (tarief onbekend)">
+                        🅿️ parkeergeld
+                      </span>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         );
