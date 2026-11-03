@@ -45,6 +45,13 @@ type Row = {
   is_available: boolean | null;
   charger_configs: ChargerConfig[] | null;
   parking_fee: boolean | null;
+  parking_fee_amount?: number | null;
+  parking_free_minutes?: number | null;
+  parking_per_minutes?: number | null;
+  parking_per_euro?: number | null;
+  price_per_kwh?: number | null;
+  price_per_kwh_peak?: number | null;
+  peak_hours?: string | null;
   in_parking_garage: boolean | null;
   status: string | null;
   construction: ConstructionInfo | null;
