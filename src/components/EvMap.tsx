@@ -54,7 +54,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus) {
   else if (status === 'Werkzaamheden' || status === 'Druk') color = '#f59e0b'; // oranje
   else if (status === 'Onbekend') color = '#64748b';
   else if (status === 'Voting') color = '#3b82f6';
-  else if (status === 'Plan' || status === 'Vergunning verleend') color = '#a855f7';
+  else if (status === 'Plan' || status === 'Vergunning aangevraagd') color = '#a855f7';
   else if (status === 'Wordt uitgebreid') color = '#22c55e';
   else if (status === 'Permanent gesloten') color = '#0f172a';
   else if (status === 'Tijdelijk gesloten') color = '#cbd5e1';
@@ -77,7 +77,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus) {
   }
 
   const isConstruction = status === 'In aanbouw';
-  const isPermit = status === 'Vergunning verleend';
+  const isPermit = status === 'Vergunning aangevraagd';
   const hasOpenWorks = charger.status === 'works' || charger.status === 'expanding';
   const hasClosedWorks = charger.status === 'works_closed';
   const isLowSpeed = !!charger.lowSpeed;

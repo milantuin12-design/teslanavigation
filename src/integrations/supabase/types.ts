@@ -413,9 +413,16 @@ export type Database = {
           owner_id: string | null
           owner_name: string | null
           parking_fee: boolean
+          parking_fee_amount: number | null
+          parking_free_minutes: number | null
+          parking_per_euro: number | null
+          parking_per_minutes: number | null
+          peak_hours: string | null
           permanently_closed_at: string | null
           photos: string[]
           planned_upgrade: Json
+          price_per_kwh: number | null
+          price_per_kwh_peak: number | null
           province: string | null
           published: boolean
           reopen_at: string | null
@@ -456,9 +463,16 @@ export type Database = {
           owner_id?: string | null
           owner_name?: string | null
           parking_fee?: boolean
+          parking_fee_amount?: number | null
+          parking_free_minutes?: number | null
+          parking_per_euro?: number | null
+          parking_per_minutes?: number | null
+          peak_hours?: string | null
           permanently_closed_at?: string | null
           photos?: string[]
           planned_upgrade?: Json
+          price_per_kwh?: number | null
+          price_per_kwh_peak?: number | null
           province?: string | null
           published?: boolean
           reopen_at?: string | null
@@ -499,9 +513,16 @@ export type Database = {
           owner_id?: string | null
           owner_name?: string | null
           parking_fee?: boolean
+          parking_fee_amount?: number | null
+          parking_free_minutes?: number | null
+          parking_per_euro?: number | null
+          parking_per_minutes?: number | null
+          peak_hours?: string | null
           permanently_closed_at?: string | null
           photos?: string[]
           planned_upgrade?: Json
+          price_per_kwh?: number | null
+          price_per_kwh_peak?: number | null
           province?: string | null
           published?: boolean
           reopen_at?: string | null

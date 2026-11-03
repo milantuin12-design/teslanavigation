@@ -23,7 +23,7 @@ function normalizeStallData(totalStalls?: number | null, stallTypes?: string | n
 }
 
 const SELECT_COLS =
-  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,notes,reopen_at,planned_upgrade,stall_states,permanently_closed_at,data_source,voting,hidden,photos";
+  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,notes,reopen_at,planned_upgrade,stall_states,permanently_closed_at,data_source,voting,hidden,photos";
 
 type Row = {
   id: string;
@@ -45,6 +45,13 @@ type Row = {
   is_available: boolean | null;
   charger_configs: ChargerConfig[] | null;
   parking_fee: boolean | null;
+  parking_fee_amount?: number | null;
+  parking_free_minutes?: number | null;
+  parking_per_minutes?: number | null;
+  parking_per_euro?: number | null;
+  price_per_kwh?: number | null;
+  price_per_kwh_peak?: number | null;
+  peak_hours?: string | null;
   in_parking_garage: boolean | null;
   status: string | null;
   construction: ConstructionInfo | null;
@@ -102,6 +109,13 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
     trailerFriendly: !!row.trailer_friendly,
     isAvailable: row.is_available !== false,
     parkingFee: !!row.parking_fee,
+    parkingFeeAmount: row.parking_fee_amount ?? null,
+    parkingFreeMinutes: row.parking_free_minutes ?? null,
+    parkingPerMinutes: row.parking_per_minutes ?? null,
+    parkingPerEuro: row.parking_per_euro ?? null,
+    pricePerKwh: row.price_per_kwh ?? null,
+    pricePerKwhPeak: row.price_per_kwh_peak ?? null,
+    peakHours: row.peak_hours ?? null,
     inParkingGarage: !!row.in_parking_garage,
     status,
     construction: row.construction ?? {},
@@ -239,6 +253,13 @@ const chargerInput = z.object({
   trailerFriendly: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
   parkingFee: z.boolean().default(false),
+  parkingFeeAmount: z.number().min(0).max(1000).nullable().optional(),
+  parkingFreeMinutes: z.number().int().min(0).max(1440).nullable().optional(),
+  parkingPerMinutes: z.number().int().min(1).max(1440).nullable().optional(),
+  parkingPerEuro: z.number().min(0).max(1000).nullable().optional(),
+  pricePerKwh: z.number().min(0).max(10).nullable().optional(),
+  pricePerKwhPeak: z.number().min(0).max(10).nullable().optional(),
+  peakHours: z.string().max(120).nullable().optional(),
   inParkingGarage: z.boolean().default(false),
   province: z.string().max(100).optional(),
   city: z.string().max(100).optional(),
@@ -321,6 +342,13 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       trailer_friendly: data.trailerFriendly,
       is_available: data.isAvailable,
       parking_fee: data.parkingFee,
+      parking_fee_amount: data.parkingFeeAmount ?? null,
+      parking_free_minutes: data.parkingFreeMinutes ?? null,
+      parking_per_minutes: data.parkingPerMinutes ?? null,
+      parking_per_euro: data.parkingPerEuro ?? null,
+      price_per_kwh: data.pricePerKwh ?? null,
+      price_per_kwh_peak: data.pricePerKwhPeak ?? null,
+      peak_hours: data.peakHours ?? null,
       in_parking_garage: data.inParkingGarage,
       province: data.province || null,
       city: data.city || null,

@@ -41,6 +41,13 @@ type Charger = {
   is_available: boolean;
   charger_configs: ChargerConfig[] | null;
   parking_fee: boolean;
+  parking_fee_amount?: number | null;
+  parking_free_minutes?: number | null;
+  parking_per_minutes?: number | null;
+  parking_per_euro?: number | null;
+  price_per_kwh?: number | null;
+  price_per_kwh_peak?: number | null;
+  peak_hours?: string | null;
   in_parking_garage: boolean;
   status: ChargerLifecycleStatus;
   construction: ConstructionInfo | null;
@@ -69,6 +76,10 @@ const emptyCharger = {
   opening_time: null as string | null, closing_time: null as string | null,
   trailer_friendly: false, is_available: true,
   parking_fee: false, in_parking_garage: false,
+  parking_fee_amount: null as number | null, parking_free_minutes: null as number | null,
+  parking_per_minutes: null as number | null, parking_per_euro: null as number | null,
+  price_per_kwh: null as number | null, price_per_kwh_peak: null as number | null,
+  peak_hours: null as string | null,
   status: "operational" as ChargerLifecycleStatus,
   construction: {} as ConstructionInfo,
   works: {} as WorksInfo,
@@ -188,7 +199,7 @@ function AdminPage() {
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from("superchargers")
-        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at")
+        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at")
         .order("name").range(from, from + 999);
       if (error) { toast.error(error.message); break; }
       rows.push(...(data as Charger[]));
@@ -227,6 +238,13 @@ function AdminPage() {
       trailer_friendly: !!editing.trailer_friendly,
       is_available: editing.is_available !== false,
       parking_fee: !!editing.parking_fee,
+      parking_fee_amount: editing.parking_fee_amount ?? null,
+      parking_free_minutes: editing.parking_free_minutes ?? null,
+      parking_per_minutes: editing.parking_per_minutes ?? null,
+      parking_per_euro: editing.parking_per_euro ?? null,
+      price_per_kwh: editing.price_per_kwh ?? null,
+      price_per_kwh_peak: editing.price_per_kwh_peak ?? null,
+      peak_hours: editing.peak_hours ?? null,
       in_parking_garage: !!editing.in_parking_garage,
       province: editing.province || null,
       city: editing.city || null,
@@ -727,6 +745,34 @@ function AdminPage() {
                 <Checkbox checked={!!editing.parking_fee} onCheckedChange={(c) => setEditing({ ...editing, parking_fee: !!c })} />
                 💶 Parkeergeld verplicht
               </label>
+              {editing.parking_fee && (
+                <div className="ml-6 grid grid-cols-2 gap-2 text-xs">
+                  <label className="flex items-center gap-1">Vast bedrag €
+                    <Input type="number" step="0.10" min="0" className="h-7 bg-slate-800 border-slate-600" value={editing.parking_fee_amount ?? ''} onChange={(e) => setEditing({ ...editing, parking_fee_amount: e.target.value === '' ? null : Number(e.target.value) })} />
+                  </label>
+                  <label className="flex items-center gap-1">Gratis minuten
+                    <Input type="number" min="0" className="h-7 bg-slate-800 border-slate-600" value={editing.parking_free_minutes ?? ''} onChange={(e) => setEditing({ ...editing, parking_free_minutes: e.target.value === '' ? null : Number(e.target.value) })} />
+                  </label>
+                  <label className="flex items-center gap-1">Per (minuten)
+                    <Input type="number" min="1" placeholder="10" className="h-7 bg-slate-800 border-slate-600" value={editing.parking_per_minutes ?? ''} onChange={(e) => setEditing({ ...editing, parking_per_minutes: e.target.value === '' ? null : Number(e.target.value) })} />
+                  </label>
+                  <label className="flex items-center gap-1">Kosten per blok €
+                    <Input type="number" step="0.10" min="0" placeholder="1.00" className="h-7 bg-slate-800 border-slate-600" value={editing.parking_per_euro ?? ''} onChange={(e) => setEditing({ ...editing, parking_per_euro: e.target.value === '' ? null : Number(e.target.value) })} />
+                  </label>
+                  <p className="col-span-2 text-slate-400">Bijv. 90 gratis minuten, daarna €1 per 10 minuten. Kosten kunnen per dag/tijd verschillen — gebruik het gemiddelde of het duurste tarief.</p>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <label className="flex items-center gap-1">Prijs per kWh €
+                  <Input type="number" step="0.01" min="0" className="h-7 bg-slate-800 border-slate-600" value={editing.price_per_kwh ?? ''} onChange={(e) => setEditing({ ...editing, price_per_kwh: e.target.value === '' ? null : Number(e.target.value) })} />
+                </label>
+                <label className="flex items-center gap-1">Piektarief per kWh €
+                  <Input type="number" step="0.01" min="0" className="h-7 bg-slate-800 border-slate-600" value={editing.price_per_kwh_peak ?? ''} onChange={(e) => setEditing({ ...editing, price_per_kwh_peak: e.target.value === '' ? null : Number(e.target.value) })} />
+                </label>
+                <label className="col-span-2 flex items-center gap-1">Piektijden (bijv. ma-vr 07:00-19:00)
+                  <Input className="h-7 bg-slate-800 border-slate-600" value={editing.peak_hours ?? ''} onChange={(e) => setEditing({ ...editing, peak_hours: e.target.value || null })} />
+                </label>
+              </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={!!editing.in_parking_garage} onCheckedChange={(c) => setEditing({ ...editing, in_parking_garage: !!c })} />
                 🅿️ In parkeergarage (niet voor aanhangerroute)

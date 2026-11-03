@@ -55,6 +55,7 @@ interface InputPanelProps {
   onTimeModeChange: (mode: TimeMode) => void;
   onMinChargerSpeedChange: (kw: number) => void;
   onAvoidLowSpeedChange: (value: boolean) => void;
+  onAvoidParkingFeeChange: (value: boolean) => void;
   onOnlineTrafficChange: (value: boolean) => void;
   onManualRangeChange?: (km: number) => void;
   onManualSpeedChange?: (kw: number) => void;
@@ -72,6 +73,7 @@ interface InputPanelProps {
   timeMode: TimeMode;
   minChargerSpeedKw: number;
   avoidLowSpeed: boolean;
+  avoidParkingFee: boolean;
   onlineTraffic: boolean;
   manualRangeKm?: number;
   manualSpeedKw?: number;
@@ -256,6 +258,7 @@ export default function InputPanel({
   onTimeModeChange,
   onMinChargerSpeedChange,
   onAvoidLowSpeedChange,
+  onAvoidParkingFeeChange,
   onOnlineTrafficChange,
   onManualRangeChange,
   onManualSpeedChange,
@@ -276,6 +279,7 @@ export default function InputPanel({
   timeMode,
   minChargerSpeedKw,
   avoidLowSpeed,
+  avoidParkingFee,
   onlineTraffic,
   manualRangeKm = 400,
   manualSpeedKw = 250,
@@ -1009,6 +1013,10 @@ export default function InputPanel({
             <label className="mt-2 flex items-center gap-2 text-xs text-slate-300">
               <input type="checkbox" checked={avoidLowSpeed} onChange={(e) => onAvoidLowSpeedChange(e.target.checked)} className="accent-blue-500" />
               Lage laadsnelheid vermijden
+            </label>
+            <label className="mt-1.5 flex items-center gap-2 text-xs text-slate-300">
+              <input type="checkbox" checked={avoidParkingFee} onChange={(e) => onAvoidParkingFeeChange(e.target.checked)} className="accent-blue-500" />
+              Parkeerkosten vermijden
             </label>
           </div>
 

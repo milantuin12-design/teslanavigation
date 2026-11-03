@@ -161,6 +161,20 @@ export interface Supercharger {
   connectors?: string[];
   isAvailable?: boolean;
   parkingFee?: boolean;
+  /** Vast parkeerbedrag in euro (optioneel). */
+  parkingFeeAmount?: number | null;
+  /** Gratis parkeerminuten voordat kosten ingaan (bijv. 90). */
+  parkingFreeMinutes?: number | null;
+  /** Tijdsblok in minuten voor parkeerkosten (bijv. 10 of 15). */
+  parkingPerMinutes?: number | null;
+  /** Kosten in euro per tijdsblok. */
+  parkingPerEuro?: number | null;
+  /** Laadtarief per kWh in euro. */
+  pricePerKwh?: number | null;
+  /** Piek-tarief per kWh in euro (optioneel). */
+  pricePerKwhPeak?: number | null;
+  /** Tijdsblokken voor piektarief, vrije tekst. */
+  peakHours?: string | null;
   inParkingGarage?: boolean;
   status?: ChargerLifecycleStatus;
   construction?: ConstructionInfo;
@@ -231,7 +245,7 @@ export type ChargerStatus =
   | 'Langdurig gesloten'
   | 'Voting'
   | 'Plan'
-  | 'Vergunning verleend'
+  | 'Vergunning aangevraagd'
   | 'Wordt uitgebreid'
   | 'Permanent gesloten';
 

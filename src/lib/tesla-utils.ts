@@ -241,7 +241,7 @@ export function getChargerStatus(charger: Supercharger, atDate: Date = new Date(
   if (lifecycle === 'permanent_closed') return 'Permanent gesloten';
   if (lifecycle === 'voting') return 'Voting';
   if (lifecycle === 'plan') return 'Plan';
-  if (lifecycle === 'permit') return 'Vergunning verleend';
+  if (lifecycle === 'permit') return 'Vergunning aangevraagd';
   if (lifecycle === 'unknown') return 'Onbekend';
   if (getTotalStalls(charger) > 0 && getOpenStalls(charger, atDate) <= 0) return 'Niet beschikbaar';
   if (charger.isAvailable === false) return 'Niet beschikbaar';
@@ -370,8 +370,10 @@ export interface CalcChargingOptions {
   ccsBlocked?: boolean;
   /** Verplichte laadmomenten bij tussenstops (km langs de route). */
   forcedStops?: { routeKm: number; chargeTo: number; charger: Supercharger; kw: number }[];
-  /** Laders die de gebruiker heeft geweigerd (bijv. status Onbekend). */
+  /** Laders die de gebruiker heeft geweigerd (bijv. status Onbekend of 'liever niet laden'). Id of naam. */
   excludeIds?: string[];
+  /** Laders met parkeerkosten overslaan. */
+  avoidParkingFee?: boolean;
 
 }
 
@@ -420,6 +422,7 @@ export function calculateChargingStops(
     ccsBlocked = false,
     forcedStops = [],
     excludeIds = [],
+    avoidParkingFee = false,
   } = opts;
   const pendingForced = [...forcedStops].sort((a, b) => a.routeKm - b.routeKm);
   const excluded = new Set(excludeIds);
@@ -436,7 +439,7 @@ export function calculateChargingStops(
   let filtered = chargers.filter(c => {
     const lifecycle = c.status ?? 'operational';
     if (c.published === false) return false;
-    if (c.id && excluded.has(c.id)) return false;
+    if ((c.id && excluded.has(c.id)) || excluded.has(c.name)) return false;
     if (lifecycle !== 'operational' && lifecycle !== 'works' && lifecycle !== 'expanding' && lifecycle !== 'unknown') return false;
     if (c.isAvailable === false) return false;
     // Een locatie met 0 bruikbare laadplekken is nooit een laadstop.
@@ -451,6 +454,7 @@ export function calculateChargingStops(
 
   if (trailerOnly) filtered = filtered.filter(c => c.trailerFriendly);
   if (excludeParkingGarage) filtered = filtered.filter(c => !c.inParkingGarage);
+  if (avoidParkingFee) filtered = filtered.filter(c => !c.parkingFee);
 
   const nearChargers = findChargersNearRoute(route.coordinates, filtered, 20);
   const routeDist = buildRouteDistanceIndex(route.coordinates);
@@ -615,14 +619,12 @@ export function calculateChargingStops(
     } else {
       minBatteryNeeded = batteryNeededForNextLeg + minSafetyPercent + 2;
     }
-    const floor = typeof minChargeTargetPercent === 'number' ? minChargeTargetPercent : chargeTargetPercent;
+    const floor = typeof minChargeTargetPercent === 'number' ? minChargeTargetPercent : 0;
     const cap = typeof maxChargeTargetPercent === 'number' ? maxChargeTargetPercent : 100;
-    let batteryAfter = canFinish
-      ? Math.min(cap, Math.ceil(minBatteryNeeded))
-      : useDestAsNext
-      ? Math.min(cap, Math.max(Math.ceil(minBatteryNeeded), floor))
-      : Math.max(floor, Math.ceil(minBatteryNeeded));
-    batteryAfter = Math.min(cap, Math.max(batteryAfter, Math.ceil(minBatteryNeeded)));
+    // Zo weinig mogelijk energie verspillen: laad tot wat je nodig hebt voor de volgende
+    // etappe (+1% buffer), niet automatisch door tot het 'opladen tot'-percentage.
+    let batteryAfter = Math.ceil(minBatteryNeeded) + 1;
+    batteryAfter = Math.min(cap, Math.max(batteryAfter, floor));
     batteryAfter = Math.min(100, batteryAfter);
 
     const rawChargerKw = parseMaxSpeed(best.charger.stallTypes, best.charger.maxSpeedKw, best.charger.chargerConfigs);
@@ -748,7 +750,7 @@ export function getStatusColor(status: ChargerStatus): string {
     case 'Niet beschikbaar': return '#94a3b8';
     case 'Langdurig gesloten': return '#94a3b8';
     case 'Voting': return '#3b82f6';
-    case 'Plan': case 'Vergunning verleend': return '#a855f7';
+    case 'Plan': case 'Vergunning aangevraagd': return '#a855f7';
     case 'Wordt uitgebreid': return '#22c55e';
     case 'Permanent gesloten': return '#0f172a';
     default: return '#ef4444';
@@ -764,7 +766,7 @@ export const lifecycleLabels: Record<ChargerLifecycleStatus, string> = {
   long_closed: 'Langdurig gesloten',
   voting: 'Voting',
   plan: 'Plan',
-  permit: 'Vergunning verleend',
+  permit: 'Vergunning aangevraagd',
   expanding: 'Wordt uitgebreid',
   permanent_closed: 'Permanent gesloten',
   unknown: 'Onbekend',
@@ -808,7 +810,7 @@ export function isVisibleOnMap(charger: Supercharger, now: number = Date.now()):
 
 export const constructionProgressLabels: Record<string, string> = {
   planned: 'Gepland',
-  permit: 'Vergunning rond',
+  permit: 'Vergunning aangevraagd',
   groundwork: 'Grondwerk bezig',
   cabling: 'Kabels & aansluiting',
   installing: 'Laders plaatsen',
@@ -893,7 +895,7 @@ export function describeChargerStatus(charger: Supercharger): string[] {
     if (charger.voting?.votes) lines.push(`Stemmen: ${charger.voting.votes}`);
     if (charger.voting?.rank) lines.push(`Rang: #${charger.voting.rank}`);
   } else if (status === 'plan' || status === 'permit') {
-    lines.push(status === 'plan' ? 'Gepland' : 'Vergunning verleend');
+    lines.push(status === 'plan' ? 'Gepland' : 'Vergunning aangevraagd');
   } else if (status === 'permanent_closed') {
     lines.push('Permanent gesloten');
     if (charger.permanentlyClosedAt) lines.push(`Gesloten sinds ${formatDateNl(charger.permanentlyClosedAt)}`);

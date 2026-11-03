@@ -130,6 +130,7 @@ function Index() {
   const [trailerReductionPercent, setTrailerReductionPercent] = useState(40);
   const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
   const [avoidLowSpeed, setAvoidLowSpeed] = useState(false);
+  const [avoidParkingFee, setAvoidParkingFee] = useState(false);
   const [onlineTraffic, setOnlineTraffic] = useState(false);
   const [consumptionMode, setConsumptionMode] = useState<'auto' | 'manual'>('auto');
   const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(0);
@@ -644,6 +645,7 @@ function Index() {
       preferTrailerFriendly,
       excludeParkingGarage: preferTrailerFriendly,
       avoidLowSpeed,
+      avoidParkingFee,
       allowEurotunnel: folkestone && coquelles,
       consumptionMultiplier: elevation.multiplier,
       consumptionKWh100,
@@ -718,7 +720,7 @@ function Index() {
       stops: fixedStops,
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
     };
-  }, [excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
+  }, [excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
 
   const applyPlan = useCallback((index: number, plan: RoutePlan) => {
     setSelectedRouteIndex(index);
@@ -816,7 +818,7 @@ function Index() {
     setLiveBattery(batteryPercent);
     try {
       const res = await computeRoute(startCoord, destCoord, batteryPercent, waypoints);
-      const risky = res.plan?.stops.find((st) => st.charger.status === "unknown" && !(st.charger.id && acceptedUnknownIds.includes(st.charger.id)));
+      const risky = res.plan?.stops.find((st) => st.charger.status === "unknown" && !(st.charger.id && acceptedUnknownIds.includes(st.charger.id)) && !acceptedUnknownIds.includes(st.charger.name));
       if (risky) setRiskCharger(risky.charger);
       if (!res.ok) setError(res.error || "Er ging iets mis.");
     } catch {
@@ -1113,8 +1115,13 @@ function Index() {
   }, [carMaxKwOverride, fullRangeKmActive, manualRangeKm, selectedModel]);
 
   const handleRemoveCharger = useCallback((index: number) => {
-    setChargingStops((prev) => prev.filter((_, i) => i !== index));
-  }, []);
+    // "Liever niet hier laden": sluit deze lader uit en zoek een andere Supercharger.
+    const stop = chargingStops[index];
+    if (!stop) return;
+    const key = stop.charger.id ?? stop.charger.name;
+    recalcAfterExcludeRef.current = true;
+    setExcludedChargerIds((prev) => (prev.includes(key) ? prev : [...prev, key]));
+  }, [chargingStops]);
 
   return (
     <div className="h-screen w-screen flex flex-col lg:flex-row bg-slate-900 text-white overflow-hidden">
@@ -1149,6 +1156,7 @@ function Index() {
               onTimeModeChange={setTimeMode}
               onMinChargerSpeedChange={setMinChargerSpeedKw}
               onAvoidLowSpeedChange={setAvoidLowSpeed}
+              onAvoidParkingFeeChange={setAvoidParkingFee}
               onOnlineTrafficChange={setOnlineTraffic}
               onManualRangeChange={setManualRangeKm}
               onManualSpeedChange={setManualSpeedKw}
@@ -1167,6 +1175,7 @@ function Index() {
               timeMode={timeMode}
               minChargerSpeedKw={minChargerSpeedKw}
               avoidLowSpeed={avoidLowSpeed}
+              avoidParkingFee={avoidParkingFee}
               onlineTraffic={onlineTraffic}
               consumptionMode={consumptionMode}
               onConsumptionModeChange={setConsumptionMode}
@@ -1361,13 +1370,13 @@ function Index() {
           <p className="text-sm text-slate-300">Wil je het risico aangaan om <strong>{riskCharger?.name}</strong> te gebruiken? Status = Onbekend.</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => {
-              const id = riskCharger?.id;
+              const key = riskCharger?.id ?? riskCharger?.name;
               setRiskCharger(null);
-              if (id) { recalcAfterExcludeRef.current = true; setExcludedChargerIds((prev) => [...prev, id]); }
+              if (key) { recalcAfterExcludeRef.current = true; setExcludedChargerIds((prev) => (prev.includes(key) ? prev : [...prev, key])); }
             }}>Nee, andere Supercharger</Button>
             <Button className="bg-amber-600 hover:bg-amber-700" onClick={() => {
-              const id = riskCharger?.id;
-              if (id) setAcceptedUnknownIds((prev) => [...prev, id]);
+              const key = riskCharger?.id ?? riskCharger?.name;
+              if (key) setAcceptedUnknownIds((prev) => (prev.includes(key) ? prev : [...prev, key]));
               setRiskCharger(null);
             }}>Ja, gebruiken</Button>
           </DialogFooter>
