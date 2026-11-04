@@ -21,7 +21,7 @@ const base = {
 
 describe('laadregel', () => {
   it('laadt bij een tussenstop normaal tot het ingestelde percentage', () => {
-    const chargers = [200, 400, 600, 800, 1000, 1200].map(charger);
+    const chargers = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200].map(charger);
     const r = calculateChargingStops(line(1500), { ...base, chargers });
     expect(r.unreachable).toBe(false);
     expect(r.stops[0].batteryAfter).toBe(80);
@@ -33,6 +33,13 @@ describe('laadregel', () => {
     // Vanaf 350 km nog 150 km = 30% + 10% aankomst ≈ 41%.
     expect(r.stops).toHaveLength(1);
     expect(r.stops[0].batteryAfter).toBeLessThanOrEqual(42);
+  });
+
+  it('laadt niet verder dan nodig als de volgende lader dichterbij ligt', () => {
+    // Vanaf 400 km is de volgende haalbare lader op 600 km (200 km = 40% + 10%).
+    const chargers = [400, 600, 1000].map(charger);
+    const r = calculateChargingStops(line(1200), { ...base, chargers });
+    expect(r.stops[0].batteryAfter).toBeLessThan(60);
   });
 
   it('laadt uitzonderlijk boven het ingestelde percentage bij een groot gat', () => {
