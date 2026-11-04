@@ -456,8 +456,14 @@ export function calculateChargingStops(
   if (excludeParkingGarage) filtered = filtered.filter(c => !c.inParkingGarage);
   if (avoidParkingFee) filtered = filtered.filter(c => !c.parkingFee);
 
-  const nearChargers = findChargersNearRoute(route.coordinates, filtered, 20) as (Supercharger & { __routeKm?: number; __detourKm?: number })[];
+  const nearChargers = findChargersNearRoute(route.coordinates, filtered, 20);
   const routeDist = buildRouteDistanceIndex(route.coordinates);
+  // Positie langs de route één keer berekenen (scheelt veel rekentijd).
+  const posMap = new Map<Supercharger, { km: number; detour: number }>();
+  for (const c of nearChargers) {
+    const idx = findNearestCoordIndex(route.coordinates, [c.lng, c.lat]);
+    posMap.set(c, { km: routeDist[idx], detour: haversineDistance(route.coordinates[idx][1], route.coordinates[idx][0], c.lat, c.lng) });
+  }
   const safeMultiplier = Math.min(1.6, Math.max(0.75, consumptionMultiplier || 1));
   const packKWh = usableBatteryKWh || batteryCapacityKWhOverride || teslaBatteryKWh[modelName] || 79;
   // Energie-gebaseerd bereik wanneer een verbruik bekend is; anders de km-schatting.
@@ -548,12 +554,9 @@ export function calculateChargingStops(
     const candidates: Candidate[] = [];
 
     for (const c of nearChargers) {
-      const nearestIdx = findNearestCoordIndex(route.coordinates, [c.lng, c.lat]);
-      const chargerRouteKm = routeDist[nearestIdx];
-      const distFromRoute = haversineDistance(
-        route.coordinates[nearestIdx][1], route.coordinates[nearestIdx][0],
-        c.lat, c.lng
-      );
+      const pos = posMap.get(c)!;
+      const chargerRouteKm = pos.km;
+      const distFromRoute = pos.detour;
       if (chargerRouteKm <= currentPositionKm + 20) continue;
       if (nextForced && chargerRouteKm >= nextForced.routeKm) continue;
       const travelKm = (chargerRouteKm - currentPositionKm) + distFromRoute;
@@ -622,9 +625,10 @@ export function calculateChargingStops(
       const limitKm = nextForced ? nextForced.routeKm : Infinity;
       const nextOptions: { km: number; need: number }[] = [];
       for (const c of nearChargers) {
-        const km = c.__routeKm as number;
+        const pos = posMap.get(c)!;
+        const km = pos.km;
         if (km <= best.routeKm + 20 || km >= limitKm) continue;
-        const need = ((km - best.routeKm + (c.__detourKm as number)) / fullRangeKm) * 100 + arriveTarget;
+        const need = ((km - best.routeKm + pos.detour) / fullRangeKm) * 100 + arriveTarget;
         nextOptions.push({ km, need });
       }
       if (nextForced) {
