@@ -639,7 +639,7 @@ export function calculateChargingStops(
         const farthest = withinTarget.reduce((m, o) => (o.km > m.km ? o : m));
         batteryAfter = Math.ceil(farthest.need) + 1;
         // Dichtbij het ingestelde % → gewoon tot het ingestelde % laden.
-        if (userTarget - batteryAfter <= 8) batteryAfter = userTarget;
+        if (userTarget - batteryAfter < 15) batteryAfter = userTarget;
       } else {
         const reachable = nextOptions.filter((o) => o.need <= 100);
         const farthest = reachable.length > 0 ? reachable.reduce((m, o) => (o.km > m.km ? o : m)) : null;
