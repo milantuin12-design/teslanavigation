@@ -1,6 +1,7 @@
-import { Zap, BatteryCharging, MapPin, Gauge, Clock, X, Edit3 } from 'lucide-react';
+import { Zap, BatteryCharging, MapPin, Gauge, Clock, Ban, Edit3, Mountain, Thermometer, Wind, CloudRain, Car, Flag, Route as RouteIcon } from 'lucide-react';
 import { useState } from 'react';
-import { ChargingStop } from '@/lib/tesla-types';
+import type { ChargingStop, RouteResult } from '@/lib/tesla-types';
+import type { RouteWeather } from '@/lib/energy';
 import { parseMaxSpeed } from '@/lib/tesla-utils';
 
 interface ChargingStopsProps {
@@ -9,11 +10,24 @@ interface ChargingStopsProps {
   onBatteryChange?: (index: number, newBatteryAfter: number) => void;
   onRemoveCharger?: (index: number) => void;
   onArrivalChange?: (index: number, arrivalPercent: number) => void;
+  departure?: Date;
+  route?: RouteResult | null;
+  packKWh?: number;
+  consumptionKWh100?: number | null;
+  arrivalPercent?: number | null;
+  weather?: RouteWeather | null;
+  elevation?: number[] | null;
+  liveTraffic?: boolean;
 }
 
-function parkingCost(stop: ChargingStop): number | null {
+function isWeekend(d: Date) { const day = d.getDay(); return day === 0 || day === 6; }
+
+export function parkingCost(stop: ChargingStop, at?: Date): number | null {
   const c = stop.charger;
   if (!c.parkingFee) return null;
+  // "alleen weekend" in de notitie/piekuren: doordeweeks gratis.
+  const weekendOnly = /weekend/i.test(`${c.peakHours ?? ''} ${c.notes ?? ''}`) && /park/i.test(`${c.peakHours ?? ''} ${c.notes ?? ''}`);
+  if (weekendOnly && at && !isWeekend(at)) return 0;
   if (typeof c.parkingFeeAmount === 'number' && c.parkingFeeAmount > 0) return c.parkingFeeAmount;
   const free = c.parkingFreeMinutes ?? 0;
   const perMin = c.parkingPerMinutes ?? 0;
@@ -33,180 +47,181 @@ function chargingCost(stop: ChargingStop): number | null {
   return kwh * price;
 }
 
-function formatEuro(n: number): string {
-  return `€ ${n.toFixed(2).replace('.', ',')}`;
-}
+const euro = (n: number) => `€ ${n.toFixed(2).replace('.', ',')}`;
+const dur = (min: number) => (min >= 60 ? `${Math.floor(min / 60)}u${min % 60 ? ` ${min % 60}m` : ''}` : `${min}m`);
+const time = (d: Date) => d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
 
-function formatDuration(min: number): string {
-  if (min >= 60) {
-    const h = Math.floor(min / 60);
-    const m = min % 60;
-    return m > 0 ? `${h}u ${m}m` : `${h}u`;
+/** Klimmen/dalen tussen twee posities (km) op basis van het gelijkmatig gesamplede hoogteprofiel. */
+function climb(profile: number[] | null | undefined, totalKm: number, fromKm: number, toKm: number) {
+  if (!profile || profile.length < 2 || totalKm <= 0) return null;
+  const n = profile.length - 1;
+  const a = Math.max(0, Math.min(n, Math.round((fromKm / totalKm) * n)));
+  const b = Math.max(0, Math.min(n, Math.round((toKm / totalKm) * n)));
+  let up = 0; let down = 0;
+  for (let i = a + 1; i <= b; i++) {
+    const d = profile[i] - profile[i - 1];
+    if (d > 0) up += d; else down -= d;
   }
-  return `${min}m`;
+  return { up: Math.round(up), down: Math.round(down) };
 }
 
-export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange }: ChargingStopsProps) {
+function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo }: {
+  fromLabel: string; toLabel: string; km: number; kWh: number | null; rangeKm: number | null; from: number; to: number;
+  climbInfo: { up: number; down: number } | null;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-dashed border-white/10 px-3 py-2 text-[11px] text-slate-400">
+      <span className="flex items-center gap-1 text-slate-300"><RouteIcon size={11} />{fromLabel} → {toLabel}</span>
+      <span>{Math.round(km)} km</span>
+      {kWh !== null && <span className="text-emerald-300">⚡ {kWh.toFixed(1)} kWh</span>}
+      <span>🔋 {from}% → {to}%</span>
+      {climbInfo && <span className="flex items-center gap-1"><Mountain size={11} />↑{climbInfo.up} m ↓{climbInfo.down} m</span>}
+      {rangeKm !== null && <span className="text-blue-300">bereik ± {rangeKm} km</span>}
+    </div>
+  );
+}
+
+export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic }: ChargingStopsProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editValue, setEditValue] = useState(80);
+  const start = departure ?? new Date();
+  const total = route?.totalDistanceKm ?? totalDistanceKm ?? 0;
+  const k100 = consumptionKWh100 && consumptionKWh100 > 0 ? consumptionKWh100 : null;
+  const fullRange = k100 && packKWh ? Math.round((packKWh / k100) * 100) : null;
+  const totalKWh = k100 ? (total / 100) * k100 : null;
+  const totalClimb = climb(elevation, total, 0, total);
+  const totalChargeMin = stops.reduce((s, x) => s + x.chargeDurationMin, 0);
+  const totalCost = stops.reduce((s, x) => s + (chargingCost(x) ?? 0) + (parkingCost(x, new Date(start.getTime() + (x.etaMinFromStart ?? 0) * 60000)) ?? 0), 0);
+  const arrivalTime = route ? new Date(start.getTime() + (route.totalTimeMin + totalChargeMin) * 60000) : null;
 
-  if (stops.length === 0 && totalDistanceKm !== null) {
+  if (totalDistanceKm === null || !route) {
+    if (stops.length === 0) return null;
+  }
+
+  const summary = route && (
+    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800/80 via-slate-900/80 to-blue-950/40 p-3 shadow-lg animate-fade-in">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Route-overzicht</div>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Afstand</div><div className="text-sm font-semibold text-white">{Math.round(total)} km</div></div>
+        <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Aankomst</div><div className="text-sm font-semibold text-white">{arrivalTime ? time(arrivalTime) : '–'}{typeof arrivalPercent === 'number' ? ` · ${arrivalPercent}%` : ''}</div></div>
+        <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Verbruik</div><div className="text-sm font-semibold text-emerald-300">{totalKWh !== null ? `${totalKWh.toFixed(0)} kWh` : '–'}{k100 ? <span className="text-[11px] font-normal text-slate-400"> · {k100.toFixed(1)}/100km</span> : null}</div></div>
+        <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Actieradius nu</div><div className="text-sm font-semibold text-blue-300">{fullRange !== null ? `${fullRange} km` : '–'}<span className="text-[11px] font-normal text-slate-400"> bij 100%</span></div></div>
+        <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Laden</div><div className="text-sm font-semibold text-white">{stops.length} stop{stops.length === 1 ? '' : 's'} · {dur(totalChargeMin)}</div></div>
+        <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Kosten</div><div className="text-sm font-semibold text-white">{totalCost > 0 ? euro(totalCost) : 'onbekend'}</div></div>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-300">
+        {totalClimb && <span className="flex items-center gap-1"><Mountain size={11} />↑ {totalClimb.up} m · ↓ {totalClimb.down} m (dalen = terugwinnen)</span>}
+        {weather && <span className="flex items-center gap-1"><Thermometer size={11} />{Math.round(weather.tempC)}°C</span>}
+        {weather && <span className="flex items-center gap-1"><Wind size={11} />{Math.round(weather.windMs * 3.6)} km/u{typeof weather.headwindMs === 'number' && weather.headwindMs > 1 ? ' tegenwind' : ''}</span>}
+        {weather && (weather.precipitationMm > 0 || weather.snowfallCm > 0) && <span className="flex items-center gap-1"><CloudRain size={11} />{weather.snowfallCm > 0 ? `${weather.snowfallCm} cm sneeuw` : `${weather.precipitationMm.toFixed(1)} mm regen`}</span>}
+        {weather && weather.fogFraction > 0.1 && <span>🌫️ mist op {Math.round(weather.fogFraction * 100)}%</span>}
+        {liveTraffic ? (
+          <span className={`flex items-center gap-1 ${(route.trafficDelayMin ?? 0) >= 20 ? 'text-red-400' : (route.trafficDelayMin ?? 0) > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+            <Car size={11} />{(route.trafficDelayMin ?? 0) > 0 ? `+${route.trafficDelayMin} min files/werkzaamheden` : 'Geen files'}
+            {route.trafficSegments?.length ? ` · ${route.trafficSegments.length} knelpunt${route.trafficSegments.length === 1 ? '' : 'en'}` : ''}
+          </span>
+        ) : <span className="text-slate-500">Files/werkzaamheden: niet meegerekend</span>}
+      </div>
+    </div>
+  );
+
+  if (stops.length === 0) {
     return (
-      <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-4 py-3 mx-5 mb-4">
-        <div className="flex items-center gap-2 text-green-400 text-sm font-medium">
-          <Zap size={16} />
-          Geen oplaadstops nodig - bereik is voldoende
-        </div>
+      <div className="space-y-2 px-4 py-4">
+        {summary}
+        {route && (
+          <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-400">
+            <Zap size={16} /> Geen laadstops nodig
+          </div>
+        )}
       </div>
     );
   }
 
-  if (stops.length === 0) return null;
-
-  const handleStartEdit = (index: number, currentValue: number) => {
-    setEditingIndex(index);
-    setEditValue(currentValue);
-  };
-
-  const handleSaveEdit = () => {
-    if (editingIndex !== null && onBatteryChange) {
-      onBatteryChange(editingIndex, editValue);
-    }
-    setEditingIndex(null);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingIndex(null);
+  // Rijstukken: start → stop 1 → … → bestemming
+  const legs: { fromLabel: string; toLabel: string; fromKm: number; toKm: number; fromPct: number; toPct: number }[] = [];
+  let prevKm = 0; let prevPct = stops[0].batteryBefore + Math.round(fullRange ? (stops[0].distanceFromStart / fullRange) * 100 : 0);
+  let prevLabel = 'Start';
+  stops.forEach((s, i) => {
+    legs.push({ fromLabel: prevLabel, toLabel: `Stop ${i + 1}`, fromKm: prevKm, toKm: s.distanceFromStart, fromPct: Math.min(100, prevPct), toPct: s.batteryBefore });
+    prevKm = s.distanceFromStart; prevPct = s.batteryAfter; prevLabel = `Stop ${i + 1}`;
+  });
+  legs.push({ fromLabel: prevLabel, toLabel: 'Bestemming', fromKm: prevKm, toKm: total, fromPct: prevPct, toPct: arrivalPercent ?? 0 });
+  const legEl = (i: number) => {
+    const l = legs[i];
+    const km = Math.max(0, l.toKm - l.fromKm);
+    return (
+      <LegRow key={`leg-${i}`} fromLabel={l.fromLabel} toLabel={l.toLabel} km={km}
+        kWh={k100 ? (km / 100) * k100 : null}
+        rangeKm={fullRange ? Math.round((l.fromPct / 100) * fullRange) : null}
+        from={l.fromPct} to={l.toPct} climbInfo={climb(elevation, total, l.fromKm, l.toKm)} />
+    );
   };
 
   return (
-    <div className="px-5 pb-5 space-y-2">
-      <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-        Oplaadstops
-      </h3>
+    <div className="space-y-2 px-4 pb-5 pt-4">
+      {summary}
+      <h3 className="pt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">Laadstops & rijstukken</h3>
       {stops.map((stop, idx) => {
         const maxSpeedKw = parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
-        const maxSpeedLabel = maxSpeedKw ? `${maxSpeedKw}kW` : '';
-        const stallCountLabel = stop.charger.totalStalls ? `${stop.charger.totalStalls} laadplekken` : '';
         const isEditing = editingIndex === idx;
-        const eta = typeof stop.etaMinFromStart === 'number'
-          ? new Date(Date.now() + stop.etaMinFromStart * 60000)
-          : null;
-
+        const eta = typeof stop.etaMinFromStart === 'number' ? new Date(start.getTime() + stop.etaMinFromStart * 60000) : null;
+        const park = parkingCost(stop, eta ?? undefined);
+        const charge = chargingCost(stop);
         return (
-          <div
-            key={idx}
-            className="bg-slate-800/60 border border-slate-700/50 rounded-lg px-3 py-2.5"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-white">
-                {stop.charger.name}
-              </span>
-              <div className="flex items-center gap-1">
-                {onRemoveCharger && (
-                  <button
-                    onClick={() => onRemoveCharger(idx)}
-                    className="p-1 text-slate-500 hover:text-red-400 transition-colors"
-                    title="Liever niet hier laden — zoek een andere Supercharger"
-                  >
-                    <X size={12} />
-                  </button>
-                )}
-                <span className="text-[10px] text-slate-500 bg-slate-700/50 px-1.5 py-0.5 rounded">
-                  Stop #{idx + 1}
-                </span>
-              </div>
-            </div>
-            {eta && (
-              <div className="text-[11px] text-blue-300 mt-0.5">
-                Aankomst ± {eta.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
-              </div>
-            )}
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
-              <span className="flex items-center gap-1">
-                <MapPin size={11} />
-                {stop.distanceFromStart} km
-              </span>
-              <label className="flex items-center gap-1 text-slate-300" title="Gewenst percentage bij aankomst bij deze Supercharger">
-                Aankomst
-                <input
-                  type="number"
-                  min={1}
-                  max={50}
-                  value={stop.batteryBefore}
-                  onChange={(event) => onArrivalChange?.(idx, Math.max(1, Math.min(50, Number(event.target.value) || 1)))}
-                  className="w-12 bg-slate-700 border border-slate-600 rounded px-1 py-0.5 text-xs text-white"
-                />%
-              </label>
-
-              {isEditing ? (
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    min={stop.batteryBefore + 5}
-                    max={100}
-                    value={editValue}
-                    onChange={(e) => setEditValue(parseInt(e.target.value) || 80)}
-                    className="w-14 bg-slate-700 border border-slate-600 rounded px-1.5 py-0.5 text-xs text-white"
-                  />
-                  <span className="text-slate-400">%</span>
-                  <button onClick={handleSaveEdit} className="px-1.5 py-0.5 bg-green-600 text-white text-[10px] rounded">OK</button>
-                  <button onClick={handleCancelEdit} className="px-1.5 py-0.5 bg-slate-600 text-white text-[10px] rounded">Annuleer</button>
+          <div key={idx} className="space-y-2">
+            {legEl(idx)}
+            <div className="rounded-2xl border border-white/10 bg-slate-800/60 px-3 py-3 shadow-md transition-all hover:border-blue-500/40 animate-fade-in">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="text-sm font-semibold text-white">{stop.charger.name}</div>
+                  {eta && <div className="mt-0.5 text-[11px] text-blue-300">Aankomst ± {time(eta)} · vertrek ± {time(new Date(eta.getTime() + stop.chargeDurationMin * 60000))}</div>}
                 </div>
-              ) : (
-                <span
-                  className="flex items-center gap-1 cursor-pointer hover:text-amber-300 transition-colors"
-                  onClick={() => onBatteryChange && handleStartEdit(idx, stop.batteryAfter)}
-                  title="Klik om aan te passen"
-                >
-                  <BatteryCharging size={11} className="text-amber-400" />
-                  {stop.batteryBefore}% → {stop.batteryAfter}%
-                  {onBatteryChange && <Edit3 size={9} className="text-slate-500" />}
-                </span>
+                <span className="rounded-md bg-blue-600/20 px-2 py-0.5 text-[10px] font-semibold text-blue-300">Stop {idx + 1}</span>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+                <span className="flex items-center gap-1"><MapPin size={11} />{stop.distanceFromStart} km</span>
+                <label className="flex items-center gap-1 text-slate-300" title="Gewenst percentage bij aankomst">
+                  Aankomst
+                  <input type="number" min={1} max={50} value={stop.batteryBefore}
+                    onChange={(e) => onArrivalChange?.(idx, Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
+                    className="w-12 rounded border border-slate-600 bg-slate-700 px-1 py-0.5 text-xs text-white" />%
+                </label>
+                {isEditing ? (
+                  <span className="flex items-center gap-1">
+                    <input type="number" min={stop.batteryBefore + 5} max={100} value={editValue} onChange={(e) => setEditValue(parseInt(e.target.value) || 80)} className="w-14 rounded border border-slate-600 bg-slate-700 px-1.5 py-0.5 text-xs text-white" />%
+                    <button onClick={() => { onBatteryChange?.(idx, editValue); setEditingIndex(null); }} className="rounded bg-green-600 px-1.5 py-0.5 text-[10px] text-white">OK</button>
+                    <button onClick={() => setEditingIndex(null)} className="rounded bg-slate-600 px-1.5 py-0.5 text-[10px] text-white">Annuleer</button>
+                  </span>
+                ) : (
+                  <span className="flex cursor-pointer items-center gap-1 hover:text-amber-300" onClick={() => { if (onBatteryChange) { setEditingIndex(idx); setEditValue(stop.batteryAfter); } }} title="Klik om aan te passen">
+                    <BatteryCharging size={11} className="text-amber-400" />{stop.batteryBefore}% → {stop.batteryAfter}%{onBatteryChange && <Edit3 size={9} className="text-slate-500" />}
+                  </span>
+                )}
+                <span className="flex items-center gap-1 text-green-400"><Clock size={11} />{dur(stop.chargeDurationMin)}</span>
+                {maxSpeedKw > 0 && stop.charger.totalStalls ? <span className="flex items-center gap-1 text-blue-400"><Gauge size={11} />{maxSpeedKw} kW</span> : null}
+                {typeof stop.energyChargedKWh === 'number' && <span className="text-emerald-300">+{stop.energyChargedKWh} kWh</span>}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+                {typeof stop.charger.pricePerKwh === 'number' && stop.charger.pricePerKwh > 0 && (
+                  <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">€ {stop.charger.pricePerKwh.toFixed(2).replace('.', ',')}/kWh{charge !== null ? ` · ${euro(charge)}` : ''}</span>
+                )}
+                {stop.charger.parkingFee && (
+                  <span className="rounded-md bg-orange-500/10 px-2 py-0.5 text-orange-300">🅿️ {park === 0 ? 'nu gratis' : park !== null ? euro(park) : 'parkeergeld'}</span>
+                )}
+              </div>
+              {onRemoveCharger && !stop.forced && (
+                <button onClick={() => onRemoveCharger(idx)}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-300 transition-colors hover:bg-red-500/20">
+                  <Ban size={14} /> Ik laad hier liever niet
+                </button>
               )}
-              <span className="flex items-center gap-1 text-green-400">
-                <Clock size={11} />
-                {formatDuration(stop.chargeDurationMin)}
-              </span>
-              {maxSpeedLabel && (
-                <span className="flex items-center gap-1 text-blue-400">
-                  <Gauge size={11} />
-                  {maxSpeedLabel}
-                </span>
-              )}
-              {stallCountLabel && (
-                <span className="flex items-center gap-1 text-slate-300">
-                  <Zap size={11} />
-                  {stallCountLabel}
-                </span>
-              )}
-              {(() => {
-                const park = parkingCost(stop);
-                const charge = chargingCost(stop);
-                return (
-                  <>
-                    {charge !== null && (
-                      <span className="flex items-center gap-1 text-emerald-300" title="Geschatte laadkosten">
-                        💶 {formatEuro(charge)}
-                      </span>
-                    )}
-                    {park !== null && (
-                      <span className="flex items-center gap-1 text-orange-300" title="Geschatte parkeerkosten tijdens het laden">
-                        🅿️ {formatEuro(park)}
-                      </span>
-                    )}
-                    {stop.charger.parkingFee && park === null && (
-                      <span className="flex items-center gap-1 text-orange-300/70" title="Parkeergeld verplicht (tarief onbekend)">
-                        🅿️ parkeergeld
-                      </span>
-                    )}
-                  </>
-                );
-              })()}
             </div>
           </div>
         );
       })}
+      {legEl(legs.length - 1)}
+      <div className="flex items-center gap-2 px-1 text-[11px] text-slate-400"><Flag size={11} /> Bestemming{typeof arrivalPercent === 'number' ? ` met ± ${arrivalPercent}%` : ''}</div>
     </div>
   );
 }

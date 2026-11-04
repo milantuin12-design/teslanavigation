@@ -458,6 +458,12 @@ export function calculateChargingStops(
 
   const nearChargers = findChargersNearRoute(route.coordinates, filtered, 20);
   const routeDist = buildRouteDistanceIndex(route.coordinates);
+  // Positie langs de route één keer berekenen (scheelt veel rekentijd).
+  const posMap = new Map<Supercharger, { km: number; detour: number }>();
+  for (const c of nearChargers) {
+    const idx = findNearestCoordIndex(route.coordinates, [c.lng, c.lat]);
+    posMap.set(c, { km: routeDist[idx], detour: haversineDistance(route.coordinates[idx][1], route.coordinates[idx][0], c.lat, c.lng) });
+  }
   const safeMultiplier = Math.min(1.6, Math.max(0.75, consumptionMultiplier || 1));
   const packKWh = usableBatteryKWh || batteryCapacityKWhOverride || teslaBatteryKWh[modelName] || 79;
   // Energie-gebaseerd bereik wanneer een verbruik bekend is; anders de km-schatting.
@@ -548,12 +554,9 @@ export function calculateChargingStops(
     const candidates: Candidate[] = [];
 
     for (const c of nearChargers) {
-      const nearestIdx = findNearestCoordIndex(route.coordinates, [c.lng, c.lat]);
-      const chargerRouteKm = routeDist[nearestIdx];
-      const distFromRoute = haversineDistance(
-        route.coordinates[nearestIdx][1], route.coordinates[nearestIdx][0],
-        c.lat, c.lng
-      );
+      const pos = posMap.get(c)!;
+      const chargerRouteKm = pos.km;
+      const distFromRoute = pos.detour;
       if (chargerRouteKm <= currentPositionKm + 20) continue;
       if (nextForced && chargerRouteKm >= nextForced.routeKm) continue;
       const travelKm = (chargerRouteKm - currentPositionKm) + distFromRoute;
@@ -589,43 +592,61 @@ export function calculateChargingStops(
       };
     }
 
-    // Kies de lader waar je zo dicht mogelijk bij het gewenste aankomstpercentage uitkomt.
-    const targetSoC = maxArrivalAtChargerPercent;
-    const rank = (c: Candidate) =>
-      Math.abs(c.batteryAtCharger - targetSoC)
-      + c.detourKm * 0.5
-      + (preferTrailerFriendly && c.charger.trailerFriendly ? -8 : 0)
-      + (c.charger.inParkingGarage ? 8 : 0);
-    const capPct = typeof maxChargeTargetPercent === 'number' ? maxChargeTargetPercent : 100;
+    // Zo min mogelijk laadstops: kies de VERST haalbare lader. Liefst met het gewenste
+    // aankomstpercentage; lukt dat niet, dan de verste met minimaal de veiligheidsmarge.
+    const arriveTarget = Math.max(minSafetyPercent, maxArrivalAtChargerPercent);
+    const penalty = (c: Candidate) =>
+      c.detourKm * 2
+      + (preferTrailerFriendly && c.charger.trailerFriendly ? -15 : 0)
+      + (c.charger.inParkingGarage ? 10 : 0);
     const feasible = candidates.filter((c) => c.batteryAtCharger >= minSafetyPercent);
-    // Zo min mogelijk laadstops: kan je vanaf een lader de bestemming halen, kies dan alleen uit die laders.
+    const comfy = feasible.filter((c) => c.batteryAtCharger >= arriveTarget - 0.5);
+    // Kan je vanaf een lader de bestemming halen (ook met max 100%), kies dan alleen uit die laders.
     const finishing = nextForced ? [] : feasible.filter((c) =>
-      ((route.totalDistanceKm - c.routeKm) / fullRangeKm) * 100 + targetArrivalPercent <= capPct);
-    const pool = finishing.length > 0 ? finishing : feasible.length > 0 ? feasible : candidates;
-    pool.sort((a, b) => rank(a) - rank(b));
-    const best: Candidate = pool[0];
+      ((route.totalDistanceKm - c.routeKm) / fullRangeKm) * 100 + targetArrivalPercent <= 100);
+    const pool = finishing.length > 0
+      ? finishing.sort((x, y) => (x.routeKm - penalty(x)) - (y.routeKm - penalty(y)) )  // dichtstbij-de-start die nog kan finishen = minst laden
+      : (comfy.length > 0 ? comfy : feasible.length > 0 ? feasible : candidates)
+          .sort((x, y) => (y.routeKm - penalty(y)) - (x.routeKm - penalty(x)));
+    // Bij finishing: kies de lader waarvandaan de bestemming het best haalbaar is (verst = minder laden).
+    const best: Candidate = finishing.length > 0 ? pool[pool.length - 1] : pool[0];
 
-
-    const nextChargerDist = findNextChargerDistance(best.routeKm, best.charger, nearChargers, route.coordinates, routeDist);
     const distToDestFromCharger = route.totalDistanceKm - best.routeKm;
-    const canFinish = !nextForced && ((distToDestFromCharger / fullRangeKm) * 100 + targetArrivalPercent) <= capPct;
-    const useDestAsNext = canFinish || nextChargerDist === null || nextChargerDist > distToDestFromCharger;
-    const nextLegDistance = useDestAsNext ? distToDestFromCharger : nextChargerDist!;
-    const batteryNeededForNextLeg = (nextLegDistance / fullRangeKm) * 100;
-
-    let minBatteryNeeded: number;
-    if (useDestAsNext) {
-      minBatteryNeeded = batteryNeededForNextLeg + targetArrivalPercent;
+    const needForDest = (distToDestFromCharger / fullRangeKm) * 100 + targetArrivalPercent;
+    const userTarget = Math.min(100, Math.max(chargeTargetPercent, typeof minChargeTargetPercent === 'number' ? minChargeTargetPercent : 0));
+    let batteryAfter: number;
+    if (!nextForced && needForDest <= 100) {
+      // Laatste lading: alleen tot wat nodig is om met het gewenste % op de bestemming te komen.
+      batteryAfter = Math.ceil(needForDest) + 1;
     } else {
-      minBatteryNeeded = batteryNeededForNextLeg + minSafetyPercent + 2;
+      // Tussenstop: normaal tot het ingestelde percentage. Ligt de verst haalbare volgende lader
+      // dichterbij, dan alleen tot wat nodig is. Is er met het ingestelde % geen lader haalbaar
+      // (groot gat, bv. Baltische staten), dan uitzonderlijk hoger laden.
+      const limitKm = nextForced ? nextForced.routeKm : Infinity;
+      const nextOptions: { km: number; need: number }[] = [];
+      for (const c of nearChargers) {
+        const pos = posMap.get(c)!;
+        const km = pos.km;
+        if (km <= best.routeKm + 20 || km >= limitKm) continue;
+        const need = ((km - best.routeKm + pos.detour) / fullRangeKm) * 100 + arriveTarget;
+        nextOptions.push({ km, need });
+      }
+      if (nextForced) {
+        nextOptions.push({ km: nextForced.routeKm, need: ((nextForced.routeKm - best.routeKm) / fullRangeKm) * 100 + minSafetyPercent + 2 });
+      }
+      const withinTarget = nextOptions.filter((o) => o.need <= userTarget);
+      if (withinTarget.length > 0) {
+        const farthest = withinTarget.reduce((m, o) => (o.km > m.km ? o : m));
+        batteryAfter = Math.ceil(farthest.need) + 1;
+        // Dichtbij het ingestelde % → gewoon tot het ingestelde % laden.
+        if (userTarget - batteryAfter < 15) batteryAfter = userTarget;
+      } else {
+        const reachable = nextOptions.filter((o) => o.need <= 100);
+        const farthest = reachable.length > 0 ? reachable.reduce((m, o) => (o.km > m.km ? o : m)) : null;
+        batteryAfter = farthest ? Math.ceil(farthest.need) + 1 : 100;
+      }
     }
-    const floor = typeof minChargeTargetPercent === 'number' ? minChargeTargetPercent : 0;
-    const cap = typeof maxChargeTargetPercent === 'number' ? maxChargeTargetPercent : 100;
-    // Zo weinig mogelijk energie verspillen: laad tot wat je nodig hebt voor de volgende
-    // etappe (+1% buffer), niet automatisch door tot het 'opladen tot'-percentage.
-    let batteryAfter = Math.ceil(minBatteryNeeded) + 1;
-    batteryAfter = Math.min(cap, Math.max(batteryAfter, floor));
-    batteryAfter = Math.min(100, batteryAfter);
+    batteryAfter = Math.min(100, Math.max(batteryAfter, Math.round(best.batteryAtCharger) + 1));
 
     const rawChargerKw = parseMaxSpeed(best.charger.stallTypes, best.charger.maxSpeedKw, best.charger.chargerConfigs);
     const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, modelName, carMaxKwOverride);

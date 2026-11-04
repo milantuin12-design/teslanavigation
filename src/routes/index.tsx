@@ -136,6 +136,16 @@ function Index() {
   const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(0);
   const [modelYear, setModelYear] = useState<number>(2022);
   const [tripDate, setTripDate] = useState<string>("");
+  const [departTime, setDepartTime] = useState<string>("");
+  const [elevProfile, setElevProfile] = useState<number[] | null>(null);
+  const departureDate = useMemo(() => {
+    const now = new Date();
+    if (!tripDate && !departTime) return now;
+    const day = tripDate || now.toISOString().slice(0, 10);
+    const d = new Date(`${day}T${departTime || now.toTimeString().slice(0, 5)}`);
+    return Number.isNaN(d.getTime()) ? now : d;
+  }, [tripDate, departTime]);
+  const isFutureTrip = !!tripDate && tripDate !== new Date().toISOString().slice(0, 10);
   const [manualWeather, setManualWeather] = useState<{ tempC?: number; windMs?: number; precipitationMm?: number }>({});
   const [hasCcsAdapter, setHasCcsAdapter] = useState(true);
   const [autoConsumption, setAutoConsumption] = useState<number | null>(null);
@@ -602,6 +612,7 @@ function Index() {
     setAutoConsumption(auto.kWh100);
     setAutoConsumptionState(auto.kWh100);
     setRouteWeather(weather);
+    setElevProfile(elevationProfile);
     const folkestone = distanceToRoute(51.096, 1.132, base.route.coordinates) < 15;
     const coquelles = distanceToRoute(50.934, 1.811, base.route.coordinates) < 15;
     // Laden bij een tussenstop: zelf gekozen Supercharger (vergrendeld = nooit vervangen),
@@ -628,7 +639,7 @@ function Index() {
             : Math.min(charger.maxSpeedKw ?? 50, carMaxKwOverride ?? 250),
         };
       }));
-    const result = calculateChargingStops(base.route, {
+    const calcOpts = {
       modelRangeKm: modelRange,
       batteryPercent: fromBattery,
       trailerReductionPercent: trailerReductionEffective,
@@ -653,7 +664,17 @@ function Index() {
       ccsBlocked,
       forcedStops,
       excludeIds: excludedChargerIds,
-    });
+      departureTime: departureDate,
+    };
+    let result = calculateChargingStops(base.route, calcOpts);
+    // "Liever niet hier laden": kan het niet anders, dan toch die lader gebruiken.
+    if (result.unreachable && excludedChargerIds.length > 0) {
+      const retry = calculateChargingStops(base.route, { ...calcOpts, excludeIds: [] });
+      if (!retry.unreachable) {
+        result = retry;
+        toast.info("Zonder die Supercharger lukt de route niet — hij wordt toch gebruikt.");
+      }
+    }
 
     if (result.unreachable) {
       if (result.suggestions?.length) setRouteAdvice(result.suggestions);
@@ -720,7 +741,7 @@ function Index() {
       stops: fixedStops,
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
     };
-  }, [excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
+  }, [departureDate, excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
 
   const applyPlan = useCallback((index: number, plan: RoutePlan) => {
     setSelectedRouteIndex(index);
@@ -746,7 +767,7 @@ function Index() {
       [toCoord.lng, toCoord.lat],
       via.map((w) => [w.lng, w.lat] as [number, number]),
     );
-    const trafficPromise = onlineTraffic
+    const trafficPromise = onlineTraffic && !isFutureTrip
       ? fetchTrafficRoutesFn({ data: { origin: fromCoord, destination: toCoord, waypoints: via.map(({ lat, lng }) => ({ lat, lng })), avoidHighways: false, alternatives: true } })
       : Promise.resolve(null);
     const [offlineBases, trafficRoutes] = await Promise.all([basePromise, trafficPromise]);
@@ -798,7 +819,7 @@ function Index() {
     applyPlan(0, limited[0]);
     setCalculationProgress(100);
     return { ok: true, plan: limited[0] };
-  }, [applyPlan, buildPlan, fetchRouteAlternatives, fetchTrafficRoutesFn, onlineTraffic]);
+  }, [applyPlan, buildPlan, fetchRouteAlternatives, fetchTrafficRoutesFn, onlineTraffic, isFutureTrip]);
 
   const handleCalculate = useCallback(async () => {
     setError("");
@@ -1126,16 +1147,23 @@ function Index() {
   return (
     <div className="h-screen w-screen flex flex-col lg:flex-row bg-slate-900 text-white overflow-hidden">
       {!isNavigating && (
-        <Button asChild size="sm" variant="outline" className="dark lg:hidden fixed right-3 top-1.5 z-[1500] bg-background text-foreground border-border" title="Recente Superchargerwijzigingen">
-          <Link to="/recente-wijzigingen"><History className="size-4" aria-hidden="true" /> Wijzigingen</Link>
-        </Button>
-      )}
-      {!isNavigating && (
         <div className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-700/50 flex flex-col overflow-hidden">
           <div
             className="flex-1 overflow-y-auto overscroll-contain"
             style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
           >
+            <div className="mx-4 mt-4 rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-3 shadow-lg">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Vertrek</div>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="date" aria-label="Vertrekdatum" min={new Date().toISOString().slice(0, 10)} max={new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)} value={tripDate} onChange={(e) => setTripDate(e.target.value)} className="w-full rounded-lg border border-slate-600/50 bg-slate-800/70 px-2 py-1.5 text-sm text-white" />
+                <input type="time" aria-label="Vertrektijd" value={departTime} onChange={(e) => setDepartTime(e.target.value)} className="w-full rounded-lg border border-slate-600/50 bg-slate-800/70 px-2 py-1.5 text-sm text-white" />
+              </div>
+              <p className="mt-1.5 text-[11px] text-slate-400">
+                {tripDate || departTime ? `Vertrek ${departureDate.toLocaleString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} — gebruikt voor openingstijden, tarieven en weer.` : 'Leeg = nu vertrekken.'}
+                {isFutureTrip && onlineTraffic ? ' Live files en werkzaamheden zijn alleen voor vandaag beschikbaar.' : ''}
+              </p>
+              {(tripDate || departTime) && <button type="button" onClick={() => { setTripDate(''); setDepartTime(''); }} className="mt-1 text-[11px] text-slate-400 underline">Nu vertrekken</button>}
+            </div>
             <InputPanel
               prefill={prefill}
               onStartChange={setStartCoord}
@@ -1217,6 +1245,14 @@ function Index() {
               totalDistanceKm={route?.totalDistanceKm ?? null}
               onBatteryChange={handleChargerBatteryChange}
               onRemoveCharger={handleRemoveCharger}
+              departure={departureDate}
+              route={route}
+              packKWh={packKWh}
+              consumptionKWh100={energySummary?.kWh100 ?? null}
+              arrivalPercent={arrivalPercent}
+              weather={routeWeather}
+              elevation={elevProfile}
+              liveTraffic={onlineTraffic && !isFutureTrip}
               onArrivalChange={handleChargerArrivalChange}
             />
           </div>
@@ -1227,9 +1263,6 @@ function Index() {
         {!isNavigating && (
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
-              <Button asChild size="sm" variant="outline" className="dark hidden lg:inline-flex bg-background/90 text-foreground border-border" title="Recente Superchargerwijzigingen">
-                <Link to="/recente-wijzigingen"><History className="size-4" aria-hidden="true" /><span className="hidden sm:inline">Wijzigingen</span><span className="sr-only sm:hidden">Recente wijzigingen</span></Link>
-              </Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setFiltersOpen((v) => !v)} title="Filters">
                 <SlidersHorizontal className="size-4" aria-hidden="true" /><span className="hidden sm:inline">Filters</span>
               </Button>
