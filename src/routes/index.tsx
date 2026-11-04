@@ -137,6 +137,7 @@ function Index() {
   const [modelYear, setModelYear] = useState<number>(2022);
   const [tripDate, setTripDate] = useState<string>("");
   const [departTime, setDepartTime] = useState<string>("");
+  const [elevProfile, setElevProfile] = useState<number[] | null>(null);
   const departureDate = useMemo(() => {
     const now = new Date();
     if (!tripDate && !departTime) return now;
@@ -611,6 +612,7 @@ function Index() {
     setAutoConsumption(auto.kWh100);
     setAutoConsumptionState(auto.kWh100);
     setRouteWeather(weather);
+    setElevProfile(elevationProfile);
     const folkestone = distanceToRoute(51.096, 1.132, base.route.coordinates) < 15;
     const coquelles = distanceToRoute(50.934, 1.811, base.route.coordinates) < 15;
     // Laden bij een tussenstop: zelf gekozen Supercharger (vergrendeld = nooit vervangen),
@@ -1249,6 +1251,8 @@ function Index() {
               consumptionKWh100={energySummary?.kWh100 ?? null}
               arrivalPercent={arrivalPercent}
               weather={routeWeather}
+              elevation={elevProfile}
+              liveTraffic={onlineTraffic && !isFutureTrip}
               onArrivalChange={handleChargerArrivalChange}
             />
           </div>
