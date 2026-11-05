@@ -1,8 +1,7 @@
-import { Zap, BatteryCharging, MapPin, Gauge, Clock, Ban, Edit3, Mountain, Thermometer, Wind, CloudRain, Car, Flag, Route as RouteIcon } from 'lucide-react';
-import { useState } from 'react';
+import { Zap, BatteryCharging, MapPin, Gauge, Clock, Ban, Mountain, Thermometer, Wind, CloudRain, Car, Flag, Route as RouteIcon } from 'lucide-react';
 import type { ChargingStop, RouteResult } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
-import { parseMaxSpeed } from '@/lib/tesla-utils';
+import { parseMaxSpeed, v2SpeedKw } from '@/lib/tesla-utils';
 
 interface ChargingStopsProps {
   stops: ChargingStop[];
@@ -18,6 +17,9 @@ interface ChargingStopsProps {
   weather?: RouteWeather | null;
   elevation?: number[] | null;
   liveTraffic?: boolean;
+  ccsBlocked?: boolean;
+  showTrailer?: boolean;
+  restMin?: number;
 }
 
 function isWeekend(d: Date) { const day = d.getDay(); return day === 0 || day === 6; }
@@ -81,9 +83,7 @@ function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo }: {
   );
 }
 
-export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic }: ChargingStopsProps) {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editValue, setEditValue] = useState(80);
+export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic, ccsBlocked, showTrailer, restMin = 0 }: ChargingStopsProps) {
   const start = departure ?? new Date();
   const total = route?.totalDistanceKm ?? totalDistanceKm ?? 0;
   const k100 = consumptionKWh100 && consumptionKWh100 > 0 ? consumptionKWh100 : null;
@@ -92,7 +92,7 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
   const totalClimb = climb(elevation, total, 0, total);
   const totalChargeMin = stops.reduce((s, x) => s + x.chargeDurationMin, 0);
   const totalCost = stops.reduce((s, x) => s + (chargingCost(x) ?? 0) + (parkingCost(x, new Date(start.getTime() + (x.etaMinFromStart ?? 0) * 60000)) ?? 0), 0);
-  const arrivalTime = route ? new Date(start.getTime() + (route.totalTimeMin + totalChargeMin) * 60000) : null;
+  const arrivalTime = route ? new Date(start.getTime() + (route.totalTimeMin + totalChargeMin + restMin) * 60000) : null;
 
   if (totalDistanceKm === null || !route) {
     if (stops.length === 0) return null;
@@ -163,8 +163,7 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
       {summary}
       <h3 className="pt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">Laadstops & rijstukken</h3>
       {stops.map((stop, idx) => {
-        const maxSpeedKw = parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
-        const isEditing = editingIndex === idx;
+        const maxSpeedKw = ccsBlocked ? (v2SpeedKw(stop.charger) ?? 0) : parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
         const eta = typeof stop.etaMinFromStart === 'number' ? new Date(start.getTime() + stop.etaMinFromStart * 60000) : null;
         const park = parkingCost(stop, eta ?? undefined);
         const charge = chargingCost(stop);
@@ -181,25 +180,14 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
                 <span className="flex items-center gap-1"><MapPin size={11} />{stop.distanceFromStart} km</span>
-                <label className="flex items-center gap-1 text-slate-300" title="Gewenst percentage bij aankomst">
-                  Aankomst
-                  <input type="number" min={1} max={50} value={stop.batteryBefore}
-                    onChange={(e) => onArrivalChange?.(idx, Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
-                    className="w-12 rounded border border-slate-600 bg-slate-700 px-1 py-0.5 text-xs text-white" />%
-                </label>
-                {isEditing ? (
-                  <span className="flex items-center gap-1">
-                    <input type="number" min={stop.batteryBefore + 5} max={100} value={editValue} onChange={(e) => setEditValue(parseInt(e.target.value) || 80)} className="w-14 rounded border border-slate-600 bg-slate-700 px-1.5 py-0.5 text-xs text-white" />%
-                    <button onClick={() => { onBatteryChange?.(idx, editValue); setEditingIndex(null); }} className="rounded bg-green-600 px-1.5 py-0.5 text-[10px] text-white">OK</button>
-                    <button onClick={() => setEditingIndex(null)} className="rounded bg-slate-600 px-1.5 py-0.5 text-[10px] text-white">Annuleer</button>
-                  </span>
-                ) : (
-                  <span className="flex cursor-pointer items-center gap-1 hover:text-amber-300" onClick={() => { if (onBatteryChange) { setEditingIndex(idx); setEditValue(stop.batteryAfter); } }} title="Klik om aan te passen">
-                    <BatteryCharging size={11} className="text-amber-400" />{stop.batteryBefore}% → {stop.batteryAfter}%{onBatteryChange && <Edit3 size={9} className="text-slate-500" />}
-                  </span>
-                )}
+                <span className="flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-amber-300">
+                  <BatteryCharging size={11} />{stop.batteryBefore}% → {stop.batteryAfter}%
+                </span>
                 <span className="flex items-center gap-1 text-green-400"><Clock size={11} />{dur(stop.chargeDurationMin)}</span>
-                {maxSpeedKw > 0 && stop.charger.totalStalls ? <span className="flex items-center gap-1 text-blue-400"><Gauge size={11} />{maxSpeedKw} kW</span> : null}
+                {maxSpeedKw > 0 && stop.charger.totalStalls ? <span className="flex items-center gap-1 text-blue-400"><Gauge size={11} />{maxSpeedKw} kW{ccsBlocked ? ' (V2)' : ''}</span> : null}
+                {showTrailer && (stop.charger.trailerFriendly
+                  ? <span className="rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-emerald-300">🚐 Aanhangervriendelijk</span>
+                  : <span className="rounded-md bg-red-500/10 px-1.5 py-0.5 text-red-300">🚐 Niet aanhangervriendelijk</span>)}
                 {typeof stop.energyChargedKWh === 'number' && <span className="text-emerald-300">+{stop.energyChargedKWh} kWh</span>}
               </div>
               <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
