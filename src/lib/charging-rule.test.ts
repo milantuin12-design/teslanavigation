@@ -56,3 +56,11 @@ describe('laadregel', () => {
     expect(r.stops).toHaveLength(1);
   });
 });
+
+import { v2SpeedKw } from './tesla-utils';
+describe('Model S/X zonder CCS-adapter', () => {
+  it('toont de snelheid van de V2-laders bij een gemengde locatie', () => {
+    const c = { name: 'Mix', lat: 0, lng: 0, chargerConfigs: [{ count: 3, version: 'V3', speedKw: 250 }, { count: 7, version: 'V2', speedKw: 150 }] } as Supercharger;
+    expect(v2SpeedKw(c)).toBe(150);
+  });
+});

@@ -648,7 +648,7 @@ export function calculateChargingStops(
     }
     batteryAfter = Math.min(100, Math.max(batteryAfter, Math.round(best.batteryAtCharger) + 1));
 
-    const rawChargerKw = parseMaxSpeed(best.charger.stallTypes, best.charger.maxSpeedKw, best.charger.chargerConfigs);
+    const rawChargerKw = ccsBlocked ? (v2SpeedKw(best.charger) ?? 120) : parseMaxSpeed(best.charger.stallTypes, best.charger.maxSpeedKw, best.charger.chargerConfigs);
     const chargerSpeedKw = effectiveChargeSpeedKw(rawChargerKw, modelName, carMaxKwOverride);
     const batteryKWh = batteryCapacityKWhOverride || teslaBatteryKWh[modelName] || 79;
     const chargeDurationMin = calculateChargeDuration(
@@ -800,6 +800,14 @@ export const stallConditionLabels: Record<string, string> = {
   maintenance: 'Onderhoud',
   other: 'Andere reden',
 };
+
+/** Snelheid van de V2-laadplekken (voor Model S/X zonder CCS-adapter). */
+export function v2SpeedKw(charger: Supercharger): number | null {
+  const v2 = getChargerConfigs(charger).filter((c) => String(c.version).toUpperCase() === 'V2');
+  if (v2.length === 0) return hasV2Stalls(charger) ? Math.min(150, charger.maxSpeedKw ?? 150) : null;
+  const speed = Math.max(...v2.map((c) => c.speedKw));
+  return charger.maxSpeedKw && charger.maxSpeedKw > 0 ? Math.min(speed, charger.maxSpeedKw) : speed;
+}
 
 /** Heeft deze locatie V2-laadplekken? */
 export function hasV2Stalls(charger: Supercharger): boolean {
