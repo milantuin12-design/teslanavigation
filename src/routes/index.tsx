@@ -171,10 +171,18 @@ function Index() {
   const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>({ ...defaultChargerFilters });
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
+  const [showAllChargers, setShowAllChargers] = useState(false);
   const visibleChargers = useMemo(
     () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters)),
     [superchargers, chargerFilters],
   );
+
+  // Na een berekende route: alleen de laders waar je laadt, tenzij je alles wilt zien.
+  const mapChargers = useMemo(() => {
+    if (!route || showAllChargers || chargingStops.length === 0) return visibleChargers;
+    const used = new Set(chargingStops.map((s) => s.charger.id ?? s.charger.name));
+    return superchargers.filter((c) => used.has(c.id ?? c.name));
+  }, [route, showAllChargers, chargingStops, visibleChargers, superchargers]);
 
   // Meldknop in de kaart-popup
   useEffect(() => {
@@ -352,7 +360,9 @@ function Index() {
   useEffect(() => {
     if (!recalcAfterExcludeRef.current) return;
     recalcAfterExcludeRef.current = false;
-    handleCalculateRef.current?.();
+    // Wacht tot de nieuwe berekenfunctie (met de uitsluiting) klaarstaat.
+    const t = window.setTimeout(() => handleCalculateRef.current?.(), 0);
+    return () => window.clearTimeout(t);
   }, [excludedChargerIds]);
 
   // Once superchargers are loaded and a pending load is queued, calculate
@@ -1253,7 +1263,9 @@ function Index() {
               weather={routeWeather}
               elevation={elevProfile}
               liveTraffic={onlineTraffic && !isFutureTrip}
-              onArrivalChange={handleChargerArrivalChange}
+              ccsBlocked={ccsBlocked}
+              showTrailer={preferTrailerFriendly || trailerReductionEffective > 0}
+              restMin={waypoints.filter((w) => !w.corridor).reduce((sum, w) => sum + (w.restMin ?? 0), 0)}
             />
           </div>
         </div>
@@ -1294,6 +1306,11 @@ function Index() {
             )}
 
 
+            {route && chargingStops.length > 0 && (
+              <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setShowAllChargers((v) => !v)}>
+                {showAllChargers ? "Alleen laders van mijn route" : "Toon alle Superchargers"}
+              </Button>
+            )}
             {route && currentUser && (
               <Button size="sm" onClick={() => setSaveOpen(true)} className="bg-red-600 hover:bg-red-700"><Bookmark className="w-4 h-4 mr-1" />Opslaan</Button>
             )}
@@ -1308,7 +1325,7 @@ function Index() {
         <EvMap
           startCoord={startCoord}
           destCoord={destCoord}
-          superchargers={visibleChargers}
+          superchargers={mapChargers}
           route={route}
           routeVariants={Object.fromEntries(routeOptions.map((plan, i) => [String(i), plan.route]))}
           selectedRouteType={String(selectedRouteIndex)}
