@@ -177,13 +177,6 @@ function Index() {
     [superchargers, chargerFilters],
   );
 
-  // Na een berekende route: alleen de laders waar je laadt, tenzij je alles wilt zien.
-  const mapChargers = useMemo(() => {
-    if (!route || showAllChargers || chargingStops.length === 0) return visibleChargers;
-    const used = new Set(chargingStops.map((s) => s.charger.id ?? s.charger.name));
-    return superchargers.filter((c) => used.has(c.id ?? c.name));
-  }, [route, showAllChargers, chargingStops, visibleChargers, superchargers]);
-
   // Meldknop in de kaart-popup
   useEffect(() => {
     const handler = (event: Event) => {
@@ -1144,6 +1137,13 @@ function Index() {
       };
     }));
   }, [carMaxKwOverride, fullRangeKmActive, manualRangeKm, selectedModel]);
+
+  // Na een berekende route: alleen de laders waar je laadt, tenzij je alles wilt zien.
+  const mapChargers = useMemo(() => {
+    if (!route || showAllChargers || chargingStops.length === 0) return visibleChargers;
+    const used = new Set(chargingStops.map((s) => s.charger.id ?? s.charger.name));
+    return superchargers.filter((c) => used.has(c.id ?? c.name));
+  }, [route, showAllChargers, chargingStops, visibleChargers, superchargers]);
 
   const handleRemoveCharger = useCallback((index: number) => {
     // "Liever niet hier laden": sluit deze lader uit en zoek een andere Supercharger.
