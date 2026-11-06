@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, getOpenStalls, isVisibleOnMap, getTotalStallsFromConfigs, isChargerUsable, normalizeChargerConfigs, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
 
@@ -163,6 +166,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
+  const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const routeRef = useRef<L.Polyline | null>(null);
   const routeVariantsRef = useRef<L.LayerGroup>(L.layerGroup());
   const trafficLayerRef = useRef<L.LayerGroup>(L.layerGroup());
