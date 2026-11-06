@@ -9008,6 +9008,40 @@
       "pricePerKwh": 38,
       "source": "https://www.kilowattindex.com/country/is/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "nordurtorg",
+        "norđurtorg"
+      ],
+      "label": "Akureyri – Norđurtorg",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 33
+        },
+        {
+          "from": "10:00",
+          "to": "18:00",
+          "pricePerKwh": 66
+        },
+        {
+          "from": "18:00",
+          "to": "23:00",
+          "pricePerKwh": 41
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/akureyrisupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
