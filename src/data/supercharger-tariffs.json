@@ -3726,7 +3726,6 @@
     {
       "country": "Italy",
       "match": [
-        "caravaggio",
         "adda nord"
       ],
       "label": "Caravaggio – Area di Servizio Adda Nord",
@@ -3738,7 +3737,6 @@
     {
       "country": "Italy",
       "match": [
-        "caravaggio",
         "adda sud"
       ],
       "label": "Caravaggio – Area di Servizio Adda Sud",
@@ -3792,6 +3790,178 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.45,
       "source": "https://www.kilowattindex.com/site/32214/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "paterna"
+      ],
+      "label": "Paterna – Hotel Posadas de España",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/valenciaspainsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "granada"
+      ],
+      "label": "Granada – CampusPark",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/56418/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "la canonja"
+      ],
+      "label": "La Canonja – Hotel Mas La Boella",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/tarragonasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "vigo"
+      ],
+      "label": "Vigo – Gran Vía",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.37
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/27007/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "barcelona"
+      ],
+      "label": "Barcelona – L'Illa Diagonal",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "09:00",
+          "to": "13:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "13:00",
+          "to": "19:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/BarcelonaUrbanessupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "getafe"
+      ],
+      "label": "Getafe – Ramada by Wyndham",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/getafesupercharger/",
       "sourceChecked": "2026-11-06"
     }
   ]
