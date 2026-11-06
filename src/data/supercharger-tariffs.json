@@ -4212,6 +4212,183 @@
       ],
       "source": "https://www.kilowattindex.com/site/eurotunnelloungesupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "rivesaltes"
+      ],
+      "label": "Rivesaltes – Cc. Cap Roussillon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/perpignansupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "biguglia"
+      ],
+      "label": "Biguglia – Mercure",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.23
+        }
+      ],
+      "source": "https://kilowattindex.com/site/corsesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "plescop"
+      ],
+      "label": "Plescop – Adagio",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://kilowattindex.com/site/296242/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "houdemont"
+      ],
+      "label": "Houdemont – Ibis",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "08:00",
+          "to": "19:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.17
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/nancysupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "lesquin"
+      ],
+      "label": "Lesquin – Novotel",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://kilowattindex.com/site/lillesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "houssen"
+      ],
+      "label": "Houssen – Shop'in",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.17
+        }
+      ],
+      "source": "https://kilowattindex.com/site/27649/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
