@@ -5686,6 +5686,180 @@
       "currency": "DKK",
       "source": "https://www.kilowattindex.com/country/dk/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "arlandastad"
+      ],
+      "label": "Arlandastad – Arlandastad",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 4.6
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30285/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "sollentuna"
+      ],
+      "label": "Sollentuna – Max Burgers",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 2.3
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 2.7
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.6
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/sollentunasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "uddevalla chopchop"
+      ],
+      "label": "Uddevalla – ChopChop Asian Express",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.1
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 4.1
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 2.1
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/467304/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "vastra frolunda",
+        "västra frölunda"
+      ],
+      "label": "Västra Frölunda – Köpcentrum 421",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.4
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 4.6
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Gothenburgsesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "haninge"
+      ],
+      "label": "Haninge – Maxi ICA",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 2.3
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 3.7
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 2.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/303183/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "uddevalla max burgers"
+      ],
+      "label": "Uddevalla – Max Burgers",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 2.9
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 2.9
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/uddevallasupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
