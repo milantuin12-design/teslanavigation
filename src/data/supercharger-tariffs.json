@@ -4389,6 +4389,33 @@
       ],
       "source": "https://kilowattindex.com/site/27649/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "carpiquet"
+      ],
+      "label": "Carpiquet – Grand Frais",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.16
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/417068/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
