@@ -106,17 +106,17 @@
         {
           "from": "00:00",
           "to": "16:00",
-          "pricePerKwh": 0.26
+          "pricePerKwh": 0.27
         },
         {
           "from": "16:00",
           "to": "20:00",
-          "pricePerKwh": 0.32
+          "pricePerKwh": 0.34
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.26
+          "pricePerKwh": 0.27
         }
       ],
       "source": "https://kilowattindex.com/site/32913/",
@@ -5499,6 +5499,33 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/torrentnorthboundsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "huittinen"
+      ],
+      "label": "Huittinen – ABC",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "04:00",
+          "to": "23:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/huittinensupercharger/",
       "sourceChecked": "2026-11-06"
     }
   ]
