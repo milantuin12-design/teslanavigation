@@ -4558,13 +4558,8 @@
         },
         {
           "from": "08:00",
-          "to": "19:00",
-          "pricePerKwh": 0.4
-        },
-        {
-          "from": "19:00",
           "to": "23:00",
-          "pricePerKwh": 0.36
+          "pricePerKwh": 0.37
         },
         {
           "from": "23:00",
@@ -16905,6 +16900,124 @@
         }
       ],
       "source": "https://kilowattindex.com/site/25788/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-priest"
+      ],
+      "label": "Saint-Priest – Aire de Manissieux",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.18
+        }
+      ],
+      "source": "https://kilowattindex.com/site/airedemanissieuxsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "marseille la valentine"
+      ],
+      "label": "Marseille – Cc. La Valentine",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://kilowattindex.com/site/302373/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "mandelieu-la-napoule"
+      ],
+      "label": "Mandelieu-la-Napoule – La Galerie",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/301402/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "varneville-bretteville"
+      ],
+      "label": "Varneville-Bretteville – Vallée Carburants",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.17
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/297775/",
       "sourceChecked": "2026-11-06"
     }
   ]
