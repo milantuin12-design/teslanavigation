@@ -18617,8 +18617,14 @@
       ],
       "label": "Aire du Jura",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/airedujurasupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -18629,8 +18635,14 @@
       ],
       "label": "Aire du Poulet de Bresse",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/airedupouletdebressesupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -18900,8 +18912,14 @@
       ],
       "label": "Arc-sur-Tille",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30037/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19127,8 +19145,14 @@
       ],
       "label": "Beaune Nord",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/beaunenordsupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19213,8 +19237,24 @@
       ],
       "label": "Besançon – Chemaudin et Vaux",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/besanconfrsupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19489,8 +19529,14 @@
       ],
       "label": "Tossiat",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/BourgenBresseSupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19880,8 +19926,14 @@
       ],
       "label": "Chalon-sur-Saône",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/chalonsursaonesuperchargerq122/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19965,8 +20017,24 @@
       ],
       "label": "Charolles",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30258/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -20249,8 +20317,24 @@
       ],
       "label": "Fontaine-lès-Dijon",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/34059/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -20261,8 +20345,14 @@
       ],
       "label": "Longvic",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/DijonFrancesupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -21448,8 +21538,14 @@
       ],
       "label": "Mâcon",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/maconfrsupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -22289,8 +22385,29 @@
       ],
       "label": "Pontarlier",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.15
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/33185/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -23492,8 +23609,14 @@
       ],
       "label": "Vesoul",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/417057/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
