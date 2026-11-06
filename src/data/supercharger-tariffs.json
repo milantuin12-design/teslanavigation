@@ -15651,6 +15651,292 @@
       ],
       "source": "https://kilowattindex.com/site/Dorkingq222/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "kingston upon thames"
+      ],
+      "label": "Kingston upon Thames – Bentall Centre",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29593/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "hounslow"
+      ],
+      "label": "Hounslow – Renaissance London Heathrow",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/heathrowgbsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "westfield shopping"
+      ],
+      "label": "London – Westfield Shopping Centre",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/londonwestfield/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "staples corner"
+      ],
+      "label": "London – Staples Corner Retail Park",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/4301/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "canada square"
+      ],
+      "label": "London – Canada Square Car Park",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/canarywharfsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "camberwell road"
+      ],
+      "label": "London – Camberwell Road",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "pricePerKwh": 0.55,
+      "source": "https://www.kilowattindex.com/site/493454/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "streatham high road"
+      ],
+      "label": "London – Streatham High Road",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "pricePerKwh": 0.55,
+      "source": "https://www.kilowattindex.com/site/492867/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "park royal tesla centre"
+      ],
+      "label": "London – Tesla Centre Park Royal",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://kilowattindex.com/site/parkroyallondon2/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "reading tesla centre"
+      ],
+      "label": "Reading – Tesla Centre",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/14754/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
