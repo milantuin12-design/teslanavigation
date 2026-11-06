@@ -6233,6 +6233,211 @@
       ],
       "source": "https://www.kilowattindex.com/site/telfordsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "pila",
+        "piła"
+      ],
+      "label": "Piła – Comfy Park",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29005/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "trzebownisko"
+      ],
+      "label": "Trzebownisko – Hotel Blue Diamond",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.1
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 1.4
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.1
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/trzebowniskosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "zaluski",
+        "załuski"
+      ],
+      "label": "Załuski – Top Market",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 1.6
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1
+        }
+      ],
+      "source": "https://kilowattindex.com/site/4008408/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "jasionka"
+      ],
+      "label": "Jasionka – Zielony Kompleks Dwór Ostoya",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.1
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 1.5
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.1
+        }
+      ],
+      "source": "https://kilowattindex.com/site/33142/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "warszawa okecie",
+        "okecie park"
+      ],
+      "label": "Warszawa – Okęcie Park",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.2
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 1.6
+        },
+        {
+          "from": "12:00",
+          "to": "23:00",
+          "pricePerKwh": 2.1
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.2
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/59358/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Czechia",
+      "match": [
+        "brno"
+      ],
+      "label": "Brno – OC Olympia",
+      "timezone": "Europe/Prague",
+      "currency": "CZK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 6.5
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 12.3
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 6.5
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/brnosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Czechia",
+      "match": [
+        "kamenny ujezd",
+        "kamenný újezd"
+      ],
+      "label": "Kamenný Újezd – Resort-Restaurace Štilec",
+      "timezone": "Europe/Prague",
+      "currency": "CZK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "11:00",
+          "pricePerKwh": 6.5
+        },
+        {
+          "from": "11:00",
+          "to": "20:00",
+          "pricePerKwh": 12.3
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 8.2
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/budweissupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
