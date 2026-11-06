@@ -158,7 +158,8 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
     const owners = new Map<string, OwnerRow>();
     for (const o of localChargerDataset.owners ?? []) owners.set(o.id, o);
 
-    // Cloud krijgt maximaal ~1 seconde; daarna draait de app op de ingebouwde data.
+    // Haal de actuele clouddata volledig op. Een korte timeout kan in Preview
+    // onterecht oude ingebouwde data tonen terwijl de database wel bereikbaar is.
     const cloud = async () => {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const pageSize = 1000;
@@ -183,13 +184,11 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
     };
 
     try {
-      const result = await new Promise<Awaited<ReturnType<typeof cloud>>>((resolve, reject) => {
-        const t = setTimeout(() => reject(new Error("cloud timeout")), 1200);
-        cloud().then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
-      });
+      const result = await cloud();
       for (const o of result.ownerRows) owners.set(o.id, o);
       return result.rows.map((row) => rowToCharger(row, owners));
-    } catch {
+    } catch (error) {
+      console.error("[TeslaNavigation] Clouddata ophalen mislukt; lokale dataset wordt gebruikt:", error);
       return localRows.map((row) => rowToCharger(row, owners));
     }
   }
