@@ -3745,7 +3745,7 @@
       "country": "Spain",
       "match": [
         "santa agnes de malanyanes",
-        "la roca village"
+        "santa agnès de malanyanes"
       ],
       "label": "Santa Agnès de Malanyanes – La Roca Village",
       "timezone": "Europe/Madrid",
@@ -3753,17 +3753,17 @@
         {
           "from": "00:00",
           "to": "10:00",
-          "pricePerKwh": 0.2
+          "pricePerKwh": 0.16
         },
         {
           "from": "10:00",
           "to": "22:00",
-          "pricePerKwh": 0.41
+          "pricePerKwh": 0.42
         },
         {
           "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.2
+          "pricePerKwh": 0.16
         }
       ],
       "source": "https://www.kilowattindex.com/site/300127/",
@@ -3786,7 +3786,7 @@
         {
           "from": "09:00",
           "to": "22:00",
-          "pricePerKwh": 0.4
+          "pricePerKwh": 0.41
         },
         {
           "from": "22:00",
@@ -4036,7 +4036,7 @@
         {
           "from": "10:00",
           "to": "20:00",
-          "pricePerKwh": 0.42
+          "pricePerKwh": 0.41
         },
         {
           "from": "20:00",
@@ -4962,17 +4962,17 @@
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.2
+          "pricePerKwh": 0.19
         },
         {
           "from": "09:00",
           "to": "20:00",
-          "pricePerKwh": 0.4
+          "pricePerKwh": 0.42
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.34
+          "pricePerKwh": 0.33
         }
       ],
       "source": "https://www.kilowattindex.com/site/29922/",
@@ -5475,17 +5475,17 @@
         {
           "from": "00:00",
           "to": "10:00",
-          "pricePerKwh": 0.2
+          "pricePerKwh": 0.19
         },
         {
           "from": "10:00",
           "to": "22:00",
-          "pricePerKwh": 0.41
+          "pricePerKwh": 0.42
         },
         {
           "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.2
+          "pricePerKwh": 0.19
         }
       ],
       "source": "https://www.kilowattindex.com/site/ondarasupercharger/",
@@ -9360,198 +9360,6 @@
     {
       "country": "Spain",
       "match": [
-        "torredembarra"
-      ],
-      "label": "Torredembarra – Polígon Industrial Roques Planes",
-      "timezone": "Europe/Madrid",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "09:00",
-          "pricePerKwh": 0.2
-        },
-        {
-          "from": "09:00",
-          "to": "24:00",
-          "pricePerKwh": 0.34
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/29899/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
-    },
-    {
-      "country": "Spain",
-      "match": [
-        "algeciras"
-      ],
-      "label": "Algeciras – Puerta Europa",
-      "timezone": "Europe/Madrid",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "10:00",
-          "pricePerKwh": 0.2
-        },
-        {
-          "from": "10:00",
-          "to": "22:00",
-          "pricePerKwh": 0.4
-        },
-        {
-          "from": "22:00",
-          "to": "24:00",
-          "pricePerKwh": 0.2
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/20969/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
-    },
-    {
-      "country": "Spain",
-      "match": [
-        "churra"
-      ],
-      "label": "Churra – Nueva Condomina",
-      "timezone": "Europe/Madrid",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "10:00",
-          "pricePerKwh": 0.2
-        },
-        {
-          "from": "10:00",
-          "to": "22:00",
-          "pricePerKwh": 0.4
-        },
-        {
-          "from": "22:00",
-          "to": "24:00",
-          "pricePerKwh": 0.2
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/muricasupercharger/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
-    },
-    {
-      "country": "Spain",
-      "match": [
-        "alicante"
-      ],
-      "label": "Alicante – Plaza Mar 2",
-      "timezone": "Europe/Madrid",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "10:00",
-          "pricePerKwh": 0.2
-        },
-        {
-          "from": "10:00",
-          "to": "23:00",
-          "pricePerKwh": 0.39
-        },
-        {
-          "from": "23:00",
-          "to": "24:00",
-          "pricePerKwh": 0.2
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/30006/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
-    },
-    {
-      "country": "Spain",
-      "match": [
-        "santa agnes de malanyanes",
-        "santa agnès de malanyanes"
-      ],
-      "label": "Santa Agnès de Malanyanes – La Roca Village",
-      "timezone": "Europe/Madrid",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "10:00",
-          "pricePerKwh": 0.16
-        },
-        {
-          "from": "10:00",
-          "to": "22:00",
-          "pricePerKwh": 0.42
-        },
-        {
-          "from": "22:00",
-          "to": "24:00",
-          "pricePerKwh": 0.16
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/300127/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
-    },
-    {
-      "country": "Spain",
-      "match": [
-        "ondara"
-      ],
-      "label": "Ondara – Portal de la Marina",
-      "timezone": "Europe/Madrid",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "10:00",
-          "pricePerKwh": 0.19
-        },
-        {
-          "from": "10:00",
-          "to": "22:00",
-          "pricePerKwh": 0.42
-        },
-        {
-          "from": "22:00",
-          "to": "24:00",
-          "pricePerKwh": 0.19
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/ondarasupercharger/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
-    },
-    {
-      "country": "Spain",
-      "match": [
-        "vila-seca"
-      ],
-      "label": "Vila-seca – Centro Comercial Nou Port",
-      "timezone": "Europe/Madrid",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "09:00",
-          "pricePerKwh": 0.2
-        },
-        {
-          "from": "09:00",
-          "to": "22:00",
-          "pricePerKwh": 0.41
-        },
-        {
-          "from": "22:00",
-          "to": "24:00",
-          "pricePerKwh": 0.2
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/32864/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
-    },
-    {
-      "country": "Spain",
-      "match": [
         "marratxi",
         "marratxí"
       ],
@@ -9580,62 +9388,6 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Mallorcaq222/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
-    },
-    {
-      "country": "Spain",
-      "match": [
-        "marbella"
-      ],
-      "label": "Marbella – Alanda Hotel",
-      "timezone": "Europe/Madrid",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "09:00",
-          "pricePerKwh": 0.19
-        },
-        {
-          "from": "09:00",
-          "to": "20:00",
-          "pricePerKwh": 0.42
-        },
-        {
-          "from": "20:00",
-          "to": "24:00",
-          "pricePerKwh": 0.33
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/29922/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
-    },
-    {
-      "country": "Spain",
-      "match": [
-        "vigo"
-      ],
-      "label": "Vigo – Gran Vía",
-      "timezone": "Europe/Madrid",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "10:00",
-          "pricePerKwh": 0.2
-        },
-        {
-          "from": "10:00",
-          "to": "20:00",
-          "pricePerKwh": 0.41
-        },
-        {
-          "from": "20:00",
-          "to": "24:00",
-          "pricePerKwh": 0.37
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/27007/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
