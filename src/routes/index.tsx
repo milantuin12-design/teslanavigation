@@ -1321,6 +1321,23 @@ function Index() {
             {error}
           </div>
         )}
+     {isCalculating && (
+       <div className="absolute inset-0 z-[1200] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm pointer-events-auto">
+         <div className="bg-slate-900/95 border border-blue-500/40 rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-4 max-w-sm w-[90%] text-center animate-in fade-in zoom-in-95 duration-200">
+           <div className="relative flex items-center justify-center">
+             <Loader2 className="w-14 h-14 text-blue-500 animate-spin" />
+           </div>
+           <div>
+             <div className="text-base font-bold text-white">Route & laadstops berekenen…</div>
+             <div className="text-xs text-slate-400 mt-1">Energieverbruik, weersomstandigheden en laadtijden worden geoptimaliseerd</div>
+           </div>
+           <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden mt-1">
+             <div className="bg-blue-500 h-full rounded-full transition-all duration-300" style={{ width: `${calculationProgress}%` }} />
+           </div>
+           <div className="text-xs font-mono text-blue-400 font-semibold">{calculationProgress}%</div>
+         </div>
+       </div>
+     )}
 
         <EvMap
           startCoord={startCoord}
