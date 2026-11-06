@@ -3689,6 +3689,110 @@
       ],
       "source": "https://www.kilowattindex.com/site/moglianovenetosupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "malaga"
+      ],
+      "label": "Málaga – Plaza Mayor",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/297297/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "monesterio"
+      ],
+      "label": "Monesterio – ES Comosurex Monesterio",
+      "timezone": "Europe/Madrid",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/site/29931/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "caravaggio",
+        "adda nord"
+      ],
+      "label": "Caravaggio – Area di Servizio Adda Nord",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.44,
+      "source": "https://kilowattindex.com/site/addanordsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "caravaggio",
+        "adda sud"
+      ],
+      "label": "Caravaggio – Area di Servizio Adda Sud",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://kilowattindex.com/site/addasudsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "dorno",
+        "autogrill dorno ovest"
+      ],
+      "label": "Dorno – Autogrill Dorno Ovest",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.44,
+      "source": "https://kilowattindex.com/site/dornosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "reggio emilia",
+        "l'ariosto"
+      ],
+      "label": "Reggio Emilia – L'Ariosto Centro Commerciale",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.45,
+      "source": "https://www.kilowattindex.com/site/437908/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "pollein a5 dir mont blanc"
+      ],
+      "label": "Pollein – A5 Dir. Mont Blanc",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.4,
+      "source": "https://www.kilowattindex.com/site/9481/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "rovereto",
+        "millenium center"
+      ],
+      "label": "Rovereto – Centro Commerciale Millenium Center",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.45,
+      "source": "https://www.kilowattindex.com/site/32214/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
