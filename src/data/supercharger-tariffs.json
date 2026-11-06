@@ -5556,6 +5556,136 @@
       "pricePerKwh": 0.26,
       "source": "https://kilowattindex.com/site/414316/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "hjørring hjørring kommune",
+        "hjørring"
+      ],
+      "label": "Hjørring – Hjørring Kommune",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 1.5,
+      "currency": "DKK",
+      "source": "https://www.kilowattindex.com/country/dk/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "næstved sunset boulevard",
+        "næstved"
+      ],
+      "label": "Næstved – Sunset Boulevard",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 1.6,
+      "currency": "DKK",
+      "source": "https://www.kilowattindex.com/country/dk/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "odense rosengårdcentret",
+        "odense"
+      ],
+      "label": "Odense – Rosengårdcentret",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "currency": "DKK",
+      "source": "https://www.kilowattindex.com/country/dk/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "fredericia løvbjerg",
+        "fredericia"
+      ],
+      "label": "Fredericia – Løvbjerg",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "currency": "DKK",
+      "source": "https://www.kilowattindex.com/country/dk/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "taastrup city2",
+        "taastrup"
+      ],
+      "label": "Taastrup – City2",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "currency": "DKK",
+      "source": "https://www.kilowattindex.com/country/dk/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "frederiksberg frederiksberg centret",
+        "frederiksberg"
+      ],
+      "label": "Frederiksberg – Frederiksberg Centret",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "currency": "DKK",
+      "source": "https://www.kilowattindex.com/country/dk/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "aalborg shoppen",
+        "aalborg"
+      ],
+      "label": "Aalborg – Shoppen",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "currency": "DKK",
+      "source": "https://www.kilowattindex.com/country/dk/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "kgs. lyngby lyngby storcenter",
+        "kgs. lyngby"
+      ],
+      "label": "Kgs. Lyngby – Lyngby Storcenter",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "currency": "DKK",
+      "source": "https://www.kilowattindex.com/country/dk/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "maribo mcdonald's",
+        "maribo"
+      ],
+      "label": "Maribo – McDonald's",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "currency": "DKK",
+      "source": "https://www.kilowattindex.com/country/dk/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "nykøbing mors mcdonald's",
+        "nykøbing mors"
+      ],
+      "label": "Nykøbing Mors – McDonald's",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "currency": "DKK",
+      "source": "https://www.kilowattindex.com/country/dk/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
