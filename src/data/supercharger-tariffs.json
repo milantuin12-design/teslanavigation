@@ -14,7 +14,7 @@
         {
           "from": "00:00",
           "to": "10:00",
-          "pricePerKwh": 0.19
+          "pricePerKwh": 0.2
         },
         {
           "from": "10:00",
@@ -24,7 +24,7 @@
         {
           "from": "21:00",
           "to": "24:00",
-          "pricePerKwh": 0.19
+          "pricePerKwh": 0.2
         }
       ],
       "source": "https://kilowattindex.com/site/32930/",
@@ -7324,6 +7324,33 @@
       "currency": "TRY",
       "pricePerKwh": 10.4,
       "source": "https://kilowattindex.com/country/tr/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Greece",
+      "match": [
+        "patra 8a"
+      ],
+      "label": "Patra – 8A",
+      "timezone": "Europe/Athens",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.46
+        }
+      ],
+      "source": "https://kilowattindex.com/site/patranorthsupercharger/",
       "sourceChecked": "2026-11-06"
     }
   ]
