@@ -21660,8 +21660,24 @@
       ],
       "label": "Taverny",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "12:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29562/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -21821,8 +21837,24 @@
       ],
       "label": "Aulnay-sous-Bois",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "10:00",
+          "to": "23:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/58791/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -22388,8 +22420,24 @@
       ],
       "label": "Thiais",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "10:00",
+          "to": "23:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/thiaissupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
