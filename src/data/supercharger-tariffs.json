@@ -20761,8 +20761,24 @@
       ],
       "label": "Annecy",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.19
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29508/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -21202,8 +21218,14 @@
       ],
       "label": "La Léchère-les-Bains",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/lalecherelesbainssupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -22446,8 +22468,14 @@
       ],
       "label": "Porte-de-Savoie",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/438011/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -23129,8 +23157,24 @@
       ],
       "label": "Sallanches",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.19
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/sallanchessupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
