@@ -248,13 +248,9 @@ export function getChargerStatus(charger: Supercharger, atDate: Date = new Date(
   if (!isChargerOpenAt(charger, atDate)) return 'Gesloten';
   if (lifecycle === 'works') return 'Werkzaamheden';
   if (lifecycle === 'expanding') return 'Wordt uitgebreid';
-  // Operationele status blijft 'In bedrijf' als bezettingsdata ontbreekt.
-  // Ontbrekende live bezetting betekent niet dat de Supercharger onbekend is.
-  if (charger.totalStalls === undefined || charger.occupiedStalls === undefined) return 'In bedrijf';
-  const available = charger.totalStalls - charger.occupiedStalls;
-  if (available === 0) return 'Vol';
-  if (available <= Math.ceil(charger.totalStalls * 0.25)) return 'Druk';
-  return 'Beschikbaar';
+  // Live bezetting wordt niet gebruikt: operationele status komt uit de
+  // officiële lifecycle-status, niet uit bezette/vrije laadplekken.
+  return 'In bedrijf';
 }
 
 
