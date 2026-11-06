@@ -12782,6 +12782,192 @@
       ],
       "source": "https://kilowattindex.com/site/lappenrantasupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "achim"
+      ],
+      "label": "Achim – Car Wash Jantzon",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29558/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "hannover-sudstadt-bult",
+        "hannover südstadt bult"
+      ],
+      "label": "Hannover-Südstadt-Bult – Netto Marken-Discount",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29639/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "langenhagen"
+      ],
+      "label": "Langenhagen – M1",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.42
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/32691/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "wolfsburg"
+      ],
+      "label": "Wolfsburg – KFC",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.31,
+      "source": "https://www.kilowattindex.com/site/30138/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "brunswick"
+      ],
+      "label": "Brunswick – GLOBUS",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29574/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bispingen"
+      ],
+      "label": "Bispingen – KFC",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/298263/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "peine"
+      ],
+      "label": "Peine – RAUSCH Schokoladenhaus",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/298828/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "gottingen",
+        "göttingen"
+      ],
+      "label": "Göttingen – Cafe Del Sol",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/30090/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "sittensen"
+      ],
+      "label": "Sittensen – REWE",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/30094/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "rosengarten"
+      ],
+      "label": "Rosengarten – EDEKA",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/site/405257/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
