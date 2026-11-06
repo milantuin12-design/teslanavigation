@@ -10074,29 +10074,25 @@
       ],
       "label": "Oud Gastel – McDonald's",
       "timezone": "Europe/Amsterdam",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "10:00",
-          "pricePerKwh": 0.31
+          "pricePerKwh": 0.32
         },
         {
           "from": "10:00",
           "to": "21:00",
-          "pricePerKwh": 0.47
+          "pricePerKwh": 0.43
         },
         {
           "from": "21:00",
           "to": "24:00",
-          "pricePerKwh": 0.31
+          "pricePerKwh": 0.32
         }
       ],
-      "source": "https://www.kilowattindex.com/site/28849/",
-      "sourceChecked": "2026-11-06",
-      "countryAliases": [
-        "The Netherlands"
-      ]
+      "source": "https://kilowattindex.com/site/28849/",
+      "sourceChecked": "2026-11-06"
     },
     {
       "country": "Netherlands",
@@ -10592,29 +10588,25 @@
       ],
       "label": "Zaltbommel – Van der Valk Hotel",
       "timezone": "Europe/Amsterdam",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.31
+          "pricePerKwh": 0.32
         },
         {
           "from": "09:00",
           "to": "21:00",
-          "pricePerKwh": 0.44
+          "pricePerKwh": 0.41
         },
         {
           "from": "21:00",
           "to": "24:00",
-          "pricePerKwh": 0.31
+          "pricePerKwh": 0.32
         }
       ],
       "source": "https://www.kilowattindex.com/site/zaltbommelsupercharger/",
-      "sourceChecked": "2026-11-06",
-      "countryAliases": [
-        "The Netherlands"
-      ]
+      "sourceChecked": "2026-11-06"
     },
     {
       "country": "Netherlands",
@@ -10685,24 +10677,20 @@
       ],
       "label": "Ridderkerk – Van der Valk Hotel",
       "timezone": "Europe/Amsterdam",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.33
+          "pricePerKwh": 0.34
         },
         {
           "from": "09:00",
           "to": "24:00",
-          "pricePerKwh": 0.45
+          "pricePerKwh": 0.43
         }
       ],
-      "source": "https://www.kilowattindex.com/site/Ridderkerknlsupercharger/",
-      "sourceChecked": "2026-11-06",
-      "countryAliases": [
-        "The Netherlands"
-      ]
+      "source": "https://kilowattindex.com/site/Ridderkerknlsupercharger/",
+      "sourceChecked": "2026-11-06"
     },
     {
       "country": "Netherlands",
@@ -10739,22 +10727,21 @@
       ],
       "label": "Best – Van der Valk Hotel",
       "timezone": "Europe/Amsterdam",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.29
+          "pricePerKwh": 0.32
         },
         {
           "from": "09:00",
           "to": "23:00",
-          "pricePerKwh": 0.46
+          "pricePerKwh": 0.42
         },
         {
           "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.29
+          "pricePerKwh": 0.32
         }
       ],
       "source": "https://www.kilowattindex.com/site/26914/",
