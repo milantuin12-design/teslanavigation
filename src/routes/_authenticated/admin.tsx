@@ -279,11 +279,14 @@ function AdminPage() {
         if (error) throw new Error(error.message);
         toast.success("Toegevoegd");
       }
-    } catch {
-      // Cloud onbereikbaar: wijziging lokaal in wachtrij, wordt later alsnog verstuurd.
+    } catch (error) {
+      // Bewaar de wijziging lokaal, maar toon ook de echte databasefout zodat schema-
+      // of validatiefouten niet onterecht als alleen een cloudstoring worden gemeld.
       queueAdminChange({ type: "upsert", id: editing.id, payload: editing.id ? { id: editing.id, ...payload } : payload });
       if (editing.id) setChargers((prev) => prev.map((c) => (c.id === editing.id ? ({ ...c, ...payload } as Charger) : c)));
-      toast.warning("Cloud onbereikbaar — wijziging lokaal in wachtrij gezet");
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("[TeslaNavigation] Supercharger opslaan mislukt:", error);
+      toast.error(`Opslaan mislukt: ${message}`);
       setEditing(null);
       return;
     }
