@@ -34900,7 +34900,29 @@
       "published": true,
       "notes": null,
       "reopen_at": null,
-      "planned_upgrade": {}
+      "planned_upgrade": {},
+      "price_per_kwh": null,
+      "price_per_kwh_peak": null,
+      "price_blocks": [
+        {
+          "days": "dagelijks",
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "days": "dagelijks",
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "days": "dagelijks",
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ]
     },
     {
       "id": "20aee6da-0104-432f-8458-286b2fa498e5",
@@ -41915,7 +41937,29 @@
       "published": true,
       "notes": null,
       "reopen_at": null,
-      "planned_upgrade": {}
+      "planned_upgrade": {},
+      "price_per_kwh": null,
+      "price_per_kwh_peak": null,
+      "price_blocks": [
+        {
+          "days": "dagelijks",
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "days": "dagelijks",
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "days": "dagelijks",
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ]
     },
     {
       "id": "f31c6935-0786-438d-aad4-f7d94efde850",
@@ -58725,7 +58769,29 @@
       "published": true,
       "notes": null,
       "reopen_at": null,
-      "planned_upgrade": {}
+      "planned_upgrade": {},
+      "price_per_kwh": null,
+      "price_per_kwh_peak": null,
+      "price_blocks": [
+        {
+          "days": "dagelijks",
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "days": "dagelijks",
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "days": "dagelijks",
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ]
     },
     {
       "id": "36c98e3f-7329-4f38-ad9a-8c2a14ca24f8",
@@ -63041,7 +63107,26 @@
       "planned_upgrade": {},
       "price_per_kwh": null,
       "price_per_kwh_peak": null,
-      "price_blocks": []
+      "price_blocks": [
+        {
+          "days": "dagelijks",
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "days": "dagelijks",
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "days": "dagelijks",
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.23
+        }
+      ]
     },
     {
       "id": "f5a050d1-6f7c-427e-aa42-ca2d78d34fca",
@@ -98492,7 +98577,32 @@
       "planned_upgrade": {},
       "price_per_kwh": null,
       "price_per_kwh_peak": null,
-      "price_blocks": []
+      "price_blocks": [
+        {
+          "days": "dagelijks",
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "days": "dagelijks",
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "days": "dagelijks",
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "days": "dagelijks",
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.23
+        }
+      ]
     },
     {
       "id": "4db27cc7-dda1-4d52-80af-6b70d28e054b",
