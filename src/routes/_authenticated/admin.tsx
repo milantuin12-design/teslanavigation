@@ -48,6 +48,7 @@ type Charger = {
   price_per_kwh?: number | null;
   price_per_kwh_peak?: number | null;
   peak_hours?: string | null;
+  price_blocks?: { days?: string; from?: string; to?: string; pricePerKwh: number }[] | null;
   in_parking_garage: boolean;
   status: ChargerLifecycleStatus;
   construction: ConstructionInfo | null;
@@ -369,7 +370,7 @@ function AdminPage() {
   const bulkUpdate = async (changes: Record<string, unknown>) => {
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
-    const { error } = await supabase.from("superchargers").update(changes).in("id", ids);
+    const { error } = await supabase.from("superchargers").update(changes as never).in("id", ids);
     if (error) { toast.error(error.message); return; }
     toast.success(`${ids.length} Superchargers bijgewerkt`);
     setSelectedIds(new Set());

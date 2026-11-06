@@ -52,6 +52,7 @@ type Row = {
   price_per_kwh?: number | null;
   price_per_kwh_peak?: number | null;
   peak_hours?: string | null;
+  price_blocks?: PriceBlock[] | null;
   in_parking_garage: boolean | null;
   status: string | null;
   construction: ConstructionInfo | null;
