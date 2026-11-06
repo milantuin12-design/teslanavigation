@@ -17112,6 +17112,79 @@
       ],
       "source": "https://www.kilowattindex.com/site/437216/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "st veit an der glan"
+      ],
+      "label": "St. Veit an der Glan – Sonnenkraft Campus",
+      "timezone": "Europe/Vienna",
+      "currency": "EUR",
+      "pricePerKwh": 0.34,
+      "source": "https://www.kilowattindex.com/site/561818/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "st lorenzen im murztal",
+        "st. lorenzen im mürztal"
+      ],
+      "label": "St. Lorenzen im Mürztal – Stop Shop",
+      "timezone": "Europe/Vienna",
+      "currency": "EUR",
+      "pricePerKwh": 0.35,
+      "source": "https://www.kilowattindex.com/site/34091/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "kapfenberg"
+      ],
+      "label": "Kapfenberg – Lounge",
+      "timezone": "Europe/Vienna",
+      "currency": "EUR",
+      "pricePerKwh": 0.35,
+      "source": "https://www.kilowattindex.com/site/kapfenbergsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "kalwang"
+      ],
+      "label": "Kalwang – Raststation Viertler",
+      "timezone": "Europe/Vienna",
+      "currency": "EUR",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/site/kalwangsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "trieben"
+      ],
+      "label": "Trieben – wild & bolz eMotel",
+      "timezone": "Europe/Vienna",
+      "currency": "EUR",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/site/triebensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "liezen"
+      ],
+      "label": "Liezen – Burger King",
+      "timezone": "Europe/Vienna",
+      "currency": "EUR",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/site/liezensupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
