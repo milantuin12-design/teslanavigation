@@ -167,7 +167,7 @@ function applyTariffOverride(row: Row): Row {
   if (row.status !== "operational") return row;
   const tariffs = (tariffDataset as unknown as { tariffs: TariffOverride[] }).tariffs;
   const country = normalizeTariffMatch(row.country ?? "");
-  const name = normalizeTariffMatch(row.name ?? "");
+  const name = normalizeTariffMatch([row.name, row.city, row.province].filter(Boolean).join(" "));
   const match = tariffs.find((tariff) => {
     const countries = [tariff.country, ...(tariff.countryAliases ?? [])];
     if (!countries.some((value) => normalizeTariffMatch(value) === country)) return false;
