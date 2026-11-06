@@ -14062,6 +14062,69 @@
       ],
       "source": "https://www.kilowattindex.com/site/cadenazzosuperchargerq122/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "dietlikon"
+      ],
+      "label": "Dietlikon – Coop Pronto Shop",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.57
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/dietlikonsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "airolo"
+      ],
+      "label": "Airolo – Caseificio del Gottardo",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "pricePerKwh": 0.48,
+      "source": "https://www.kilowattindex.com/site/29855/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "rivera"
+      ],
+      "label": "Rivera – City Carburoil",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.61
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/montecenerisupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
