@@ -444,7 +444,38 @@ function AdminPage() {
                 {owners.map((owner) => <button key={owner.id} className="block w-full text-left px-2 py-1.5 text-sm hover:bg-slate-800" onClick={() => bulkUpdate({ owner_id: owner.id })}>{owner.name}</button>)}
               </div>}
             </div>
+            <Button size="sm" variant="outline" onClick={() => setBulkPriceOpen((value) => !value)}>💶 Prijzen</Button>
             <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Selectie wissen</Button>
+          </div>
+        )}
+        {selectedIds.size > 0 && bulkPriceOpen && (
+          <div className="mb-4 border border-emerald-500/40 bg-emerald-500/10 p-3 rounded-lg space-y-2">
+            <p className="text-sm font-semibold">Zelfde prijzen instellen voor {selectedIds.size} Superchargers</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+              <label className="flex items-center gap-1">€/kWh
+                <Input type="number" step="0.01" min="0" className="h-7 bg-slate-800 border-slate-600" value={bulkPrice.pricePerKwh} onChange={(e) => setBulkPrice({ ...bulkPrice, pricePerKwh: e.target.value })} />
+              </label>
+              <label className="flex items-center gap-1">Piek €/kWh
+                <Input type="number" step="0.01" min="0" className="h-7 bg-slate-800 border-slate-600" value={bulkPrice.pricePerKwhPeak} onChange={(e) => setBulkPrice({ ...bulkPrice, pricePerKwhPeak: e.target.value })} />
+              </label>
+              <label className="col-span-2 flex items-center gap-1">Piektijden
+                <Input placeholder="ma-vr 07:00-19:00" className="h-7 bg-slate-800 border-slate-600" value={bulkPrice.peakHours} onChange={(e) => setBulkPrice({ ...bulkPrice, peakHours: e.target.value })} />
+              </label>
+              <label className="flex items-center gap-1">Parkeren vast €
+                <Input type="number" step="0.10" min="0" className="h-7 bg-slate-800 border-slate-600" value={bulkPrice.parkingFeeAmount} onChange={(e) => setBulkPrice({ ...bulkPrice, parkingFeeAmount: e.target.value })} />
+              </label>
+              <label className="flex items-center gap-1">Gratis min
+                <Input type="number" min="0" className="h-7 bg-slate-800 border-slate-600" value={bulkPrice.parkingFreeMinutes} onChange={(e) => setBulkPrice({ ...bulkPrice, parkingFreeMinutes: e.target.value })} />
+              </label>
+              <label className="flex items-center gap-1">Per (min)
+                <Input type="number" min="1" placeholder="10" className="h-7 bg-slate-800 border-slate-600" value={bulkPrice.parkingPerMinutes} onChange={(e) => setBulkPrice({ ...bulkPrice, parkingPerMinutes: e.target.value })} />
+              </label>
+              <label className="flex items-center gap-1">€ per blok
+                <Input type="number" step="0.10" min="0" placeholder="1.00" className="h-7 bg-slate-800 border-slate-600" value={bulkPrice.parkingPerEuro} onChange={(e) => setBulkPrice({ ...bulkPrice, parkingPerEuro: e.target.value })} />
+              </label>
+            </div>
+            <p className="text-[11px] text-slate-400">Alleen ingevulde velden worden aangepast. Parkeervelden zetten ook “parkeergeld verplicht” aan.</p>
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={applyBulkPrice}>Toepassen op selectie</Button>
           </div>
         )}
         <Input placeholder="Zoek op naam of land…" value={search} onChange={(e) => setSearch(e.target.value)} className="bg-slate-800 border-slate-700 mb-4" />
