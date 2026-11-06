@@ -14437,6 +14437,146 @@
       ],
       "source": "https://www.kilowattindex.com/site/karlstadsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "kristianstad"
+      ],
+      "label": "Kristianstad – Stora Coop",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 3.6
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 4.1
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.6
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/kristianstadsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "ystad"
+      ],
+      "label": "Ystad – Mister York",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Ystadsesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "halmstad"
+      ],
+      "label": "Halmstad – Hallarna Köpcentrum",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Halmstadsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "markaryd"
+      ],
+      "label": "Markaryd – Rasta",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 3.9
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/markarydsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "karlshamn"
+      ],
+      "label": "Karlshamn – Circle K",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/40015035/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
