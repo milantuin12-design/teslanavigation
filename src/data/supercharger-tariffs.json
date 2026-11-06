@@ -7935,6 +7935,234 @@
       ],
       "source": "https://www.kilowattindex.com/site/gavlesupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "trondheim lade arena"
+      ],
+      "label": "Trondheim – Lade Arena",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 2
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 4.1
+        },
+        {
+          "from": "12:00",
+          "to": "23:00",
+          "pricePerKwh": 5
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 2
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Trondheimsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "lillehammer burger king"
+      ],
+      "label": "Lillehammer – Burger King",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "pricePerKwh": 4.2,
+      "source": "https://www.kilowattindex.com/site/lillehammersupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "rosenlund bydelssenter"
+      ],
+      "label": "Lillehammer – Rosenlund Bydelssenter",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1.9
+        },
+        {
+          "from": "09:00",
+          "to": "19:00",
+          "pricePerKwh": 4.9
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 3.2
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.9
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30176/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "cc strandtorget"
+      ],
+      "label": "Lillehammer – CC Strandtorget",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 3.4
+        },
+        {
+          "from": "09:00",
+          "to": "13:00",
+          "pricePerKwh": 4.7
+        },
+        {
+          "from": "13:00",
+          "to": "20:00",
+          "pricePerKwh": 5.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.1
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/LillehammerCentralSupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "vinstra"
+      ],
+      "label": "Vinstra – Extra",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 4.2
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.2
+        }
+      ],
+      "source": "https://kilowattindex.com/site/vinstrasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "gullgruven"
+      ],
+      "label": "Bergen – Gullgruven Senter",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 4.3
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 5.3
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/203303/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "gardermoen plantasjen"
+      ],
+      "label": "Gardermoen – Plantasjen",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1.9
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 4.3
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.9
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/OsloEastLorenskognosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "os rema 1000"
+      ],
+      "label": "Os – Rema 1000",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1.9
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 4.7
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 1.9
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/ossupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
