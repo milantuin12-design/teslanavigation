@@ -13191,6 +13191,130 @@
       ],
       "source": "https://www.kilowattindex.com/site/Egerkingen-SelfServeDemoDrive/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "randers memphis mansion",
+        "memphis mansion"
+      ],
+      "label": "Randers – Memphis Mansion",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/randerssupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "ronde",
+        "rønde"
+      ],
+      "label": "Rønde – Gartnergården Djurs",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/59499/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "aarhus"
+      ],
+      "label": "Aarhus – Racehall",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/412621/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "viborg"
+      ],
+      "label": "Viborg – Overlund Bydelcenter ApS",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/59266/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "norager",
+        "nørager"
+      ],
+      "label": "Nørager – OK",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/haverslevsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "svenstrup j"
+      ],
+      "label": "Svenstrup J – Burger King",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/32746/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "ikast"
+      ],
+      "label": "Ikast – McDonald's",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/ikastsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "billund"
+      ],
+      "label": "Billund – Lalandia i Billund",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/592598/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "struer"
+      ],
+      "label": "Struer – REMA",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/59265/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "sondervig",
+        "søndervig"
+      ],
+      "label": "Søndervig – Søndervig Lalandia",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/592602/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
