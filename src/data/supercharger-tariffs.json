@@ -819,7 +819,7 @@
     {
       "country": "Germany",
       "match": [
-        "wittlich"
+        "wittlich globus"
       ],
       "label": "Wittlich – GLOBUS",
       "timezone": "Europe/Berlin",
@@ -827,17 +827,17 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.24
+          "pricePerKwh": 0.26
         },
         {
           "from": "08:00",
           "to": "22:00",
-          "pricePerKwh": 0.41
+          "pricePerKwh": 0.39
         },
         {
           "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.24
+          "pricePerKwh": 0.26
         }
       ],
       "source": "https://www.kilowattindex.com/site/404460/",
@@ -7579,6 +7579,127 @@
       "timezone": "Europe/Berlin",
       "pricePerKwh": 0.39,
       "source": "https://www.kilowattindex.com/site/4008318/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "mogendorf"
+      ],
+      "label": "Mogendorf – MAXI Autohof",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://kilowattindex.com/site/mogendorfdesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bad rapp enau",
+        "bad rappenau"
+      ],
+      "label": "Bad Rappenau – 24-Autohof",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://kilowattindex.com/site/badrappenausupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "weibersbrunn"
+      ],
+      "label": "Weibersbrunn – Best Western Hotel",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://kilowattindex.com/site/weibersbrunnsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "simmern"
+      ],
+      "label": "Simmern – GLOBUS",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/site/29887/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "oberhonnefeld"
+      ],
+      "label": "Oberhonnefeld – Westerwaldpark",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "12:00",
+          "to": "21:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://kilowattindex.com/site/oberhonnefeldsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "nurburgring",
+        "nürburgring"
+      ],
+      "label": "Nürburg – Nürburgring",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/12431/",
       "sourceChecked": "2026-11-06"
     }
   ]
