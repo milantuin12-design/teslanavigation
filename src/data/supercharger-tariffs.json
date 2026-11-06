@@ -20244,8 +20244,14 @@
       ],
       "label": "Albertville",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Albertvilleq222/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -20473,8 +20479,34 @@
       ],
       "label": "Moisselles",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/444411/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
