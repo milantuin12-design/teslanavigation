@@ -1381,6 +1381,11 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "04:00",
           "to": "09:00",
           "pricePerKwh": 0.26
         },
@@ -1492,18 +1497,23 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.24
+          "pricePerKwh": 0.26
         },
         {
           "from": "08:00",
           "to": "21:00",
-          "pricePerKwh": 0.34
+          "pricePerKwh": 0.36
         },
         {
           "from": "21:00",
           "to": "24:00",
-          "pricePerKwh": 0.24
+          "pricePerKwh": 0.26
         }
       ],
       "source": "https://www.kilowattindex.com/site/demanovasupercharger/",
@@ -1633,7 +1643,7 @@
       ],
       "label": "Košice – OC Optima",
       "timezone": "Europe/Bratislava",
-      "pricePerKwh": 0.28,
+      "pricePerKwh": 0.31,
       "source": "https://www.kilowattindex.com/site/kosicesupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -16548,6 +16558,38 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/457963/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "weil am rhein"
+      ],
+      "label": "Weil am Rhein",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/32698/",
       "sourceChecked": "2026-11-06"
     }
   ]
