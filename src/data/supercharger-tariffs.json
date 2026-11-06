@@ -9870,6 +9870,202 @@
       ],
       "source": "https://www.kilowattindex.com/site/aalstsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "duiven"
+      ],
+      "label": "Duiven – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/duivensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "oud gastel"
+      ],
+      "label": "Oud Gastel – McDonald's",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/28849/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "akersloot"
+      ],
+      "label": "Akersloot – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/akerslootsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "deventer"
+      ],
+      "label": "Deventer – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/deventersuperchargerq122/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "meerkerk"
+      ],
+      "label": "Meerkerk – La Place",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/meerkerksupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "rijswijk"
+      ],
+      "label": "Rijswijk – Restaurant, Hotel & Spa Savarin",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.47
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/rijswijksupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "sassenheim"
+      ],
+      "label": "Sassenheim – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "09:00",
+          "to": "19:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/sassenheimsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
