@@ -15587,6 +15587,149 @@
       ],
       "source": "https://kilowattindex.com/site/59269/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "reading green park"
+      ],
+      "label": "Reading – Green Park",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.41
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/readingsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "tongham"
+      ],
+      "label": "Tongham – Hog's Back Hotel & Spa",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "19:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/tonghamsuperchargerq122/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "wokingham"
+      ],
+      "label": "Wokingham – Best Western Plus",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.41
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/wokinghamuksupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "dorking"
+      ],
+      "label": "Dorking – Denbies Wine Estate",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "19:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://kilowattindex.com/site/Dorkingq222/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
