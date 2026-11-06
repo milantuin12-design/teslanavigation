@@ -10979,6 +10979,34 @@
       "pricePerKwh": 0.37,
       "source": "https://www.kilowattindex.com/site/33144/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Lithuania",
+      "match": [
+        "biruliskes",
+        "biruliškės"
+      ],
+      "label": "Biruliškės – Užeiga Kolegos",
+      "timezone": "Europe/Vilnius",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.2
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/kaunassupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
