@@ -6445,6 +6445,10 @@
     },
     {
       "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
       "match": [
         "oxford redbridge"
       ],
@@ -6473,12 +6477,8 @@
           "pricePerKwh": 0.36
         }
       ],
-      "source": "https://kilowattindex.com/site/OxfordRedbridgegbsupercharger/",
-      "sourceChecked": "2026-11-06",
-      "countryAliases": [
-        "UK",
-        "Great Britain"
-      ]
+      "source": "https://www.kilowattindex.com/site/OxfordRedbridgegbsupercharger/",
+      "sourceChecked": "2026-11-06"
     },
     {
       "country": "United Kingdom",
@@ -16014,6 +16014,122 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/403404/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "oxford welcome break"
+      ],
+      "label": "Oxford – Welcome Break Services",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://kilowattindex.com/site/oxfordsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "exeter moto"
+      ],
+      "label": "Exeter – Moto Services",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "08:00",
+          "to": "18:00",
+          "pricePerKwh": 0.54
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.2
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/9795/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "reading moto services"
+      ],
+      "label": "Reading – Moto Services",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/95123/",
       "sourceChecked": "2026-11-06"
     }
   ]
