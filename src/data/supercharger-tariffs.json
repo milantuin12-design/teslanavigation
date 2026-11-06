@@ -4999,6 +4999,174 @@
       ],
       "source": "https://www.kilowattindex.com/site/59386/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "girona"
+      ],
+      "label": "Girona – Ibis",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/gironaessupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "sant cugat"
+      ],
+      "label": "Sant Cugat del Vallès – B&B Hotel",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/santcugatsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "salt"
+      ],
+      "label": "Salt – Espai Gironès",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/416358/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "la seu d urgell",
+        "la seu d'urgell"
+      ],
+      "label": "La Seu d'Urgell – Carrer del Bisbe Benlloch",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/laseudurgellsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "la jonquera"
+      ],
+      "label": "La Jonquera – Gran Jonquera Outlet",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "18:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/298986/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "caldes de malavella"
+      ],
+      "label": "Caldes de Malavella – Hotel Camiral",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "18:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/gironasupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
