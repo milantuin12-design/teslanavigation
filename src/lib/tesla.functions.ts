@@ -52,6 +52,7 @@ type Row = {
   parking_per_minutes?: number | null;
   parking_per_euro?: number | null;
   price_per_kwh?: number | null;
+  price_currency?: string | null;
   price_per_kwh_peak?: number | null;
   peak_hours?: string | null;
   price_blocks?: PriceBlock[] | null;
@@ -116,6 +117,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
     parkingFreeMinutes: row.parking_free_minutes ?? null,
     parkingPerMinutes: row.parking_per_minutes ?? null,
     parkingPerEuro: row.parking_per_euro ?? null,
+    priceCurrency: row.price_currency ?? 'EUR',
     pricePerKwh: row.price_per_kwh ?? null,
     pricePerKwhPeak: row.price_per_kwh_peak ?? null,
     peakHours: row.peak_hours ?? null,
@@ -151,6 +153,7 @@ type TariffOverride = {
   country: string;
   match: string[];
   pricePerKwh?: number;
+  currency?: string;
   priceBlocks?: { from: string; to: string; pricePerKwh: number }[];
 };
 
@@ -174,6 +177,7 @@ function applyTariffOverride(row: Row): Row {
   if (!match) return row;
   return {
     ...row,
+    price_currency: match.currency ?? 'EUR',
     price_per_kwh: match.pricePerKwh ?? null,
     price_per_kwh_peak: null,
     peak_hours: null,
