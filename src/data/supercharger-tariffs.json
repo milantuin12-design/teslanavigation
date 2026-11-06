@@ -2092,6 +2092,292 @@
       ],
       "source": "https://www.kilowattindex.com/site/Eemnesnlsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Portugal",
+      "match": [
+        "mealhada"
+      ],
+      "label": "Mealhada – Burguezia do Leitão",
+      "timezone": "Europe/Lisbon",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "12:00",
+          "to": "22:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.19
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Mealhadasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Portugal",
+      "match": [
+        "fatima",
+        "fátima"
+      ],
+      "label": "Fátima – Floresta",
+      "timezone": "Europe/Lisbon",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/fatimaselfservelocation/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Portugal",
+      "match": [
+        "matosinhos"
+      ],
+      "label": "Matosinhos – Mar Shopping Matosinhos",
+      "timezone": "Europe/Lisbon",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/14182/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Portugal",
+      "match": [
+        "castelo branco"
+      ],
+      "label": "Castelo Branco – Forum Castelo Branco",
+      "timezone": "Europe/Lisbon",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "10:00",
+          "to": "22:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.23
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/14181/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Portugal",
+      "match": [
+        "alcantarilha"
+      ],
+      "label": "Alcantarilha – Amendoeira Golf Resort",
+      "timezone": "Europe/Lisbon",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/alcantarilhasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Portugal",
+      "match": [
+        "almancil"
+      ],
+      "label": "Almancil – MAR Shopping Algarve",
+      "timezone": "Europe/Lisbon",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "09:00",
+          "to": "13:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "13:00",
+          "to": "18:00",
+          "pricePerKwh": 0.52
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/loulesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Portugal",
+      "match": [
+        "alcacer do sal",
+        "alcácer do sal"
+      ],
+      "label": "Alcácer do Sal – Galp",
+      "timezone": "Europe/Lisbon",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "18:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/alcacerdosalsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Portugal",
+      "match": [
+        "montemor-o-novo"
+      ],
+      "label": "Montemor-o-Novo – L'ands Vineyards",
+      "timezone": "Europe/Lisbon",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "18:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/montemoronovosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Portugal",
+      "match": [
+        "guarda"
+      ],
+      "label": "Guarda – Hotel Lusitânia",
+      "timezone": "Europe/Lisbon",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "15:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "15:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.41
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/guardaptsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Portugal",
+      "match": [
+        "ribeira de pena"
+      ],
+      "label": "Ribeira de Pena – Pena Park Hotel",
+      "timezone": "Europe/Lisbon",
+      "pricePerKwh": 0.4,
+      "source": "https://www.kilowattindex.com/site/vilarealsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
