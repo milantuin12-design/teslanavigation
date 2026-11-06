@@ -9724,6 +9724,127 @@
       "source": "https://www.kilowattindex.com/site/301238/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "promenada bucuresti",
+        "promenada"
+      ],
+      "label": "Bucharest – Promenada Bucuresti",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "12:00",
+          "pricePerKwh": 1.31
+        },
+        {
+          "from": "12:00",
+          "to": "24:00",
+          "pricePerKwh": 1.9
+        }
+      ],
+      "source": "https://kilowattindex.com/site/bucharestsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "pitesti"
+      ],
+      "label": "Pitești – Pitești Retail Park",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 1.31
+        },
+        {
+          "from": "10:00",
+          "to": "22:00",
+          "pricePerKwh": 2.45
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 1.31
+        }
+      ],
+      "source": "https://kilowattindex.com/site/Pitestirosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "mega mall"
+      ],
+      "label": "Bucharest – Mega Mall",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.31
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 2.13
+        },
+        {
+          "from": "12:00",
+          "to": "24:00",
+          "pricePerKwh": 2.36
+        }
+      ],
+      "source": "https://kilowattindex.com/site/328485/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "oradea"
+      ],
+      "label": "Oradea – Kaufland - Oradea Shopping City",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 2.04
+        },
+        {
+          "from": "04:00",
+          "to": "23:00",
+          "pricePerKwh": 2.27
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 2.04
+        }
+      ],
+      "source": "https://kilowattindex.com/site/444952/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "galati",
+        "galați"
+      ],
+      "label": "Galați – Galati Shopping City",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "pricePerKwh": 2.31,
+      "source": "https://kilowattindex.com/site/28917/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
