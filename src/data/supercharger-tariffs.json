@@ -8924,6 +8924,90 @@
       "pricePerKwh": 10.4,
       "source": "https://www.kilowattindex.com/site/461015/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "hofn"
+      ],
+      "label": "Höfn – Bílastæði",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "pricePerKwh": 55,
+      "source": "https://www.kilowattindex.com/country/is/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "vestmannaeyjabaer"
+      ],
+      "label": "Vestmannaeyjabær – Krónan",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "pricePerKwh": 48,
+      "source": "https://www.kilowattindex.com/country/is/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "hvolsvollur"
+      ],
+      "label": "Hvolsvöllur – Björk",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "pricePerKwh": 60,
+      "source": "https://www.kilowattindex.com/country/is/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "egilsstadir"
+      ],
+      "label": "Egilsstaðir – N1",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "pricePerKwh": 60,
+      "source": "https://www.kilowattindex.com/country/is/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "holmavik"
+      ],
+      "label": "Hólmavík – Krambúðin Supermarket",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "pricePerKwh": 60,
+      "source": "https://www.kilowattindex.com/country/is/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "blonduos"
+      ],
+      "label": "Blönduós – N1",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "pricePerKwh": 60,
+      "source": "https://www.kilowattindex.com/country/is/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "keflavik"
+      ],
+      "label": "Keflavík – N1",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "pricePerKwh": 38,
+      "source": "https://www.kilowattindex.com/country/is/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
