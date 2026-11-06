@@ -11442,7 +11442,8 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.41,
       "source": "https://www.kilowattindex.com/site/32213/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -11469,7 +11470,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/296752/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -17323,7 +17325,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/bergamodalminesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -17350,7 +17353,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30341/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -17377,7 +17381,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/408764/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -17404,7 +17409,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/273911/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -17431,7 +17437,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/melegnanosupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -17458,7 +17465,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/aresesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Romania",
@@ -17526,7 +17534,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Bolzano422/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -17553,7 +17562,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/1886/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
