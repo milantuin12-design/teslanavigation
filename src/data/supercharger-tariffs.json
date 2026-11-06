@@ -10095,16 +10095,21 @@
         },
         {
           "from": "08:00",
-          "to": "20:00",
+          "to": "19:00",
           "pricePerKwh": 0.48
         },
         {
-          "from": "20:00",
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.37
+          "pricePerKwh": 0.24
         }
       ],
-      "source": "https://www.kilowattindex.com/site/4008450/",
+      "source": "https://www.kilowattindex.com/site/32338/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -10118,21 +10123,21 @@
       "priceBlocks": [
         {
           "from": "00:00",
-          "to": "08:00",
+          "to": "09:00",
           "pricePerKwh": 0.29
         },
         {
-          "from": "08:00",
-          "to": "20:00",
+          "from": "09:00",
+          "to": "22:00",
           "pricePerKwh": 0.48
         },
         {
-          "from": "20:00",
+          "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.38
+          "pricePerKwh": 0.29
         }
       ],
-      "source": "https://www.kilowattindex.com/site/4008446/",
+      "source": "https://www.kilowattindex.com/site/32212/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -10146,21 +10151,21 @@
       "priceBlocks": [
         {
           "from": "00:00",
-          "to": "08:00",
+          "to": "09:00",
           "pricePerKwh": 0.3
         },
         {
-          "from": "08:00",
-          "to": "20:00",
+          "from": "09:00",
+          "to": "22:00",
           "pricePerKwh": 0.48
         },
         {
-          "from": "20:00",
+          "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.38
+          "pricePerKwh": 0.3
         }
       ],
-      "source": "https://www.kilowattindex.com/site/belfastteslasupercharger/",
+      "source": "https://www.kilowattindex.com/site/437921/",
       "sourceChecked": "2026-11-06"
     },
     {
