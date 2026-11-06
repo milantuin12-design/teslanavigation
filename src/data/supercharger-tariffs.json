@@ -10723,6 +10723,90 @@
       "countryAliases": [
         "The Netherlands"
       ]
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "weert"
+      ],
+      "label": "Weert – Goudreinet",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "11:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "11:00",
+          "to": "20:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Nederweertnlsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "best"
+      ],
+      "label": "Best – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/26914/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "gorinchem"
+      ],
+      "label": "Gorinchem – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/33039/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
