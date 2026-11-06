@@ -12993,7 +12993,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/34029/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -13020,7 +13021,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/4008285/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -13052,7 +13054,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/437561/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -13089,7 +13092,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/349814/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -13116,7 +13120,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/413628/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -13128,7 +13133,8 @@
       "timezone": "Europe/Paris",
       "pricePerKwh": 0.35,
       "source": "https://kilowattindex.com/site/Montbeliard422/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -13139,7 +13145,8 @@
       "timezone": "Europe/Berlin",
       "pricePerKwh": 0.43,
       "source": "https://www.kilowattindex.com/site/herbolzheimsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Switzerland",
