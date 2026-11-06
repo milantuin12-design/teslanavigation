@@ -3176,7 +3176,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/kortrijkbesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -9971,7 +9972,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/bruggesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -9998,7 +10000,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/vervierssupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -10025,7 +10028,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/aalstsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -10273,7 +10277,8 @@
       "sourceChecked": "2026-11-06",
       "countryAliases": [
         "Republic of Ireland"
-      ]
+      ],
+      "currency": "EUR"
     },
     {
       "country": "United Kingdom",
