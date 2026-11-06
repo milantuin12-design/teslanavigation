@@ -188,6 +188,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
       center: [52.3676, 4.9041],
       zoom: 7,
       zoomControl: true,
+      // Soepeler zoomen: kleinere stappen en vloeiende animatie.
+      zoomSnap: 0.25,
+      zoomDelta: 0.5,
+      wheelPxPerZoomLevel: 90,
+      zoomAnimation: true,
+      fadeAnimation: true,
+      markerZoomAnimation: true,
     });
 
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
