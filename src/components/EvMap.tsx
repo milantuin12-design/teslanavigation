@@ -98,6 +98,8 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus) {
     : '';
 
   const size = 30;
+  // Toon het totale aantal laadplekken, onafhankelijk van bezetting of beschikbaarheid.
+  const totalStalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
   const badges: string[] = [];
   if (hasOpenWorks) {
     badges.push(`<div style="position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&#10003;</div>`);
@@ -113,7 +115,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus) {
     className: 'custom-marker',
     html: `<div style="position:relative;width:${size}px;height:${size}px;">
       <div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};${ringStyle}box-shadow:0 3px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
-        <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${wrenchGlyph || ''}</div>
+        <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${wrenchGlyph || (totalStalls > 0 ? totalStalls : '')}</div>
       </div>
       ${badges.join('')}
     </div>`,
