@@ -19911,8 +19911,24 @@
       ],
       "label": "Deauville",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.2
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29767/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -22574,8 +22590,24 @@
       ],
       "label": "Val-de-Reuil",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "10:00",
+          "to": "22:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.16
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/33188/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -22783,8 +22815,14 @@
       ],
       "label": "Villedieu-les-Poêles-Rouffigny",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/331947/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     }
