@@ -9079,9 +9079,25 @@
       ],
       "label": "Seinäjoki – Ideapark Seinäjoki",
       "timezone": "Europe/Helsinki",
-      "pricePerKwh": 0.27,
-      "source": "https://www.kilowattindex.com/site/32926/",
-      "sourceChecked": "2026-11-06"
+      "source": "https://www.kilowattindex.com/site/413811/",
+      "sourceChecked": "2026-11-06",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "04:00",
+          "to": "22:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ]
     },
     {
       "country": "Finland",
@@ -9091,7 +9107,7 @@
       "label": "Kokkola – ABC",
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.28,
-      "source": "https://www.kilowattindex.com/site/32926/",
+      "source": "https://www.kilowattindex.com/site/kokkolasupercharger/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -9364,6 +9380,89 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/27007/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "karsamaki",
+        "kärsämäki"
+      ],
+      "label": "Kärsämäki – Juustoportti",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Karsamakiq222/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "pyhajarvi",
+        "pyhäjärvi"
+      ],
+      "label": "Pyhäjärvi – ABC",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/pyhajarvisupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "kajaani kauppakatu"
+      ],
+      "label": "Kajaani – Kauppakatu 1 Parking",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/298945/",
       "sourceChecked": "2026-11-06"
     }
   ]
