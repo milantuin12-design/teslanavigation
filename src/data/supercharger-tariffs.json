@@ -13386,7 +13386,7 @@
       "timezone": "Europe/Copenhagen",
       "currency": "DKK",
       "pricePerKwh": 2.6,
-      "source": "https://www.kilowattindex.com/site/8114/",
+      "source": "https://www.kilowattindex.com/site/rodekrosupercharger/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -13398,7 +13398,7 @@
       "timezone": "Europe/Copenhagen",
       "currency": "DKK",
       "pricePerKwh": 2.6,
-      "source": "https://www.kilowattindex.com/site/8114/",
+      "source": "https://kilowattindex.com/site/padborgsuperchargerq122/",
       "sourceChecked": "2026-11-06"
     }
   ]
