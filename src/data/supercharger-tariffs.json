@@ -7048,6 +7048,133 @@
       ],
       "source": "https://kilowattindex.com/site/berstelandsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "akureyri n1"
+      ],
+      "label": "Akureyri – N1",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 28
+        },
+        {
+          "from": "10:00",
+          "to": "18:00",
+          "pricePerKwh": 67
+        },
+        {
+          "from": "18:00",
+          "to": "23:00",
+          "pricePerKwh": 41
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 28
+        }
+      ],
+      "source": "https://kilowattindex.com/site/438156/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "mosfellsbaer",
+        "mosfellsbær"
+      ],
+      "label": "Mosfellsbær – N1",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 29
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 57
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/493502/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "reykjavik tesla center",
+        "reykjavík tesla center"
+      ],
+      "label": "Reykjavík – Tesla Center",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 31
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 64
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Vatnagardarissupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "reykjavik n1",
+        "reykjavík n1"
+      ],
+      "label": "Reykjavík – N1",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 31
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 59
+        }
+      ],
+      "source": "https://kilowattindex.com/site/fossvogursupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "laugarvatn"
+      ],
+      "label": "Laugarvatn – Efstidalur II",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "pricePerKwh": 60,
+      "source": "https://kilowattindex.com/site/439503/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
