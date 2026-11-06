@@ -5527,6 +5527,40 @@
       ],
       "source": "https://www.kilowattindex.com/site/huittinensupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "paimio"
+      ],
+      "label": "Paimio – Tammisilta",
+      "timezone": "Europe/Helsinki",
+      "pricePerKwh": 0.24,
+      "source": "https://www.kilowattindex.com/site/paimiosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "forssa"
+      ],
+      "label": "Forssa – Autokeidas",
+      "timezone": "Europe/Helsinki",
+      "pricePerKwh": 0.27,
+      "source": "https://www.kilowattindex.com/site/437917/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "ylojarvi",
+        "ylöjärvi"
+      ],
+      "label": "Ylöjärvi – Juustoportti",
+      "timezone": "Europe/Helsinki",
+      "pricePerKwh": 0.28,
+      "source": "https://www.kilowattindex.com/site/Ylojarvi422/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
