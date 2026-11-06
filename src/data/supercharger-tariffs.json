@@ -12087,7 +12087,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/35032/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -12283,7 +12284,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30115/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Greece",
@@ -12310,7 +12312,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/athenssupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Greece",
@@ -12337,7 +12340,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/26404/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Greece",
@@ -12348,7 +12352,8 @@
       "timezone": "Europe/Athens",
       "pricePerKwh": 0.46,
       "source": "https://www.kilowattindex.com/site/29576/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Greece",
@@ -12376,7 +12381,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/atalantiwestsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Greece",
@@ -12403,7 +12409,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/atalantieastsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
