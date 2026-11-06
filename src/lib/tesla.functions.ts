@@ -186,7 +186,27 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
     try {
       const result = await cloud();
       for (const o of result.ownerRows) owners.set(o.id, o);
-      return result.rows.map((row) => rowToCharger(row, owners));
+      // De cloud blijft leidend voor alle actuele admin-gegevens.
+      // Tarieven die nog niet in Supabase staan, worden aangevuld vanuit de
+      // meegeleverde lokale dataset zodat GitHub-tariefupdates ook zichtbaar zijn.
+      const localById = new Map(localRows.map((row) => [row.id, row]));
+      return result.rows.map((row) => {
+        const local = localById.get(row.id);
+        if (!local) return rowToCharger(row, owners);
+        const merged: Row = {
+          ...row,
+          price_per_kwh: row.price_per_kwh ?? local.price_per_kwh ?? null,
+          price_per_kwh_peak: row.price_per_kwh_peak ?? local.price_per_kwh_peak ?? null,
+          peak_hours: row.peak_hours ?? local.peak_hours ?? null,
+          price_blocks:
+            Array.isArray(row.price_blocks) && row.price_blocks.length > 0
+              ? row.price_blocks
+              : Array.isArray(local.price_blocks)
+                ? (local.price_blocks as PriceBlock[])
+                : null,
+        };
+        return rowToCharger(merged, owners);
+      });
     } catch (error) {
       console.error("[TeslaNavigation] Clouddata ophalen mislukt; lokale dataset wordt gebruikt:", error);
       return localRows.map((row) => rowToCharger(row, owners));
