@@ -8646,6 +8646,208 @@
       ],
       "source": "https://www.kilowattindex.com/site/Plzenczsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "poznan city park",
+        "city park hotel"
+      ],
+      "label": "Poznań – City Park Hotel & Residence",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.1
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 1.6
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.1
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/poznansupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "krakow o3",
+        "o3 business campus"
+      ],
+      "label": "Kraków – O3 Business Campus",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.1
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 1.6
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/445906/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "szczecin outlet park"
+      ],
+      "label": "Szczecin – Outlet Park Szczecin",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1.3
+        },
+        {
+          "from": "09:00",
+          "to": "18:00",
+          "pricePerKwh": 2.1
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 1.9
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 1.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/288835/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "gdansk auchan",
+        "gdańsk auchan"
+      ],
+      "label": "Gdańsk – Auchan",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.2
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 1.9
+        },
+        {
+          "from": "12:00",
+          "to": "22:00",
+          "pricePerKwh": 2.1
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 1.2
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/59351/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "ciechocinek"
+      ],
+      "label": "Ciechocinek – Bistro & Shop",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "pricePerKwh": 1.2,
+      "source": "https://kilowattindex.com/site/ciechocineksupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "legnica auchan"
+      ],
+      "label": "Legnica – Auchan",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "pricePerKwh": 1.7,
+      "source": "https://kilowattindex.com/site/59343/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "katowice bistro",
+        "bistro shop"
+      ],
+      "label": "Katowice – Bistro & Shop",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 1.1
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 1.3
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 2
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/katowicesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Poland",
+      "match": [
+        "czeladz",
+        "czeładź"
+      ],
+      "label": "Czeladź – M1 Czeladź",
+      "timezone": "Europe/Warsaw",
+      "currency": "PLN",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 1.1
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 1.3
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 2
+        }
+      ],
+      "source": "https://kilowattindex.com/site/445658/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
