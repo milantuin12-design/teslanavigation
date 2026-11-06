@@ -7940,12 +7940,12 @@
     {
       "country": "Germany",
       "match": [
-        "windischeschenbach"
+        "Windischeschenbach"
       ],
-      "label": "Windischeschenbach",
+      "label": "Windischeschenbach – Autohof Bergler",
       "timezone": "Europe/Berlin",
       "pricePerKwh": 0.39,
-      "source": "https://www.kilowattindex.com/site/4008318/",
+      "source": "https://www.kilowattindex.com/country/de/bayern/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -18039,6 +18039,162 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29592/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Neudrossenfeld"
+      ],
+      "label": "Neudrossenfeld – ALDI",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.35,
+      "source": "https://www.kilowattindex.com/country/de/bayern/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Schierling"
+      ],
+      "label": "Schierling – Labertaler Fachmarkt",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/country/de/bayern/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Raubling"
+      ],
+      "label": "Raubling – Dinzler Hochstraß",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/country/de/bayern/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Wörnitz"
+      ],
+      "label": "Wörnitz – REWE",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.38,
+      "source": "https://www.kilowattindex.com/country/de/bayern/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Allershausen"
+      ],
+      "label": "Allershausen – EDEKA",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.38,
+      "source": "https://www.kilowattindex.com/country/de/bayern/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Dietmannsried"
+      ],
+      "label": "Dietmannsried – Coffee friends Shop",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/bayern/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Schweinfurt"
+      ],
+      "label": "Schweinfurt – Burger King",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/bayern/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Motten"
+      ],
+      "label": "Motten – Gasthaus Zum Biber",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/bayern/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Berchtesgaden"
+      ],
+      "label": "Berchtesgaden – Bahnhof Berchtesgaden",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.42,
+      "source": "https://www.kilowattindex.com/country/de/bayern/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Lindau"
+      ],
+      "label": "Lindau (Bodensee) – Tesla Lounge",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/country/de/bayern/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Gelsenkirchen"
+      ],
+      "label": "Gelsenkirchen – Cafe Del Sol",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.32,
+      "source": "https://www.kilowattindex.com/country/de/nordrhein-westfalen/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Solingen"
+      ],
+      "label": "Solingen – Sportpark Landwehr",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.36,
+      "source": "https://www.kilowattindex.com/country/de/nordrhein-westfalen/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "Mülheim"
+      ],
+      "label": "Mülheim an der Ruhr – Cafe Del Sol",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.36,
+      "source": "https://www.kilowattindex.com/country/de/nordrhein-westfalen/",
       "sourceChecked": "2026-11-06"
     }
   ]
