@@ -12759,8 +12759,8 @@
       "label": "Wolfsburg – KFC",
       "timezone": "Europe/Berlin",
       "currency": "EUR",
-      "pricePerKwh": 0.31,
-      "source": "https://www.kilowattindex.com/site/30138/",
+      "pricePerKwh": 0.3,
+      "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -12800,7 +12800,7 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "pricePerKwh": 0.39,
-      "source": "https://www.kilowattindex.com/site/298263/",
+      "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -12812,20 +12812,19 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "pricePerKwh": 0.39,
-      "source": "https://www.kilowattindex.com/site/298828/",
+      "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
       "sourceChecked": "2026-11-06"
     },
     {
       "country": "Germany",
       "match": [
-        "gottingen",
-        "göttingen"
+        "gottingen"
       ],
       "label": "Göttingen – Cafe Del Sol",
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "pricePerKwh": 0.39,
-      "source": "https://www.kilowattindex.com/site/30090/",
+      "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -12837,7 +12836,7 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "pricePerKwh": 0.39,
-      "source": "https://www.kilowattindex.com/site/30094/",
+      "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -12848,8 +12847,8 @@
       "label": "Rosengarten – EDEKA",
       "timezone": "Europe/Berlin",
       "currency": "EUR",
-      "pricePerKwh": 0.37,
-      "source": "https://www.kilowattindex.com/site/405257/",
+      "pricePerKwh": 0.4,
+      "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
       "sourceChecked": "2026-11-06"
     },
     {
