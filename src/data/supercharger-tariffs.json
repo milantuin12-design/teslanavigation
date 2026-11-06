@@ -12292,7 +12292,14 @@
       "currency": "EUR",
       "pricePerKwh": 0.35,
       "source": "https://www.kilowattindex.com/site/302423/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ]
     },
     {
       "country": "France",
@@ -13229,7 +13236,14 @@
       "pricePerKwh": 0.35,
       "source": "https://kilowattindex.com/site/Montbeliard422/",
       "sourceChecked": "2026-11-06",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ]
     },
     {
       "country": "Germany",
