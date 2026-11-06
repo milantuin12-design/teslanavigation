@@ -12669,7 +12669,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29558/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -12697,7 +12698,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29639/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -14146,38 +14148,6 @@
       "sourceChecked": "2026-11-06"
     },
     {
-      "country": "Netherlands",
-      "match": [
-        "dordrecht"
-      ],
-      "label": "Dordrecht – Van der Valk Hotel",
-      "timezone": "Europe/Amsterdam",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "04:00",
-          "pricePerKwh": 0.33
-        },
-        {
-          "from": "04:00",
-          "to": "08:00",
-          "pricePerKwh": 0.33
-        },
-        {
-          "from": "08:00",
-          "to": "23:00",
-          "pricePerKwh": 0.43
-        },
-        {
-          "from": "23:00",
-          "to": "24:00",
-          "pricePerKwh": 0.33
-        }
-      ],
-      "source": "https://kilowattindex.com/site/dordrechtsupercharger/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
       "country": "Sweden",
       "match": [
         "loddekopinge",
@@ -14585,7 +14555,8 @@
       "timezone": "Europe/Berlin",
       "pricePerKwh": 0.38,
       "source": "https://www.kilowattindex.com/site/BissendorfSupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -14612,7 +14583,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/440309/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -14639,7 +14611,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/portawestfalicasuperchargerq122/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -14672,7 +14645,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/emsburensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -14683,7 +14657,8 @@
       "timezone": "Europe/Berlin",
       "pricePerKwh": 0.39,
       "source": "https://www.kilowattindex.com/site/176637/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -14715,7 +14690,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29776/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -14737,7 +14713,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/lauenausupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -14764,7 +14741,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/paderbornsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -14791,7 +14769,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/posthausensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -14818,18 +14797,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30288/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
-      "country": "Germany",
-      "match": [
-        "peine rausch"
-      ],
-      "label": "Peine – RAUSCH Schokoladenhaus",
-      "timezone": "Europe/Berlin",
-      "pricePerKwh": 0.39,
-      "source": "https://kilowattindex.com/site/298828/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -14840,56 +14809,8 @@
       "timezone": "Europe/Berlin",
       "pricePerKwh": 0.41,
       "source": "https://kilowattindex.com/site/burgdorfsupercharger/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
-      "country": "Germany",
-      "match": [
-        "langenhagen"
-      ],
-      "label": "Langenhagen – M1",
-      "timezone": "Europe/Berlin",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "08:00",
-          "pricePerKwh": 0.27
-        },
-        {
-          "from": "08:00",
-          "to": "24:00",
-          "pricePerKwh": 0.42
-        }
-      ],
-      "source": "https://kilowattindex.com/site/32691/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
-      "country": "Germany",
-      "match": [
-        "hannover hotel hennies"
-      ],
-      "label": "Hannover – Hotel Hennies",
-      "timezone": "Europe/Berlin",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "08:00",
-          "pricePerKwh": 0.23
-        },
-        {
-          "from": "08:00",
-          "to": "22:00",
-          "pricePerKwh": 0.38
-        },
-        {
-          "from": "22:00",
-          "to": "24:00",
-          "pricePerKwh": 0.23
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/28708/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Norway",
