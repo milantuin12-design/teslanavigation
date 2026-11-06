@@ -9597,6 +9597,104 @@
       "pricePerKwh": 2.31,
       "source": "https://kilowattindex.com/site/28917/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "craiova"
+      ],
+      "label": "Craiova – Promenada Mall Craiova",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 1.59
+        },
+        {
+          "from": "10:00",
+          "to": "22:00",
+          "pricePerKwh": 2.4
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 1.59
+        }
+      ],
+      "source": "https://kilowattindex.com/site/288675/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "buzau",
+        "buzău"
+      ],
+      "label": "Buzău – Galleria Mall",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "pricePerKwh": 1.95,
+      "source": "https://www.kilowattindex.com/site/4008374/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "satu mare"
+      ],
+      "label": "Satu Mare – Shopping City Satu Mare",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 1.68
+        },
+        {
+          "from": "10:00",
+          "to": "22:00",
+          "pricePerKwh": 2.26
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 1.68
+        }
+      ],
+      "source": "https://kilowattindex.com/site/4008270/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "brasov",
+        "brașov"
+      ],
+      "label": "Brașov – Coresi Shopping Center",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 1.99
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 2.22
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 1.99
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/28918/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
