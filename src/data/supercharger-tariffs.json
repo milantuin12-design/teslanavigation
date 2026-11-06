@@ -16697,6 +16697,50 @@
       "pricePerKwh": 0.32,
       "source": "https://www.kilowattindex.com/site/32601/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "asten frunpark"
+      ],
+      "label": "Asten – Frunpark Asten",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.35,
+      "source": "https://www.kilowattindex.com/site/asten/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "wels scw"
+      ],
+      "label": "Wels – SCW ShoppingCity",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.35,
+      "source": "https://www.kilowattindex.com/site/30768/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "eberstalzell"
+      ],
+      "label": "Eberstalzell – Pod Öko Arena",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.35,
+      "source": "https://www.kilowattindex.com/site/EberstalzellSelfServeDemoTestDrive/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "amstetten"
+      ],
+      "label": "Amstetten – In The Box 21",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/site/449655/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
