@@ -16641,6 +16641,19 @@
       ],
       "source": "https://kilowattindex.com/site/32603/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Iceland",
+      "match": [
+        "holmavik",
+        "holmavík"
+      ],
+      "label": "Holmavik – Krambúðin Supermarket",
+      "timezone": "Atlantic/Reykjavik",
+      "currency": "ISK",
+      "pricePerKwh": 60,
+      "source": "https://www.kilowattindex.com/site/34100/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
