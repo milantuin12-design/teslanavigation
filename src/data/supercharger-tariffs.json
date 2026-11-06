@@ -11501,6 +11501,142 @@
       ],
       "source": "https://kilowattindex.com/site/29074/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "grugliasco"
+      ],
+      "label": "Grugliasco – Shop Ville Le Gru",
+      "timezone": "Europe/Rome",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/torinosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "chivasso"
+      ],
+      "label": "Chivasso – Centro Commerciale",
+      "timezone": "Europe/Rome",
+      "currency": "EUR",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/site/33832/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "bardonecchia"
+      ],
+      "label": "Bardonecchia – Traforo del Frejus",
+      "timezone": "Europe/Rome",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/bardonecchiasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "avio"
+      ],
+      "label": "Avio – Falconeri Outlet",
+      "timezone": "Europe/Rome",
+      "currency": "EUR",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/site/32213/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "mercure nerocubo"
+      ],
+      "label": "Rovereto – Mercure Nerocubo",
+      "timezone": "Europe/Rome",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.44
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/296752/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "amaro"
+      ],
+      "label": "Amaro – Centro Commerciale",
+      "timezone": "Europe/Rome",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.44
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/dineitsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
