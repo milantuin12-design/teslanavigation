@@ -9042,6 +9042,57 @@
       ],
       "source": "https://www.kilowattindex.com/site/akureyrisupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "jalasjarvi",
+        "jalasjärvi"
+      ],
+      "label": "Jalasjärvi – Juustoportti",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://kilowattindex.com/site/jalasjarvisupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "seinajoki ideapark",
+        "seinäjoki ideapark"
+      ],
+      "label": "Seinäjoki – Ideapark Seinäjoki",
+      "timezone": "Europe/Helsinki",
+      "pricePerKwh": 0.27,
+      "source": "https://www.kilowattindex.com/site/32926/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "kokkola abc"
+      ],
+      "label": "Kokkola – ABC",
+      "timezone": "Europe/Helsinki",
+      "pricePerKwh": 0.28,
+      "source": "https://www.kilowattindex.com/site/32926/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
