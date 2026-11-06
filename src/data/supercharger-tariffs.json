@@ -3934,9 +3934,10 @@
     {
       "country": "Spain",
       "match": [
-        "malaga"
+        "malaga",
+        "málaga"
       ],
-      "label": "Málaga – Plaza Mayor",
+      "label": "Malaga – Plaza Mayor",
       "timezone": "Europe/Madrid",
       "priceBlocks": [
         {
@@ -3947,7 +3948,7 @@
         {
           "from": "09:00",
           "to": "24:00",
-          "pricePerKwh": 0.34
+          "pricePerKwh": 0.35
         }
       ],
       "source": "https://www.kilowattindex.com/site/297297/",
@@ -5112,7 +5113,7 @@
         {
           "from": "10:00",
           "to": "22:00",
-          "pricePerKwh": 0.39
+          "pricePerKwh": 0.41
         },
         {
           "from": "22:00",
@@ -5135,17 +5136,17 @@
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.21
+          "pricePerKwh": 0.2
         },
         {
           "from": "09:00",
           "to": "23:00",
-          "pricePerKwh": 0.39
+          "pricePerKwh": 0.41
         },
         {
           "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.21
+          "pricePerKwh": 0.2
         }
       ],
       "source": "https://www.kilowattindex.com/site/401992/",
@@ -5163,22 +5164,22 @@
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.24
+          "pricePerKwh": 0.22
         },
         {
           "from": "09:00",
           "to": "13:00",
-          "pricePerKwh": 0.36
+          "pricePerKwh": 0.37
         },
         {
           "from": "13:00",
           "to": "22:00",
-          "pricePerKwh": 0.4
+          "pricePerKwh": 0.41
         },
         {
           "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.24
+          "pricePerKwh": 0.22
         }
       ],
       "source": "https://www.kilowattindex.com/site/fuengirolasupercharger/",
@@ -17955,6 +17956,53 @@
       ],
       "source": "https://www.kilowattindex.com/site/295651/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "label": "Cavaglià – Golf Club Cavaglià",
+      "timezone": "Europe/Rome",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/cavagliasupercharger/",
+      "sourceChecked": "2026-11-06",
+      "match": [
+        "cavaglia",
+        "cavaglià"
+      ]
+    },
+    {
+      "country": "Italy",
+      "label": "Mondovì – Mondovicino Outlet Village",
+      "timezone": "Europe/Rome",
+      "currency": "EUR",
+      "pricePerKwh": 0.47,
+      "source": "https://www.kilowattindex.com/site/29163/",
+      "sourceChecked": "2026-11-06",
+      "match": [
+        "mondovi",
+        "mondovì"
+      ]
     }
   ]
 }
