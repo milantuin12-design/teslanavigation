@@ -6438,6 +6438,151 @@
       ],
       "source": "https://www.kilowattindex.com/site/budweissupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "furnes"
+      ],
+      "label": "Furnes – Olrud Handelspark",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 1.7
+        },
+        {
+          "from": "10:00",
+          "to": "23:00",
+          "pricePerKwh": 4.8
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.7
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/32803/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "porsgrunn down town"
+      ],
+      "label": "Porsgrunn – Down Town Kjøpesenter",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 2.2
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/450210/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "aksdal"
+      ],
+      "label": "Aksdal – Shell",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "11:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "11:00",
+          "to": "21:00",
+          "pricePerKwh": 5.1
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 1.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/aksdalsouth/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "tomter"
+      ],
+      "label": "Tomter – XY",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 1.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/jarensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "verdal"
+      ],
+      "label": "Verdal – Rådhusgata",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 1.8
+        }
+      ],
+      "source": "https://kilowattindex.com/site/297206/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
