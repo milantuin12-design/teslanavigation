@@ -6805,6 +6805,148 @@
       ],
       "source": "https://kilowattindex.com/site/441114/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "debrecen"
+      ],
+      "label": "Debrecen – Auchan",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 116
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 160
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 116
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/debrecensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "fot auchan",
+        "fót"
+      ],
+      "label": "Fót – Auchan",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 116
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 157
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 116
+        }
+      ],
+      "source": "https://kilowattindex.com/site/fotsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "budapest auchan"
+      ],
+      "label": "Budapest – Auchan",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 120
+        },
+        {
+          "from": "10:00",
+          "to": "22:00",
+          "pricePerKwh": 160
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 120
+        }
+      ],
+      "source": "https://kilowattindex.com/site/360785/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "szeged auchan"
+      ],
+      "label": "Szeged – Auchan",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 89
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 139
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 89
+        }
+      ],
+      "source": "https://kilowattindex.com/site/szegedsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "kiskunfelegyhaza",
+        "kiskunfélegyháza"
+      ],
+      "label": "Kiskunfélegyháza – OMV",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 89
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 139
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 89
+        }
+      ],
+      "source": "https://kilowattindex.com/site/33137/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
