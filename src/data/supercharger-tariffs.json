@@ -3077,27 +3077,26 @@
         {
           "from": "00:00",
           "to": "04:00",
-          "pricePerKwh": 0.22
+          "pricePerKwh": 0.19
         },
         {
           "from": "04:00",
           "to": "09:00",
-          "pricePerKwh": 0.27
+          "pricePerKwh": 0.24
         },
         {
           "from": "09:00",
           "to": "20:00",
-          "pricePerKwh": 0.61
+          "pricePerKwh": 0.56
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.34
+          "pricePerKwh": 0.35
         }
       ],
-      "source": "https://kilowattindex.com/site/kortrijkbesupercharger/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
+      "source": "https://www.kilowattindex.com/site/kortrijkbesupercharger/",
+      "sourceChecked": "2026-11-06"
     },
     {
       "country": "Belgium",
@@ -9784,6 +9783,92 @@
         }
       ],
       "source": "https://kilowattindex.com/site/4002705/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Belgium",
+      "match": [
+        "brugge"
+      ],
+      "label": "Brugge – Weinebrugge",
+      "timezone": "Europe/Brussels",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.55
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.37
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/bruggesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Belgium",
+      "match": [
+        "verviers"
+      ],
+      "label": "Verviers – Van der Valk Hotel",
+      "timezone": "Europe/Brussels",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/vervierssupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Belgium",
+      "match": [
+        "aalst"
+      ],
+      "label": "Aalst – Ibis",
+      "timezone": "Europe/Brussels",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.59
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/aalstsupercharger/",
       "sourceChecked": "2026-11-06"
     }
   ]
