@@ -3750,12 +3750,12 @@
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.2
+          "pricePerKwh": 0.21
         },
         {
           "from": "09:00",
           "to": "24:00",
-          "pricePerKwh": 0.34
+          "pricePerKwh": 0.36
         }
       ],
       "source": "https://www.kilowattindex.com/site/29899/",
@@ -3773,17 +3773,17 @@
         {
           "from": "00:00",
           "to": "10:00",
-          "pricePerKwh": 0.2
+          "pricePerKwh": 0.19
         },
         {
           "from": "10:00",
           "to": "23:00",
-          "pricePerKwh": 0.39
+          "pricePerKwh": 0.4
         },
         {
           "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.2
+          "pricePerKwh": 0.19
         }
       ],
       "source": "https://www.kilowattindex.com/site/30006/",
@@ -3801,17 +3801,17 @@
         {
           "from": "00:00",
           "to": "10:00",
-          "pricePerKwh": 0.2
+          "pricePerKwh": 0.19
         },
         {
           "from": "10:00",
           "to": "22:00",
-          "pricePerKwh": 0.4
+          "pricePerKwh": 0.42
         },
         {
           "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.2
+          "pricePerKwh": 0.19
         }
       ],
       "source": "https://www.kilowattindex.com/site/muricasupercharger/",
@@ -3834,7 +3834,7 @@
         {
           "from": "10:00",
           "to": "22:00",
-          "pricePerKwh": 0.4
+          "pricePerKwh": 0.41
         },
         {
           "from": "22:00",
@@ -4157,7 +4157,7 @@
         {
           "from": "10:00",
           "to": "20:00",
-          "pricePerKwh": 0.41
+          "pricePerKwh": 0.42
         },
         {
           "from": "20:00",
@@ -4246,12 +4246,12 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.28
+          "pricePerKwh": 0.26
         },
         {
           "from": "08:00",
           "to": "20:00",
-          "pricePerKwh": 0.48
+          "pricePerKwh": 0.5
         },
         {
           "from": "20:00",
@@ -4303,15 +4303,15 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.29
+          "pricePerKwh": 0.26
         },
         {
           "from": "08:00",
           "to": "24:00",
-          "pricePerKwh": 0.48
+          "pricePerKwh": 0.5
         }
       ],
-      "source": "https://kilowattindex.com/site/20986/",
+      "source": "https://www.kilowattindex.com/site/20986/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -17926,6 +17926,34 @@
       "pricePerKwh": 1.6,
       "currency": "DKK",
       "source": "https://www.kilowattindex.com/country/dk/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "settimo torinese"
+      ],
+      "label": "Settimo Torinese – Torino Outlet Village",
+      "timezone": "Europe/Rome",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.51
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/295651/",
       "sourceChecked": "2026-11-06"
     }
   ]
