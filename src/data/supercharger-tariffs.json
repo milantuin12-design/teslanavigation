@@ -7352,6 +7352,185 @@
       ],
       "source": "https://kilowattindex.com/site/patranorthsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "wolvega"
+      ],
+      "label": "Wolvega – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "04:00",
+          "to": "23:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29069/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "uden"
+      ],
+      "label": "Uden – Rondweg",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "04:00",
+          "to": "23:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/udensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "vuren"
+      ],
+      "label": "Vuren – McDonald's",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "04:00",
+          "to": "23:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/vurensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "nieuw-amsterdam"
+      ],
+      "label": "Nieuw-Amsterdam – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/emmensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "zuidbroek"
+      ],
+      "label": "Zuidbroek – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "pricePerKwh": 0.36,
+      "source": "https://www.kilowattindex.com/site/zuidbroeksupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "assen"
+      ],
+      "label": "Assen – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "pricePerKwh": 0.35,
+      "source": "https://www.kilowattindex.com/site/assensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "eindhoven"
+      ],
+      "label": "Eindhoven – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.44
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/eindhovensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "apeldoorn"
+      ],
+      "label": "Apeldoorn – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/apeldoornoostsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
