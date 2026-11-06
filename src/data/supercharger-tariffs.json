@@ -6583,6 +6583,66 @@
       ],
       "source": "https://kilowattindex.com/site/297206/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Luxembourg",
+      "match": [
+        "cloche d or"
+      ],
+      "label": "Luxembourg – Cloche d'Or",
+      "timezone": "Europe/Luxembourg",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.55
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/LuxembourgUrbanq222/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Bulgaria",
+      "match": [
+        "sofia bulgaria mall"
+      ],
+      "label": "Sofia – Bulgaria Mall",
+      "timezone": "Europe/Sofia",
+      "pricePerKwh": 0.5,
+      "source": "https://kilowattindex.com/country/bg/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Bulgaria",
+      "match": [
+        "plovdiv radisson"
+      ],
+      "label": "Plovdiv – Radisson Hotel",
+      "timezone": "Europe/Sofia",
+      "pricePerKwh": 0.54,
+      "source": "https://kilowattindex.com/country/bg/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Bulgaria",
+      "match": [
+        "sofia paradise"
+      ],
+      "label": "Sofia – Paradise Center",
+      "timezone": "Europe/Sofia",
+      "pricePerKwh": 0.57,
+      "source": "https://kilowattindex.com/country/bg/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
