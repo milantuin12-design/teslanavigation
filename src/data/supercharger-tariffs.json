@@ -4783,7 +4783,7 @@
         {
           "from": "09:00",
           "to": "20:00",
-          "pricePerKwh": 0.37
+          "pricePerKwh": 0.4
         },
         {
           "from": "20:00",
@@ -13043,18 +13043,23 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.15
+        },
+        {
+          "from": "04:00",
           "to": "09:00",
-          "pricePerKwh": 0.18
+          "pricePerKwh": 0.21
         },
         {
           "from": "09:00",
           "to": "20:00",
-          "pricePerKwh": 0.41
+          "pricePerKwh": 0.42
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.22
+          "pricePerKwh": 0.21
         }
       ],
       "source": "https://www.kilowattindex.com/site/4008285/",
@@ -17060,17 +17065,17 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.16
+          "pricePerKwh": 0.15
         },
         {
           "from": "08:00",
           "to": "21:00",
-          "pricePerKwh": 0.4
+          "pricePerKwh": 0.41
         },
         {
           "from": "21:00",
           "to": "24:00",
-          "pricePerKwh": 0.16
+          "pricePerKwh": 0.15
         }
       ],
       "source": "https://www.kilowattindex.com/site/437030/",
@@ -17246,25 +17251,25 @@
         {
           "from": "00:00",
           "to": "04:00",
-          "pricePerKwh": 0.17
+          "pricePerKwh": 0.15
         },
         {
           "from": "04:00",
           "to": "09:00",
-          "pricePerKwh": 0.17
+          "pricePerKwh": 0.22
         },
         {
           "from": "09:00",
           "to": "20:00",
-          "pricePerKwh": 0.39
+          "pricePerKwh": 0.41
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.22
         }
       ],
-      "source": "https://kilowattindex.com/site/aixenprovencevaldelarcsupercharger/",
+      "source": "https://www.kilowattindex.com/site/aixenprovencevaldelarcsupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -18003,6 +18008,39 @@
         "mondovi",
         "mondovì"
       ]
+    },
+    {
+      "country": "France",
+      "match": [
+        "aix-en-provence mercure"
+      ],
+      "label": "Aix-en-Provence – Mercure",
+      "timezone": "Europe/Paris",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.15
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.23
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29592/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
