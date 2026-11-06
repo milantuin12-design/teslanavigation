@@ -12600,6 +12600,35 @@
       ],
       "source": "https://www.kilowattindex.com/site/LeviFinlandsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Greece",
+      "match": [
+        "patra 8a",
+        "patra"
+      ],
+      "label": "Patra – 8A",
+      "timezone": "Europe/Athens",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.46
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/patranorthsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
