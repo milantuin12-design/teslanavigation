@@ -18414,8 +18414,14 @@
       ],
       "label": "Aire de l'Aveyron",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30250/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -18486,8 +18492,29 @@
       ],
       "label": "Aire du Caylar",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "04:00",
+          "to": "11:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "11:00",
+          "to": "18:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "18:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/aireducaylarsupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -18965,8 +18992,29 @@
       ],
       "label": "Blagnac",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/ToulouseBlagnacFrancesupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -21682,8 +21730,29 @@
       ],
       "label": "Castelnau-d'Estrétefonds",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/toulousesupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
