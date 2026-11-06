@@ -247,6 +247,7 @@ function AdminPage() {
       price_per_kwh: editing.price_per_kwh ?? null,
       price_per_kwh_peak: editing.price_per_kwh_peak ?? null,
       peak_hours: editing.peak_hours ?? null,
+      price_blocks: (editing.price_blocks && editing.price_blocks.length > 0 ? editing.price_blocks : null) as unknown as Json,
       in_parking_garage: !!editing.in_parking_garage,
       province: editing.province || null,
       city: editing.city || null,
