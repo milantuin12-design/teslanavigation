@@ -381,7 +381,10 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           popup += `<div style="margin-top:6px;color:#2563eb;font-weight:600;">Max ${maxSpeed} kW</div>`;
         }
 
-        popup += `<div style="margin-top:3px;color:#475569;">${escapeHtml(formatOpeningHoursSummary(charger))}</div>`;
+        const hideOpeningHours = status === 'In aanbouw' || status === 'Plan' || status === 'Vergunning aangevraagd';
+        if (!hideOpeningHours) {
+          popup += `<div style="margin-top:3px;color:#475569;">${escapeHtml(formatOpeningHoursSummary(charger))}</div>`;
+        }
 
         if (charger.notes) {
           popup += `<div style="margin-top:6px;color:#64748b;font-size:11px;font-style:italic;">${escapeHtml(charger.notes)}</div>`;
@@ -398,7 +401,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         popup += `<button type="button" data-report-id="${escapeHtml(charger.id ?? '')}" data-report-name="${escapeHtml(charger.name ?? '')}" style="margin-top:8px;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#b91c1c;font-weight:600;cursor:pointer;">Fout melden</button>`;
         popup += `</div>`;
         marker.bindPopup(popup);
-        marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
+        if (!hideOpeningHours) marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
           L.DomEvent.stop(ev);
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
