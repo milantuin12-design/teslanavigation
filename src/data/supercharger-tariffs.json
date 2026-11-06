@@ -11882,7 +11882,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/zaragozasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -11909,7 +11910,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30030/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -11936,7 +11938,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/huescaessupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -11963,7 +11966,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/arizasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -11991,7 +11995,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/33716/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -12002,7 +12007,8 @@
       "timezone": "Europe/Madrid",
       "pricePerKwh": 0.34,
       "source": "https://www.kilowattindex.com/site/29901/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -12013,7 +12019,8 @@
       "timezone": "Europe/Madrid",
       "pricePerKwh": 0.33,
       "source": "https://www.kilowattindex.com/site/rivabellosasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -12040,7 +12047,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/arandadeduerosupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -12051,7 +12059,8 @@
       "timezone": "Europe/Madrid",
       "pricePerKwh": 0.34,
       "source": "https://www.kilowattindex.com/site/30023/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -12078,7 +12087,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/tordesillassupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     }
   ]
 }
