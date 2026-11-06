@@ -244,5 +244,3 @@ export default function ChargerFilters({ filters, onChange, chargers, visibleCou
     </div>
   );
 }
-
-}
