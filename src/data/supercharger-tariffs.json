@@ -12089,6 +12089,33 @@
       "source": "https://kilowattindex.com/site/tordesillassupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "valladolid"
+      ],
+      "label": "Valladolid – Río Shopping",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/35032/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
