@@ -416,19 +416,21 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
               ${charger.pricePerKwhPeak != null ? row('Piek per kWh', eur(charger.pricePerKwhPeak)) : ''}
               ${charger.peakHours ? row('Piekuren', escapeHtml(charger.peakHours)) : ''}`;
           }
-          d += `<div style="font-weight:700;margin-top:6px;">🕒 Openingstijden hele week</div>
+          const openingHours = normalizeOpeningHours(charger.openingHours, charger.openingTime, charger.closingTime);
+          const openingHoursHtml = openingHours.mode === '24_7' ? '' : `
+            <div style="font-weight:700;margin-top:6px;">🕒 Openingstijden hele week</div>
             <div style="display:grid;gap:3px;margin-top:2px;">
               ${(() => {
-                const hours = normalizeOpeningHours(charger.openingHours, charger.openingTime, charger.closingTime);
                 const todayKey = (['sun','mon','tue','wed','thu','fri','sat'] as const)[new Date().getDay()];
                 return openingDayKeys.map((day) => {
-                  const dayHours = hours.days[day];
+                  const dayHours = openingHours.days[day];
                   const isToday = day === todayKey;
-                  const value = hours.mode === '24_7' ? '24 uur open' : dayHours?.closed ? 'Gesloten' : `${dayHours?.open ?? '00:00'} – ${dayHours?.close ?? '23:59'}`;
-                  return `<div style="display:flex;justify-content:space-between;gap:12px;padding:2px 5px;border-radius:4px;background:${isToday ? '#eff6ff' : 'transparent'};font-weight:${isToday ? '700' : '400'};"><span>${openingDayLabels[day]}${isToday ? ' · vandaag' : ''}</span><span style="color:${dayHours?.closed && hours.mode !== '24_7' ? '#dc2626' : '#334155'};">${escapeHtml(value)}</span></div>`;
+                  const value = dayHours?.closed ? 'Gesloten' : `${dayHours?.open ?? '00:00'} – ${dayHours?.close ?? '23:59'}`;
+                  return `<div style="display:flex;justify-content:space-between;gap:12px;padding:2px 5px;border-radius:4px;background:${isToday ? '#eff6ff' : 'transparent'};font-weight:${isToday ? '700' : '400'};"><span>${openingDayLabels[day]}${isToday ? ' · vandaag' : ''}</span><span style="color:${dayHours?.closed ? '#dc2626' : '#334155'};">${escapeHtml(value)}</span></div>`;
                 }).join('');
               })()}
-            </div>
+            </div>`;
+          d += `${openingHoursHtml}
             <div style="font-weight:700;margin-top:6px;">🅿️ Parkeren</div>`;
           if (!charger.parkingFee) d += `<div>Gratis parkeren</div>`;
           else {
