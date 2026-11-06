@@ -13140,6 +13140,57 @@
       "pricePerKwh": 0.43,
       "source": "https://www.kilowattindex.com/site/herbolzheimsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "pratteln"
+      ],
+      "label": "Pratteln – Courtyard Basel",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.54
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/prattelnsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "egerkingen"
+      ],
+      "label": "Egerkingen – Mövenpick Hotel",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "10:00",
+          "to": "23:00",
+          "pricePerKwh": 0.58
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Egerkingen-SelfServeDemoDrive/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
