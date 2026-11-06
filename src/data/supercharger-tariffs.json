@@ -14178,6 +14178,265 @@
       ],
       "source": "https://kilowattindex.com/site/dordrechtsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "loddekopinge",
+        "löddeköpinge"
+      ],
+      "label": "Löddeköpinge – Sure Hotel by Best Western Dahls",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.3
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 2.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/loddekopingesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "linkoping",
+        "linköping"
+      ],
+      "label": "Linköping – Tornby köpcentrum",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.3
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 4.5
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 2.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Linkopingsesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "enkoping",
+        "enköping"
+      ],
+      "label": "Enköping – Dinners",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 2.4
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 4.1
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 2.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/enkopingsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "helsingborg"
+      ],
+      "label": "Helsingborg – Väla Centrum",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 2.4
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 4.6
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 2.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/301425/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "malmo",
+        "malmö"
+      ],
+      "label": "Malmö – Maxi ICA",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 2.4
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 4.5
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 2.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/405657/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "sodertalje max burgers",
+        "södertälje max burgers"
+      ],
+      "label": "Södertälje – Max Burgers",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 2.3
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 4.5
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 2.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/33434/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "orebro",
+        "örebro"
+      ],
+      "label": "Örebro – ICA Maxi",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 2.4
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 4.5
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 2.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/298938/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "umea",
+        "umeå"
+      ],
+      "label": "Umeå – Max Burgers",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 2.5
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 4.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 2.5
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/umeaswedensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "karlstad"
+      ],
+      "label": "Karlstad – Max Burgers",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 2.4
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 2.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/karlstadsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
