@@ -7701,6 +7701,240 @@
       ],
       "source": "https://www.kilowattindex.com/site/12431/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "strangnas",
+        "strängnäs"
+      ],
+      "label": "Strängnäs – Gulf",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 2.3
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 3.7
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 2.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/strangnassupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "nacka"
+      ],
+      "label": "Nacka – ICA Maxi",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.4
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 4.2
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 2.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/299799/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "trollhattan",
+        "trollhättan"
+      ],
+      "label": "Trollhättan – Överby Köpcenter",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 2.7
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 3.6
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 4.3
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 2.7
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/334111/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "bollnas",
+        "bollnäs"
+      ],
+      "label": "Bollnäs – Stora Coop Bollnäs",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://kilowattindex.com/site/30193/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "kungsbacka"
+      ],
+      "label": "Kungsbacka – Stora Coop Kungsbacka",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.3
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 4.3
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30327/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "kungalv",
+        "kungälv"
+      ],
+      "label": "Kungälv – Vikingagrillen",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 2.7
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 4.1
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/kungalvsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "uppsala"
+      ],
+      "label": "Uppsala – Fullerö Vägkrog",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 2.4
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 4.2
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 2.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/uppsalasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "gavle",
+        "gävle"
+      ],
+      "label": "Gävle – Gävlebro",
+      "timezone": "Europe/Stockholm",
+      "currency": "SEK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/gavlesupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
