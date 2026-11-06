@@ -5860,6 +5860,257 @@
       ],
       "source": "https://www.kilowattindex.com/site/uddevallasupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "silvaplana"
+      ],
+      "label": "Silvaplana – Restaurant PappaLoù",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "10:00",
+          "to": "19:00",
+          "pricePerKwh": 0.54
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://kilowattindex.com/site/436554/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "oftringen"
+      ],
+      "label": "Oftringen – you cinema",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "12:00",
+          "to": "24:00",
+          "pricePerKwh": 0.55
+        }
+      ],
+      "source": "https://kilowattindex.com/site/Oftringen-SelfServeDemoDrive/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "pfaffikon",
+        "pfäffikon"
+      ],
+      "label": "Pfäffikon – Seedamm-Center",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.59
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Seedamm-Center-SelfServeDemoDrive/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "schaffhausen"
+      ],
+      "label": "Schaffhausen",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "10:00",
+          "to": "22:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://kilowattindex.com/site/schaffhausensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "kriens"
+      ],
+      "label": "Kriens",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.64
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://kilowattindex.com/site/krienssupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "kriegstetten"
+      ],
+      "label": "Kriegstetten – Romantik Hotel & Restaurant Sternen",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.65
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.44
+        }
+      ],
+      "source": "https://kilowattindex.com/site/kriegstettensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "beckenried"
+      ],
+      "label": "Beckenried",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.58
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/beckenriedsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "st gallen",
+        "sankt gallen"
+      ],
+      "label": "St. Gallen – Shopping Arena",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.61
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/StGallenchsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
