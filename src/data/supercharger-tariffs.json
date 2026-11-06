@@ -2808,26 +2808,10 @@
       ],
       "label": "Whiterath – Applegreen Services (Northbound)",
       "timezone": "Europe/Dublin",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "04:00",
-          "pricePerKwh": 0.53
-        },
-        {
-          "from": "04:00",
-          "to": "21:00",
-          "pricePerKwh": 0.59
-        },
-        {
-          "from": "21:00",
-          "to": "24:00",
-          "pricePerKwh": 0.53
-        }
-      ],
       "source": "https://www.kilowattindex.com/site/castlebellinghamnorthboundsupercharger/",
       "sourceChecked": "2026-11-06",
-      "currency": "EUR"
+      "currency": "EUR",
+      "pricePerKwh": 0.56
     },
     {
       "country": "Ireland",
@@ -2841,17 +2825,17 @@
         {
           "from": "00:00",
           "to": "04:00",
-          "pricePerKwh": 0.38
+          "pricePerKwh": 0.4
         },
         {
           "from": "04:00",
           "to": "20:00",
-          "pricePerKwh": 0.58
+          "pricePerKwh": 0.56
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.38
+          "pricePerKwh": 0.4
         }
       ],
       "source": "https://www.kilowattindex.com/site/castlebellinghamsouthboundsupercharger/",
@@ -10065,6 +10049,118 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/sassenheimsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "dublin tesla centre",
+        "dublin sandyford"
+      ],
+      "label": "Dublin – Tesla Centre",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.61
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.54
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/dublinsandyford/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "match": [
+        "moygashel"
+      ],
+      "label": "Moygashel – The Linen Green",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.37
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/4008450/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "match": [
+        "lisburn"
+      ],
+      "label": "Lisburn – Sprucefield Park",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/4008446/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "match": [
+        "belfast tesla centre"
+      ],
+      "label": "Belfast – Tesla Centre",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/belfastteslasupercharger/",
       "sourceChecked": "2026-11-06"
     }
   ]
