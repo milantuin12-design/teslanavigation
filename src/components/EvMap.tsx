@@ -61,7 +61,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus) {
   else if (status === 'Wordt uitgebreid') color = '#22c55e';
   else if (status === 'Permanent gesloten') color = '#0f172a';
   else if (status === 'Tijdelijk gesloten') color = '#cbd5e1';
-  else if (status !== 'Beschikbaar') color = '#ef4444'; // rood: gesloten varianten
+  else if (status !== 'Beschikbaar' && status !== 'In bedrijf') color = '#ef4444'; // rood: gesloten varianten
 
   if (status === 'Voting') {
     return L.divIcon({
