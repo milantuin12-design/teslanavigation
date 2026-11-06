@@ -13129,7 +13129,6 @@
       ],
       "label": "Le Cannet-des-Maures – Best Western - Earth De Provence",
       "timezone": "Europe/Paris",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
@@ -13148,6 +13147,152 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/34029/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "cuers"
+      ],
+      "label": "Cuers – Intermarché SUPER",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/4008285/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "sausheim"
+      ],
+      "label": "Sausheim – Kyriad",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/437561/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-louis"
+      ],
+      "label": "Saint-Louis – E.Leclerc",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/349814/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "agde"
+      ],
+      "label": "Agde – Hyper U",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.23
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/413628/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "montbeliard",
+        "montbéliard"
+      ],
+      "label": "Montbéliard – E.Leclerc",
+      "timezone": "Europe/Paris",
+      "pricePerKwh": 0.35,
+      "source": "https://kilowattindex.com/site/Montbeliard422/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "herbolzheim"
+      ],
+      "label": "Herbolzheim – Autohof Europa Park",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/site/herbolzheimsupercharger/",
       "sourceChecked": "2026-11-06"
     }
   ]
