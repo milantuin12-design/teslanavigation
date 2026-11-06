@@ -74,6 +74,7 @@ function chargingCost(stop: ChargingStop, at?: Date): number | null {
 }
 
 const euro = (n: number) => `€ ${n.toFixed(2).replace('.', ',')}`;
+const localCurrency = (n: number, currency?: string) => new Intl.NumberFormat('nl-NL', { style: 'currency', currency: currency ?? 'EUR' }).format(n);
 const dur = (min: number) => (min >= 60 ? `${Math.floor(min / 60)}u${min % 60 ? ` ${min % 60}m` : ''}` : `${min}m`);
 const time = (d: Date) => d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
 
@@ -217,7 +218,7 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
               </div>
               <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
                 {activePrice !== null && (
-                  <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">€ {activePrice.toFixed(2).replace('.', ',')}/kWh{charge !== null ? ` · ${euro(charge)}` : ''}</span>
+                  <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">{localCurrency(activePrice, stop.charger.priceCurrency)}/kWh{charge !== null ? ` · ${localCurrency(charge, stop.charger.priceCurrency)}` : ''}</span>
                 )}
                 {stop.charger.parkingFee && (
                   <span className="rounded-md bg-orange-500/10 px-2 py-0.5 text-orange-300">🅿️ {park === 0 ? 'nu gratis' : park !== null ? euro(park) : 'parkeergeld'}</span>
