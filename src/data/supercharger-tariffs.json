@@ -130,7 +130,7 @@
       "label": "Parkano – HalpaHalli",
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.26,
-      "source": "https://www.kilowattindex.com/site/parkanohalpahalli/",
+      "source": "https://kilowattindex.com/site/32920/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -141,7 +141,7 @@
       "label": "Porvoo – Power",
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.23,
-      "source": "https://www.kilowattindex.com/site/porvoopower/",
+      "source": "https://kilowattindex.com/site/32917/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -152,7 +152,7 @@
       "label": "Vaasa – GW Galleria",
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.28,
-      "source": "https://www.kilowattindex.com/site/vaasagwgalleria/",
+      "source": "https://kilowattindex.com/site/32926/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -164,7 +164,7 @@
       "label": "Pyhtää – Aeronautica Arena",
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.26,
-      "source": "https://kilowattindex.com/site/pyhtaa-aeronautica-arena/",
+      "source": "https://www.kilowattindex.com/site/pyhtaasupercharger/",
       "sourceChecked": "2026-11-06"
     }
   ]
