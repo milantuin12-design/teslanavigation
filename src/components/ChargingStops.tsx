@@ -216,8 +216,8 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                 {typeof stop.energyChargedKWh === 'number' && <span className="text-emerald-300">+{stop.energyChargedKWh} kWh</span>}
               </div>
               <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-                {typeof stop.charger.pricePerKwh === 'number' && stop.charger.pricePerKwh > 0 && (
-                  <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">€ {stop.charger.pricePerKwh.toFixed(2).replace('.', ',')}/kWh{charge !== null ? ` · ${euro(charge)}` : ''}</span>
+                {activePrice !== null && (
+                  <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">€ {activePrice.toFixed(2).replace('.', ',')}/kWh{charge !== null ? ` · ${euro(charge)}` : ''}</span>
                 )}
                 {stop.charger.parkingFee && (
                   <span className="rounded-md bg-orange-500/10 px-2 py-0.5 text-orange-300">🅿️ {park === 0 ? 'nu gratis' : park !== null ? euro(park) : 'parkeergeld'}</span>
