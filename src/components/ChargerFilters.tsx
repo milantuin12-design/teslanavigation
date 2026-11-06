@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
-import { Filter, ChevronDown, ChevronUp } from "lucide-react";
+import { Filter, ChevronDown, ChevronUp, Sparkles, X } from "lucide-react";
 import type { ChargerFilterState, ChargerLifecycleStatus, Supercharger } from "@/lib/tesla-types";
 import { defaultChargerFilters } from "@/lib/tesla-types";
 import { lifecycleLabels } from "@/lib/tesla-utils";
 
+// 'plan' is hier definitief verwijderd
 const STATUS_ORDER: ChargerLifecycleStatus[] = [
   "voting",
-  "plan",
   "permit",
   "construction",
   "operational",
@@ -31,13 +31,39 @@ interface Props {
 }
 
 export default function ChargerFilters({ filters, onChange, chargers, visibleCount, owners = [] }: Props) {
-
   const [open, setOpen] = useState(false);
 
+  // Alleen landen tonen die daadwerkelijk laders hebben
   const countries = useMemo(
     () => Array.from(new Set(chargers.map((c) => c.country).filter(Boolean) as string[])).sort(),
     [chargers],
   );
+
+  // Tellen per status: alleen statussen tonen die minimaal 1 lader hebben (en geen 'plan')
+  const availableStatuses = useMemo(() => {
+    const counts: Partial<Record<ChargerLifecycleStatus, number>> = {};
+    for (const c of chargers) {
+      if (c.status && c.status !== "plan") {
+        counts[c.status] = (counts[c.status] || 0) + 1;
+      }
+    }
+    return STATUS_ORDER.filter((s) => (counts[s] || 0) > 0).map((s) => ({
+      status: s,
+      count: counts[s] || 0,
+    }));
+  }, [chargers]);
+
+  // Alleen versies tonen die daadwerkelijk voorkomen
+  const availableVersions = useMemo(() => {
+    const counts: Record<string, number> = { V2: 0, V3: 0, V4: 0 };
+    for (const c of chargers) {
+      const v = (c.stallType || "").toUpperCase();
+      if (v.includes("V2")) counts.V2 = (counts.V2 || 0) + 1;
+      if (v.includes("V3")) counts.V3 = (counts.V3 || 0) + 1;
+      if (v.includes("V4")) counts.V4 = (counts.V4 || 0) + 1;
+    }
+    return VERSIONS.filter((v) => (counts[v] || 0) > 0);
+  }, [chargers]);
 
   const toggleStatus = (status: ChargerLifecycleStatus) => {
     const next = filters.statuses.includes(status)
@@ -53,181 +79,170 @@ export default function ChargerFilters({ filters, onChange, chargers, visibleCou
     onChange({ ...filters, versions: next });
   };
 
+  const hasActiveFilters =
+    filters.search ||
+    filters.statuses.length > 0 ||
+    filters.minSpeedKw > 0 ||
+    filters.versions.length > 0 ||
+    filters.trailerOnly ||
+    filters.noGarage ||
+    filters.noParkingFee ||
+    filters.openNow ||
+    filters.lowSpeedOnly ||
+    filters.country ||
+    filters.ownerId;
+
   return (
-    <div className="rounded-lg border border-slate-700/50 bg-slate-800/40">
+    <div className="rounded-xl border border-slate-700/60 bg-slate-900/80 backdrop-blur-md shadow-xl overflow-hidden transition-all">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-200"
+        className="w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-semibold text-slate-200 hover:bg-slate-800/40 transition-colors"
       >
         <span className="flex items-center gap-2">
-          <Filter size={14} className="text-blue-400" />
-          Filters ({visibleCount} zichtbaar)
+          <Filter size={15} className="text-blue-400" />
+          <span>Filters</span>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono font-normal">
+            {visibleCount} laders
+          </span>
         </span>
-        {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        {open ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
       </button>
 
       {open && (
-        <div className="px-3 pb-3 space-y-3">
+        <div className="p-3.5 space-y-4 border-t border-slate-800/80 text-xs">
+          {/* Zoekbalk */}
           <input
             type="text"
             value={filters.search}
             onChange={(e) => onChange({ ...filters, search: e.target.value })}
-            placeholder="Zoek naam, plaats of provincie"
-            className="w-full bg-slate-800 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500"
+            placeholder="🔍 Zoek op naam of plaats…"
+            className="w-full bg-slate-950/70 border border-slate-700/60 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/80 transition-colors"
           />
 
+          {/* Statussen (alleen actieve en zonder Plan) */}
           <div>
-            <div className="text-xs text-slate-400 mb-1.5">Status</div>
-            <div className="grid grid-cols-2 gap-1">
-              {STATUS_ORDER.map((status) => (
-                <button
-                  key={status}
-                  onClick={() => toggleStatus(status)}
-                  className={`px-2 py-1.5 rounded text-[11px] font-medium text-left transition-all ${
-                    filters.statuses.includes(status)
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-800 text-slate-400 hover:bg-slate-700"
-                  }`}
-                >
-                  {lifecycleLabels[status]}
-                </button>
-              ))}
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Status</div>
+            <div className="grid grid-cols-2 gap-1.5 max-h-44 overflow-y-auto pr-1">
+              {availableStatuses.map(({ status, count }) => {
+                const active = filters.statuses.includes(status);
+                return (
+                  <button
+                    key={status}
+                    onClick={() => toggleStatus(status)}
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                      active
+                        ? "bg-blue-600 text-white shadow-sm shadow-blue-500/30"
+                        : "bg-slate-800/70 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40"
+                    }`}
+                  >
+                    <span className="truncate">{lifecycleLabels[status]}</span>
+                    <span className={`text-[10px] ml-1 font-mono ${active ? "text-blue-200" : "text-slate-400"}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
+          {/* Minimale laadsnelheid */}
           <div>
-            <div className="text-xs text-slate-400 mb-1.5">Minimale snelheid</div>
-            <div className="grid grid-cols-5 gap-1">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Min. snelheid</div>
+            <div className="grid grid-cols-6 gap-1">
               {SPEEDS.map((s) => (
                 <button
                   key={s}
                   onClick={() => onChange({ ...filters, minSpeedKw: s })}
-                  className={`px-1 py-1.5 rounded text-[11px] font-medium ${
-                    filters.minSpeedKw === s ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                  className={`py-1.5 rounded-md text-[11px] font-medium text-center transition-all ${
+                    filters.minSpeedKw === s
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/40"
                   }`}
                 >
-                  {s === 0 ? "Alle" : `${s}+`}
+                  {s === 0 ? "Alle" : `${s}`}
                 </button>
               ))}
             </div>
           </div>
 
-          <div>
-            <div className="text-xs text-slate-400 mb-1.5">Versie</div>
-            <div className="grid grid-cols-3 gap-1">
-              {VERSIONS.map((v) => (
-                <button
-                  key={v}
-                  onClick={() => toggleVersion(v)}
-                  className={`px-2 py-1.5 rounded text-[11px] font-medium ${
-                    filters.versions.includes(v) ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
-                  }`}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-1">
-            {([
-              ["trailerOnly", "Aanhangervriendelijk"],
-              ["noGarage", "Geen parkeergarage"],
-              ["noParkingFee", "Geen parkeergeld"],
-              ["openNow", "Nu open"],
-            ] as const).map(([key, label]) => (
-              <button
-                key={key}
-                onClick={() => onChange({ ...filters, [key]: !filters[key] })}
-                className={`px-2 py-1.5 rounded text-[11px] font-medium ${
-                  filters[key] ? "bg-emerald-600 text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div>
-            <div className="text-xs text-slate-400 mb-1.5">Aantal laadplekken</div>
-            <div className="grid grid-cols-3 gap-1">
-              <input
-                type="number"
-                min={0}
-                value={filters.minStalls || ""}
-                onChange={(e) => onChange({ ...filters, minStalls: Number(e.target.value) || 0, exactStalls: null })}
-                placeholder="min"
-                className="bg-slate-800 border border-slate-600/50 rounded-lg px-2 py-1.5 text-xs text-white placeholder-slate-500"
-              />
-              <input
-                type="number"
-                min={0}
-                value={filters.maxStalls || ""}
-                onChange={(e) => onChange({ ...filters, maxStalls: Number(e.target.value) || 0, exactStalls: null })}
-                placeholder="max"
-                className="bg-slate-800 border border-slate-600/50 rounded-lg px-2 py-1.5 text-xs text-white placeholder-slate-500"
-              />
-              <input
-                type="number"
-                min={0}
-                value={filters.exactStalls ?? ""}
-                onChange={(e) =>
-                  onChange({ ...filters, exactStalls: e.target.value ? Number(e.target.value) : null })
-                }
-                placeholder="exact"
-                className="bg-slate-800 border border-slate-600/50 rounded-lg px-2 py-1.5 text-xs text-white placeholder-slate-500"
-              />
-            </div>
-          </div>
-
-          <button
-            onClick={() => onChange({ ...filters, lowSpeedOnly: !filters.lowSpeedOnly })}
-            className={`w-full px-2 py-1.5 rounded text-[11px] font-medium ${
-              filters.lowSpeedOnly ? "bg-amber-600 text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
-            }`}
-          >
-            Alleen lage laadsnelheid
-          </button>
-
-          {owners.length > 0 && (
+          {/* Versie (alleen aanwezige versies) */}
+          {availableVersions.length > 0 && (
             <div>
-              <div className="text-xs text-slate-400 mb-1.5">Eigenaar</div>
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Supercharger Versie</div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {availableVersions.map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => toggleVersion(v)}
+                    className={`py-1.5 rounded-lg text-[11px] font-medium text-center transition-all ${
+                      filters.versions.includes(v)
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/40"
+                    }`}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Eigenschappen toggles */}
+          <div>
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Eigenschappen</div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {([
+                ["trailerOnly", "Aanhanger vriendelijk"],
+                ["noGarage", "Geen parkeergarage"],
+                ["noParkingFee", "Geen parkeergeld"],
+                ["openNow", "Nu geopend"],
+              ] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => onChange({ ...filters, [key]: !filters[key] })}
+                  className={`px-2 py-1.5 rounded-lg text-[11px] font-medium text-left transition-all ${
+                    filters[key]
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/40"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Land */}
+          {countries.length > 0 && (
+            <div>
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Land</div>
               <select
-                value={filters.ownerId}
-                onChange={(e) => onChange({ ...filters, ownerId: e.target.value })}
-                className="w-full bg-slate-800 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white"
+                value={filters.country}
+                onChange={(e) => onChange({ ...filters, country: e.target.value })}
+                className="w-full bg-slate-950/70 border border-slate-700/60 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none"
               >
-                <option value="">Alle eigenaren</option>
-                {owners.map((o) => (
-                  <option key={o.id} value={o.id}>{o.name}</option>
+                <option value="">Alle landen ({countries.length})</option>
+                {countries.map((c) => (
+                  <option key={c} value={c}>{c}</option>
                 ))}
               </select>
             </div>
           )}
 
-          <div>
-            <div className="text-xs text-slate-400 mb-1.5">Land</div>
-            <select
-              value={filters.country}
-              onChange={(e) => onChange({ ...filters, country: e.target.value })}
-              className="w-full bg-slate-800 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white"
+          {/* Filter wissen */}
+          {hasActiveFilters && (
+            <button
+              onClick={() => onChange({ ...defaultChargerFilters })}
+              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 transition-all"
             >
-              <option value="">Alle landen</option>
-              {countries.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-
-          <button
-            onClick={() => onChange({ ...defaultChargerFilters })}
-            className="w-full px-3 py-2 rounded-lg text-xs bg-slate-800 text-slate-300 hover:bg-slate-700"
-          >
-            Filters wissen
-          </button>
+              <X size={13} />
+              Alle filters wissen
+            </button>
+          )}
         </div>
       )}
     </div>
   );
+}
+
 }
