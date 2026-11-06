@@ -18444,8 +18444,34 @@
       ],
       "label": "Aire de la Baie de Somme",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "04:00",
+          "to": "11:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "11:00",
+          "to": "16:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "16:00",
+          "to": "21:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/airedelabaiedesommesupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -18541,10 +18567,10 @@
         {
           "from": "00:00",
           "to": "24:00",
-          "pricePerKwh": 0.35
+          "pricePerKwh": 0.34
         }
       ],
-      "source": "https://www.kilowattindex.com/site/airedelabissupercharger/",
+      "source": "https://www.kilowattindex.com/site/airedugraniersupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
