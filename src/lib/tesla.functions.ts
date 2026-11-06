@@ -235,7 +235,6 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
             ...row,
             price_per_kwh: localHasTariff ? local.price_per_kwh ?? null : row.price_per_kwh ?? null,
             price_per_kwh_peak: localHasTariff ? local.price_per_kwh_peak ?? null : row.price_per_kwh_peak ?? null,
-            peak_hours: localHasTariff ? (local.price_blocks as PriceBlock[] | null) : row.price_per_kwh_peak ?? null,
             peak_hours: localHasTariff ? local.peak_hours ?? null : row.peak_hours ?? null,
             price_blocks: localHasTariff
               ? (Array.isArray(local.price_blocks) ? (local.price_blocks as PriceBlock[]) : null)
