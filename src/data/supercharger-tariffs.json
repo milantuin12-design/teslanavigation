@@ -17461,6 +17461,47 @@
       ],
       "source": "https://kilowattindex.com/site/aresesupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "drobeta-turnu severin"
+      ],
+      "label": "Drobeta-Turnu Severin – Severin Shopping Center",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 1.59
+        },
+        {
+          "from": "10:00",
+          "to": "22:00",
+          "pricePerKwh": 2.22
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 1.59
+        }
+      ],
+      "source": "https://kilowattindex.com/site/478855/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "bratuleni",
+        "brătuleni"
+      ],
+      "label": "Brătuleni – Turbolider",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "pricePerKwh": 2.22,
+      "source": "https://www.kilowattindex.com/site/4008272/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
