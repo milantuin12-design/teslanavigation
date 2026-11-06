@@ -41,9 +41,33 @@ export function parkingCost(stop: ChargingStop, at?: Date): number | null {
   return null;
 }
 
-function chargingCost(stop: ChargingStop): number | null {
+/** Kiest het geldende kWh-tarief op het laadmoment: tijdsblokken hebben voorrang. */
+export function activePricePerKwh(stop: ChargingStop, at?: Date): number | null {
+  const blocks = stop.charger.priceBlocks;
+  if (at && Array.isArray(blocks) && blocks.length > 0) {
+    const day = at.getDay(); // 0 = zo
+    const mins = at.getHours() * 60 + at.getMinutes();
+    const dayMatch = (d?: string) => {
+      const s = (d ?? '').toLowerCase();
+      if (!s || s.includes('dagelijks') || s.includes('daily')) return true;
+      if (s.includes('weekend')) return day === 0 || day === 6;
+      if (s.includes('ma-vr') || s.includes('weekdag')) return day >= 1 && day <= 5;
+      return true;
+    };
+    for (const b of blocks) {
+      if (!dayMatch(b.days)) continue;
+      const from = b.from ? parseInt(b.from.slice(0, 2), 10) * 60 + parseInt(b.from.slice(3, 5) || '0', 10) : 0;
+      const to = b.to ? parseInt(b.to.slice(0, 2), 10) * 60 + parseInt(b.to.slice(3, 5) || '0', 10) : 1439;
+      if (mins >= from && mins <= to && b.pricePerKwh > 0) return b.pricePerKwh;
+    }
+  }
   const price = stop.charger.pricePerKwh;
-  if (typeof price !== 'number' || price <= 0) return null;
+  return typeof price === 'number' && price > 0 ? price : null;
+}
+
+function chargingCost(stop: ChargingStop, at?: Date): number | null {
+  const price = activePricePerKwh(stop, at);
+  if (price === null) return null;
   const kwh = stop.energyChargedKWh ?? 0;
   if (kwh <= 0) return null;
   return kwh * price;
@@ -91,7 +115,7 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
   const totalKWh = k100 ? (total / 100) * k100 : null;
   const totalClimb = climb(elevation, total, 0, total);
   const totalChargeMin = stops.reduce((s, x) => s + x.chargeDurationMin, 0);
-  const totalCost = stops.reduce((s, x) => s + (chargingCost(x) ?? 0) + (parkingCost(x, new Date(start.getTime() + (x.etaMinFromStart ?? 0) * 60000)) ?? 0), 0);
+  const totalCost = stops.reduce((s, x) => s + (chargingCost(x, new Date(start.getTime() + (x.etaMinFromStart ?? 0) * 60000)) ?? 0) + (parkingCost(x, new Date(start.getTime() + (x.etaMinFromStart ?? 0) * 60000)) ?? 0), 0);
   const arrivalTime = route ? new Date(start.getTime() + (route.totalTimeMin + totalChargeMin + restMin) * 60000) : null;
 
   if (totalDistanceKm === null || !route) {
@@ -166,7 +190,8 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
         const maxSpeedKw = ccsBlocked ? (v2SpeedKw(stop.charger) ?? 0) : parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
         const eta = typeof stop.etaMinFromStart === 'number' ? new Date(start.getTime() + stop.etaMinFromStart * 60000) : null;
         const park = parkingCost(stop, eta ?? undefined);
-        const charge = chargingCost(stop);
+        const charge = chargingCost(stop, eta ?? undefined);
+        const activePrice = activePricePerKwh(stop, eta ?? undefined);
         return (
           <div key={idx} className="space-y-2">
             {legEl(idx)}
