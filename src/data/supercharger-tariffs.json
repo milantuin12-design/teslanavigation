@@ -6643,6 +6643,168 @@
       "pricePerKwh": 0.57,
       "source": "https://kilowattindex.com/country/bg/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "timisoara hotel continental"
+      ],
+      "label": "Timișoara – Hotel Continental",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1.1
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 2.06
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.1
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Timisoararosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "selimbar",
+        "șelimbăr"
+      ],
+      "label": "Șelimbăr – Shopping City Sibiu",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1.22
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 2.45
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Sibiurosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "floresti",
+        "florești"
+      ],
+      "label": "Florești – VIVO!",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 1.27
+        },
+        {
+          "from": "10:00",
+          "to": "23:00",
+          "pricePerKwh": 2.4
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/clujnapoca/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "constanta",
+        "constanța"
+      ],
+      "label": "Constanța – City Park Mall",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1.27
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 2.58
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 1.99
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/ConstantaSupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "domnesti"
+      ],
+      "label": "Domnești – Fashion House Outlet Centre Militari",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "12:00",
+          "pricePerKwh": 1.31
+        },
+        {
+          "from": "12:00",
+          "to": "24:00",
+          "pricePerKwh": 1.9
+        }
+      ],
+      "source": "https://kilowattindex.com/site/32852/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Romania",
+      "match": [
+        "timisoara vox",
+        "vox technology"
+      ],
+      "label": "Timișoara – VOX Technology Park",
+      "timezone": "Europe/Bucharest",
+      "currency": "RON",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.4
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 2.36
+        }
+      ],
+      "source": "https://kilowattindex.com/site/441114/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
