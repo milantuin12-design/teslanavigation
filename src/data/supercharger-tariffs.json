@@ -1,7 +1,7 @@
 {
   "version": 1,
   "checkedAt": "2026-11-06",
-  "note": "Alleen Tesla-rijderstarieven. Tijdzone Europe/Helsinki. Alleen exact gepubliceerde blokken of vaste tarieven; onbekende tarieven blijven leeg. Matcht alleen operationele locaties.",
+  "note": "Alleen Tesla-rijderstarieven. Tijdblokken zijn lokaal per station. Alleen exact gepubliceerde blokken of vaste tarieven; onbekende tarieven blijven leeg. Matcht alleen operationele locaties.",
   "tariffs": [
     {
       "country": "Finland",
@@ -673,6 +673,284 @@
         }
       ],
       "source": "https://kilowattindex.com/site/300542/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "magdeburg"
+      ],
+      "label": "Magdeburg – McDonald's",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/296279/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "hannover"
+      ],
+      "label": "Hannover – Hotel Hennies",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/28708/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "prum",
+        "prüm"
+      ],
+      "label": "Prüm – Karolingerplatz",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.23
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29818/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "koblenz"
+      ],
+      "label": "Koblenz – Autohof Koblenz Metternich",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.23
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30084/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "wiesbaden"
+      ],
+      "label": "Wiesbaden – GLOBUS",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30044/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "wittlich"
+      ],
+      "label": "Wittlich – GLOBUS",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/404460/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "freiburg-gundelfingen",
+        "gundelfingen"
+      ],
+      "label": "Freiburg-Gundelfingen – Edeka",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30322/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "berlin alexa",
+        "alexa"
+      ],
+      "label": "Berlin – ALEXA",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/179718/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "kaiserslautern"
+      ],
+      "label": "Kaiserslautern – GLOBUS",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29711/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "eimeldingen"
+      ],
+      "label": "Eimeldingen – Penny",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29805/",
       "sourceChecked": "2026-11-06"
     }
   ]
