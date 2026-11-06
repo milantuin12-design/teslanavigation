@@ -396,9 +396,38 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         if (extras.length > 0) {
           popup += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0;display:grid;gap:2px;color:#334155;font-weight:500;">${extras.map((line) => `<div>• ${escapeHtml(line)}</div>`).join('')}</div>`;
         }
+        popup += `<div style="margin-top:6px;color:#64748b;font-size:11px;">Dubbelklik op de lader voor alle prijzen, tijden en parkeergeld</div>`;
         popup += `<button type="button" data-report-id="${escapeHtml(charger.id ?? '')}" data-report-name="${escapeHtml(charger.name ?? '')}" style="margin-top:8px;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#b91c1c;font-weight:600;cursor:pointer;">Fout melden</button>`;
         popup += `</div>`;
         marker.bindPopup(popup);
+        marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
+          L.DomEvent.stop(ev);
+          const eur = (v?: number | null) => (typeof v === 'number' ? `€${v.toFixed(2).replace('.', ',')}` : '—');
+          const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
+          let d = `<div style="font-family:system-ui;font-size:13px;min-width:260px;color:#0f172a;display:grid;gap:4px;">
+            <strong style="font-size:15px;">${escapeHtml(charger.name || 'Onbekend')}</strong>
+            <div style="font-weight:700;margin-top:4px;">⚡ Prijzen</div>
+            ${row('Per kWh', eur(charger.pricePerKwh))}
+            ${charger.pricePerKwhPeak != null ? row('Piek per kWh', eur(charger.pricePerKwhPeak)) : ''}
+            ${charger.peakHours ? row('Piekuren', escapeHtml(charger.peakHours)) : ''}
+            ${(charger.priceBlocks ?? []).map((b) => row(escapeHtml(`${b.days ?? 'Dagelijks'} ${b.from ?? ''}–${b.to ?? ''}`), eur(b.pricePerKwh))).join('')}
+            <div style="font-weight:700;margin-top:6px;">🕒 Openingstijden</div>
+            <div>${escapeHtml(formatOpeningHoursSummary(charger))}</div>
+            ${charger.openingTime || charger.closingTime ? row('Open', escapeHtml(`${charger.openingTime ?? '00:00'} – ${charger.closingTime ?? '24:00'}`)) : ''}
+            <div style="font-weight:700;margin-top:6px;">🅿️ Parkeren</div>`;
+          if (!charger.parkingFee) d += `<div>Gratis parkeren</div>`;
+          else {
+            if (charger.parkingFeeAmount) d += row('Vast bedrag', eur(charger.parkingFeeAmount));
+            if (charger.parkingFreeMinutes) d += row('Gratis', `${charger.parkingFreeMinutes} min`);
+            if (charger.parkingPerMinutes && charger.parkingPerEuro) d += row('Daarna', `${eur(charger.parkingPerEuro)} per ${charger.parkingPerMinutes} min`);
+            if (!charger.parkingFeeAmount && !charger.parkingPerEuro) d += `<div>Parkeergeld verplicht (bedrag onbekend)</div>`;
+          }
+          if (charger.inParkingGarage) d += `<div>In parkeergarage</div>`;
+          if (charger.trailerFriendly) d += `<div>Aanhangervriendelijk</div>`;
+          if (!hideSpeed && configs.length) d += `<div style="font-weight:700;margin-top:6px;">🔌 Laders</div>${groupChargerConfigs(configs).map((l) => `<div>${escapeHtml(l)}</div>`).join('')}`;
+          d += `</div>`;
+          L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(d).openOn(map);
+        });
         (clusterRef.current ?? markersRef.current).addLayer(marker);
       } catch { /* skip bad charger */ }
     });
