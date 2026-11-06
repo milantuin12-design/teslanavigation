@@ -3963,6 +3963,255 @@
       ],
       "source": "https://www.kilowattindex.com/site/getafesupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "verona"
+      ],
+      "label": "Verona – Tesla Center",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/299146/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "grandate"
+      ],
+      "label": "Grandate – Centro Grandate",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/grandatesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "milano",
+        "citylife"
+      ],
+      "label": "Milano – CityLife Shopping District",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.48
+        }
+      ],
+      "source": "https://kilowattindex.com/site/20986/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "carugate"
+      ],
+      "label": "Carugate – Centro Commerciale Carosello",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://kilowattindex.com/site/30350/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "mestre"
+      ],
+      "label": "Mestre – Centro Commerciale Porte di Mestre",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/26131/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "martignacco"
+      ],
+      "label": "Martignacco – Città Fiera",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30821/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "torri di quartesolo"
+      ],
+      "label": "Torri di Quartesolo – Le Piramidi Shopping District",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/4934/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "nice"
+      ],
+      "label": "Nice",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/nicesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "coquelles"
+      ],
+      "label": "Coquelles – Eurotunnel Lounge",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "04:00",
+          "to": "12:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "12:00",
+          "to": "18:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "18:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/eurotunnelloungesupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
