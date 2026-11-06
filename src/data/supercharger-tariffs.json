@@ -15937,6 +15937,84 @@
       ],
       "source": "https://www.kilowattindex.com/site/14754/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "kastav north",
+        "vrata jadrana croatia north"
+      ],
+      "label": "Kastav – Vrata Jadrana (North)",
+      "timezone": "Europe/Zagreb",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "12:00",
+          "to": "18:00",
+          "pricePerKwh": 0.51
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/35725/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "kastav south",
+        "vrata jadrana croatia south"
+      ],
+      "label": "Kastav – Vrata Jadrana (South)",
+      "timezone": "Europe/Zagreb",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "12:00",
+          "to": "18:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/403404/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
