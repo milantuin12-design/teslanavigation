@@ -13407,6 +13407,33 @@
       "pricePerKwh": 2.6,
       "source": "https://kilowattindex.com/site/padborgsuperchargerq122/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "senj"
+      ],
+      "label": "Senj – Hotel Art",
+      "timezone": "Europe/Zagreb",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://kilowattindex.com/site/senjsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
