@@ -1332,17 +1332,17 @@
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.26
         },
         {
           "from": "09:00",
           "to": "21:00",
-          "pricePerKwh": 0.3
+          "pricePerKwh": 0.32
         },
         {
           "from": "21:00",
           "to": "24:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.26
         }
       ],
       "source": "https://www.kilowattindex.com/site/30815/",
@@ -8162,6 +8162,33 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/ossupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "rankweil"
+      ],
+      "label": "Rankweil – Passage 22",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "04:00",
+          "to": "22:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/208112/",
       "sourceChecked": "2026-11-06"
     }
   ]
