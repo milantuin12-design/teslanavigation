@@ -16654,6 +16654,49 @@
       "pricePerKwh": 60,
       "source": "https://www.kilowattindex.com/site/34100/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "wels welas park"
+      ],
+      "label": "Wels – Welas Park",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30767/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "steyr"
+      ],
+      "label": "Steyr – Taborland",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.32,
+      "source": "https://www.kilowattindex.com/site/32601/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
