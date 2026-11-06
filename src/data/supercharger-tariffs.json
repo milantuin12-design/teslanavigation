@@ -12003,6 +12003,82 @@
       "pricePerKwh": 0.34,
       "source": "https://www.kilowattindex.com/site/29901/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "rivabellosa"
+      ],
+      "label": "Rivabellosa – Arasur Restaurante Cafeteria",
+      "timezone": "Europe/Madrid",
+      "pricePerKwh": 0.33,
+      "source": "https://www.kilowattindex.com/site/rivabellosasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "fuentespina"
+      ],
+      "label": "Fuentespina – Tudanca",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "18:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/arandadeduerosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "lerma"
+      ],
+      "label": "Lerma – CARBURANTES DE ESPAÑA",
+      "timezone": "Europe/Madrid",
+      "pricePerKwh": 0.34,
+      "source": "https://www.kilowattindex.com/site/30023/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "tordesillas"
+      ],
+      "label": "Tordesillas – El Montico",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "18:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://kilowattindex.com/site/tordesillassupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
