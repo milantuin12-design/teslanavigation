@@ -246,6 +246,7 @@ export interface RouteResult {
 
 export type ChargerStatus =
   | 'Beschikbaar'
+  | 'In bedrijf'
   | 'Druk'
   | 'Vol'
   | 'Onbekend'
