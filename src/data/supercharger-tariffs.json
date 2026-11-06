@@ -3326,21 +3326,21 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.27
         },
         {
           "from": "08:00",
-          "to": "20:00",
-          "pricePerKwh": 0.41
-        },
-        {
-          "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.36
+          "pricePerKwh": 0.37
         }
       ],
-      "source": "https://www.kilowattindex.com/site/32605/",
+      "source": "https://kilowattindex.com/site/32605/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -3387,23 +3387,23 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.27
         },
         {
           "from": "08:00",
-          "to": "18:00",
-          "pricePerKwh": 0.47
-        },
-        {
-          "from": "18:00",
           "to": "22:00",
           "pricePerKwh": 0.4
         },
         {
           "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.27
         }
       ],
       "source": "https://www.kilowattindex.com/site/105091/",
@@ -3420,21 +3420,26 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.28
+          "pricePerKwh": 0.27
         },
         {
           "from": "08:00",
           "to": "21:00",
-          "pricePerKwh": 0.43
+          "pricePerKwh": 0.41
         },
         {
           "from": "21:00",
           "to": "24:00",
-          "pricePerKwh": 0.28
+          "pricePerKwh": 0.27
         }
       ],
-      "source": "https://www.kilowattindex.com/site/297327/",
+      "source": "https://kilowattindex.com/site/297327/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -3448,28 +3453,23 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.27
         },
         {
           "from": "08:00",
-          "to": "12:00",
-          "pricePerKwh": 0.41
-        },
-        {
-          "from": "12:00",
-          "to": "19:00",
-          "pricePerKwh": 0.48
-        },
-        {
-          "from": "19:00",
           "to": "23:00",
-          "pricePerKwh": 0.41
+          "pricePerKwh": 0.4
         },
         {
           "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.27
         }
       ],
       "source": "https://www.kilowattindex.com/site/30071/",
@@ -3576,18 +3576,23 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.27
         },
         {
           "from": "08:00",
           "to": "22:00",
-          "pricePerKwh": 0.49
+          "pricePerKwh": 0.44
         },
         {
           "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.27
         }
       ],
       "source": "https://www.kilowattindex.com/site/401267/",
@@ -16603,6 +16608,38 @@
       "currency": "HUF",
       "pricePerKwh": 153,
       "source": "https://www.kilowattindex.com/site/gyorsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "stockerau"
+      ],
+      "label": "Stockerau – McDonald's",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://kilowattindex.com/site/32603/",
       "sourceChecked": "2026-11-06"
     }
   ]
