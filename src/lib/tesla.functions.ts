@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, PlannedUpgrade, PriceBlock, StallState, Supercharger, VotingInfo, WorksInfo } from "./tesla-types";
 import type { Json } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import tariffDataset from "@/data/supercharger-tariffs.json";
 import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, normalizeOpeningHours, parseChargerConfigsFromLegacy } from "./tesla-utils";
 
 function normalizeStallData(totalStalls?: number | null, stallTypes?: string | null) {
@@ -146,6 +147,40 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
 }
 
 
+type TariffOverride = {
+  country: string;
+  match: string[];
+  pricePerKwh?: number;
+  priceBlocks?: { from: string; to: string; pricePerKwh: number }[];
+};
+
+function normalizeTariffMatch(value: string) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function applyTariffOverride(row: Row): Row {
+  // Never assign tariffs to sites that are not explicitly operational.
+  if (row.status !== "operational") return row;
+  const tariffs = (tariffDataset as unknown as { tariffs: TariffOverride[] }).tariffs;
+  const country = normalizeTariffMatch(row.country ?? "");
+  const name = normalizeTariffMatch(row.name ?? "");
+  const match = tariffs.find((tariff) => {
+    if (normalizeTariffMatch(tariff.country) !== country) return false;
+    return tariff.match.some((term) => {
+      const normalizedTerm = normalizeTariffMatch(term);
+      return name === normalizedTerm || name.includes(normalizedTerm);
+    });
+  });
+  if (!match) return row;
+  return {
+    ...row,
+    price_per_kwh: match.pricePerKwh ?? null,
+    price_per_kwh_peak: null,
+    peak_hours: null,
+    price_blocks: match.priceBlocks?.length ? match.priceBlocks : null,
+  };
+}
+
 /**
  * Local-first: de meegeleverde dataset (src/data/superchargers.json) is de basis.
  * Lukt het ophalen van de cloud-overlay niet, dan blijft de app gewoon werken met
@@ -192,28 +227,30 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
       const localById = new Map(localRows.map((row) => [row.id, row]));
       return result.rows.map((row) => {
         const local = localById.get(row.id);
-        if (!local) return rowToCharger(row, owners);
-        const localHasTariff =
-          (Array.isArray(local.price_blocks) && local.price_blocks.length > 0) ||
-          typeof local.price_per_kwh === "number";
-        const merged: Row = {
-          ...row,
-          price_per_kwh: localHasTariff ? local.price_per_kwh ?? null : row.price_per_kwh ?? null,
-          price_per_kwh_peak: localHasTariff ? local.price_per_kwh_peak ?? null : row.price_per_kwh_peak ?? null,
-          peak_hours: localHasTariff ? local.peak_hours ?? null : row.peak_hours ?? null,
-          price_blocks: localHasTariff
-            ? (Array.isArray(local.price_blocks) ? (local.price_blocks as PriceBlock[]) : null)
-            : (Array.isArray(row.price_blocks) && row.price_blocks.length > 0
-                ? row.price_blocks
-                : Array.isArray(local.price_blocks)
-                  ? (local.price_blocks as PriceBlock[])
-                  : null),
-        };
-        return rowToCharger(merged, owners);
+        const merged: Row = !local ? row : (() => {
+          const localHasTariff =
+            (Array.isArray(local.price_blocks) && local.price_blocks.length > 0) ||
+            typeof local.price_per_kwh === "number";
+          return {
+            ...row,
+            price_per_kwh: localHasTariff ? local.price_per_kwh ?? null : row.price_per_kwh ?? null,
+            price_per_kwh_peak: localHasTariff ? local.price_per_kwh_peak ?? null : row.price_per_kwh_peak ?? null,
+            peak_hours: localHasTariff ? (local.price_blocks as PriceBlock[] | null) : row.price_per_kwh_peak ?? null,
+            peak_hours: localHasTariff ? local.peak_hours ?? null : row.peak_hours ?? null,
+            price_blocks: localHasTariff
+              ? (Array.isArray(local.price_blocks) ? (local.price_blocks as PriceBlock[]) : null)
+              : (Array.isArray(row.price_blocks) && row.price_blocks.length > 0
+                  ? row.price_blocks
+                  : Array.isArray(local.price_blocks)
+                    ? (local.price_blocks as PriceBlock[])
+                    : null),
+          };
+        })();
+        return rowToCharger(applyTariffOverride(merged), owners);
       });
     } catch (error) {
       console.error("[TeslaNavigation] Clouddata ophalen mislukt; lokale dataset wordt gebruikt:", error);
-      return localRows.map((row) => rowToCharger(row, owners));
+      return localRows.map((row) => rowToCharger(applyTariffOverride(row), owners));
     }
   }
 );
