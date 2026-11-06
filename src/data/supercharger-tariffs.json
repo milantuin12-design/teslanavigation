@@ -7531,6 +7531,55 @@
       ],
       "source": "https://www.kilowattindex.com/site/apeldoornoostsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "lippetal"
+      ],
+      "label": "Lippetal – Euro Rastpark",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/lippetalsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "friedland"
+      ],
+      "label": "Friedland",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.38,
+      "source": "https://www.kilowattindex.com/site/29774/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "windischeschenbach"
+      ],
+      "label": "Windischeschenbach",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/4008318/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
