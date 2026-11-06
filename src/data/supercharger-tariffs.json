@@ -15389,6 +15389,204 @@
       ],
       "source": "https://www.kilowattindex.com/site/29267/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "lier burger king"
+      ],
+      "label": "Lier – Burger King",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 5.1
+        }
+      ],
+      "source": "https://kilowattindex.com/site/liersouthsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "billingstad"
+      ],
+      "label": "Billingstad – Slependen Senter",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 3.7
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 5.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.7
+        }
+      ],
+      "source": "https://kilowattindex.com/site/33971/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "ulleval stadion",
+        "ullevål stadion"
+      ],
+      "label": "Oslo – Ullevål Stadion",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 5.3
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.8
+        }
+      ],
+      "source": "https://kilowattindex.com/site/OsloNorthSupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "rygge"
+      ],
+      "label": "Rygge – McDonald's",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "11:00",
+          "pricePerKwh": 1.9
+        },
+        {
+          "from": "11:00",
+          "to": "20:00",
+          "pricePerKwh": 5.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.5
+        }
+      ],
+      "source": "https://kilowattindex.com/site/ryggesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "tonsberg power",
+        "tønsberg power"
+      ],
+      "label": "Tønsberg – POWER",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 5.2
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 2
+        }
+      ],
+      "source": "https://kilowattindex.com/site/32807/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "stokke"
+      ],
+      "label": "Stokke – Hageland & Mattorget",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.4
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 4.9
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 2.4
+        }
+      ],
+      "source": "https://kilowattindex.com/site/407725/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "haugesund"
+      ],
+      "label": "Haugesund – Obs BYGG Haugesund",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "11:00",
+          "pricePerKwh": 2.5
+        },
+        {
+          "from": "11:00",
+          "to": "21:00",
+          "pricePerKwh": 5.4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 2.5
+        }
+      ],
+      "source": "https://kilowattindex.com/site/59269/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
