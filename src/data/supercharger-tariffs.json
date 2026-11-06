@@ -16131,6 +16131,112 @@
       ],
       "source": "https://www.kilowattindex.com/site/95123/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "bristol welcome break"
+      ],
+      "label": "Bristol – Welcome Break Services",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://kilowattindex.com/site/bristolgordanosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "bristol tesla centre"
+      ],
+      "label": "Bristol – Tesla Centre",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "09:00",
+          "to": "19:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://kilowattindex.com/site/1039/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "sarn"
+      ],
+      "label": "Sarn – Welcome Break Services",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "pricePerKwh": 0.5,
+      "source": "https://kilowattindex.com/site/sarnparksupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "dursley"
+      ],
+      "label": "Dursley – Welcome Break Services",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "pricePerKwh": 0.46,
+      "source": "https://www.kilowattindex.com/site/33311/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
