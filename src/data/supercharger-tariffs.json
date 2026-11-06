@@ -10913,6 +10913,72 @@
       "pricePerKwh": 0.37,
       "source": "https://www.kilowattindex.com/site/28779/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Estonia",
+      "match": [
+        "tallinn"
+      ],
+      "label": "Tallinn – Balti Jaama Market",
+      "timezone": "Europe/Tallinn",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "10:00",
+          "to": "22:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/28976/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Estonia",
+      "match": [
+        "tartu"
+      ],
+      "label": "Tartu – Lõunakeskus",
+      "timezone": "Europe/Tallinn",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "04:00",
+          "to": "21:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/28979/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Estonia",
+      "match": [
+        "parnu",
+        "pärnu"
+      ],
+      "label": "Pärnu – Pärnu Keskuse Selver",
+      "timezone": "Europe/Tallinn",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/site/33144/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
