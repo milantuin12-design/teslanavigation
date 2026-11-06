@@ -12218,8 +12218,15 @@
       "timezone": "Europe/Paris",
       "currency": "EUR",
       "pricePerKwh": 0.35,
-      "source": "https://www.kilowattindex.com/site/orangesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "source": "https://kilowattindex.com/site/orangesupercharger/",
+      "sourceChecked": "2026-11-06",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ]
     },
     {
       "country": "France",
@@ -18634,8 +18641,14 @@
       ],
       "label": "Angoulême",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/angoulemesupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19018,8 +19031,14 @@
       ],
       "label": "Briançon",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/33161/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19606,8 +19625,34 @@
       ],
       "label": "Gap",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.15
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "10:00",
+          "to": "19:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.15
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/302565/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
