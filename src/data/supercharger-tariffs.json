@@ -1234,6 +1234,348 @@
       ],
       "source": "https://kilowattindex.com/site/27649/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovenia",
+      "match": [
+        "ljubljana"
+      ],
+      "label": "Ljubljana – Four Points by Sheraton",
+      "timezone": "Europe/Ljubljana",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "08:00",
+          "to": "18:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.17
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/ljubljanasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovenia",
+      "match": [
+        "maribor"
+      ],
+      "label": "Maribor – Petrol",
+      "timezone": "Europe/Ljubljana",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.2
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/mariborsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovenia",
+      "match": [
+        "koper"
+      ],
+      "label": "Koper – Planet",
+      "timezone": "Europe/Ljubljana",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/31147/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovenia",
+      "match": [
+        "novo mesto"
+      ],
+      "label": "Novo Mesto – Stop Shop",
+      "timezone": "Europe/Ljubljana",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30815/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovenia",
+      "match": [
+        "krskem",
+        "krško"
+      ],
+      "label": "Krškem – Stop Shop",
+      "timezone": "Europe/Ljubljana",
+      "pricePerKwh": 0.27,
+      "source": "https://www.kilowattindex.com/site/298859/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovenia",
+      "match": [
+        "slovenska bistrica"
+      ],
+      "label": "Slovenska Bistrica – Stop Shop",
+      "timezone": "Europe/Ljubljana",
+      "pricePerKwh": 0.29,
+      "source": "https://www.kilowattindex.com/site/298526/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovenia",
+      "match": [
+        "zirovnica",
+        "žirovnica"
+      ],
+      "label": "Žirovnica – N-Gen",
+      "timezone": "Europe/Ljubljana",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/zirovnicaq222/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovenia",
+      "match": [
+        "kozina"
+      ],
+      "label": "Kozina – Admiral",
+      "timezone": "Europe/Ljubljana",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.37
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/kozinasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovakia",
+      "match": [
+        "liptovsky mikulas",
+        "liptovský mikuláš"
+      ],
+      "label": "Liptovský Mikuláš – Demänová Rezort",
+      "timezone": "Europe/Bratislava",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/demanovasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovakia",
+      "match": [
+        "trencin",
+        "trenčín"
+      ],
+      "label": "Trencin – OC Laugaricio",
+      "timezone": "Europe/Bratislava",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Trencinsksupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovakia",
+      "match": [
+        "sielnica"
+      ],
+      "label": "Sielnica – Hotel Kaskady",
+      "timezone": "Europe/Bratislava",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/zvolensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovakia",
+      "match": [
+        "bratislava avion",
+        "avion shopping park"
+      ],
+      "label": "Bratislava – Avion Shopping Park",
+      "timezone": "Europe/Bratislava",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/33969/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovakia",
+      "match": [
+        "bratislava aupark",
+        "aupark"
+      ],
+      "label": "Bratislava – Aupark",
+      "timezone": "Europe/Bratislava",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/bratislavasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Slovakia",
+      "match": [
+        "kosice",
+        "košice"
+      ],
+      "label": "Košice – OC Optima",
+      "timezone": "Europe/Bratislava",
+      "pricePerKwh": 0.28,
+      "source": "https://www.kilowattindex.com/site/kosicesupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
