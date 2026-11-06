@@ -1576,6 +1576,301 @@
       "pricePerKwh": 0.28,
       "source": "https://www.kilowattindex.com/site/kosicesupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "oosterhout"
+      ],
+      "label": "Oosterhout – KFC",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.47
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/oosterhoutsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "emmeloord"
+      ],
+      "label": "Emmeloord – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "12:00",
+          "to": "19:00",
+          "pricePerKwh": 0.51
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/emmeloordsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "ugchelen"
+      ],
+      "label": "Ugchelen – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "19:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/apeldoornsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "hengelo"
+      ],
+      "label": "Hengelo – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Hengelonlsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "harderwijk"
+      ],
+      "label": "Harderwijk – Burger King",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "12:00",
+          "to": "19:00",
+          "pricePerKwh": 0.51
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/147956/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "horst"
+      ],
+      "label": "Horst – Parkhotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "04:00",
+          "to": "11:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "11:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/horstsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "zwolle"
+      ],
+      "label": "Zwolle – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "19:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/zwollesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "rosmalen"
+      ],
+      "label": "Rosmalen – Fletcher Hotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.44
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/shertogenboschsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "zevenaar"
+      ],
+      "label": "Zevenaar – Burger King",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/zevenaarsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "breda"
+      ],
+      "label": "Breda – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/bredasupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
