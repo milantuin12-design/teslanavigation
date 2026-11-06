@@ -10092,7 +10092,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/28849/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -10238,7 +10239,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/sassenheimsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -10393,7 +10395,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/leiderdorpsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -10530,7 +10533,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/goudasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -10552,7 +10556,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/breukelensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -10579,7 +10584,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/29071/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -10606,7 +10612,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/zaltbommelsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -10690,7 +10697,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/Ridderkerknlsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -10745,7 +10753,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/26914/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -10901,7 +10910,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/28976/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Estonia",
@@ -10928,7 +10938,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/28979/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Estonia",
@@ -10940,7 +10951,8 @@
       "timezone": "Europe/Tallinn",
       "pricePerKwh": 0.37,
       "source": "https://www.kilowattindex.com/site/33144/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Lithuania",
@@ -10968,7 +10980,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/kaunassupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -11345,126 +11358,6 @@
       "sourceChecked": "2026-11-06"
     },
     {
-      "country": "Netherlands",
-      "match": [
-        "nootdorp"
-      ],
-      "label": "Nootdorp – Van der Valk Hotel",
-      "timezone": "Europe/Amsterdam",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "09:00",
-          "pricePerKwh": 0.33
-        },
-        {
-          "from": "09:00",
-          "to": "24:00",
-          "pricePerKwh": 0.45
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/Nootdop222/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
-      "country": "Netherlands",
-      "match": [
-        "badhoevedorp"
-      ],
-      "label": "Badhoevedorp – Corendon Amsterdam Schiphol Airport",
-      "timezone": "Europe/Amsterdam",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "09:00",
-          "pricePerKwh": 0.34
-        },
-        {
-          "from": "09:00",
-          "to": "23:00",
-          "pricePerKwh": 0.45
-        },
-        {
-          "from": "23:00",
-          "to": "24:00",
-          "pricePerKwh": 0.34
-        }
-      ],
-      "source": "https://kilowattindex.com/site/badhoevedorpsupercharger/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
-      "country": "Netherlands",
-      "match": [
-        "rijswijk"
-      ],
-      "label": "Rijswijk – Restaurant, Hotel & Spa Savarin",
-      "timezone": "Europe/Amsterdam",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "09:00",
-          "pricePerKwh": 0.32
-        },
-        {
-          "from": "09:00",
-          "to": "24:00",
-          "pricePerKwh": 0.45
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/rijswijksupercharger/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
-      "country": "Netherlands",
-      "match": [
-        "schiedam"
-      ],
-      "label": "Schiedam – Valk Exclusief",
-      "timezone": "Europe/Amsterdam",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "09:00",
-          "pricePerKwh": 0.34
-        },
-        {
-          "from": "09:00",
-          "to": "23:00",
-          "pricePerKwh": 0.45
-        },
-        {
-          "from": "23:00",
-          "to": "24:00",
-          "pricePerKwh": 0.34
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/schiedamsupercharger/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
-      "country": "Netherlands",
-      "match": [
-        "nieuwerkerk aan den ijssel"
-      ],
-      "label": "Nieuwerkerk aan den IJssel – Van der Valk Hotel",
-      "timezone": "Europe/Amsterdam",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "09:00",
-          "pricePerKwh": 0.33
-        },
-        {
-          "from": "09:00",
-          "to": "24:00",
-          "pricePerKwh": 0.43
-        }
-      ],
-      "source": "https://kilowattindex.com/site/29074/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
       "country": "Italy",
       "match": [
         "grugliasco"
@@ -11598,114 +11491,6 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/dineitsupercharger/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
-      "country": "Netherlands",
-      "match": [
-        "akersloot"
-      ],
-      "label": "Akersloot – Van der Valk Hotel",
-      "timezone": "Europe/Amsterdam",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "09:00",
-          "pricePerKwh": 0.32
-        },
-        {
-          "from": "09:00",
-          "to": "23:00",
-          "pricePerKwh": 0.42
-        },
-        {
-          "from": "23:00",
-          "to": "24:00",
-          "pricePerKwh": 0.32
-        }
-      ],
-      "source": "https://kilowattindex.com/site/akerslootsupercharger/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
-      "country": "Netherlands",
-      "match": [
-        "bunnik"
-      ],
-      "label": "Bunnik – Postillion Hotel",
-      "timezone": "Europe/Amsterdam",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "09:00",
-          "pricePerKwh": 0.32
-        },
-        {
-          "from": "09:00",
-          "to": "23:00",
-          "pricePerKwh": 0.4
-        },
-        {
-          "from": "23:00",
-          "to": "24:00",
-          "pricePerKwh": 0.32
-        }
-      ],
-      "source": "https://kilowattindex.com/site/bunniksupercharger/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
-      "country": "Netherlands",
-      "match": [
-        "meerkerk"
-      ],
-      "label": "Meerkerk – La Place",
-      "timezone": "Europe/Amsterdam",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "10:00",
-          "pricePerKwh": 0.32
-        },
-        {
-          "from": "10:00",
-          "to": "20:00",
-          "pricePerKwh": 0.39
-        },
-        {
-          "from": "20:00",
-          "to": "24:00",
-          "pricePerKwh": 0.32
-        }
-      ],
-      "source": "https://kilowattindex.com/site/meerkerksupercharger/",
-      "sourceChecked": "2026-11-06"
-    },
-    {
-      "country": "Netherlands",
-      "match": [
-        "gorinchem"
-      ],
-      "label": "Gorinchem – Van der Valk Hotel",
-      "timezone": "Europe/Amsterdam",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "09:00",
-          "pricePerKwh": 0.32
-        },
-        {
-          "from": "09:00",
-          "to": "22:00",
-          "pricePerKwh": 0.39
-        },
-        {
-          "from": "22:00",
-          "to": "24:00",
-          "pricePerKwh": 0.32
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/33039/",
       "sourceChecked": "2026-11-06"
     },
     {
