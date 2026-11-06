@@ -180,7 +180,9 @@ export interface Supercharger {
   parkingPerMinutes?: number | null;
   /** Kosten in euro per tijdsblok. */
   parkingPerEuro?: number | null;
-  /** Laadtarief per kWh in euro. */
+  /** Valuta voor de weergegeven laadprijzen (ISO 4217), standaard EUR. */
+  priceCurrency?: string;
+  /** Laadtarief per kWh in de opgegeven valuta. */
   pricePerKwh?: number | null;
   /** Piek-tarief per kWh in euro (optioneel). */
   pricePerKwhPeak?: number | null;
