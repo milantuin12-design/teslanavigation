@@ -18408,8 +18408,14 @@
       ],
       "label": "Aire de l'Abis",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/airedelabissupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -18531,8 +18537,14 @@
       ],
       "label": "Aire du Granier",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/airedelabissupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -18615,8 +18627,29 @@
       ],
       "label": "Albi",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.18
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/302487/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -18847,8 +18880,29 @@
       ],
       "label": "Avignon",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.16
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Self-ServeDemoDriveAvignon/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
