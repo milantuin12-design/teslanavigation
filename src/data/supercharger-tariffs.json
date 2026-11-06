@@ -7650,34 +7650,6 @@
       "sourceChecked": "2026-11-06"
     },
     {
-      "country": "Greece",
-      "match": [
-        "patra 8a"
-      ],
-      "label": "Patra – 8A",
-      "timezone": "Europe/Athens",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "16:00",
-          "pricePerKwh": 0.46
-        },
-        {
-          "from": "16:00",
-          "to": "20:00",
-          "pricePerKwh": 0.48
-        },
-        {
-          "from": "20:00",
-          "to": "24:00",
-          "pricePerKwh": 0.46
-        }
-      ],
-      "source": "https://kilowattindex.com/site/patranorthsupercharger/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
-    },
-    {
       "country": "Netherlands",
       "match": [
         "wolvega"
@@ -12284,6 +12256,153 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/295618/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Greece",
+      "match": [
+        "thessaloniki"
+      ],
+      "label": "Thessaloniki – Mediterranean Cosmos",
+      "timezone": "Europe/Athens",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "10:00",
+          "to": "23:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.23
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30115/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Greece",
+      "match": [
+        "athens golden hall"
+      ],
+      "label": "Athens – Golden Hall",
+      "timezone": "Europe/Athens",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.52
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.45
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/athenssupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Greece",
+      "match": [
+        "larissa"
+      ],
+      "label": "Larissa – Fashion City Outlet",
+      "timezone": "Europe/Athens",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/26404/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Greece",
+      "match": [
+        "ioannina"
+      ],
+      "label": "Ioannina – Ελίν Anatoli",
+      "timezone": "Europe/Athens",
+      "pricePerKwh": 0.46,
+      "source": "https://www.kilowattindex.com/site/29576/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Greece",
+      "match": [
+        "atalanti dyt",
+        "atalánti dyt"
+      ],
+      "label": "Αταλάντη – Atalánti Dyt",
+      "timezone": "Europe/Athens",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.46
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/atalantiwestsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Greece",
+      "match": [
+        "atalantis anatolis"
+      ],
+      "label": "Atalanti – Atalántis Anatolís",
+      "timezone": "Europe/Athens",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.46
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/atalantieastsupercharger/",
       "sourceChecked": "2026-11-06"
     }
   ]
