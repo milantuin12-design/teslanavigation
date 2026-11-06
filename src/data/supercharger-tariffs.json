@@ -482,6 +482,116 @@
       ],
       "source": "https://www.kilowattindex.com/site/296991/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "äänekoski",
+        "aanekoski"
+      ],
+      "label": "Äänekoski – ABC",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://kilowattindex.com/site/aanekoskisupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "jämsä",
+        "jamsa"
+      ],
+      "label": "Jämsä – Patalahti",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://kilowattindex.com/site/4008263/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "hankasalmi"
+      ],
+      "label": "Hankasalmi – Jari-Pekka",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://kilowattindex.com/site/32914/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "hartola"
+      ],
+      "label": "Hartola – Jari-Pekka",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://kilowattindex.com/site/Hartola422/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
