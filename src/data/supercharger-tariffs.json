@@ -4538,25 +4538,25 @@
         {
           "from": "00:00",
           "to": "04:00",
-          "pricePerKwh": 0.16
+          "pricePerKwh": 0.15
         },
         {
           "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.23
+          "pricePerKwh": 0.22
         },
         {
           "from": "08:00",
           "to": "20:00",
-          "pricePerKwh": 0.41
+          "pricePerKwh": 0.42
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.23
+          "pricePerKwh": 0.22
         }
       ],
-      "source": "https://kilowattindex.com/site/corsesupercharger/",
+      "source": "https://www.kilowattindex.com/site/corsesupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -12878,7 +12878,7 @@
           "pricePerKwh": 0.32
         }
       ],
-      "source": "https://kilowattindex.com/site/444263/",
+      "source": "https://www.kilowattindex.com/site/444263/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -12894,17 +12894,17 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.17
+          "pricePerKwh": 0.18
         },
         {
           "from": "08:00",
           "to": "20:00",
-          "pricePerKwh": 0.43
+          "pricePerKwh": 0.45
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.26
         }
       ],
       "source": "https://www.kilowattindex.com/site/Dardillyfrsupercharger/",
@@ -12946,7 +12946,7 @@
           "pricePerKwh": 0.22
         }
       ],
-      "source": "https://kilowattindex.com/site/chamberysupercharger/",
+      "source": "https://www.kilowattindex.com/site/chamberysupercharger/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -12974,7 +12974,7 @@
           "pricePerKwh": 0.26
         }
       ],
-      "source": "https://kilowattindex.com/site/413672/",
+      "source": "https://www.kilowattindex.com/site/413672/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -12988,20 +12988,20 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.16
+          "pricePerKwh": 0.17
         },
         {
           "from": "08:00",
           "to": "21:00",
-          "pricePerKwh": 0.41
+          "pricePerKwh": 0.43
         },
         {
           "from": "21:00",
           "to": "24:00",
-          "pricePerKwh": 0.16
+          "pricePerKwh": 0.17
         }
       ],
-      "source": "https://kilowattindex.com/site/vidaubanfrsupercharger/",
+      "source": "https://www.kilowattindex.com/site/vidaubanfrsupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -13016,7 +13016,7 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.18
+          "pricePerKwh": 0.16
         },
         {
           "from": "08:00",
@@ -13026,7 +13026,7 @@
         {
           "from": "21:00",
           "to": "24:00",
-          "pricePerKwh": 0.18
+          "pricePerKwh": 0.16
         }
       ],
       "source": "https://www.kilowattindex.com/site/34029/",
@@ -16966,20 +16966,20 @@
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.17
+          "pricePerKwh": 0.18
         },
         {
           "from": "09:00",
           "to": "20:00",
-          "pricePerKwh": 0.43
+          "pricePerKwh": 0.45
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.33
+          "pricePerKwh": 0.34
         }
       ],
-      "source": "https://kilowattindex.com/site/302373/",
+      "source": "https://www.kilowattindex.com/site/302373/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
