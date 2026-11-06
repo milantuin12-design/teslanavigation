@@ -1648,13 +1648,18 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.26
+          "pricePerKwh": 0.31
         },
         {
           "from": "08:00",
           "to": "24:00",
-          "pricePerKwh": 0.47
+          "pricePerKwh": 0.43
         }
       ],
       "source": "https://www.kilowattindex.com/site/oosterhoutsupercharger/",
@@ -1783,27 +1788,17 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.27
+          "pricePerKwh": 0.31
         },
         {
           "from": "08:00",
-          "to": "12:00",
-          "pricePerKwh": 0.46
-        },
-        {
-          "from": "12:00",
-          "to": "19:00",
-          "pricePerKwh": 0.51
-        },
-        {
-          "from": "19:00",
           "to": "23:00",
-          "pricePerKwh": 0.46
+          "pricePerKwh": 0.45
         },
         {
           "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.27
+          "pricePerKwh": 0.31
         }
       ],
       "source": "https://www.kilowattindex.com/site/147956/",
@@ -1952,21 +1947,26 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.28
+          "pricePerKwh": 0.32
         },
         {
           "from": "08:00",
           "to": "23:00",
-          "pricePerKwh": 0.47
+          "pricePerKwh": 0.43
         },
         {
           "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.28
+          "pricePerKwh": 0.32
         }
       ],
-      "source": "https://www.kilowattindex.com/site/bredasupercharger/",
+      "source": "https://kilowattindex.com/site/bredasupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR",
       "countryAliases": [
@@ -2143,18 +2143,23 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "04:00",
           "to": "09:00",
-          "pricePerKwh": 0.28
+          "pricePerKwh": 0.32
         },
         {
           "from": "09:00",
           "to": "23:00",
-          "pricePerKwh": 0.49
+          "pricePerKwh": 0.45
         },
         {
           "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.28
+          "pricePerKwh": 0.32
         }
       ],
       "source": "https://www.kilowattindex.com/site/Tilburgnlsupercharger/",
@@ -7813,6 +7818,11 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "04:00",
           "to": "09:00",
           "pricePerKwh": 0.29
         },
@@ -14135,6 +14145,38 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/montecenerisupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "dordrecht"
+      ],
+      "label": "Dordrecht – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://kilowattindex.com/site/dordrechtsupercharger/",
       "sourceChecked": "2026-11-06"
     }
   ]
