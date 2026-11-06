@@ -161,6 +161,8 @@ function AdminPage() {
   const [newOwnerName, setNewOwnerName] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
+  const [bulkPrice, setBulkPrice] = useState({ pricePerKwh: "", pricePerKwhPeak: "", peakHours: "", parkingFeeAmount: "", parkingFreeMinutes: "", parkingPerMinutes: "", parkingPerEuro: "" });
   const fileRef = useRef<HTMLInputElement>(null);
   const runImport = useServerFn(importSuperchargers);
 
@@ -363,7 +365,7 @@ function AdminPage() {
     return data.id;
   };
 
-  const bulkUpdate = async (changes: Partial<Pick<Charger, "trailer_friendly" | "low_speed" | "published" | "owner_id">>) => {
+  const bulkUpdate = async (changes: Record<string, unknown>) => {
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
     const { error } = await supabase.from("superchargers").update(changes).in("id", ids);
@@ -371,7 +373,21 @@ function AdminPage() {
     toast.success(`${ids.length} Superchargers bijgewerkt`);
     setSelectedIds(new Set());
     setBulkOpen(false);
+    setBulkPriceOpen(false);
     load();
+  };
+
+  const applyBulkPrice = () => {
+    const changes: Record<string, unknown> = {};
+    if (bulkPrice.pricePerKwh !== "") changes.price_per_kwh = Number(bulkPrice.pricePerKwh);
+    if (bulkPrice.pricePerKwhPeak !== "") changes.price_per_kwh_peak = Number(bulkPrice.pricePerKwhPeak);
+    if (bulkPrice.peakHours !== "") changes.peak_hours = bulkPrice.peakHours;
+    if (bulkPrice.parkingFeeAmount !== "") { changes.parking_fee = true; changes.parking_fee_amount = Number(bulkPrice.parkingFeeAmount); }
+    if (bulkPrice.parkingFreeMinutes !== "") { changes.parking_fee = true; changes.parking_free_minutes = Number(bulkPrice.parkingFreeMinutes); }
+    if (bulkPrice.parkingPerMinutes !== "") { changes.parking_fee = true; changes.parking_per_minutes = Number(bulkPrice.parkingPerMinutes); }
+    if (bulkPrice.parkingPerEuro !== "") { changes.parking_fee = true; changes.parking_per_euro = Number(bulkPrice.parkingPerEuro); }
+    if (Object.keys(changes).length === 0) { toast.error("Vul minstens één prijs in"); return; }
+    bulkUpdate(changes);
   };
 
   if (isAdmin === null) return <div className="min-h-screen bg-slate-900 text-white p-8">Laden…</div>;
