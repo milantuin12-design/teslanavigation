@@ -8446,6 +8446,206 @@
       ],
       "source": "https://www.kilowattindex.com/site/3325/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Czechia",
+      "match": [
+        "ostrava-jih-zabreh",
+        "ostrava-jih"
+      ],
+      "label": "Ostrava-jih-Zábřeh – E-MOTION Park",
+      "timezone": "Europe/Prague",
+      "currency": "CZK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 7.1
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 12.3
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 7.1
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/33967/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Czechia",
+      "match": [
+        "vestec u prahy"
+      ],
+      "label": "Vestec U Prahy – Restaurace U Krbu",
+      "timezone": "Europe/Prague",
+      "currency": "CZK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 6.9
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 12.3
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 6.9
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/vestecsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Czechia",
+      "match": [
+        "ricany u prahy",
+        "řičany u prahy"
+      ],
+      "label": "Říčany u Prahy – Obchodní Centrum",
+      "timezone": "Europe/Prague",
+      "currency": "CZK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 6.7
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 12.3
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 6.7
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/445853/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Czechia",
+      "match": [
+        "lovosice"
+      ],
+      "label": "Lovosice – LOVO Café",
+      "timezone": "Europe/Prague",
+      "currency": "CZK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 12.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 14.2
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 12.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/lovosicesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Czechia",
+      "match": [
+        "jamne",
+        "jamné"
+      ],
+      "label": "Jamné – Hotel Rytířsko",
+      "timezone": "Europe/Prague",
+      "currency": "CZK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 9.9
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 13.3
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 9.9
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/33963/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Czechia",
+      "match": [
+        "humpolec"
+      ],
+      "label": "Humpolec – Bistro & Shop",
+      "timezone": "Europe/Prague",
+      "currency": "CZK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 7.2
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 12.8
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 7.2
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/humpolecsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Czechia",
+      "match": [
+        "plzen",
+        "plzeň"
+      ],
+      "label": "Plzeň – Hôtel Ibis",
+      "timezone": "Europe/Prague",
+      "currency": "CZK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 6.9
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 12.3
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 6.9
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Plzenczsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
