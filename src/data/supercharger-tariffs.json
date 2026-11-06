@@ -18854,8 +18854,24 @@
       ],
       "label": "Arès",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.16
+        }
+      ],
+      "source": "https://kilowattindex.com/site/30203/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19041,8 +19057,24 @@
       ],
       "label": "Bègles",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.17
+        }
+      ],
+      "source": "https://kilowattindex.com/site/BordeauxEstFrancesupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19167,8 +19199,29 @@
       ],
       "label": "Mérignac",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.15
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "09:00",
+          "to": "19:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://kilowattindex.com/site/bordeauxmerignacsupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19179,8 +19232,24 @@
       ],
       "label": "Bordeaux Lac",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.2
+        }
+      ],
+      "source": "https://kilowattindex.com/site/BordeauxNordq222/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
