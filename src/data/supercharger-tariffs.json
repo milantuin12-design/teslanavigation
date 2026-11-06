@@ -16590,7 +16590,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/32698/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Hungary",
@@ -16635,7 +16636,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/32603/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Iceland",
@@ -16680,7 +16682,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30767/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -16691,7 +16694,8 @@
       "timezone": "Europe/Vienna",
       "pricePerKwh": 0.32,
       "source": "https://www.kilowattindex.com/site/32601/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -16702,7 +16706,8 @@
       "timezone": "Europe/Vienna",
       "pricePerKwh": 0.35,
       "source": "https://www.kilowattindex.com/site/asten/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -16713,7 +16718,8 @@
       "timezone": "Europe/Vienna",
       "pricePerKwh": 0.35,
       "source": "https://www.kilowattindex.com/site/30768/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -16724,7 +16730,8 @@
       "timezone": "Europe/Vienna",
       "pricePerKwh": 0.35,
       "source": "https://www.kilowattindex.com/site/EberstalzellSelfServeDemoTestDrive/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -16735,7 +16742,8 @@
       "timezone": "Europe/Vienna",
       "pricePerKwh": 0.37,
       "source": "https://www.kilowattindex.com/site/449655/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -16927,7 +16935,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/airedemanissieuxsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -16954,7 +16963,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/302373/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -16986,7 +16996,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/301402/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -17018,7 +17029,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/297775/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     }
   ]
 }
