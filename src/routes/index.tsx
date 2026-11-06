@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Bookmark, History, SlidersHorizontal, AlertTriangle } from "lucide-react";
+import { Bookmark, History, SlidersHorizontal, AlertTriangle, Loader2 } from "lucide-react";
 import ChargerFilters from "@/components/ChargerFilters";
 import ReportChargerDialog, { type ReportTarget } from "@/components/ReportChargerDialog";
 import OwnerPanel from "@/components/OwnerPanel";
