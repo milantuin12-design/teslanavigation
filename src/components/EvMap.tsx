@@ -5,7 +5,7 @@ import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig } from '@/lib/tesla-types';
-import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, getOpenStalls, isVisibleOnMap, getTotalStallsFromConfigs, isChargerUsable, normalizeChargerConfigs, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
+import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, isChargerUsable, normalizeChargerConfigs, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
 
 interface EvMapProps {
   startCoord: { lat: number; lng: number } | null;
@@ -85,9 +85,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus) {
   const hasClosedWorks = charger.status === 'works_closed';
   const isLowSpeed = !!charger.lowSpeed;
 
-  const stalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls;
-  const usableNow = stalls && (charger.status === 'operational' || charger.status === 'works' || charger.status === 'expanding' || !charger.status) ? getOpenStalls(charger) : stalls;
-  const label = usableNow !== undefined && stalls ? String(usableNow) : '';
+  // Geen live bezettingsaantallen op kaartmarkers tonen.
 
   const ringStyle = isConstruction
     ? 'border:2px dashed #fff;outline:2px dashed rgba(245,158,11,0.9);outline-offset:2px;'
@@ -115,7 +113,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus) {
     className: 'custom-marker',
     html: `<div style="position:relative;width:${size}px;height:${size}px;">
       <div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};${ringStyle}box-shadow:0 3px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
-        <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${wrenchGlyph || escapeHtml(label)}</div>
+        <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${wrenchGlyph || ''}</div>
       </div>
       ${badges.join('')}
     </div>`,
@@ -344,8 +342,6 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
             const closed = closedConfigs.reduce((sum, c) => sum + c.count, 0);
             const available = Math.max(0, total - closed);
             popup += `<div style="margin-top:4px;color:#b45309;font-weight:600;">${total} totaal · ${closed} buiten gebruik · ${available} beschikbaar</div>`;
-          } else if (charger.status === 'works') {
-            popup += `<div style="margin-top:4px;color:#b45309;font-weight:600;">${getOpenStalls(charger)} laders nu bruikbaar</div>`;
           }
         }
 
