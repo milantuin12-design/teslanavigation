@@ -19308,8 +19308,14 @@
       ],
       "label": "Aime-la-Plagne",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/34049/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
