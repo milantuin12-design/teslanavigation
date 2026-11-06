@@ -2965,7 +2965,28 @@
       ],
       "label": "Lokeren – Biznis Hotel",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.41
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -2977,7 +2998,28 @@
       ],
       "label": "Diegem – Holiday Inn",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.37
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -2989,7 +3031,28 @@
       ],
       "label": "Anderlecht – Westland Shopping",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.55
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -3002,7 +3065,28 @@
       ],
       "label": "Bruxelles – Docks Bruxsel",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.53
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -3014,7 +3098,28 @@
       ],
       "label": "Machelen – Van der Valk Hotel",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -3026,7 +3131,33 @@
       ],
       "label": "Marche-en-Famenne – Intermarché",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "10:00",
+          "to": "19:00",
+          "pricePerKwh": 0.61
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -3039,7 +3170,28 @@
       ],
       "label": "Ghent – Van der Valk Hotel",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.6
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -3051,7 +3203,28 @@
       ],
       "label": "Kortrijk – Kinepolis",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.61
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -3063,7 +3236,28 @@
       ],
       "label": "Stekene – Brasserie Renard",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.4
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -3077,7 +3271,28 @@
       ],
       "label": "Braine-l'Alleud – Esso",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -4655,7 +4870,33 @@
       ],
       "label": "Remouchamps",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "10:00",
+          "to": "19:00",
+          "pricePerKwh": 0.59
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -4846,7 +5087,28 @@
       ],
       "label": "Edegem – Hotel Ter Elst",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.57
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.47
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -8356,7 +8618,28 @@
       ],
       "label": "Heusden-Zolder – Zolder",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.61
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.49
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -8368,7 +8651,28 @@
       ],
       "label": "Hasselt – Corda Campus",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.6
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -8380,7 +8684,28 @@
       ],
       "label": "Liège – Cora Rocourt",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -8392,7 +8717,28 @@
       ],
       "label": "Nivelles – Van der Valk Hotel",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -8405,7 +8751,28 @@
       ],
       "label": "Zaventem – Brico",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.57
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -8419,7 +8786,28 @@
       ],
       "label": "Suarlée – Business Village Ecolys",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -9652,7 +10040,28 @@
       ],
       "label": "Verviers – Van der Valk Hotel",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 0.6
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -9664,7 +10073,28 @@
       ],
       "label": "Aalst – Ibis",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.59
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.4
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -16398,7 +16828,33 @@
       "label": "Arlon – Van der Valk Hotel",
       "timezone": "Europe/Brussels",
       "currency": "EUR",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "12:00",
+          "to": "21:00",
+          "pricePerKwh": 0.54
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.45
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06"
     },
@@ -16410,7 +16866,28 @@
       "label": "Couvin – Brasserie des Fagnes",
       "timezone": "Europe/Brussels",
       "currency": "EUR",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.46
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06"
     },
@@ -16422,7 +16899,33 @@
       "label": "Mons – Van der Valk Hotel",
       "timezone": "Europe/Brussels",
       "currency": "EUR",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "19:00",
+          "pricePerKwh": 0.58
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06"
     },
@@ -16434,7 +16937,33 @@
       "label": "Wavre – Novotel",
       "timezone": "Europe/Brussels",
       "currency": "EUR",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "19:00",
+          "pricePerKwh": 0.61
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06"
     },
@@ -16446,7 +16975,28 @@
       "label": "Charleroi – Parc de la Madeleine",
       "timezone": "Europe/Brussels",
       "currency": "EUR",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.58
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.42
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06"
     },
@@ -17725,7 +18275,28 @@
       "label": "Antwerpen – Bhotel",
       "timezone": "Europe/Brussels",
       "currency": "EUR",
-      "priceBlocks": [],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.52
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06"
     }
