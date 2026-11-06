@@ -166,6 +166,126 @@
       "pricePerKwh": 0.26,
       "source": "https://www.kilowattindex.com/site/pyhtaasupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "pori"
+      ],
+      "label": "Pori – Puuvilla",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "10:00",
+          "to": "22:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://kilowattindex.com/site/32927/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "akaa"
+      ],
+      "label": "Akaa – ABC",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.19
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/akaatoijalasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "mikkeli"
+      ],
+      "label": "Mikkeli – Mikkelin satama",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://kilowattindex.com/site/Mikkelifisupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "kuopio"
+      ],
+      "label": "Kuopio – Juustoportti",
+      "timezone": "Europe/Helsinki",
+      "pricePerKwh": 0.26,
+      "source": "https://kilowattindex.com/site/kuopiosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "vierumäki",
+        "vierumaki"
+      ],
+      "label": "Vierumäki – Vierumäen Matkakeidas",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://kilowattindex.com/site/vierumakisupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
