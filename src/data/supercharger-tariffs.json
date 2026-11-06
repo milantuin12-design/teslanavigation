@@ -14890,6 +14890,357 @@
       ],
       "source": "https://www.kilowattindex.com/site/28708/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "vestby"
+      ],
+      "label": "Vestby – Vestby Storsenter",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 2.9
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 5.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 2.9
+        }
+      ],
+      "source": "https://kilowattindex.com/site/15291/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "holmestrand"
+      ],
+      "label": "Holmestrand – Holmestrandtoppen senter",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 3.7
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 5.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 2.5
+        }
+      ],
+      "source": "https://kilowattindex.com/site/holmestrandsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "gjovik",
+        "gjøvik"
+      ],
+      "label": "Gjøvik – CC Gjøvik",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 1.9
+        },
+        {
+          "from": "10:00",
+          "to": "19:00",
+          "pricePerKwh": 5.4
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 3.3
+        }
+      ],
+      "source": "https://kilowattindex.com/site/Gjoviknosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "lierskogen"
+      ],
+      "label": "Lierskogen – Liertoppen",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 3.4
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 5.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.4
+        }
+      ],
+      "source": "https://kilowattindex.com/site/liertoppensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "hellerudsletta"
+      ],
+      "label": "Hellerudsletta – X Hotel",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.3
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 6.3
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 2.3
+        }
+      ],
+      "source": "https://kilowattindex.com/site/33563/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "vikesa",
+        "vikeså"
+      ],
+      "label": "Vikeså – Extra",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "11:00",
+          "pricePerKwh": 3.9
+        },
+        {
+          "from": "11:00",
+          "to": "15:00",
+          "pricePerKwh": 5.2
+        },
+        {
+          "from": "15:00",
+          "to": "20:00",
+          "pricePerKwh": 6.1
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.3
+        }
+      ],
+      "source": "https://kilowattindex.com/site/vikesasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "oydegard",
+        "øydegard"
+      ],
+      "label": "Øydegard – Aspøya Fjordsenter",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 4.1
+        },
+        {
+          "from": "09:00",
+          "to": "13:00",
+          "pricePerKwh": 4.6
+        },
+        {
+          "from": "13:00",
+          "to": "20:00",
+          "pricePerKwh": 5.8
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.1
+        }
+      ],
+      "source": "https://kilowattindex.com/site/aspoyasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "sandefjord"
+      ],
+      "label": "Sandefjord – OBS Bygg",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 4.9
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 5.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://kilowattindex.com/site/Tonsbergnosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "lampeland"
+      ],
+      "label": "Lampeland – Fv 134",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 4.3
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 5.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.3
+        }
+      ],
+      "source": "https://kilowattindex.com/site/lampelandsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "lier max burgers"
+      ],
+      "label": "Lier – Max Burgers",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1.9
+        },
+        {
+          "from": "09:00",
+          "to": "13:00",
+          "pricePerKwh": 4.7
+        },
+        {
+          "from": "13:00",
+          "to": "20:00",
+          "pricePerKwh": 5.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.7
+        }
+      ],
+      "source": "https://kilowattindex.com/site/liernorthsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "stavanger tvedt"
+      ],
+      "label": "Stavanger – Tvedt Senteret",
+      "timezone": "Europe/Oslo",
+      "currency": "NOK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 5.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3
+        }
+      ],
+      "source": "https://kilowattindex.com/site/StavangerCentralnosupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
