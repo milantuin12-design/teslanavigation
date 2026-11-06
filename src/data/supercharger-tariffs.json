@@ -8365,6 +8365,87 @@
       ],
       "source": "https://kilowattindex.com/site/namursupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "noventa di piave"
+      ],
+      "label": "Noventa di Piave – Comune di Noventa di Piave",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30519/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "telgate"
+      ],
+      "label": "Telgate – Turra Petroli",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://kilowattindex.com/site/32347/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "trento"
+      ],
+      "label": "Trento – B&B Hotel",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/3325/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
