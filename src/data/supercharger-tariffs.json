@@ -12967,22 +12967,21 @@
       ],
       "label": "Vidauban – Aire de Vidauban Sud",
       "timezone": "Europe/Paris",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.17
+          "pricePerKwh": 0.16
         },
         {
           "from": "08:00",
           "to": "21:00",
-          "pricePerKwh": 0.43
+          "pricePerKwh": 0.41
         },
         {
           "from": "21:00",
           "to": "24:00",
-          "pricePerKwh": 0.17
+          "pricePerKwh": 0.16
         }
       ],
       "source": "https://kilowattindex.com/site/vidaubanfrsupercharger/",
@@ -17031,6 +17030,88 @@
       "source": "https://www.kilowattindex.com/site/297775/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "le muy"
+      ],
+      "label": "Le Muy – Grand Frais",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.16
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/437030/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "mougins"
+      ],
+      "label": "Mougins – La Bastide de Mougins",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/mouginssupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-raphael",
+        "saint-raphaël"
+      ],
+      "label": "Saint-Raphaël – Grand Frais",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/437216/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
