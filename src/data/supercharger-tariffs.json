@@ -10162,6 +10162,183 @@
       ],
       "source": "https://www.kilowattindex.com/site/belfastteslasupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "leiderdorp"
+      ],
+      "label": "Leiderdorp – La Place",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/leiderdorpsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "nieuwerkerk aan den ijssel",
+        "nieuwerkerk"
+      ],
+      "label": "Nieuwerkerk aan den IJssel – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.45
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29074/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "dordrecht"
+      ],
+      "label": "Dordrecht – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.41
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/dordrechtsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "nootdorp"
+      ],
+      "label": "Nootdorp – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.48
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Nootdop222/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "schiedam"
+      ],
+      "label": "Schiedam – Valk Exclusief",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/schiedamsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "gouda"
+      ],
+      "label": "Gouda – Restaurant De Beren Gouda",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/goudasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "breukelen"
+      ],
+      "label": "Breukelen – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.45
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/breukelensupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
