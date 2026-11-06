@@ -13704,6 +13704,364 @@
       ],
       "source": "https://www.kilowattindex.com/site/404811/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "affoltern am albis"
+      ],
+      "label": "Affoltern am Albis – MY STOP",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/affolternsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "obfelden"
+      ],
+      "label": "Obfelden – MY STOP",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/obfeldensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "maienfeld"
+      ],
+      "label": "Maienfeld – Swiss Heidi Hotel",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.53
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/maienfeldsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "landquart"
+      ],
+      "label": "Landquart – Fasion Outlet",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "10:00",
+          "to": "19:00",
+          "pricePerKwh": 0.63
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Landquart422/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "grancia"
+      ],
+      "label": "Grancia – Centro Lugano Sud",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "09:00",
+          "to": "19:00",
+          "pricePerKwh": 0.64
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/LuganoSudchsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "wallisellen"
+      ],
+      "label": "Wallisellen – Einkaufszentrum Glatt",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.52
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 0.64
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.41
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Glattzentrum-SelfServeDemoDrive/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "westside bern",
+        "bern westside"
+      ],
+      "label": "Bern – Westside Bern",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 0.69
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.56
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/302257/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "st moritz"
+      ],
+      "label": "St. Moritz – Parkhaus Serletta",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "10:00",
+          "to": "19:00",
+          "pricePerKwh": 0.67
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/stmoritzsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "locarno"
+      ],
+      "label": "Locarno – Centro Sei",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "18:00",
+          "pricePerKwh": 0.67
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.58
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/300746/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "martigny"
+      ],
+      "label": "Martigny – Marché Relais St. Bernard",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.66
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/martignysupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "fluelen",
+        "flüelen"
+      ],
+      "label": "Flüelen – Edelweiss Bowling Bar",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.62
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.49
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/fluelensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Switzerland",
+      "match": [
+        "cadenazzo"
+      ],
+      "label": "Cadenazzo – Fela Ticino",
+      "timezone": "Europe/Zurich",
+      "currency": "CHF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.63
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/cadenazzosuperchargerq122/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
