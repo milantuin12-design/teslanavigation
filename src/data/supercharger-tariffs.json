@@ -13315,6 +13315,91 @@
       "pricePerKwh": 2.6,
       "source": "https://kilowattindex.com/site/592602/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "hedensted"
+      ],
+      "label": "Hedensted – Burger King",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://www.kilowattindex.com/site/hedenstedsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "vejle"
+      ],
+      "label": "Vejle – McDonald's",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://www.kilowattindex.com/site/326209/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "middelfart"
+      ],
+      "label": "Middelfart – Comwell Hotels",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://www.kilowattindex.com/site/middelfartsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "kolding"
+      ],
+      "label": "Kolding – Kolding Storcenter",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://www.kilowattindex.com/site/Koldingsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "rodekro",
+        "rødekro"
+      ],
+      "label": "Rødekro – Sunset Boulevard",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://www.kilowattindex.com/site/8114/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "aabenraa uno-x"
+      ],
+      "label": "Aabenraa – Uno-x",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://www.kilowattindex.com/site/8114/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "aabenraa mcdonald"
+      ],
+      "label": "Aabenraa – McDonald's",
+      "timezone": "Europe/Copenhagen",
+      "currency": "DKK",
+      "pricePerKwh": 2.6,
+      "source": "https://www.kilowattindex.com/site/8114/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
