@@ -28,7 +28,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/32930/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -65,7 +66,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/32932/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -93,7 +95,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/58587/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -120,7 +123,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/32913/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -131,7 +135,8 @@
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.26,
       "source": "https://kilowattindex.com/site/32920/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -142,7 +147,8 @@
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.23,
       "source": "https://kilowattindex.com/site/32917/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -153,7 +159,8 @@
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.28,
       "source": "https://kilowattindex.com/site/32926/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -165,7 +172,8 @@
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.26,
       "source": "https://www.kilowattindex.com/site/pyhtaasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -192,7 +200,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/32927/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -219,7 +228,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/akaatoijalasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -246,7 +256,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/Mikkelifisupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -257,7 +268,8 @@
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.26,
       "source": "https://kilowattindex.com/site/kuopiosupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -285,7 +297,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/vierumakisupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -313,7 +326,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/Jyvaskyla/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -340,7 +354,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/kempele/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -367,7 +382,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/492664/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -395,7 +411,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/4008211/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -427,7 +444,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/414315/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -454,7 +472,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/32928/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -481,7 +500,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/296991/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -509,7 +529,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/aanekoskisupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -537,7 +558,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/4008263/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -564,7 +586,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/32914/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -591,7 +614,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/Hartola422/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -619,7 +643,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/karesuvantosupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -646,7 +671,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/301125/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -673,7 +699,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/300542/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -700,7 +727,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/296279/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -727,7 +755,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/28708/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -760,7 +789,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29818/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -787,7 +817,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30084/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -814,7 +845,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30044/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -841,7 +873,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/404460/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -869,7 +902,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30322/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -897,7 +931,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/179718/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -924,7 +959,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29711/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -951,7 +987,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29805/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -978,7 +1015,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/metzsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -1011,7 +1049,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/417319/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -1043,7 +1082,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/45349/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -1070,7 +1110,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/300325/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -1097,7 +1138,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/bassindarcachonsuperchargerq122/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -1124,7 +1166,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/296242/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -1152,7 +1195,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/caensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -1179,7 +1223,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/30245/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -1206,7 +1251,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/58603/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -1233,7 +1279,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/27649/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovenia",
@@ -1265,7 +1312,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/ljubljanasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovenia",
@@ -1292,7 +1340,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/mariborsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovenia",
@@ -1319,7 +1368,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/31147/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovenia",
@@ -1346,7 +1396,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30815/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovenia",
@@ -1358,7 +1409,8 @@
       "timezone": "Europe/Ljubljana",
       "pricePerKwh": 0.27,
       "source": "https://www.kilowattindex.com/site/298859/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovenia",
@@ -1369,7 +1421,8 @@
       "timezone": "Europe/Ljubljana",
       "pricePerKwh": 0.29,
       "source": "https://www.kilowattindex.com/site/298526/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovenia",
@@ -1397,7 +1450,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/zirovnicaq222/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovenia",
@@ -1424,7 +1478,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/kozinasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovakia",
@@ -1452,7 +1507,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/demanovasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovakia",
@@ -1480,7 +1536,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Trencinsksupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovakia",
@@ -1507,7 +1564,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/zvolensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovakia",
@@ -1535,7 +1593,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/33969/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovakia",
@@ -1563,7 +1622,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/bratislavasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Slovakia",
@@ -1575,7 +1635,8 @@
       "timezone": "Europe/Bratislava",
       "pricePerKwh": 0.28,
       "source": "https://www.kilowattindex.com/site/kosicesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1597,7 +1658,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/oosterhoutsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1634,7 +1696,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/emmeloordsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1666,7 +1729,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/apeldoornsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1693,7 +1757,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Hengelonlsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1730,7 +1795,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/147956/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1762,7 +1828,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/horstsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1794,7 +1861,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/zwollesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1816,7 +1884,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/shertogenboschsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1843,7 +1912,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/zevenaarsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1870,7 +1940,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/bredasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1897,7 +1968,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/287934/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1929,7 +2001,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/middelburgsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1956,7 +2029,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Heerlen422/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -1983,7 +2057,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Haarlem422/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -2010,7 +2085,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/leusdensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -2037,7 +2113,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Tilburgnlsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -2064,7 +2141,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/hoornsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -2091,7 +2169,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Eemnesnlsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Portugal",
@@ -2123,7 +2202,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Mealhadasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Portugal",
@@ -2151,7 +2231,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/fatimaselfservelocation/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Portugal",
@@ -2178,7 +2259,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/14182/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Portugal",
@@ -2205,7 +2287,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/14181/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Portugal",
@@ -2242,7 +2325,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/alcantarilhasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Portugal",
@@ -2279,7 +2363,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/loulesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Portugal",
@@ -2307,7 +2392,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/alcacerdosalsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Portugal",
@@ -2334,7 +2420,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/montemoronovosupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Portugal",
@@ -2366,7 +2453,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/guardaptsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Portugal",
@@ -2377,7 +2465,8 @@
       "timezone": "Europe/Lisbon",
       "pricePerKwh": 0.4,
       "source": "https://www.kilowattindex.com/site/vilarealsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2404,7 +2493,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/4008265/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2432,7 +2522,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/4008308/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2459,7 +2550,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/469554/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2486,7 +2578,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/athenrysupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2513,7 +2606,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/birdhillsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2540,7 +2634,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/ballacollasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2572,7 +2667,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/corksupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2599,7 +2695,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/4008454/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2626,7 +2723,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/470752/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2653,7 +2751,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Traleesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2675,7 +2774,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/59506/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2697,7 +2797,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/enfieldiesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2725,7 +2826,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/castlebellinghamnorthboundsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Ireland",
@@ -2753,7 +2855,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/castlebellinghamsouthboundsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -2780,7 +2883,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/lokerensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -2812,7 +2916,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/28831/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -2839,7 +2944,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/28821/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -2867,7 +2973,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/BrusselsBelgiumsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -2894,7 +3001,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/machelensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -2921,7 +3029,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/33091/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -2954,7 +3063,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/28799/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -2986,7 +3096,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/kortrijkbesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -3013,7 +3124,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/28812/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -3042,7 +3154,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/29157/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3069,7 +3182,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/455113/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3097,7 +3211,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/WienDonaustadtatsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3126,7 +3241,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/32605/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3158,7 +3274,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/20812/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3190,7 +3307,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/105091/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3217,7 +3335,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/297327/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3254,7 +3373,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30071/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3281,7 +3401,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/wienerneustadtsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3313,7 +3434,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/286035/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3341,7 +3463,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/285358/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3368,7 +3491,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/401267/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3400,7 +3524,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/StummimZillertal-SelfServeDemoDrive/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3437,7 +3562,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/hallintirol/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3449,7 +3575,8 @@
       "timezone": "Europe/Vienna",
       "pricePerKwh": 0.36,
       "source": "https://www.kilowattindex.com/site/30412/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3476,7 +3603,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/langkampfensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -3503,7 +3631,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Parndorf422/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3525,7 +3654,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29899/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3552,7 +3682,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30006/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3579,7 +3710,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/muricasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3606,7 +3738,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/20969/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3634,7 +3767,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/300127/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3661,7 +3795,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/32864/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -3688,7 +3823,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/moglianovenetosupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3710,7 +3846,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/297297/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3721,7 +3858,8 @@
       "timezone": "Europe/Madrid",
       "pricePerKwh": 0.37,
       "source": "https://www.kilowattindex.com/site/29931/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -3732,7 +3870,8 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.44,
       "source": "https://kilowattindex.com/site/addanordsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -3743,7 +3882,8 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.43,
       "source": "https://kilowattindex.com/site/addasudsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -3755,7 +3895,8 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.44,
       "source": "https://kilowattindex.com/site/dornosupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -3767,7 +3908,8 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.45,
       "source": "https://www.kilowattindex.com/site/437908/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -3778,7 +3920,8 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.4,
       "source": "https://www.kilowattindex.com/site/9481/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -3790,7 +3933,8 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.45,
       "source": "https://www.kilowattindex.com/site/32214/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3817,7 +3961,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/valenciaspainsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3849,7 +3994,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/56418/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3871,7 +4017,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/tarragonasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3898,7 +4045,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/27007/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3935,7 +4083,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/BarcelonaUrbanessupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -3962,7 +4111,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/getafesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -3989,7 +4139,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/299146/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -4016,7 +4167,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/grandatesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -4039,7 +4191,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/20986/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -4066,7 +4219,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/30350/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -4093,7 +4247,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/26131/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -4120,7 +4275,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30821/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -4147,7 +4303,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/4934/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -4179,7 +4336,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/nicesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -4211,7 +4369,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/eurotunnelloungesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -4243,7 +4402,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/perpignansupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -4275,7 +4435,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/corsesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -4307,7 +4468,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/nancysupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -4334,7 +4496,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/lillesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -4361,7 +4524,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/417068/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Croatia",
@@ -4389,7 +4553,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/35722/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Croatia",
@@ -4416,7 +4581,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/483907/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -4443,7 +4609,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/airedecambarettesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -4475,7 +4642,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/archampssupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -4507,7 +4675,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/26558/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -4534,7 +4703,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/329293/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -4571,7 +4741,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/remouchampssupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -4598,7 +4769,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30406/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -4625,7 +4797,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/brinkumsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -4653,7 +4826,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Laatzensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -4680,7 +4854,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Frechendesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -4717,7 +4892,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30384/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -4744,7 +4920,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/panketalsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -4771,7 +4948,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/edegemsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -4798,7 +4976,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29922/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -4826,7 +5005,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/34004/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -4853,7 +5033,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/401992/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -4885,7 +5066,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/fuengirolasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -4912,7 +5094,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/19759/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -4944,7 +5127,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/59386/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -4971,7 +5155,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/gironaessupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -4998,7 +5183,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/santcugatsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5025,7 +5211,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/416358/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5058,7 +5245,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/laseudurgellsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5085,7 +5273,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/298986/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5112,7 +5301,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/gironasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5144,7 +5334,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/299962/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5166,7 +5357,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/MadridNorthessupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5198,7 +5390,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/fuenlabradasuperchargerq122/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5226,7 +5419,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/32355/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5254,7 +5448,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/299002/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5266,7 +5461,8 @@
       "timezone": "Europe/Madrid",
       "pricePerKwh": 0.35,
       "source": "https://www.kilowattindex.com/site/30506/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5293,7 +5489,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/ondarasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5321,7 +5518,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/32352/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5348,7 +5546,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/madridsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5390,7 +5589,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/161053/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5417,7 +5617,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Castellonessupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -5445,7 +5646,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/torrentnorthboundsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -5472,7 +5674,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/huittinensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -5483,7 +5686,8 @@
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.24,
       "source": "https://www.kilowattindex.com/site/paimiosupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -5494,7 +5698,8 @@
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.27,
       "source": "https://www.kilowattindex.com/site/437917/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -5506,7 +5711,8 @@
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.28,
       "source": "https://www.kilowattindex.com/site/Ylojarvi422/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -5517,7 +5723,8 @@
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.27,
       "source": "https://www.kilowattindex.com/site/329186/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -5544,7 +5751,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/tammisaari/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -5555,7 +5763,8 @@
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.26,
       "source": "https://kilowattindex.com/site/414316/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Denmark",
@@ -6609,7 +6818,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/LuxembourgUrbanq222/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Bulgaria",
@@ -6620,7 +6830,8 @@
       "timezone": "Europe/Sofia",
       "pricePerKwh": 0.5,
       "source": "https://kilowattindex.com/country/bg/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Bulgaria",
@@ -6631,7 +6842,8 @@
       "timezone": "Europe/Sofia",
       "pricePerKwh": 0.54,
       "source": "https://kilowattindex.com/country/bg/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Bulgaria",
@@ -6642,7 +6854,8 @@
       "timezone": "Europe/Sofia",
       "pricePerKwh": 0.57,
       "source": "https://kilowattindex.com/country/bg/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Romania",
@@ -6983,7 +7196,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/lohnesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -7010,7 +7224,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/297408/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -7047,7 +7262,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/berstelandsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Iceland",
@@ -7351,7 +7567,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/patranorthsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -7378,7 +7595,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29069/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -7405,7 +7623,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/udensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -7432,7 +7651,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/vurensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -7459,7 +7679,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/emmensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -7470,7 +7691,8 @@
       "timezone": "Europe/Amsterdam",
       "pricePerKwh": 0.36,
       "source": "https://www.kilowattindex.com/site/zuidbroeksupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -7481,7 +7703,8 @@
       "timezone": "Europe/Amsterdam",
       "pricePerKwh": 0.35,
       "source": "https://www.kilowattindex.com/site/assensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -7503,7 +7726,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/eindhovensupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Netherlands",
@@ -7530,7 +7754,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/apeldoornoostsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -7557,7 +7782,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/lippetalsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -7568,7 +7794,8 @@
       "timezone": "Europe/Berlin",
       "pricePerKwh": 0.38,
       "source": "https://www.kilowattindex.com/site/29774/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -7579,7 +7806,8 @@
       "timezone": "Europe/Berlin",
       "pricePerKwh": 0.39,
       "source": "https://www.kilowattindex.com/site/4008318/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -7590,7 +7818,8 @@
       "timezone": "Europe/Berlin",
       "pricePerKwh": 0.39,
       "source": "https://kilowattindex.com/site/mogendorfdesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -7618,7 +7847,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/badrappenausupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -7629,7 +7859,8 @@
       "timezone": "Europe/Berlin",
       "pricePerKwh": 0.39,
       "source": "https://kilowattindex.com/site/weibersbrunnsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -7640,7 +7871,8 @@
       "timezone": "Europe/Berlin",
       "pricePerKwh": 0.37,
       "source": "https://www.kilowattindex.com/site/29887/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -7672,7 +7904,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/oberhonnefeldsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Germany",
@@ -7700,7 +7933,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/12431/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Sweden",
@@ -8189,7 +8423,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/208112/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -8221,7 +8456,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/heusdenzoldersupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -8248,7 +8484,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Hasseltq222/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -8275,7 +8512,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/liegesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -8302,7 +8540,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/nivellessud/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -8335,7 +8574,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/leuvenbesupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Belgium",
@@ -8364,7 +8604,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/namursupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -8391,7 +8632,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30519/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -8418,7 +8660,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/32347/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Italy",
@@ -8445,7 +8688,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/3325/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Czechia",
@@ -9069,7 +9313,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/jalasjarvisupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -9097,7 +9342,8 @@
           "to": "24:00",
           "pricePerKwh": 0.25
         }
-      ]
+      ],
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -9108,7 +9354,8 @@
       "timezone": "Europe/Helsinki",
       "pricePerKwh": 0.28,
       "source": "https://www.kilowattindex.com/site/kokkolasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -9130,7 +9377,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29899/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -9157,7 +9405,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/20969/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -9184,7 +9433,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/muricasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -9211,7 +9461,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30006/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -9239,7 +9490,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/300127/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -9266,7 +9518,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/ondarasupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -9293,7 +9546,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/32864/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -9326,7 +9580,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Mallorcaq222/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -9353,7 +9608,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29922/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Spain",
@@ -9380,7 +9636,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/27007/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -9408,7 +9665,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/Karsamakiq222/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -9436,7 +9694,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/pyhajarvisupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Finland",
@@ -9463,7 +9722,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/301238/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     }
   ]
 }
