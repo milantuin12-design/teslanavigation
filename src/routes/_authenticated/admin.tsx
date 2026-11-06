@@ -820,6 +820,25 @@ function AdminPage() {
                   <Input className="h-7 bg-slate-800 border-slate-600" value={editing.peak_hours ?? ''} onChange={(e) => setEditing({ ...editing, peak_hours: e.target.value || null })} />
                 </label>
               </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Tarieven per tijdsblok (overschrijven de standaardprijs)</Label>
+                  <Button type="button" size="sm" variant="outline" className="h-6 text-[11px]" onClick={() => setEditing({ ...editing, price_blocks: [...(editing.price_blocks ?? []), { days: "dagelijks", from: "00:00", to: "23:59", pricePerKwh: editing.price_per_kwh ?? 0.4 }] })}>+ Tijdsblok</Button>
+                </div>
+                {(editing.price_blocks ?? []).map((block: { days?: string; from?: string; to?: string; pricePerKwh: number }, idx: number) => {
+                  const blocks = [...(editing.price_blocks ?? [])];
+                  const update = (patch: Partial<typeof block>) => { blocks[idx] = { ...block, ...patch }; setEditing({ ...editing, price_blocks: blocks }); };
+                  return (
+                    <div key={idx} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-1.5 items-center">
+                      <Input placeholder="ma-vr / weekend / dagelijks" className="h-7 bg-slate-800 border-slate-600" value={block.days ?? ''} onChange={(e) => update({ days: e.target.value })} />
+                      <Input type="time" className="h-7 w-24 bg-slate-800 border-slate-600" value={block.from ?? ''} onChange={(e) => update({ from: e.target.value })} />
+                      <Input type="time" className="h-7 w-24 bg-slate-800 border-slate-600" value={block.to ?? ''} onChange={(e) => update({ to: e.target.value })} />
+                      <Input type="number" step="0.01" min="0" placeholder="€/kWh" className="h-7 w-20 bg-slate-800 border-slate-600" value={block.pricePerKwh} onChange={(e) => update({ pricePerKwh: Number(e.target.value) })} />
+                      <Button type="button" size="sm" variant="ghost" className="h-6 text-red-400" onClick={() => setEditing({ ...editing, price_blocks: blocks.filter((_, i) => i !== idx) })}>✕</Button>
+                    </div>
+                  );
+                })}
+              </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={!!editing.in_parking_garage} onCheckedChange={(c) => setEditing({ ...editing, in_parking_garage: !!c })} />
                 🅿️ In parkeergarage (niet voor aanhangerroute)
