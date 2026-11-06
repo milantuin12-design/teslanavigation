@@ -11440,19 +11440,17 @@
       ],
       "label": "Avio – Falconeri Outlet",
       "timezone": "Europe/Rome",
-      "currency": "EUR",
-      "pricePerKwh": 0.43,
+      "pricePerKwh": 0.41,
       "source": "https://www.kilowattindex.com/site/32213/",
       "sourceChecked": "2026-11-06"
     },
     {
       "country": "Italy",
       "match": [
-        "mercure nerocubo"
+        "rovereto mercure"
       ],
       "label": "Rovereto – Mercure Nerocubo",
       "timezone": "Europe/Rome",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
@@ -17501,6 +17499,60 @@
       "currency": "RON",
       "pricePerKwh": 2.22,
       "source": "https://www.kilowattindex.com/site/4008272/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "bolzano"
+      ],
+      "label": "Bolzano – Twenty",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Bolzano422/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "verona crowne plaza"
+      ],
+      "label": "Verona – Crowne Plaza",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/1886/",
       "sourceChecked": "2026-11-06"
     }
   ]
