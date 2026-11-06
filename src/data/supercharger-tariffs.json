@@ -9695,6 +9695,96 @@
       ],
       "source": "https://www.kilowattindex.com/site/28918/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Czechia",
+      "match": [
+        "olomouc"
+      ],
+      "label": "Olomouc – Bistro & Shop",
+      "timezone": "Europe/Prague",
+      "currency": "CZK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 6.5
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 12.3
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 6.5
+        }
+      ],
+      "source": "https://kilowattindex.com/site/olomoucsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Czechia",
+      "match": [
+        "praha 5",
+        "homepark"
+      ],
+      "label": "Praha 5 – Homepark",
+      "timezone": "Europe/Prague",
+      "currency": "CZK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 6.7
+        },
+        {
+          "from": "09:00",
+          "to": "19:00",
+          "pricePerKwh": 12.3
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 10.4
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 6.7
+        }
+      ],
+      "source": "https://kilowattindex.com/site/33968/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Czechia",
+      "match": [
+        "hradec kralove"
+      ],
+      "label": "Hradec Kralove – Albert Hypermarket",
+      "timezone": "Europe/Prague",
+      "currency": "CZK",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 6.9
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 12.3
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 6.9
+        }
+      ],
+      "source": "https://kilowattindex.com/site/4002705/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
