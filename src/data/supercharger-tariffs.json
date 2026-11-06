@@ -6111,6 +6111,128 @@
       ],
       "source": "https://www.kilowattindex.com/site/StGallenchsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "match": [
+        "ludlow"
+      ],
+      "label": "Ludlow – M&S Food",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://kilowattindex.com/site/462958/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "match": [
+        "oxford redbridge"
+      ],
+      "label": "Oxford – Redbridge Park & Ride",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://kilowattindex.com/site/OxfordRedbridgegbsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "match": [
+        "york designer outlet"
+      ],
+      "label": "York – Designer Outlet",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29390/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "United Kingdom",
+      "match": [
+        "shifnal"
+      ],
+      "label": "Shifnal – Welcome Break Services",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/telfordsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
