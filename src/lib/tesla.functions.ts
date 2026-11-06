@@ -151,6 +151,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
 
 type TariffOverride = {
   country: string;
+  countryAliases?: string[];
   match: string[];
   pricePerKwh?: number;
   currency?: string;
@@ -168,7 +169,8 @@ function applyTariffOverride(row: Row): Row {
   const country = normalizeTariffMatch(row.country ?? "");
   const name = normalizeTariffMatch(row.name ?? "");
   const match = tariffs.find((tariff) => {
-    if (normalizeTariffMatch(tariff.country) !== country) return false;
+    const countries = [tariff.country, ...(tariff.countryAliases ?? [])];
+    if (!countries.some((value) => normalizeTariffMatch(value) === country)) return false;
     return tariff.match.some((term) => {
       const normalizedTerm = normalizeTariffMatch(term);
       return name === normalizedTerm || name.includes(normalizedTerm);
