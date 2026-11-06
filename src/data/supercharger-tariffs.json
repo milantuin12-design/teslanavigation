@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "checkedAt": "2026-11-06",
+  "note": "Alleen Tesla-rijderstarieven. Tijdzone Europe/Helsinki. Alleen exact gepubliceerde blokken of vaste tarieven; onbekende tarieven blijven leeg. Matcht alleen operationele locaties.",
+  "tariffs": [
+    {
+      "country": "Finland",
+      "match": [
+        "vantaa"
+      ],
+      "label": "Vantaa – IKEA",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.19
+        }
+      ],
+      "source": "https://kilowattindex.com/site/32930/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "espoo ikea"
+      ],
+      "label": "Espoo – IKEA",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "12:00",
+          "to": "19:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.19
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/32932/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "ii kärkkäinen",
+        "kärkkäinen"
+      ],
+      "label": "II – Kärkkäinen",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.19
+        }
+      ],
+      "source": "https://kilowattindex.com/site/58587/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "joroinen"
+      ],
+      "label": "Joroinen – Jari-Pekka",
+      "timezone": "Europe/Helsinki",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://kilowattindex.com/site/32913/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "parkano"
+      ],
+      "label": "Parkano – HalpaHalli",
+      "timezone": "Europe/Helsinki",
+      "pricePerKwh": 0.26,
+      "source": "https://www.kilowattindex.com/site/parkanohalpahalli/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "porvoo power"
+      ],
+      "label": "Porvoo – Power",
+      "timezone": "Europe/Helsinki",
+      "pricePerKwh": 0.23,
+      "source": "https://www.kilowattindex.com/site/porvoopower/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "vaasa"
+      ],
+      "label": "Vaasa – GW Galleria",
+      "timezone": "Europe/Helsinki",
+      "pricePerKwh": 0.28,
+      "source": "https://www.kilowattindex.com/site/vaasagwgalleria/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Finland",
+      "match": [
+        "pyhtää",
+        "pyhtaa"
+      ],
+      "label": "Pyhtää – Aeronautica Arena",
+      "timezone": "Europe/Helsinki",
+      "pricePerKwh": 0.26,
+      "source": "https://kilowattindex.com/site/pyhtaa-aeronautica-arena/",
+      "sourceChecked": "2026-11-06"
+    }
+  ]
+}
