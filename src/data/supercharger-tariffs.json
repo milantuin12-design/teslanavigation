@@ -20071,8 +20071,29 @@
       ],
       "label": "Clermont-Ferrand",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "09:00",
+          "to": "19:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.19
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/clermontferrandsupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -22505,8 +22526,24 @@
       ],
       "label": "Vaux-sur-Mer",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "09:00",
+          "to": "19:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/413456/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -22820,8 +22857,14 @@
       ],
       "label": "Saintes – Cours du Maréchal Leclerc",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/saintesnordsupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -22832,8 +22875,14 @@
       ],
       "label": "Saintes",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/saintessupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -22874,8 +22923,14 @@
       ],
       "label": "Sanilhac",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/437128/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
