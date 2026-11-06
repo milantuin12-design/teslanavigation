@@ -19410,8 +19410,24 @@
       ],
       "label": "Boulogne-sur-Mer",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.17
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Boulogne-sur-Mer422/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19714,8 +19730,24 @@
       ],
       "label": "Eurotunnel – Terminal",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "09:00",
+          "to": "17:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "17:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/calaiseurotunnelterminalsupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19726,8 +19758,24 @@
       ],
       "label": "Calais",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/calaissupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -20530,8 +20578,29 @@
       ],
       "label": "Eurotunnel – Flexiplus",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "04:00",
+          "to": "12:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "12:00",
+          "to": "18:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "18:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/eurotunnelloungesupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -21191,8 +21260,24 @@
       ],
       "label": "Le Touquet",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/301486/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
