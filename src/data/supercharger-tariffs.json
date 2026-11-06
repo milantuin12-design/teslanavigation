@@ -20346,8 +20346,29 @@
       ],
       "label": "Neuville-en-Ferrain",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://kilowattindex.com/site/NeuvilleenFerrainq222/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -20418,8 +20439,29 @@
       ],
       "label": "Noyelles-Godault",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.15
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://kilowattindex.com/site/NoyellesGodaultq222/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -20622,8 +20664,24 @@
       ],
       "label": "Rennes – Cleunay",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.16
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://kilowattindex.com/site/300313/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -20634,8 +20692,24 @@
       ],
       "label": "Rennes – Avenue du Canada",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.2
+        }
+      ],
+      "source": "https://kilowattindex.com/site/rennessupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -20946,8 +21020,24 @@
       ],
       "label": "Saint-Quentin",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://kilowattindex.com/site/SaintQuentinq222/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
