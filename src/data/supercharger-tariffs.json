@@ -2206,17 +2206,22 @@
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.29
+          "pricePerKwh": 0.33
         },
         {
           "from": "09:00",
           "to": "19:00",
-          "pricePerKwh": 0.49
+          "pricePerKwh": 0.43
         },
         {
           "from": "19:00",
-          "to": "24:00",
+          "to": "23:00",
           "pricePerKwh": 0.39
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
         }
       ],
       "source": "https://www.kilowattindex.com/site/Eemnesnlsupercharger/",
@@ -10219,34 +10224,25 @@
       ],
       "label": "Sassenheim – Van der Valk Hotel",
       "timezone": "Europe/Amsterdam",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.31
+          "pricePerKwh": 0.34
         },
         {
           "from": "09:00",
-          "to": "19:00",
-          "pricePerKwh": 0.46
+          "to": "22:00",
+          "pricePerKwh": 0.43
         },
         {
-          "from": "19:00",
-          "to": "23:00",
-          "pricePerKwh": 0.42
-        },
-        {
-          "from": "23:00",
+          "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.31
+          "pricePerKwh": 0.34
         }
       ],
-      "source": "https://www.kilowattindex.com/site/sassenheimsupercharger/",
-      "sourceChecked": "2026-11-06",
-      "countryAliases": [
-        "The Netherlands"
-      ]
+      "source": "https://kilowattindex.com/site/sassenheimsupercharger/",
+      "sourceChecked": "2026-11-06"
     },
     {
       "country": "Ireland",
@@ -10388,24 +10384,20 @@
       ],
       "label": "Leiderdorp – La Place",
       "timezone": "Europe/Amsterdam",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.3
+          "pricePerKwh": 0.32
         },
         {
           "from": "09:00",
           "to": "24:00",
-          "pricePerKwh": 0.43
+          "pricePerKwh": 0.41
         }
       ],
       "source": "https://www.kilowattindex.com/site/leiderdorpsupercharger/",
-      "sourceChecked": "2026-11-06",
-      "countryAliases": [
-        "The Netherlands"
-      ]
+      "sourceChecked": "2026-11-06"
     },
     {
       "country": "Netherlands",
@@ -10529,29 +10521,20 @@
       ],
       "label": "Gouda – Restaurant De Beren Gouda",
       "timezone": "Europe/Amsterdam",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.29
+          "pricePerKwh": 0.32
         },
         {
           "from": "09:00",
-          "to": "20:00",
-          "pricePerKwh": 0.45
-        },
-        {
-          "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.4
+          "pricePerKwh": 0.41
         }
       ],
-      "source": "https://www.kilowattindex.com/site/goudasupercharger/",
-      "sourceChecked": "2026-11-06",
-      "countryAliases": [
-        "The Netherlands"
-      ]
+      "source": "https://kilowattindex.com/site/goudasupercharger/",
+      "sourceChecked": "2026-11-06"
     },
     {
       "country": "Netherlands",
@@ -10560,24 +10543,20 @@
       ],
       "label": "Breukelen – Van der Valk Hotel",
       "timezone": "Europe/Amsterdam",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.29
+          "pricePerKwh": 0.32
         },
         {
           "from": "09:00",
           "to": "24:00",
-          "pricePerKwh": 0.45
+          "pricePerKwh": 0.42
         }
       ],
       "source": "https://www.kilowattindex.com/site/breukelensupercharger/",
-      "sourceChecked": "2026-11-06",
-      "countryAliases": [
-        "The Netherlands"
-      ]
+      "sourceChecked": "2026-11-06"
     },
     {
       "country": "Netherlands",
@@ -10586,29 +10565,25 @@
       ],
       "label": "Houten – Van der Valk Hotel",
       "timezone": "Europe/Amsterdam",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.31
+          "pricePerKwh": 0.33
         },
         {
           "from": "09:00",
           "to": "23:00",
-          "pricePerKwh": 0.44
+          "pricePerKwh": 0.41
         },
         {
           "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.31
+          "pricePerKwh": 0.33
         }
       ],
-      "source": "https://www.kilowattindex.com/site/29071/",
-      "sourceChecked": "2026-11-06",
-      "countryAliases": [
-        "The Netherlands"
-      ]
+      "source": "https://kilowattindex.com/site/29071/",
+      "sourceChecked": "2026-11-06"
     },
     {
       "country": "Netherlands",
