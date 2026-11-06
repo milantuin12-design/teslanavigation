@@ -7175,6 +7175,156 @@
       "pricePerKwh": 60,
       "source": "https://kilowattindex.com/site/439503/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "kesan"
+      ],
+      "label": "Keşan – Aytemiz Polatcan",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 9.4,
+      "source": "https://kilowattindex.com/country/tr/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "kamu arastirmalari"
+      ],
+      "label": "Çankaya/Ankara – Kamu Araştırmaları Vakfı",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 9.9,
+      "source": "https://kilowattindex.com/country/tr/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "eskisehir opet"
+      ],
+      "label": "Eskişehir – Opet Candaş Petrol",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://kilowattindex.com/country/tr/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "afyonkarahisar ozdilek"
+      ],
+      "label": "Afyonkarahisar – Özdilek Shopping Center",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://kilowattindex.com/country/tr/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "denizli sinpas"
+      ],
+      "label": "Denizli – Sinpaş Aquamall",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://kilowattindex.com/country/tr/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "isparta aypa"
+      ],
+      "label": "Isparta – Aypa Akaryakıt",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://kilowattindex.com/country/tr/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "antalya markantalya"
+      ],
+      "label": "Antalya – MarkAntalya",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://kilowattindex.com/country/tr/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "samsun hampton"
+      ],
+      "label": "Samsun – Hampton by Hilton Samsun",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://kilowattindex.com/country/tr/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "edirne hilly"
+      ],
+      "label": "Edirne – Hilly Hotel",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://kilowattindex.com/country/tr/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "istanbul emaar"
+      ],
+      "label": "Istanbul – Emaar Square AVM",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://kilowattindex.com/country/tr/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
