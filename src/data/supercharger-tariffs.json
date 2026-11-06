@@ -18299,6 +18299,2826 @@
       ],
       "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "lucon"
+      ],
+      "label": "Luçon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "sisteron-val-de-durance"
+      ],
+      "label": "Sisteron – Val de Durance",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "agen"
+      ],
+      "label": "Agen",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-d-urvillers"
+      ],
+      "label": "Aire d'Urvillers",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-de-l-abis"
+      ],
+      "label": "Aire de l'Abis",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-de-l-aveyron"
+      ],
+      "label": "Aire de l'Aveyron",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-de-la-baie-de-somme"
+      ],
+      "label": "Aire de la Baie de Somme",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-de-la-vendee"
+      ],
+      "label": "Aire de la Vendée",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-de-portes-les-valence-ouest"
+      ],
+      "label": "Aire de Portes-Lès-Valence Ouest",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-des-portes-d-angers"
+      ],
+      "label": "Aire des Portes d'Angers",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-du-bourbonnais"
+      ],
+      "label": "Aire du Bourbonnais",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-du-caylar"
+      ],
+      "label": "Aire du Caylar",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-du-granier"
+      ],
+      "label": "Aire du Granier",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-du-jura"
+      ],
+      "label": "Aire du Jura",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-du-poulet-de-bresse"
+      ],
+      "label": "Aire du Poulet de Bresse",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aix-en-provence-val-de-l-arc"
+      ],
+      "label": "Aix-en-Provence – Val de l'Arc",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aix-en-provence-pont-de-l-arc"
+      ],
+      "label": "Aix-en-Provence – Pont de l'Arc",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aix-en-provence-beaumanoir"
+      ],
+      "label": "Aix-en-Provence – Beaumanoir",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "albaret-sainte-marie"
+      ],
+      "label": "Albaret-Sainte-Marie",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "albi"
+      ],
+      "label": "Albi",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "ales"
+      ],
+      "label": "Alès",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "amiens"
+      ],
+      "label": "Amiens",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "angers"
+      ],
+      "label": "Angers",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "angouleme"
+      ],
+      "label": "Angoulême",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "annemasse"
+      ],
+      "label": "Annemasse",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "arc-sur-tille"
+      ],
+      "label": "Arc-sur-Tille",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "ares"
+      ],
+      "label": "Arès",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "artenay"
+      ],
+      "label": "Artenay",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "artix"
+      ],
+      "label": "Artix",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "auch"
+      ],
+      "label": "Auch",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aurillac"
+      ],
+      "label": "Aurillac",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "auxerre"
+      ],
+      "label": "Auxerre",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "avallon"
+      ],
+      "label": "Avallon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "avignon"
+      ],
+      "label": "Avignon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "bayonne"
+      ],
+      "label": "Bayonne",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "beaune-nord"
+      ],
+      "label": "Beaune Nord",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "beaune-centre"
+      ],
+      "label": "Beaune Centre",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "beauvais"
+      ],
+      "label": "Beauvais",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "begles"
+      ],
+      "label": "Bègles",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "besancon-chemaudin-et-vaux"
+      ],
+      "label": "Besançon – Chemaudin et Vaux",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "beynost"
+      ],
+      "label": "Beynost",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "beziers"
+      ],
+      "label": "Béziers",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "blagnac"
+      ],
+      "label": "Blagnac",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "blois-avenue-de-chateaudun"
+      ],
+      "label": "Blois – Avenue de Châteaudun",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "blois-capcine"
+      ],
+      "label": "Blois – Capciné",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "merignac"
+      ],
+      "label": "Mérignac",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "bordeaux-lac"
+      ],
+      "label": "Bordeaux Lac",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "boulogne-sur-mer"
+      ],
+      "label": "Boulogne-sur-Mer",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "bourg-achard"
+      ],
+      "label": "Bourg-Achard",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "bourg-de-peage"
+      ],
+      "label": "Bourg-de-Péage",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "tossiat"
+      ],
+      "label": "Tossiat",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aime-la-plagne"
+      ],
+      "label": "Aime-la-Plagne",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "bourges-chemin-le-vallon"
+      ],
+      "label": "Bourges – Chemin Le Vallon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "bourges"
+      ],
+      "label": "Bourges",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "brest"
+      ],
+      "label": "Brest",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "briancon"
+      ],
+      "label": "Briançon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "ussac"
+      ],
+      "label": "Ussac",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "bron"
+      ],
+      "label": "Bron",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "buchelay"
+      ],
+      "label": "Buchelay",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "caen-st-contest"
+      ],
+      "label": "Caen – St Contest",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "falaise"
+      ],
+      "label": "Falaise",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "eurotunnel-terminal"
+      ],
+      "label": "Eurotunnel – Terminal",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "calais"
+      ],
+      "label": "Calais",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "carcassonne"
+      ],
+      "label": "Carcassonne",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "castelnaudary"
+      ],
+      "label": "Castelnaudary",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "castets"
+      ],
+      "label": "Castets",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "bailly-romainvilliers"
+      ],
+      "label": "Bailly-Romainvilliers",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "cesson"
+      ],
+      "label": "Cesson",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "chalon-sur-saone"
+      ],
+      "label": "Chalon-sur-Saône",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "matougues"
+      ],
+      "label": "Matougues",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "barberaz"
+      ],
+      "label": "Barberaz",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "charleville-mezieres"
+      ],
+      "label": "Charleville-Mézières",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "charolles"
+      ],
+      "label": "Charolles",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "chartres"
+      ],
+      "label": "Chartres",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "chasse-sud"
+      ],
+      "label": "Chasse Sud",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "chateauroux"
+      ],
+      "label": "Châteauroux",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "chatellerault"
+      ],
+      "label": "Châtellerault",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "cherbourg"
+      ],
+      "label": "Cherbourg",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "cholet"
+      ],
+      "label": "Cholet",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "clermont-ferrand"
+      ],
+      "label": "Clermont-Ferrand",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "cosne-sur-loire"
+      ],
+      "label": "Cosne-sur-Loire",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "brive-la-gaillarde"
+      ],
+      "label": "Brive-la-Gaillarde",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "deauville"
+      ],
+      "label": "Deauville",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "dieppe"
+      ],
+      "label": "Dieppe",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "fontaine-les-dijon"
+      ],
+      "label": "Fontaine-lès-Dijon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "longvic"
+      ],
+      "label": "Longvic",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "dunkerque"
+      ],
+      "label": "Dunkerque",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "epinal"
+      ],
+      "label": "Épinal",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "champfleury"
+      ],
+      "label": "Champfleury",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "besancon-essai-a-distance"
+      ],
+      "label": "Besançon – Essai à distance",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "la-roche-sur-yon"
+      ],
+      "label": "La Roche-sur-Yon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "le-mans"
+      ],
+      "label": "Le Mans",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "bourg-en-bresse"
+      ],
+      "label": "Bourg-en-Bresse",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "franconville"
+      ],
+      "label": "Franconville",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "terville"
+      ],
+      "label": "Terville",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "farebersviller"
+      ],
+      "label": "Farébersviller",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "bernin"
+      ],
+      "label": "Bernin",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "eurotunnel-flexiplus"
+      ],
+      "label": "Eurotunnel – Flexiplus",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "evry-courcouronnes"
+      ],
+      "label": "Évry-Courcouronnes",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "figeac"
+      ],
+      "label": "Figeac",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "ury"
+      ],
+      "label": "Ury",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "albertville"
+      ],
+      "label": "Albertville",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "annecy"
+      ],
+      "label": "Annecy",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "gallargues-le-montueux"
+      ],
+      "label": "Gallargues-le-Montueux",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "gap"
+      ],
+      "label": "Gap",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "beziers-rue-zenobe-gramme"
+      ],
+      "label": "Béziers – Rue Zenobe Gramme",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "goussainville"
+      ],
+      "label": "Goussainville",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "herblay-sur-seine"
+      ],
+      "label": "Herblay-sur-Seine",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "le-mans-rue-des-freres-voisin"
+      ],
+      "label": "Le Mans – Rue des Frères Voisin",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "livry-gargan"
+      ],
+      "label": "Livry-Gargan",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "moisselles"
+      ],
+      "label": "Moisselles",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "semeac"
+      ],
+      "label": "Séméac",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "tarbes"
+      ],
+      "label": "Tarbes",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "tours"
+      ],
+      "label": "Tours",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "bretigny-sur-orge"
+      ],
+      "label": "Brétigny-sur-Orge",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "gassin"
+      ],
+      "label": "Gassin",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "honfleur"
+      ],
+      "label": "Honfleur",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-de-lafayette"
+      ],
+      "label": "Aire de Lafayette",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "la-lechere-les-bains"
+      ],
+      "label": "La Léchère-les-Bains",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "lagord"
+      ],
+      "label": "Lagord",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "labouheyre"
+      ],
+      "label": "Labouheyre",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "langon"
+      ],
+      "label": "Langon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "laval"
+      ],
+      "label": "Laval",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "le-bosc"
+      ],
+      "label": "Le Bosc",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-saturnin"
+      ],
+      "label": "Saint-Saturnin",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "le-touquet"
+      ],
+      "label": "Le Touquet",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "les-herbiers"
+      ],
+      "label": "Les Herbiers",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "les-sables-d-olonne"
+      ],
+      "label": "Les Sables-d'Olonne",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "limoges-rue-henri-giffard"
+      ],
+      "label": "Limoges – Rue Henri Giffard",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "limoges-avenue-des-casseaux"
+      ],
+      "label": "Limoges – Avenue des Casseaux",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "limoges"
+      ],
+      "label": "Limoges",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "lorient"
+      ],
+      "label": "Lorient",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "loudeac"
+      ],
+      "label": "Loudéac",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "macon"
+      ],
+      "label": "Mâcon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "magnant"
+      ],
+      "label": "Magnant",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "manosque"
+      ],
+      "label": "Manosque",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "maurepas"
+      ],
+      "label": "Maurepas",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "megeve"
+      ],
+      "label": "Megève",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "moulins-les-metz"
+      ],
+      "label": "Moulins-lès-Metz",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "mont-saint-michel"
+      ],
+      "label": "Mont-Saint-Michel",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "montauban-les-chaumes"
+      ],
+      "label": "Montauban – Les Chaumes",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "montauban-aussonne"
+      ],
+      "label": "Montauban – Aussonne",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "montelimar"
+      ],
+      "label": "Montélimar",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "montlucon"
+      ],
+      "label": "Montluçon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "montmarault"
+      ],
+      "label": "Montmarault",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "montpellier"
+      ],
+      "label": "Montpellier",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "morlaix"
+      ],
+      "label": "Morlaix",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "mulhouse-rue-des-cevennes"
+      ],
+      "label": "Mulhouse – Rue des Cévennes",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "la-chapelle-sur-erdre"
+      ],
+      "label": "La Chapelle-sur-Erdre",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-herblain"
+      ],
+      "label": "Saint-Herblain",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "narbonne-sud"
+      ],
+      "label": "Narbonne Sud",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "narbonne"
+      ],
+      "label": "Narbonne",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "neuville-en-ferrain"
+      ],
+      "label": "Neuville-en-Ferrain",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "varennes-vauzelles"
+      ],
+      "label": "Varennes-Vauzelles",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-julien-en-genevois-route-de-lathoy"
+      ],
+      "label": "Saint-Julien-en-Genevois – Route de Lathoy",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "nice-lingostiere"
+      ],
+      "label": "Nice Lingostière",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "chauray"
+      ],
+      "label": "Chauray",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "vouille"
+      ],
+      "label": "Vouillé",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "noyelles-godault"
+      ],
+      "label": "Noyelles-Godault",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "orgeval"
+      ],
+      "label": "Orgeval",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "orleans"
+      ],
+      "label": "Orléans",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "pannes"
+      ],
+      "label": "Pannes",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "paris-bercy"
+      ],
+      "label": "Paris – Bercy",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "le-chesnay"
+      ],
+      "label": "Le Chesnay",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "pau"
+      ],
+      "label": "Pau",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "perigueux"
+      ],
+      "label": "Périgueux",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "phalsbourg"
+      ],
+      "label": "Phalsbourg",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "les-clayes-sous-bois"
+      ],
+      "label": "Les-Clayes-sous-Bois",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "poitiers-sud"
+      ],
+      "label": "Poitiers Sud",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "poitiers-futuroscope"
+      ],
+      "label": "Poitiers – Futuroscope",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "pontarlier"
+      ],
+      "label": "Pontarlier",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "taverny"
+      ],
+      "label": "Taverny",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "porte-de-savoie"
+      ],
+      "label": "Porte-de-Savoie",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "quimper"
+      ],
+      "label": "Quimper",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "tinqueux"
+      ],
+      "label": "Tinqueux",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "rennes-cleunay"
+      ],
+      "label": "Rennes – Cleunay",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "rennes-avenue-du-canada"
+      ],
+      "label": "Rennes – Avenue du Canada",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "riom"
+      ],
+      "label": "Riom",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "roanne"
+      ],
+      "label": "Roanne",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "rodez"
+      ],
+      "label": "Rodez",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aulnay-sous-bois"
+      ],
+      "label": "Aulnay-sous-Bois",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "roissy-en-france-avenue-du-bois-de-la-pie"
+      ],
+      "label": "Roissy-en-France – Avenue du Bois de la Pie",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "roissy-en-france"
+      ],
+      "label": "Roissy-en-France",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "rouen"
+      ],
+      "label": "Rouen",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "vaux-sur-mer"
+      ],
+      "label": "Vaux-sur-Mer",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "roye"
+      ],
+      "label": "Roye",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "ruffec"
+      ],
+      "label": "Ruffec",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "rungis"
+      ],
+      "label": "Rungis",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-andre-de-cubzac"
+      ],
+      "label": "Saint-André-de-Cubzac",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-brieuc"
+      ],
+      "label": "Saint-Brieuc",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-die-des-vosges"
+      ],
+      "label": "Saint-Dié-des-Vosges",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-dizier"
+      ],
+      "label": "Saint-Dizier",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "colombe"
+      ],
+      "label": "Colombe",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-chamond"
+      ],
+      "label": "Saint-Chamond",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-gaudens"
+      ],
+      "label": "Saint-Gaudens",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-julien-en-genevois"
+      ],
+      "label": "Saint-Julien-en-Genevois",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-pardoux-l-ortigier"
+      ],
+      "label": "Saint-Pardoux-l'Ortigier",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-pierre-d-irube"
+      ],
+      "label": "Saint-Pierre-d'Irube",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-quentin"
+      ],
+      "label": "Saint-Quentin",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saintes-cours-du-marechal-leclerc"
+      ],
+      "label": "Saintes – Cours du Maréchal Leclerc",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saintes"
+      ],
+      "label": "Saintes",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "salaise-sur-sanne"
+      ],
+      "label": "Salaise-sur-Sanne",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "sallanches"
+      ],
+      "label": "Sallanches",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "sanilhac"
+      ],
+      "label": "Sanilhac",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "senas"
+      ],
+      "label": "Sénas",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "senlis"
+      ],
+      "label": "Senlis",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "sisteron"
+      ],
+      "label": "Sisteron",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "vendenheim"
+      ],
+      "label": "Vendenheim",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "strasbourg-sud"
+      ],
+      "label": "Strasbourg Sud",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aire-sur-l-adour"
+      ],
+      "label": "Aire-sur-l'Adour",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "ajaccio"
+      ],
+      "label": "Ajaccio",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "argenton-sur-creuse"
+      ],
+      "label": "Argenton-sur-Creuse",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "bergerac"
+      ],
+      "label": "Bergerac",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "thiais"
+      ],
+      "label": "Thiais",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "castelnau-d-estretefonds"
+      ],
+      "label": "Castelnau-d'Estrétefonds",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "tournus"
+      ],
+      "label": "Tournus",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "chambray-les-tours"
+      ],
+      "label": "Chambray-lès-Tours",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "rochecorbon"
+      ],
+      "label": "Rochecorbon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "treillieres"
+      ],
+      "label": "Treillières",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-parres-aux-tertres"
+      ],
+      "label": "Saint-Parres-aux-Tertres",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "val-de-meuse"
+      ],
+      "label": "Val-de-Meuse",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "val-de-reuil"
+      ],
+      "label": "Val-de-Reuil",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "valence-sud"
+      ],
+      "label": "Valence Sud",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "valence"
+      ],
+      "label": "Valence",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "valenciennes"
+      ],
+      "label": "Valenciennes",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "vannes"
+      ],
+      "label": "Vannes",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "velizy"
+      ],
+      "label": "Vélizy",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "verniolle"
+      ],
+      "label": "Verniolle",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "vesoul"
+      ],
+      "label": "Vesoul",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "vichy"
+      ],
+      "label": "Vichy",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "chasse-sur-rhone"
+      ],
+      "label": "Chasse-sur-Rhône",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "vierzon"
+      ],
+      "label": "Vierzon",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "villabe"
+      ],
+      "label": "Villabé",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "villebon-sur-yvette"
+      ],
+      "label": "Villebon-sur-Yvette",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
+    },
+    {
+      "country": "France",
+      "match": [
+        "villedieu-les-poeles-rouffigny"
+      ],
+      "label": "Villedieu-les-Poêles-Rouffigny",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [],
+      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     }
   ]
 }
