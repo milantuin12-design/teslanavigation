@@ -20,3 +20,9 @@
 - [x] Model S/X zonder CCS: V2-snelheid tonen en gebruiken
 - [ ] Weer per rijstuk (nu één weerbeeld voor de hele route)
 - [ ] Routeberekening verder versnellen
+
+## 2026-11-06 (middag)
+- [x] Kaart geoptimaliseerd voor 10.000+ Superchargers (marker-clustering, vloeiender zoomen)
+- [x] kWh-tarieven per tijdsblok per Supercharger (dagen + van/tot + prijs)
+- [x] Bulk-prijzen: dezelfde kWh-/parkeerprijzen op meerdere Superchargers tegelijk instellen
+- [x] Kostenberekening gebruikt het actieve tijdsblok-tarief op het laadmoment

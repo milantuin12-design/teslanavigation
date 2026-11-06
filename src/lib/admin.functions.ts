@@ -209,6 +209,19 @@ const bulkInput = z.object({
     reopenAt: z.string().nullable().optional(),
     expectedOpenMonth: z.string().max(60).optional(),
     plannedUpgradeLabel: z.string().max(120).optional(),
+    pricePerKwh: z.number().min(0).max(10).nullable().optional(),
+    pricePerKwhPeak: z.number().min(0).max(10).nullable().optional(),
+    peakHours: z.string().max(120).nullable().optional(),
+    priceBlocks: z.array(z.object({
+      days: z.string().max(40).optional(),
+      from: z.string().max(5).optional(),
+      to: z.string().max(5).optional(),
+      pricePerKwh: z.number().min(0).max(10),
+    })).max(12).nullable().optional(),
+    parkingFeeAmount: z.number().min(0).max(1000).nullable().optional(),
+    parkingFreeMinutes: z.number().int().min(0).max(1440).nullable().optional(),
+    parkingPerMinutes: z.number().int().min(1).max(1440).nullable().optional(),
+    parkingPerEuro: z.number().min(0).max(1000).nullable().optional(),
   }),
 });
 
@@ -233,6 +246,14 @@ export const bulkUpdateSuperchargers = createServerFn({ method: "POST" })
     if (c.versions && c.versions.length > 0) payload["versions"] = c.versions;
     if (c.notes !== undefined) payload["notes"] = c.notes;
     if (c.reopenAt !== undefined) payload["reopen_at"] = c.reopenAt || null;
+    if (c.pricePerKwh !== undefined) payload["price_per_kwh"] = c.pricePerKwh;
+    if (c.pricePerKwhPeak !== undefined) payload["price_per_kwh_peak"] = c.pricePerKwhPeak;
+    if (c.peakHours !== undefined) payload["peak_hours"] = c.peakHours;
+    if (c.priceBlocks !== undefined) payload["price_blocks"] = c.priceBlocks;
+    if (c.parkingFeeAmount !== undefined) payload["parking_fee_amount"] = c.parkingFeeAmount;
+    if (c.parkingFreeMinutes !== undefined) payload["parking_free_minutes"] = c.parkingFreeMinutes;
+    if (c.parkingPerMinutes !== undefined) payload["parking_per_minutes"] = c.parkingPerMinutes;
+    if (c.parkingPerEuro !== undefined) payload["parking_per_euro"] = c.parkingPerEuro;
 
     if (Object.keys(payload).length === 0 && !c.expectedOpenMonth && !c.plannedUpgradeLabel) {
       return { updated: 0 };

@@ -139,6 +139,17 @@ export interface SiteUpdate {
 }
 
 
+/** Een kWh-tarief dat geldt in een bepaald tijdsblok (bijv. ma-vr 07:00-19:00). */
+export interface PriceBlock {
+  /** Bijv. "ma-vr", "weekend", "dagelijks". */
+  days?: string;
+  /** "HH:MM" */
+  from?: string;
+  /** "HH:MM" */
+  to?: string;
+  pricePerKwh: number;
+}
+
 export interface Supercharger {
   id?: string;
   name: string;
@@ -175,6 +186,8 @@ export interface Supercharger {
   pricePerKwhPeak?: number | null;
   /** Tijdsblokken voor piektarief, vrije tekst. */
   peakHours?: string | null;
+  /** Gestructureerde tarieven per tijdsblok; hebben voorrang op pricePerKwh. */
+  priceBlocks?: PriceBlock[] | null;
   inParkingGarage?: boolean;
   status?: ChargerLifecycleStatus;
   construction?: ConstructionInfo;

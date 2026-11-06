@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, getOpenStalls, isVisibleOnMap, getTotalStallsFromConfigs, isChargerUsable, normalizeChargerConfigs, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
 
@@ -163,6 +166,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
+  const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const routeRef = useRef<L.Polyline | null>(null);
   const routeVariantsRef = useRef<L.LayerGroup>(L.layerGroup());
   const trafficLayerRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -184,6 +188,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
       center: [52.3676, 4.9041],
       zoom: 7,
       zoomControl: true,
+      // Soepeler zoomen: kleinere stappen en vloeiende animatie.
+      zoomSnap: 0.25,
+      zoomDelta: 0.5,
+      wheelPxPerZoomLevel: 90,
+      zoomAnimation: true,
+      fadeAnimation: true,
+      markerZoomAnimation: true,
     });
 
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
@@ -239,6 +250,29 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
 
 
 
+    // Clustergroep voor duizenden Superchargers: houdt de kaart soepel.
+    const cluster = L.markerClusterGroup({
+      chunkedLoading: true,
+      chunkInterval: 50,
+      chunkDelay: 10,
+      maxClusterRadius: 55,
+      disableClusteringAtZoom: 12,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: (c) => {
+        const count = c.getChildCount();
+        const size = count < 10 ? 34 : count < 100 ? 40 : 48;
+        return L.divIcon({
+          html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,#1d4ed8,#0ea5e9);border:2px solid rgba(255,255,255,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:${count < 100 ? 13 : 12}px;font-family:system-ui;">${count}</div>`,
+          className: 'sc-cluster',
+          iconSize: [size, size],
+        });
+      },
+    });
+    clusterRef.current = cluster;
+    cluster.addTo(map);
+
     markersRef.current.addTo(map);
     routeVariantsRef.current.addTo(map);
     trafficLayerRef.current.addTo(map);
@@ -255,6 +289,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     if (!map) return;
 
     markersRef.current.clearLayers();
+    clusterRef.current?.clearLayers();
 
     superchargers.forEach(charger => {
       try {
@@ -364,7 +399,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         popup += `<button type="button" data-report-id="${escapeHtml(charger.id ?? '')}" data-report-name="${escapeHtml(charger.name ?? '')}" style="margin-top:8px;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#b91c1c;font-weight:600;cursor:pointer;">Fout melden</button>`;
         popup += `</div>`;
         marker.bindPopup(popup);
-        markersRef.current.addLayer(marker);
+        (clusterRef.current ?? markersRef.current).addLayer(marker);
       } catch { /* skip bad charger */ }
     });
 

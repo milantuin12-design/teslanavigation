@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, PlannedUpgrade, StallState, Supercharger, VotingInfo, WorksInfo } from "./tesla-types";
+import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, PlannedUpgrade, PriceBlock, StallState, Supercharger, VotingInfo, WorksInfo } from "./tesla-types";
 import type { Json } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, normalizeOpeningHours, parseChargerConfigsFromLegacy } from "./tesla-utils";
@@ -52,6 +52,7 @@ type Row = {
   price_per_kwh?: number | null;
   price_per_kwh_peak?: number | null;
   peak_hours?: string | null;
+  price_blocks?: PriceBlock[] | null;
   in_parking_garage: boolean | null;
   status: string | null;
   construction: ConstructionInfo | null;
@@ -116,6 +117,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
     pricePerKwh: row.price_per_kwh ?? null,
     pricePerKwhPeak: row.price_per_kwh_peak ?? null,
     peakHours: row.peak_hours ?? null,
+    priceBlocks: Array.isArray(row.price_blocks) ? (row.price_blocks as PriceBlock[]) : null,
     inParkingGarage: !!row.in_parking_garage,
     status,
     construction: row.construction ?? {},
@@ -260,6 +262,12 @@ const chargerInput = z.object({
   pricePerKwh: z.number().min(0).max(10).nullable().optional(),
   pricePerKwhPeak: z.number().min(0).max(10).nullable().optional(),
   peakHours: z.string().max(120).nullable().optional(),
+  priceBlocks: z.array(z.object({
+    days: z.string().max(40).optional(),
+    from: z.string().max(5).optional(),
+    to: z.string().max(5).optional(),
+    pricePerKwh: z.number().min(0).max(10),
+  })).max(12).nullable().optional(),
   inParkingGarage: z.boolean().default(false),
   province: z.string().max(100).optional(),
   city: z.string().max(100).optional(),
@@ -349,6 +357,7 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       price_per_kwh: data.pricePerKwh ?? null,
       price_per_kwh_peak: data.pricePerKwhPeak ?? null,
       peak_hours: data.peakHours ?? null,
+      price_blocks: data.priceBlocks ?? null,
       in_parking_garage: data.inParkingGarage,
       province: data.province || null,
       city: data.city || null,

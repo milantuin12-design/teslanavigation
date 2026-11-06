@@ -1,0 +1,2 @@
+ALTER TABLE public.superchargers ADD COLUMN IF NOT EXISTS price_blocks jsonb DEFAULT NULL;
+COMMENT ON COLUMN public.superchargers.price_blocks IS 'Tijdsblok-tarieven: [{"days":"ma-vr","from":"07:00","to":"19:00","pricePerKwh":0.45}]';
