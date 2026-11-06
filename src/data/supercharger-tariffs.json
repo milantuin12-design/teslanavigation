@@ -12646,7 +12646,6 @@
       ],
       "label": "Achim – Car Wash Jantzon",
       "timezone": "Europe/Berlin",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
@@ -12675,12 +12674,11 @@
     {
       "country": "Germany",
       "match": [
-        "hannover-sudstadt-bult",
-        "hannover südstadt bult"
+        "hannover sudstadt bult",
+        "hannover-sudstadt-bult"
       ],
       "label": "Hannover-Südstadt-Bult – Netto Marken-Discount",
       "timezone": "Europe/Berlin",
-      "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
@@ -14576,6 +14574,147 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/40015035/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bissendorf"
+      ],
+      "label": "Bissendorf – Netto",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.38,
+      "source": "https://www.kilowattindex.com/site/BissendorfSupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "herford"
+      ],
+      "label": "Herford – Kaufland",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/440309/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bad oeynhausen"
+      ],
+      "label": "Bad Oeynhausen – Werre-Park",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/portawestfalicasuperchargerq122/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "emsburen",
+        "emsbüren"
+      ],
+      "label": "Emsbüren – Gartenwelt Emsbüren",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/emsburensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "holdorf"
+      ],
+      "label": "Holdorf – Roatel",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/176637/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bremen cafe del sol"
+      ],
+      "label": "Bremen – Cafe Del Sol",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "10:00",
+          "to": "22:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29776/",
       "sourceChecked": "2026-11-06"
     }
   ]
