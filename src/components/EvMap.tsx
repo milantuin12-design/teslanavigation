@@ -402,14 +402,21 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           L.DomEvent.stop(ev);
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
+          const priceBlocks = (charger.priceBlocks ?? []).filter((b) => typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
+          const hasTimeBasedPricing = priceBlocks.length > 0;
+          const hasRegularPricing = charger.pricePerKwh != null || charger.pricePerKwhPeak != null || !!charger.peakHours;
           let d = `<div style="font-family:system-ui;font-size:13px;min-width:260px;color:#0f172a;display:grid;gap:4px;">
-            <strong style="font-size:15px;">${escapeHtml(charger.name || 'Onbekend')}</strong>
-            <div style="font-weight:700;margin-top:4px;">⚡ Prijzen</div>
-            ${row('Per kWh', eur(charger.pricePerKwh))}
-            ${charger.pricePerKwhPeak != null ? row('Piek per kWh', eur(charger.pricePerKwhPeak)) : ''}
-            ${charger.peakHours ? row('Piekuren', escapeHtml(charger.peakHours)) : ''}
-            ${(charger.priceBlocks ?? []).map((b) => row(escapeHtml(`${b.days ?? 'Dagelijks'} ${b.from ?? ''}–${b.to ?? ''}`), eur(b.pricePerKwh))).join('')}
-            <div style="font-weight:700;margin-top:6px;">🕒 Openingstijden hele week</div>
+            <strong style="font-size:15px;">${escapeHtml(charger.name || 'Onbekend')}</strong>`;
+          if (hasTimeBasedPricing) {
+            d += `<div style="font-weight:700;margin-top:4px;">⚡ Prijzen per tijdsblok</div>
+              ${priceBlocks.map((b) => row(escapeHtml(`${b.days ?? 'Dagelijks'} ${b.from ?? ''}–${b.to ?? ''}`), eur(b.pricePerKwh))).join('')}`;
+          } else if (hasRegularPricing) {
+            d += `<div style="font-weight:700;margin-top:4px;">⚡ Prijzen</div>
+              ${charger.pricePerKwh != null ? row('Per kWh', eur(charger.pricePerKwh)) : ''}
+              ${charger.pricePerKwhPeak != null ? row('Piek per kWh', eur(charger.pricePerKwhPeak)) : ''}
+              ${charger.peakHours ? row('Piekuren', escapeHtml(charger.peakHours)) : ''}`;
+          }
+          d += `<div style="font-weight:700;margin-top:6px;">🕒 Openingstijden hele week</div>
             <div style="display:grid;gap:3px;margin-top:2px;">
               ${(() => {
                 const hours = normalizeOpeningHours(charger.openingHours, charger.openingTime, charger.closingTime);
