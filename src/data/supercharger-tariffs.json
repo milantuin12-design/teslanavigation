@@ -9449,20 +9449,20 @@
         {
           "from": "00:00",
           "to": "16:00",
-          "pricePerKwh": 0.26
+          "pricePerKwh": 0.27
         },
         {
           "from": "16:00",
           "to": "20:00",
-          "pricePerKwh": 0.3
+          "pricePerKwh": 0.32
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.26
+          "pricePerKwh": 0.27
         }
       ],
-      "source": "https://www.kilowattindex.com/site/298945/",
+      "source": "https://www.kilowattindex.com/site/301238/",
       "sourceChecked": "2026-11-06"
     }
   ]
