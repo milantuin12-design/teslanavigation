@@ -7323,7 +7323,7 @@
       "timezone": "Europe/Istanbul",
       "currency": "TRY",
       "pricePerKwh": 10.4,
-      "source": "https://kilowattindex.com/country/tr/",
+      "source": "https://www.kilowattindex.com/site/289308/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -8847,6 +8847,82 @@
         }
       ],
       "source": "https://kilowattindex.com/site/445658/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "ankamall"
+      ],
+      "label": "Ankara – ANKAmall",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://www.kilowattindex.com/site/ankarasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "istanbul first avenue"
+      ],
+      "label": "Istanbul – First Avenue Mall",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://www.kilowattindex.com/site/28931/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "antalya shell"
+      ],
+      "label": "Antalya – Shell",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://kilowattindex.com/site/507354/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "istanbul mirkelam kuzey"
+      ],
+      "label": "Istanbul – Mirkelam Kuzey",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://www.kilowattindex.com/site/461110/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Türkiye",
+      "countryAliases": [
+        "Turkey"
+      ],
+      "match": [
+        "istanbul mirkelam guney",
+        "istanbul mirkelam güney"
+      ],
+      "label": "Istanbul – Mirkelam Güney",
+      "timezone": "Europe/Istanbul",
+      "currency": "TRY",
+      "pricePerKwh": 10.4,
+      "source": "https://www.kilowattindex.com/site/461015/",
       "sourceChecked": "2026-11-06"
     }
   ]
