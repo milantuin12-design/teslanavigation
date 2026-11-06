@@ -5281,6 +5281,46 @@
       ],
       "source": "https://www.kilowattindex.com/site/32355/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "castellon de la plana",
+        "castellón de la plana"
+      ],
+      "label": "Castellón de la Plana – Bencinas",
+      "timezone": "Europe/Madrid",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "18:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/299002/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "torrent toll l alberca",
+        "torrent - toll"
+      ],
+      "label": "Torrent – Torrent - Toll L'Alberca",
+      "timezone": "Europe/Madrid",
+      "pricePerKwh": 0.35,
+      "source": "https://www.kilowattindex.com/site/30506/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
