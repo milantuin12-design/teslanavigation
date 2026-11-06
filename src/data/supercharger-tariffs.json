@@ -2824,18 +2824,18 @@
       "priceBlocks": [
         {
           "from": "00:00",
-          "to": "10:00",
-          "pricePerKwh": 0.25
+          "to": "09:00",
+          "pricePerKwh": 0.21
         },
         {
-          "from": "10:00",
+          "from": "09:00",
           "to": "20:00",
-          "pricePerKwh": 0.55
+          "pricePerKwh": 0.38
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.36
+          "pricePerKwh": 0.3
         }
       ],
       "source": "https://kilowattindex.com/site/28821/",
@@ -2880,20 +2880,20 @@
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.26
+          "pricePerKwh": 0.23
         },
         {
           "from": "09:00",
           "to": "23:00",
-          "pricePerKwh": 0.5
+          "pricePerKwh": 0.49
         },
         {
           "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.26
+          "pricePerKwh": 0.23
         }
       ],
-      "source": "https://kilowattindex.com/site/machelensupercharger/",
+      "source": "https://www.kilowattindex.com/site/machelensupercharger/",
       "sourceChecked": "2026-11-06"
     },
     {
@@ -8189,6 +8189,181 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/208112/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Belgium",
+      "match": [
+        "heusden-zolder"
+      ],
+      "label": "Heusden-Zolder – Zolder",
+      "timezone": "Europe/Brussels",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.51
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/heusdenzoldersupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Belgium",
+      "match": [
+        "corda campus"
+      ],
+      "label": "Hasselt – Corda Campus",
+      "timezone": "Europe/Brussels",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.54
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.41
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Hasseltq222/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Belgium",
+      "match": [
+        "cora rocourt"
+      ],
+      "label": "Liège – Cora Rocourt",
+      "timezone": "Europe/Brussels",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://kilowattindex.com/site/liegesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Belgium",
+      "match": [
+        "nivelles"
+      ],
+      "label": "Nivelles – Van der Valk Hotel",
+      "timezone": "Europe/Brussels",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://kilowattindex.com/site/nivellessud/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Belgium",
+      "match": [
+        "zaventem brico",
+        "zaventem"
+      ],
+      "label": "Zaventem – Brico",
+      "timezone": "Europe/Brussels",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.55
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://kilowattindex.com/site/leuvenbesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Belgium",
+      "match": [
+        "suarlee",
+        "suarlée",
+        "ecolys"
+      ],
+      "label": "Suarlée – Business Village Ecolys",
+      "timezone": "Europe/Brussels",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.55
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://kilowattindex.com/site/namursupercharger/",
       "sourceChecked": "2026-11-06"
     }
   ]
