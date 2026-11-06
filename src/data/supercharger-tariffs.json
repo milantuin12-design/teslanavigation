@@ -16237,6 +16237,318 @@
       "pricePerKwh": 0.46,
       "source": "https://www.kilowattindex.com/site/33311/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "vertesszolos",
+        "vértesszőlős"
+      ],
+      "label": "Vértesszőlős – Tatabánya",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 106
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 141
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 106
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/4008313/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "miskolc"
+      ],
+      "label": "Miskolc – Auchan",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 116
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 160
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 116
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/miskolcsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "torokbalint",
+        "törökbálint"
+      ],
+      "label": "Törökbálint – Auchan",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 116
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 160
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 116
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/torokbalintsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "szekesfehervar",
+        "székesfehérvár"
+      ],
+      "label": "Székesfehérvár – Auchan",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 109
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 145
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 109
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Szekesfehervarsubjeperchangerger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "pecs",
+        "pécs"
+      ],
+      "label": "Pécs – Tesco",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 109
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 139
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 109
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/428755/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "szombathely"
+      ],
+      "label": "Szombathely – Family Center",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 123
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 160
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 123
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29017/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "erd tesco",
+        "érd tesco"
+      ],
+      "label": "Érd – Tesco Hipermarket",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 110
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 147
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 110
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/455152/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "szigetszentmiklos"
+      ],
+      "label": "Szigetszentmiklós – Auchan",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 109
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 152
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 109
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/szigetszentmiklossupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "siofok",
+        "siófok"
+      ],
+      "label": "Siófok – Tesco",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 122
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 159
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 122
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/4008459/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "zalaegerszeg"
+      ],
+      "label": "Zalaegerszeg – Zala Center",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "pricePerKwh": 149,
+      "source": "https://www.kilowattindex.com/site/461058/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "sormas",
+        "sormás"
+      ],
+      "label": "Sormas – István Parkhotel & Restaurant",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "pricePerKwh": 149,
+      "source": "https://www.kilowattindex.com/site/sormashungarysupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "veszprem",
+        "veszprém"
+      ],
+      "label": "Veszprém",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 115
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 150
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 115
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/457963/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
