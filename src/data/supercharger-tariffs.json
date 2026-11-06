@@ -3043,6 +3043,467 @@
       ],
       "source": "https://kilowattindex.com/site/29157/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "linz"
+      ],
+      "label": "Linz",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/455113/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "gewerbepark stadlau",
+        "stadlau"
+      ],
+      "label": "Wien – Gewerbepark Stadlau",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/WienDonaustadtatsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "vienna mcdonald",
+        "wien mcdonald",
+        "mcdonalds vienna"
+      ],
+      "label": "Vienna – McDonald's",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/32605/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "philsplace"
+      ],
+      "label": "Wien – PhilsPlace",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "19:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/20812/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "hartberg"
+      ],
+      "label": "Hartberg – HATRIC Einkaufspark",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "18:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/105091/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "inning"
+      ],
+      "label": "Inning – Schnitzelwirt",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/297327/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "wiener neudorf"
+      ],
+      "label": "Wiener Neudorf – SCS Multiplex",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "12:00",
+          "to": "19:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30071/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "wiener neustadt"
+      ],
+      "label": "Wiener Neustadt – Reload24",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/wienerneustadtsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "zeltweg"
+      ],
+      "label": "Zeltweg – M-Rast Autohof",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/286035/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "graz center west",
+        "center west"
+      ],
+      "label": "Graz – Center West",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/285358/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "pasching"
+      ],
+      "label": "Pasching – PlusCity",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/401267/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "stumm"
+      ],
+      "label": "Stumm – Bäckerei Café Dorfbäck",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/StummimZillertal-SelfServeDemoDrive/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "hall in tirol"
+      ],
+      "label": "Hall in Tirol – HWest Hotel",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "12:00",
+          "to": "16:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/hallintirol/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "seefeld in tirol",
+        "seefeld"
+      ],
+      "label": "Seefeld in Tirol",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.36,
+      "source": "https://www.kilowattindex.com/site/30412/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "langkampfen"
+      ],
+      "label": "Langkampfen – INN-TANK",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/langkampfensupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "parndorf"
+      ],
+      "label": "Parndorf – Frunpark Parndorf",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Parndorf422/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
