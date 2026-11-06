@@ -18685,8 +18685,29 @@
       ],
       "label": "Annemasse",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/303999/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -19363,21 +19384,26 @@
         },
         {
           "from": "04:00",
-          "to": "09:00",
+          "to": "10:00",
           "pricePerKwh": 0.21
         },
         {
-          "from": "09:00",
-          "to": "20:00",
+          "from": "10:00",
+          "to": "19:00",
           "pricePerKwh": 0.4
         },
         {
-          "from": "20:00",
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "23:00",
           "to": "24:00",
           "pricePerKwh": 0.21
         }
       ],
-      "source": "https://www.kilowattindex.com/site/ChasseSurRhone2Supercharger/",
+      "source": "https://www.kilowattindex.com/site/29905/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -20543,8 +20569,29 @@
       ],
       "label": "Saint-Julien-en-Genevois – Route de Lathoy",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.18
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/438010/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -21199,8 +21246,29 @@
       ],
       "label": "Saint-Julien-en-Genevois",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.17
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/saintjulienengenevoissuperchargerq122/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -21287,8 +21355,14 @@
       ],
       "label": "Salaise-sur-Sanne",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Valencefrsupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
@@ -21672,8 +21746,29 @@
       ],
       "label": "Chasse-sur-Rhône",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/chassesurrhonesupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
