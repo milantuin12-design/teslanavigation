@@ -2378,6 +2378,382 @@
       "pricePerKwh": 0.4,
       "source": "https://www.kilowattindex.com/site/vilarealsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "limerick"
+      ],
+      "label": "Limerick – MJ Finnegan's",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.59
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/4008265/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "drumcliffe north",
+        "drumcliffe"
+      ],
+      "label": "Drumcliffe North – Davis' Restaurant & Yeats Tavern",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.58
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/4008308/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "letterkenny"
+      ],
+      "label": "Letterkenny – Mount Errigal Hotel",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.53
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/469554/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "athenry"
+      ],
+      "label": "Athenry – Raheen Woods Hotel",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/athenrysupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "coolderry"
+      ],
+      "label": "Coolderry – Applegreen Services",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.6
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/birdhillsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "ballacolla"
+      ],
+      "label": "Ballacolla – Circle K",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.62
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/ballacollasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "cork"
+      ],
+      "label": "Cork – Mahon Point Shopping Centre",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.64
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.47
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/corksupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "wicklow"
+      ],
+      "label": "Wicklow – The Wilds Home & Cafe and Drive Thru",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.59
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.48
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/4008454/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "mallow"
+      ],
+      "label": "Mallow – The Arches Bar & Restaurant",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.55
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/470752/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "tralee"
+      ],
+      "label": "Tralee – Ballygarry Estate Hotel & Spa",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.59
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Traleesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "longford"
+      ],
+      "label": "Longford – Axis Centre",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.57
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/59506/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "enfield"
+      ],
+      "label": "Enfield – The Johnstown Estate",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.6
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/enfieldiesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "whiterath north",
+        "whiterath northbound"
+      ],
+      "label": "Whiterath – Applegreen Services (Northbound)",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.53
+        },
+        {
+          "from": "04:00",
+          "to": "21:00",
+          "pricePerKwh": 0.59
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.53
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/castlebellinghamnorthboundsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Ireland",
+      "match": [
+        "whiterath south",
+        "whiterath southbound"
+      ],
+      "label": "Whiterath – Applegreen Services (Southbound)",
+      "timezone": "Europe/Dublin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "04:00",
+          "to": "20:00",
+          "pricePerKwh": 0.58
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/castlebellinghamsouthboundsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
