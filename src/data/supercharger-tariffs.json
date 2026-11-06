@@ -17185,6 +17185,97 @@
       "pricePerKwh": 0.37,
       "source": "https://www.kilowattindex.com/site/liezensupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "cagnes-sur-mer"
+      ],
+      "label": "Cagnes-Sur-Mer – Polygone Riviera",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "11:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "11:00",
+          "to": "20:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/cagnessurmersupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "aix-en-provence ibis"
+      ],
+      "label": "Aix-en-Provence – Ibis",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://kilowattindex.com/site/aixenprovencevaldelarcsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "la seyne-sur-mer"
+      ],
+      "label": "La Seyne-sur-Mer – Ibis",
+      "timezone": "Europe/Paris",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.17
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/toulonsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
