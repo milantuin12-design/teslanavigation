@@ -421,6 +421,7 @@ export type Database = {
           permanently_closed_at: string | null
           photos: string[]
           planned_upgrade: Json
+          price_blocks: Json | null
           price_per_kwh: number | null
           price_per_kwh_peak: number | null
           province: string | null
@@ -471,6 +472,7 @@ export type Database = {
           permanently_closed_at?: string | null
           photos?: string[]
           planned_upgrade?: Json
+          price_blocks?: Json | null
           price_per_kwh?: number | null
           price_per_kwh_peak?: number | null
           province?: string | null
@@ -521,6 +523,7 @@ export type Database = {
           permanently_closed_at?: string | null
           photos?: string[]
           planned_upgrade?: Json
+          price_blocks?: Json | null
           price_per_kwh?: number | null
           price_per_kwh_peak?: number | null
           province?: string | null
