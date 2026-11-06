@@ -17747,6 +17747,149 @@
       "pricePerKwh": 0.37,
       "source": "https://www.kilowattindex.com/site/299197/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "benacazon",
+        "benacazón"
+      ],
+      "label": "Benacazón – Venta Pazo",
+      "timezone": "Europe/Madrid",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/benacazonsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "aguadulce"
+      ],
+      "label": "Aguadulce – El Caserio",
+      "timezone": "Europe/Madrid",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/417709/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "cordoba tesla station",
+        "córdoba tesla station"
+      ],
+      "label": "Córdoba – Tesla Station",
+      "timezone": "Europe/Madrid",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.37
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/4002559/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "moraleda de zafayona"
+      ],
+      "label": "Moraleda de Zafayona – Hotel Paraiso",
+      "timezone": "Europe/Madrid",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "12:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "12:00",
+          "to": "22:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/granadasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "valdepenas",
+        "valdepeñas"
+      ],
+      "label": "Valdepeñas, Ciudad Real – Decathlon",
+      "timezone": "Europe/Madrid",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "18:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/298593/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
