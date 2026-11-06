@@ -17678,6 +17678,75 @@
       ],
       "source": "https://www.kilowattindex.com/site/jerezsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "cullar"
+      ],
+      "label": "Cullar – Bp",
+      "timezone": "Europe/Madrid",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "12:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "12:00",
+          "to": "22:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/cullarspainsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "marmolejo"
+      ],
+      "label": "Marmolejo – Q8",
+      "timezone": "Europe/Madrid",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "18:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/417705/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Spain",
+      "match": [
+        "jaen plaza",
+        "jaén plaza"
+      ],
+      "label": "Jaén – Jaén Plaza",
+      "timezone": "Europe/Madrid",
+      "currency": "EUR",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/site/299197/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
