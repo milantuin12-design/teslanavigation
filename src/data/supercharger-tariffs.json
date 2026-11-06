@@ -4023,10 +4023,26 @@
       ],
       "label": "Pollein – A5 Dir. Mont Blanc",
       "timezone": "Europe/Rome",
-      "pricePerKwh": 0.4,
-      "source": "https://www.kilowattindex.com/site/9481/",
+      "source": "https://www.kilowattindex.com/site/1852/",
       "sourceChecked": "2026-11-06",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -8774,7 +8790,7 @@
         {
           "from": "08:00",
           "to": "23:00",
-          "pricePerKwh": 0.5
+          "pricePerKwh": 0.48
         },
         {
           "from": "23:00",
@@ -8797,17 +8813,17 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.28
+          "pricePerKwh": 0.27
         },
         {
           "from": "08:00",
           "to": "20:00",
-          "pricePerKwh": 0.48
+          "pricePerKwh": 0.47
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.34
+          "pricePerKwh": 0.33
         }
       ],
       "source": "https://www.kilowattindex.com/site/3325/",
@@ -17283,6 +17299,168 @@
       "source": "https://www.kilowattindex.com/site/toulonsupercharger/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "dalmine"
+      ],
+      "label": "Dalmine – Pepco",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.41
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/bergamodalminesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "busto arsizio"
+      ],
+      "label": "Busto Arsizio – Mizar Park",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.42
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30341/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "agrate brianza"
+      ],
+      "label": "Agrate Brianza – Galbusera Tre Marie - Spaccio dolciario",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://kilowattindex.com/site/408764/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "padova"
+      ],
+      "label": "Padova – Crowne Plaza",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/273911/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "carpiano"
+      ],
+      "label": "Carpiano – AN Hotel",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.44
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/melegnanosupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "arese"
+      ],
+      "label": "Arese – Centro Commerciale Il Centro",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://kilowattindex.com/site/aresesupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
