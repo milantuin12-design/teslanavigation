@@ -12116,6 +12116,177 @@
       ],
       "source": "https://www.kilowattindex.com/site/35032/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "nimes carre sud",
+        "nîmes",
+        "carre sud"
+      ],
+      "label": "Nîmes – Carré Sud",
+      "timezone": "Europe/Paris",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://kilowattindex.com/site/Nmes2Supercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "orange"
+      ],
+      "label": "Orange – Les Vignes",
+      "timezone": "Europe/Paris",
+      "currency": "EUR",
+      "pricePerKwh": 0.35,
+      "source": "https://www.kilowattindex.com/site/orangesupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "laxou"
+      ],
+      "label": "Laxou – Auchan",
+      "timezone": "Europe/Paris",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.19
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.19
+        }
+      ],
+      "source": "https://kilowattindex.com/site/laxousupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "nimotel"
+      ],
+      "label": "Nimes – Nimotel",
+      "timezone": "Europe/Paris",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.18
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Self-ServeDemoDrive/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "saint-jean-de-maurienne"
+      ],
+      "label": "Saint-Jean-de-Maurienne – Best Western",
+      "timezone": "Europe/Paris",
+      "currency": "EUR",
+      "pricePerKwh": 0.35,
+      "source": "https://www.kilowattindex.com/site/302423/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "lexy"
+      ],
+      "label": "Lexy – Grand Frais",
+      "timezone": "Europe/Paris",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.23
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/444407/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "France",
+      "match": [
+        "haubourdin"
+      ],
+      "label": "Haubourdin – Auchan",
+      "timezone": "Europe/Paris",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/295618/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
