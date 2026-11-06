@@ -1035,7 +1035,7 @@
         {
           "from": "04:00",
           "to": "10:00",
-          "pricePerKwh": 0.21
+          "pricePerKwh": 0.2
         },
         {
           "from": "10:00",
@@ -1045,7 +1045,7 @@
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.21
+          "pricePerKwh": 0.2
         }
       ],
       "source": "https://kilowattindex.com/site/417319/",
@@ -19948,8 +19948,24 @@
       ],
       "label": "Livry-Gargan",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/417219/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
     },
