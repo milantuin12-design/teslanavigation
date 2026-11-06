@@ -13434,6 +13434,276 @@
       ],
       "source": "https://kilowattindex.com/site/senjsupercharger/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "vrgorac"
+      ],
+      "label": "Vrgorac – Hotel Prvan",
+      "timezone": "Europe/Zagreb",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/vrgoracsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "kosa janjacka"
+      ],
+      "label": "Kosa Janjačka – Odmorište Janjče - Istok",
+      "timezone": "Europe/Zagreb",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/35723/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "karlovac"
+      ],
+      "label": "Karlovac – Petrol",
+      "timezone": "Europe/Zagreb",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://kilowattindex.com/site/karlovaccroatiasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "gornja vrba"
+      ],
+      "label": "Gornja Vrba – Shell",
+      "timezone": "Europe/Zagreb",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/slavonskibrodsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "otocac"
+      ],
+      "label": "Otočac – Adria Oil",
+      "timezone": "Europe/Zagreb",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.23
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/otocacsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "zagreb designer outlet"
+      ],
+      "label": "Zagreb – Designer Outlet Croatia",
+      "timezone": "Europe/Zagreb",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://kilowattindex.com/site/59398/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "zagreb shell"
+      ],
+      "label": "Zagreb – Shell",
+      "timezone": "Europe/Zagreb",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/zagrebsupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "varazdin"
+      ],
+      "label": "Varaždin – GreenPark",
+      "timezone": "Europe/Zagreb",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/4008386/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "dugopolje"
+      ],
+      "label": "Dugopolje – Hotel Katarina",
+      "timezone": "Europe/Zagreb",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/splitcroatiasupercharger/",
+      "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Croatia",
+      "match": [
+        "ramljani"
+      ],
+      "label": "Ramljani – Odmorište Janjče - Zapad",
+      "timezone": "Europe/Zagreb",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/404811/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
