@@ -16591,6 +16591,19 @@
       ],
       "source": "https://www.kilowattindex.com/site/32698/",
       "sourceChecked": "2026-11-06"
+    },
+    {
+      "country": "Hungary",
+      "match": [
+        "gyorujbarat",
+        "győrújbarát"
+      ],
+      "label": "Győrújbarát – Bistro & Shop",
+      "timezone": "Europe/Budapest",
+      "currency": "HUF",
+      "pricePerKwh": 153,
+      "source": "https://www.kilowattindex.com/site/gyorsupercharger/",
+      "sourceChecked": "2026-11-06"
     }
   ]
 }
