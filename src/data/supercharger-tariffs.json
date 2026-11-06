@@ -12985,7 +12985,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/vidaubanfrsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -17056,7 +17057,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/437030/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -17083,7 +17085,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/mouginssupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -17111,7 +17114,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/437216/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "Austria",
@@ -17211,7 +17215,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/cagnessurmersupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -17243,7 +17248,8 @@
         }
       ],
       "source": "https://kilowattindex.com/site/aixenprovencevaldelarcsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     },
     {
       "country": "France",
@@ -17275,7 +17281,8 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/toulonsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-06",
+      "currency": "EUR"
     }
   ]
 }
