@@ -430,7 +430,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
             if (singleClickTimer) clearTimeout(singleClickTimer);
             singleClickTimer = undefined;
-            L.DomEvent.stop(ev);
+            L.DomEvent.stop(ev.originalEvent);
             marker.closePopup();
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
