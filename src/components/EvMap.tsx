@@ -411,7 +411,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         popup += `</div>`;
         marker.bindPopup(popup);
         if (!hideOpeningHours) marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
-          L.DomEvent.stop(ev);
+          // Stop the native double-click before Leaflet's map zoom handler can consume it.
+          if (ev.originalEvent) L.DomEvent.stop(ev.originalEvent);
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
           const priceBlocks = (charger.priceBlocks ?? []).filter((b) => typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
