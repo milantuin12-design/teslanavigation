@@ -4,6 +4,7 @@ import { WeatherMode, TimeMode, teslaBatteryKWh, teslaModels } from './tesla-typ
 export interface RouteWeather {
   tempC: number;
   temperatureSegments?: { km: number; tempC: number }[];
+  weatherSegments?: { km: number; tempC: number; windMs: number; precipitationMm: number; snowfallCm: number }[];
   windMs: number;
   /** Tegenwindcomponent in m/s (positief = tegenwind). */
   headwindMs?: number;
