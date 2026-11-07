@@ -180,7 +180,7 @@ function Index() {
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
   const visibleChargers = useMemo(
     () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters) && (!showFavoritesOnly || (!!charger.id && favoriteChargerIds.includes(charger.id)))),
-    [superchargers, chargerFilters],
+    [superchargers, chargerFilters, showFavoritesOnly, favoriteChargerIds],
   );
 
   useEffect(() => { const handler = (event: Event) => { const id = (event as CustomEvent<{ id: string }>).detail?.id; if (id) toggleFavoriteCharger(id); }; window.addEventListener("sc-favorite", handler); return () => window.removeEventListener("sc-favorite", handler); }, []);
@@ -1159,8 +1159,8 @@ function Index() {
       return visibleChargers.filter((c) => showDevelopmentChargers || !isDevelopment(c));
     }
     const used = new Set(chargingStops.map((s) => s.charger.id ?? s.charger.name));
-    return superchargers.filter((c) => used.has(c.id ?? c.name) && (showDevelopmentChargers || !isDevelopment(c)));
-  }, [route, showAllChargers, chargingStops, visibleChargers, superchargers, showDevelopmentChargers]);
+    return superchargers.filter((c) => used.has(c.id ?? c.name) && (!showFavoritesOnly || (!!c.id && favoriteChargerIds.includes(c.id))) && (showDevelopmentChargers || !isDevelopment(c)));
+  }, [route, showAllChargers, chargingStops, visibleChargers, superchargers, showDevelopmentChargers, showFavoritesOnly, favoriteChargerIds]);
 
   const handleRemoveCharger = useCallback((index: number) => {
     // "Liever niet hier laden": sluit deze lader uit en zoek een andere Supercharger.
