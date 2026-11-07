@@ -213,6 +213,7 @@ export interface Supercharger {
   voting?: VotingInfo;
   hidden?: boolean;
   photos?: string[];
+  trafficForecast?: { level: "low" | "medium" | "high"; days?: string; from?: string; to?: string; note?: string } | null;
 }
 
 
