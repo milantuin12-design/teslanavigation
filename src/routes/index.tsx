@@ -1169,7 +1169,7 @@ function Index() {
       {!isNavigating && (
         <div className={`w-full ${route && !showRouteInputs ? "lg:w-[520px] xl:w-[560px]" : "lg:w-[380px] xl:w-[420px]"} flex-shrink-0 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-700/50 flex flex-col overflow-hidden`}>
           <div
-            className="flex-1 overflow-y-auto overscroll-contain"
+            className={`${route && !showRouteInputs ? "flex-none" : "flex-1"} overflow-y-auto overscroll-contain`}
             style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
           >
             {route && !showRouteInputs && (
