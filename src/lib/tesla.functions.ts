@@ -256,8 +256,9 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
         return rowToCharger(applyTariffOverride(merged), owners);
       });
     } catch (error) {
-      console.error("[TeslaNavigation] Clouddata ophalen mislukt; lokale dataset wordt gebruikt:", error);
-      return localRows.map((row) => rowToCharger(applyTariffOverride(row), owners));
+      // Never silently replace live admin data with the older bundled JSON snapshot.
+      console.error("[TeslaNavigation] Supabase-data ophalen mislukt; lokale fallback bewust geblokkeerd:", error);
+      throw new Error("De actuele Supercharger-database is niet bereikbaar of onvolledig. De app toont geen verouderde lokale dataset.");
     }
   }
 );
