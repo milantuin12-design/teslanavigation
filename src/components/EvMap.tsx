@@ -410,28 +410,37 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         popup += `<button type="button" data-report-id="${escapeHtml(charger.id ?? '')}" data-report-name="${escapeHtml(charger.name ?? '')}" style="margin-top:8px;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#b91c1c;font-weight:600;cursor:pointer;">Fout melden</button>`;
         popup += `</div>`;
         marker.bindPopup(popup);
-        // Stel de gewone popup uit: anders ligt die na de eerste klik over de marker
-        // en raakt de tweede klik de popup in plaats van de Supercharger-marker.
+        // Gebruik de echte DOM-dblclick op het zichtbare marker-icoon. Dit omzeilt
+        // Leaflet/MarkerCluster event-afhandeling, die de marker-dblclick kan opslokken.
         marker.off('click');
         let singleClickTimer: number | undefined;
-        marker.on('click', (ev: L.LeafletMouseEvent) => {
-          // Detecteer dubbelklik zelf via twee marker-clicks; Leaflet's dblclick-event
-          // wordt in combinatie met de kaart/clusterlaag niet altijd afgeleverd.
+        const handleMarkerDoubleClick = (event: MouseEvent) => {
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
           if (singleClickTimer !== undefined) {
             window.clearTimeout(singleClickTimer);
             singleClickTimer = undefined;
-            marker.closePopup();
-            if (ev.originalEvent) {
-              ev.originalEvent.preventDefault();
-              ev.originalEvent.stopPropagation();
-            }
-            if (!hideOpeningHours) marker.fire('sc:details');
-            return;
           }
+          marker.closePopup();
+          if (!hideOpeningHours) marker.fire('sc:details');
+        };
+        const attachMarkerDoubleClick = () => {
+          const element = marker.getElement();
+          if (element) element.addEventListener('dblclick', handleMarkerDoubleClick, true);
+        };
+        const detachMarkerDoubleClick = () => {
+          const element = marker.getElement();
+          if (element) element.removeEventListener('dblclick', handleMarkerDoubleClick, true);
+        };
+        marker.on('add', attachMarkerDoubleClick);
+        marker.on('remove', detachMarkerDoubleClick);
+        marker.on('click', () => {
+          if (singleClickTimer !== undefined) window.clearTimeout(singleClickTimer);
           singleClickTimer = window.setTimeout(() => {
             singleClickTimer = undefined;
             marker.openPopup();
-          }, 450);
+          }, 600);
         });
         if (!hideOpeningHours) marker.on('sc:details', () => {
           marker.closePopup();
