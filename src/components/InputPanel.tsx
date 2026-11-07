@@ -1025,6 +1025,7 @@ export default function InputPanel({
               {trailerEnabled ? (trailerKind === 'caravan' ? 'Caravan' : 'Aanhanger') : 'Aanhanger / caravan'}
             </button>
             {trailerEnabled && (
+              <>
               <div className="mt-2 space-y-2">
                 <label className="flex items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-800/40 p-3 text-xs text-slate-300">
                   <input
@@ -1064,6 +1065,7 @@ export default function InputPanel({
                 </div>
                 <p className="text-[11px] text-slate-400">Extra verbruik door {trailerKind === 'caravan' ? 'gewicht en wind' : 'gewicht'}: ongeveer <span className="text-amber-300 font-medium">{Math.round(trailerLoss / (100 - trailerLoss) * 100)}% meer</span></p>
               </div>
+              </>
             )}
           </div>
 
