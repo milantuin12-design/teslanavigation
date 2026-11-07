@@ -92,7 +92,7 @@ function climb(profile: number[] | null | undefined, totalKm: number, fromKm: nu
   return { up: Math.round(up), down: Math.round(down) };
 }
 
-function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo, temperatureC }: {
+function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo, temperatureC, segmentWeather }: {
   fromLabel: string; toLabel: string; km: number; kWh: number | null; rangeKm: number | null; from: number; to: number;
   climbInfo: { up: number; down: number } | null;
   temperatureC: number | null;
