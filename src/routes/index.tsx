@@ -1167,7 +1167,7 @@ function Index() {
   return (
     <div className="h-screen w-screen flex flex-col lg:flex-row bg-slate-900 text-white overflow-hidden">
       {!isNavigating && (
-        <div className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-700/50 flex flex-col overflow-hidden">
+        <div className={`w-full ${route && !showRouteInputs ? "lg:w-[520px] xl:w-[560px]" : "lg:w-[380px] xl:w-[420px]"} flex-shrink-0 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-700/50 flex flex-col overflow-hidden`}>
           <div
             className="flex-1 overflow-y-auto overscroll-contain"
             style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
@@ -1268,7 +1268,7 @@ function Index() {
           </div>
 
 
-          <div className="border-t border-slate-700/50 max-h-[40vh] overflow-y-auto">
+          <div className={`border-t border-slate-700/50 overflow-y-auto ${route && !showRouteInputs ? "flex-1 min-h-0" : "max-h-[40vh]"}`}>
             <ChargingStops
               stops={chargingStops}
               totalDistanceKm={route?.totalDistanceKm ?? null}
