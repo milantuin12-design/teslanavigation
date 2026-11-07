@@ -409,11 +409,12 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
 
         popup += `<button type="button" data-report-id="${escapeHtml(charger.id ?? '')}" data-report-name="${escapeHtml(charger.name ?? '')}" style="margin-top:8px;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#b91c1c;font-weight:600;cursor:pointer;">Fout melden</button>`;
         popup += `</div>`;
+        if (!hideOpeningHours) {
+          const outerClose = popup.lastIndexOf('</div>');
+          popup = popup.slice(0, outerClose) + '<div style="margin-top:6px;color:#64748b;font-size:11px;">Dubbelklik voor prijzen en parkeergeld</div>' + popup.slice(outerClose);
+        }
         marker.bindPopup(popup);
         if (!hideOpeningHours) {
-          popup = popup.replace('</div>', '<div style="margin-top:6px;color:#64748b;font-size:11px;">Dubbelklik voor prijzen en parkeergeld</div></div>');
-          marker.unbindPopup();
-          marker.bindPopup(popup);
           // Herstel de oorspronkelijke Leaflet-marker dubbelklik: dit was de
           // werkende route vóór de eigen DOM-/timerconstructies.
           marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
