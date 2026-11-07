@@ -435,7 +435,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           singleClickTimer = setTimeout(() => {
             marker.openPopup();
             singleClickTimer = undefined;
-          }, 500);
+          }, 800);
         });
         if (!hideOpeningHours) {
           marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
@@ -490,23 +490,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(d).openOn(map);
           });
         }
-        // Koppel de browser-dubbelklik zodra Leaflet de marker echt in de
-        // kaart-DOM plaatst. Bij clustering bestaat het element eerder vaak nog niet.
-        if (!hideOpeningHours) {
-          marker.on('add', () => {
-            const markerElement = marker.getElement();
-            if (!markerElement || markerElement.dataset.detailsDblclick === '1') return;
-            markerElement.dataset.detailsDblclick = '1';
-            markerElement.addEventListener('dblclick', (event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              marker.fire('dblclick', {
-                originalEvent: event,
-                latlng: marker.getLatLng(),
-              });
-            }, true);
-          });
-        }
+        // Dubbelklik wordt afgehandeld via de twee opeenvolgende marker-clicks hierboven.
         const targetLayer = routeChargersOnly ? markersRef.current : (clusterRef.current ?? markersRef.current);
         targetLayer.addLayer(marker);
       } catch { /* skip bad charger */ }
