@@ -163,7 +163,7 @@ function AdminPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
-  const [bulkPrice, setBulkPrice] = useState({ pricePerKwh: "", pricePerKwhPeak: "", peakHours: "", parkingFeeAmount: "", parkingFreeMinutes: "", parkingPerMinutes: "", parkingPerEuro: "" });
+  const [bulkPrice, setBulkPrice] = useState({ parkingFeeAmount: "", parkingFreeMinutes: "", parkingPerMinutes: "", parkingPerEuro: "" });
   const fileRef = useRef<HTMLInputElement>(null);
   const runImport = useServerFn(importSuperchargers);
 
@@ -246,9 +246,9 @@ function AdminPage() {
       parking_free_minutes: editing.parking_free_minutes ?? null,
       parking_per_minutes: editing.parking_per_minutes ?? null,
       parking_per_euro: editing.parking_per_euro ?? null,
-      price_per_kwh: editing.price_per_kwh ?? null,
-      price_per_kwh_peak: editing.price_per_kwh_peak ?? null,
-      peak_hours: editing.peak_hours ?? null,
+      price_per_kwh: null,
+      price_per_kwh_peak: null,
+      peak_hours: null,
       price_blocks: (editing.price_blocks && editing.price_blocks.length > 0 ? editing.price_blocks : null) as unknown as Json,
       in_parking_garage: !!editing.in_parking_garage,
       province: editing.province || null,
@@ -385,9 +385,6 @@ function AdminPage() {
 
   const applyBulkPrice = () => {
     const changes: Record<string, unknown> = {};
-    if (bulkPrice.pricePerKwh !== "") changes.price_per_kwh = Number(bulkPrice.pricePerKwh);
-    if (bulkPrice.pricePerKwhPeak !== "") changes.price_per_kwh_peak = Number(bulkPrice.pricePerKwhPeak);
-    if (bulkPrice.peakHours !== "") changes.peak_hours = bulkPrice.peakHours;
     if (bulkPrice.parkingFeeAmount !== "") { changes.parking_fee = true; changes.parking_fee_amount = Number(bulkPrice.parkingFeeAmount); }
     if (bulkPrice.parkingFreeMinutes !== "") { changes.parking_fee = true; changes.parking_free_minutes = Number(bulkPrice.parkingFreeMinutes); }
     if (bulkPrice.parkingPerMinutes !== "") { changes.parking_fee = true; changes.parking_per_minutes = Number(bulkPrice.parkingPerMinutes); }
@@ -458,15 +455,6 @@ function AdminPage() {
           <div className="mb-4 border border-emerald-500/40 bg-emerald-500/10 p-3 rounded-lg space-y-2">
             <p className="text-sm font-semibold">Zelfde prijzen instellen voor {selectedIds.size} Superchargers</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-              <label className="flex items-center gap-1">€/kWh
-                <Input type="number" step="0.01" min="0" className="h-7 bg-slate-800 border-slate-600" value={bulkPrice.pricePerKwh} onChange={(e) => setBulkPrice({ ...bulkPrice, pricePerKwh: e.target.value })} />
-              </label>
-              <label className="flex items-center gap-1">Piek €/kWh
-                <Input type="number" step="0.01" min="0" className="h-7 bg-slate-800 border-slate-600" value={bulkPrice.pricePerKwhPeak} onChange={(e) => setBulkPrice({ ...bulkPrice, pricePerKwhPeak: e.target.value })} />
-              </label>
-              <label className="col-span-2 flex items-center gap-1">Piektijden
-                <Input placeholder="ma-vr 07:00-19:00" className="h-7 bg-slate-800 border-slate-600" value={bulkPrice.peakHours} onChange={(e) => setBulkPrice({ ...bulkPrice, peakHours: e.target.value })} />
-              </label>
               <label className="flex items-center gap-1">Parkeren vast €
                 <Input type="number" step="0.10" min="0" className="h-7 bg-slate-800 border-slate-600" value={bulkPrice.parkingFeeAmount} onChange={(e) => setBulkPrice({ ...bulkPrice, parkingFeeAmount: e.target.value })} />
               </label>
@@ -815,21 +803,13 @@ function AdminPage() {
                   <p className="col-span-2 text-slate-400">Bijv. 90 gratis minuten, daarna €1 per 10 minuten. Kosten kunnen per dag/tijd verschillen — gebruik het gemiddelde of het duurste tarief.</p>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <label className="flex items-center gap-1">Prijs per kWh €
-                  <Input type="number" step="0.01" min="0" className="h-7 bg-slate-800 border-slate-600" value={editing.price_per_kwh ?? ''} onChange={(e) => setEditing({ ...editing, price_per_kwh: e.target.value === '' ? null : Number(e.target.value) })} />
-                </label>
-                <label className="flex items-center gap-1">Piektarief per kWh €
-                  <Input type="number" step="0.01" min="0" className="h-7 bg-slate-800 border-slate-600" value={editing.price_per_kwh_peak ?? ''} onChange={(e) => setEditing({ ...editing, price_per_kwh_peak: e.target.value === '' ? null : Number(e.target.value) })} />
-                </label>
-                <label className="col-span-2 flex items-center gap-1">Piektijden (bijv. ma-vr 07:00-19:00)
-                  <Input className="h-7 bg-slate-800 border-slate-600" value={editing.peak_hours ?? ''} onChange={(e) => setEditing({ ...editing, peak_hours: e.target.value || null })} />
-                </label>
-              </div>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">Tarieven per tijdsblok (overschrijven de standaardprijs)</Label>
-                  <Button type="button" size="sm" variant="outline" className="h-6 text-[11px]" onClick={() => setEditing({ ...editing, price_blocks: [...(editing.price_blocks ?? []), { days: "dagelijks", from: "00:00", to: "23:59", pricePerKwh: editing.price_per_kwh ?? 0.4 }] })}>+ Tijdsblok</Button>
+              <div className="space-y-1.5 text-xs rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <Label className="text-sm font-semibold">⚡ Tesla-prijzen per tijdsblok</Label>
+                    <p className="text-[11px] text-slate-400">Voeg voor elk tarief de dagen, begin- en eindtijd en prijs per kWh toe.</p>
+                  </div>
+                  <Button type="button" size="sm" variant="outline" className="h-7 shrink-0" onClick={() => setEditing({ ...editing, price_blocks: [...(editing.price_blocks ?? []), { days: "dagelijks", from: "00:00", to: "23:59", pricePerKwh: 0.4 }] })}>+ Tijdsblok</Button>
                 </div>
                 {(editing.price_blocks ?? []).map((block: { days?: string; from?: string; to?: string; pricePerKwh: number }, idx: number) => {
                   const blocks = [...(editing.price_blocks ?? [])];
