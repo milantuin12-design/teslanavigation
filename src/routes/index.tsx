@@ -168,6 +168,8 @@ function Index() {
     return () => sub.subscription.unsubscribe();
   }, []);
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
+  const previousChargerSnapshotRef = useRef<Map<string, string>>(new Map());
+  const chargerSnapshot = (items: Supercharger[]) => new Map(items.filter((item) => item.id).map((item) => [item.id!, JSON.stringify({ status: item.status, available: item.isAvailable, stalls: item.stallStates })]));
   const [favoriteChargerIds, setFavoriteChargerIds] = useState<string[]>([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   useEffect(() => { try { const saved = JSON.parse(localStorage.getItem("teslanavigation:favorites") || "[]"); if (Array.isArray(saved)) setFavoriteChargerIds(saved.filter((x): x is string => typeof x === "string")); } catch { /* ignore invalid local preferences */ } }, []);
@@ -260,7 +262,7 @@ function Index() {
     let mounted = true;
     listSuperchargers()
       .then((data) => {
-        if (mounted) setSuperchargers(data);
+        if (mounted) { previousChargerSnapshotRef.current = chargerSnapshot(data); setSuperchargers(data); }
       })
       .catch(() => {})
       .finally(() => {
@@ -281,6 +283,23 @@ function Index() {
         timer = setTimeout(() => {
           listSuperchargers()
             .then((data) => {
+              const previous = previousChargerSnapshotRef.current;
+              if (previous.size > 0) {
+                for (const charger of data) {
+                  if (!charger.id) continue;
+                  const before = previous.get(charger.id);
+                  const after = JSON.stringify({ status: charger.status, available: charger.isAvailable, stalls: charger.stallStates });
+                  if (before && before !== after) {
+                    const was = JSON.parse(before) as { status?: string; available?: boolean };
+                    if (was.status !== charger.status || was.available !== charger.isAvailable) {
+                      toast.warning(`${charger.name}: status gewijzigd`, { description: `${was.status ?? "Onbekend"} → ${charger.status ?? "Onbekend"}` });
+                    } else {
+                      toast.info(`${charger.name}: laadplekken bijgewerkt`, { description: "Het aantal beschikbare laadplekken is gewijzigd." });
+                    }
+                  }
+                }
+              }
+              previousChargerSnapshotRef.current = chargerSnapshot(data);
               setSuperchargers(data);
               setLastAvailabilityUpdate(new Date().toISOString());
               setChargerRevision((revision) => revision + 1);
