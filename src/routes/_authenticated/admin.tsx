@@ -270,7 +270,6 @@ function AdminPage() {
       data_source: editing.data_source === "automatic" ? "automatic" : "manual",
       hidden: !!editing.hidden,
       photos: (editing.photos || []).map((u) => u.trim()).filter(Boolean),
-      traffic_forecast: editing.traffic_forecast ?? null,
     };
     try {
       if (editing.id) {
@@ -605,20 +604,6 @@ function AdminPage() {
                     </div>
                   </div>
                 )}
-
-                <div className="space-y-2 rounded-lg border border-slate-700 p-3">
-                  <Label className="text-xs">Druktevoorspelling (handmatig door admin)</Label>
-                  <p className="text-[11px] text-slate-400">Beheerdersinschatting, geen live Tesla-bezettingsdata.</p>
-                  <select value={editing.traffic_forecast?.level ?? "medium"} onChange={(e) => setEditing({ ...editing, traffic_forecast: { ...(editing.traffic_forecast || {}), level: e.target.value as "low" | "medium" | "high" } })} className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
-                    <option value="low">Rustig</option><option value="medium">Gemiddeld</option><option value="high">Druk</option>
-                  </select>
-                  <div className="grid grid-cols-3 gap-2">
-                    <Input aria-label="Dagen drukte" value={editing.traffic_forecast?.days ?? ""} onChange={(e) => setEditing({ ...editing, traffic_forecast: { ...(editing.traffic_forecast || { level: "medium" }), days: e.target.value } })} placeholder="Dagen" className="bg-slate-800 border-slate-700" />
-                    <Input aria-label="Drukte vanaf" type="time" value={editing.traffic_forecast?.from ?? ""} onChange={(e) => setEditing({ ...editing, traffic_forecast: { ...(editing.traffic_forecast || { level: "medium" }), from: e.target.value } })} className="bg-slate-800 border-slate-700" />
-                    <Input aria-label="Drukte tot" type="time" value={editing.traffic_forecast?.to ?? ""} onChange={(e) => setEditing({ ...editing, traffic_forecast: { ...(editing.traffic_forecast || { level: "medium" }), to: e.target.value } })} className="bg-slate-800 border-slate-700" />
-                  </div>
-                  <Input value={editing.traffic_forecast?.note ?? ""} onChange={(e) => setEditing({ ...editing, traffic_forecast: { ...(editing.traffic_forecast || { level: "medium" }), note: e.target.value } })} placeholder="Opmerking (optioneel)" className="bg-slate-800 border-slate-700" />
-                </div>
 
                 <StallEditor
                   value={editing.stall_states || []}
