@@ -479,14 +479,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(d).openOn(map);
           });
         }
-        const targetLayer = routeChargersOnly ? markersRef.current : (clusterRef.current ?? markersRef.current);
-        targetLayer.addLayer(marker);
-        // Vang de echte browser-dubbelklik rechtstreeks op het marker-element
-        // af en stuur hem expliciet door naar de bestaande detailweergave.
-        // Zo is dit niet afhankelijk van Leaflets interne click/dblclick-afhandeling.
+        // Koppel de browser-dubbelklik zodra Leaflet de marker echt in de
+        // kaart-DOM plaatst. Bij clustering bestaat het element eerder vaak nog niet.
         if (!hideOpeningHours) {
-          const markerElement = marker.getElement();
-          if (markerElement) {
+          marker.on('add', () => {
+            const markerElement = marker.getElement();
+            if (!markerElement || markerElement.dataset.detailsDblclick === '1') return;
+            markerElement.dataset.detailsDblclick = '1';
             markerElement.addEventListener('dblclick', (event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -495,8 +494,10 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
                 latlng: marker.getLatLng(),
               });
             }, true);
-          }
+          });
         }
+        const targetLayer = routeChargersOnly ? markersRef.current : (clusterRef.current ?? markersRef.current);
+        targetLayer.addLayer(marker);
       } catch { /* skip bad charger */ }
     });
 
