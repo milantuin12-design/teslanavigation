@@ -96,11 +96,15 @@ function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo, tem
   fromLabel: string; toLabel: string; km: number; kWh: number | null; rangeKm: number | null; from: number; to: number;
   climbInfo: { up: number; down: number } | null;
   temperatureC: number | null;
+  segmentWeather?: { windMs: number; precipitationMm: number; snowfallCm: number } | null;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-dashed border-white/10 px-3 py-2 text-[11px] text-slate-400">
       <span className="flex items-center gap-1 text-slate-300"><RouteIcon size={11} />{fromLabel} → {toLabel}</span>
       <span>{Math.round(km)} km</span>
+      {segmentWeather && <span className="flex items-center gap-1"><Wind size={11}/>{segmentWeather.windMs.toFixed(0)} m/s</span>}
+      {segmentWeather && segmentWeather.precipitationMm > 0 && <span className="flex items-center gap-1"><CloudRain size={11}/>{segmentWeather.precipitationMm.toFixed(1)} mm</span>}
+      {segmentWeather && segmentWeather.snowfallCm > 0 && <span>❄ {segmentWeather.snowfallCm.toFixed(1)} cm</span>
       {temperatureC !== null && <span className="flex items-center gap-1 text-amber-300"><Thermometer size={11} />{temperatureC.toFixed(1)}°C</span>}
       {kWh !== null && <span className="text-emerald-300">⚡ {kWh.toFixed(1)} kWh</span>}
       <span>🔋 {from}% → {to}%</span>
@@ -190,7 +194,8 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
         kWh={k100 ? (km / 100) * k100 : null}
         rangeKm={fullRange ? Math.round((l.fromPct / 100) * fullRange) : null}
         from={l.fromPct} to={l.toPct} climbInfo={climb(elevation, total, l.fromKm, l.toKm)}
-        temperatureC={weather?.temperatureSegments?.length ? weather.temperatureSegments.reduce((best, point) => Math.abs(point.km - ((l.fromKm + l.toKm) / 2)) < Math.abs(best.km - ((l.fromKm + l.toKm) / 2)) ? point : best).tempC : weather?.tempC ?? null} />
+        temperatureC={weather?.temperatureSegments?.length ? weather.temperatureSegments.reduce((best, point) => Math.abs(point.km - ((l.fromKm + l.toKm) / 2)) < Math.abs(best.km - ((l.fromKm + l.toKm) / 2)) ? point : best).tempC : weather?.tempC ?? null}
+        segmentWeather={weather?.weatherSegments?.length ? weather.weatherSegments.reduce((best, point) => Math.abs(point.km - ((l.fromKm + l.toKm) / 2)) < Math.abs(best.km - ((l.fromKm + l.toKm) / 2)) ? point : best) : null} />
     );
   };
 
