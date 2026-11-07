@@ -807,11 +807,14 @@ function Index() {
     }
     setCalculationProgress(48);
 
+    // Beperk het volledig doorrekenen tot de drie snelste basisroutes.
+    // Elke variant vraagt ook hoogte-, weer-, laadstop- en route-instructiedata op.
+    const candidates = [...bases].sort((a, b) => a.route.totalTimeMin - b.route.totalTimeMin).slice(0, 3);
     let completed = 0;
-    const plans = (await Promise.all(bases.map(async (base) => {
+    const plans = (await Promise.all(candidates.map(async (base) => {
       const plan = await buildPlan(base, fromCoord, toCoord, fromBattery, extraWaypoints);
       completed += 1;
-      if (calculationId === calculationIdRef.current) setCalculationProgress(48 + Math.round((completed / bases.length) * 47));
+      if (calculationId === calculationIdRef.current) setCalculationProgress(48 + Math.round((completed / candidates.length) * 47));
       return plan;
     })))
       .filter((plan): plan is RoutePlan => plan !== null);
