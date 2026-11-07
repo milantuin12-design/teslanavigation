@@ -420,17 +420,28 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         marker.off('click');
         let singleClickTimer: ReturnType<typeof setTimeout> | undefined;
         marker.on('click', () => {
-          if (singleClickTimer) clearTimeout(singleClickTimer);
+          // Wacht op een mogelijke tweede klik. De basis-popup mag de marker
+          // niet afdekken voordat de gebruiker dubbel kan klikken.
+          if (singleClickTimer) {
+            clearTimeout(singleClickTimer);
+            singleClickTimer = undefined;
+            if (!hideOpeningHours) {
+              marker.fire('dblclick', { latlng: marker.getLatLng() });
+            } else {
+              marker.openPopup();
+            }
+            return;
+          }
           singleClickTimer = setTimeout(() => {
             marker.openPopup();
             singleClickTimer = undefined;
-          }, 350);
+          }, 500);
         });
         if (!hideOpeningHours) {
           marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
             if (singleClickTimer) clearTimeout(singleClickTimer);
             singleClickTimer = undefined;
-            L.DomEvent.stop(ev.originalEvent);
+            if (ev.originalEvent) L.DomEvent.stop(ev.originalEvent);
             marker.closePopup();
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
