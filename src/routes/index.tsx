@@ -172,6 +172,7 @@ function Index() {
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
   const [showAllChargers, setShowAllChargers] = useState(false);
+  const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
   const visibleChargers = useMemo(
     () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters)),
     [superchargers, chargerFilters],
@@ -1142,10 +1143,13 @@ function Index() {
 
   // Na een berekende route: alleen de laders waar je laadt, tenzij je alles wilt zien.
   const mapChargers = useMemo(() => {
-    if (!route || showAllChargers || chargingStops.length === 0) return visibleChargers;
+    const isDevelopment = (c: Supercharger) => c.status === "construction" || c.status === "permit" || c.status === "plan";
+    if (!route || showAllChargers || chargingStops.length === 0) {
+      return visibleChargers.filter((c) => showDevelopmentChargers || !isDevelopment(c));
+    }
     const used = new Set(chargingStops.map((s) => s.charger.id ?? s.charger.name));
-    return superchargers.filter((c) => used.has(c.id ?? c.name));
-  }, [route, showAllChargers, chargingStops, visibleChargers, superchargers]);
+    return superchargers.filter((c) => used.has(c.id ?? c.name) && (showDevelopmentChargers || !isDevelopment(c)));
+  }, [route, showAllChargers, chargingStops, visibleChargers, superchargers, showDevelopmentChargers]);
 
   const handleRemoveCharger = useCallback((index: number) => {
     // "Liever niet hier laden": sluit deze lader uit en zoek een andere Supercharger.
@@ -1284,6 +1288,12 @@ function Index() {
 
       <div className="flex-1 relative">
         {!isNavigating && (
+          <>
+          <div className="absolute top-3 left-3 z-[1000]">
+            <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowDevelopmentChargers((v) => !v)}>
+              {showDevelopmentChargers ? "Verberg plannen & bouwlocaties" : "Alles tonen"}
+            </Button>
+          </div>
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setFiltersOpen((v) => !v)} title="Filters">
@@ -1326,6 +1336,7 @@ function Index() {
               <Button size="sm" onClick={() => setSaveOpen(true)} className="bg-red-600 hover:bg-red-700"><Bookmark className="w-4 h-4 mr-1" />Opslaan</Button>
             )}
           </div>
+          </>
         )}
         {error && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-red-500/90 backdrop-blur-sm text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg max-w-md text-center">
