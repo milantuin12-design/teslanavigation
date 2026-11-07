@@ -212,6 +212,12 @@ function Index() {
   const [showRouteInputs, setShowRouteInputs] = useState(true);
   const [routeOptions, setRouteOptions] = useState<RoutePlan[]>([]);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState(0);
+  const fastestRouteIndex = routeOptions.length ? routeOptions.reduce((best, plan, i) => {
+    const total = plan.route.totalTimeMin + plan.stops.reduce((sum, stop) => sum + stop.chargeDurationMin, 0);
+    const bestTotal = routeOptions[best].route.totalTimeMin + routeOptions[best].stops.reduce((sum, stop) => sum + stop.chargeDurationMin, 0);
+    return total < bestTotal ? i : best;
+  }, 0) : -1;
+  const fewestStopsIndex = routeOptions.length ? routeOptions.reduce((best, plan, i) => plan.stops.length < routeOptions[best].stops.length ? i : best, 0) : -1;
   const [ownerPanelId, setOwnerPanelId] = useState<string | null>(null);
   const [focusCoord, setFocusCoord] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -1347,6 +1353,8 @@ function Index() {
                     className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${selectedRouteIndex === i ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30" : "text-slate-300 hover:bg-white/10 hover:text-white"}`}
                   >
                     Route {i + 1} · {plan.route.totalDistanceKm} km · {plan.stops.length} stop{plan.stops.length === 1 ? "" : "s"}
+                    {i === fastestRouteIndex && <span className="ml-1 rounded bg-emerald-500/20 px-1 text-emerald-300">Snelst</span>}
+                    {i === fewestStopsIndex && <span className="ml-1 rounded bg-blue-500/20 px-1 text-blue-300">Minste stops</span>}
                     {(plan.route.trafficDelayMin ?? 0) > 0 && (
                       <span className={plan.route.trafficDelayMin! >= 20 ? "text-red-400" : "text-amber-400"}>
                         {" "}· +{plan.route.trafficDelayMin} min file
