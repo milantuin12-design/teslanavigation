@@ -25,6 +25,8 @@ interface EvMapProps {
   /** Zoom naar deze locatie zodra hij verandert. */
   focusCoord?: { lat: number; lng: number } | null;
   waypoints?: { lat: number; lng: number; label: string; corridor: boolean; charge: boolean; chargeTo: number }[];
+  /** Route-only mode: show route chargers individually, without marker clusters. */
+  routeChargersOnly?: boolean;
 }
 
 
@@ -162,7 +164,7 @@ function groupChargerConfigs(configs: ChargerConfig[]): string[] {
   });
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [] }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -290,6 +292,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
 
     markersRef.current.clearLayers();
     clusterRef.current?.clearLayers();
+    if (routeChargersOnly) clusterRef.current?.remove();
+    else clusterRef.current?.addTo(map);
 
     superchargers.forEach(charger => {
       try {
@@ -448,7 +452,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           d += `</div>`;
           L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(d).openOn(map);
         });
-        (clusterRef.current ?? markersRef.current).addLayer(marker);
+        (routeChargersOnly ? markersRef.current : (clusterRef.current ?? markersRef.current)).addLayer(marker);
       } catch { /* skip bad charger */ }
     });
 
@@ -490,7 +494,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
       marker.bindPopup(`<div style="font-family:system-ui;font-size:13px"><strong>${escapeHtml(waypoint.label || 'Tussenstop')}</strong><br/>${detail}</div>`);
       markersRef.current.addLayer(marker);
     });
-  }, [startCoord, destCoord, superchargers, chargingStops, statusTick, showDrafts, waypoints]);
+  }, [startCoord, destCoord, superchargers, chargingStops, statusTick, showDrafts, waypoints, routeChargersOnly]);
 
   useEffect(() => {
     const map = mapRef.current;
