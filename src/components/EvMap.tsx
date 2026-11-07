@@ -27,6 +27,7 @@ interface EvMapProps {
   waypoints?: { lat: number; lng: number; label: string; corridor: boolean; charge: boolean; chargeTo: number }[];
   /** Route-only mode: show route chargers individually, without marker clusters. */
   routeChargersOnly?: boolean;
+  favoriteChargerIds?: string[];
 }
 
 
@@ -165,7 +166,7 @@ function groupChargerConfigs(configs: ChargerConfig[]): string[] {
   });
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [] }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -242,6 +243,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           document.body.appendChild(overlay);
         });
       });
+      const favoriteButton = node?.querySelector<HTMLButtonElement>("[data-favorite-id]");
+      if (favoriteButton) favoriteButton.addEventListener("click", () => { window.dispatchEvent(new CustomEvent("sc-favorite", { detail: { id: favoriteButton.dataset.favoriteId || "" } })); map.closePopup(); }, { once: true });
       const ownerButton = node?.querySelector<HTMLButtonElement>('[data-owner-id]');
       if (ownerButton) {
         ownerButton.addEventListener('click', () => {
@@ -402,6 +405,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         if (extras.length > 0) {
           popup += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0;display:grid;gap:2px;color:#334155;font-weight:500;">${extras.map((line) => `<div>• ${escapeHtml(line)}</div>`).join('')}</div>`;
         }
+        popup += `<button type="button" data-favorite-id="${escapeHtml(charger.id ?? '')}" style="margin-top:8px;width:100%;padding:7px 8px;border-radius:6px;border:1px solid ${favoriteChargerIds.includes(charger.id ?? "") ? "#f59e0b" : "#cbd5e1"};background:${favoriteChargerIds.includes(charger.id ?? "") ? "#fffbeb" : "#f8fafc"};color:#92400e;font-weight:600;cursor:pointer;">${favoriteChargerIds.includes(charger.id ?? "") ? "★ Favoriet verwijderen" : "☆ Favoriet maken"}</button>`;
         popup += `<div style="margin-top:6px;color:#64748b;font-size:11px;">Dubbelklik op de lader voor alle prijzen, tijden en parkeergeld</div>`;
         popup += `<button type="button" data-report-id="${escapeHtml(charger.id ?? '')}" data-report-name="${escapeHtml(charger.name ?? '')}" style="margin-top:8px;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#b91c1c;font-weight:600;cursor:pointer;">Fout melden</button>`;
         popup += `</div>`;
@@ -496,7 +500,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
       marker.bindPopup(`<div style="font-family:system-ui;font-size:13px"><strong>${escapeHtml(waypoint.label || 'Tussenstop')}</strong><br/>${detail}</div>`);
       markersRef.current.addLayer(marker);
     });
-  }, [startCoord, destCoord, superchargers, chargingStops, statusTick, showDrafts, waypoints, routeChargersOnly]);
+  }, [startCoord, destCoord, superchargers, chargingStops, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds]);
 
   useEffect(() => {
     const map = mapRef.current;
