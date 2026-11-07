@@ -592,6 +592,7 @@ function Index() {
         precipitationMm: manualWeather.precipitationMm ?? fetchedWeather?.precipitationMm ?? 0,
         snowfallCm: fetchedWeather?.snowfallCm ?? 0,
         fogFraction: fetchedWeather?.fogFraction ?? 0,
+        temperatureSegments: fetchedWeather?.temperatureSegments,
       };
     }
     const elevation = elevationProfile
