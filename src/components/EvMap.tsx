@@ -414,10 +414,22 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           popup = popup.slice(0, outerClose) + '<div style="margin-top:6px;color:#64748b;font-size:11px;">Dubbelklik voor prijzen en parkeergeld</div>' + popup.slice(outerClose);
         }
         marker.bindPopup(popup);
+        // Leaflet opent een gekoppelde popup direct bij de eerste klik.
+        // Die popup kan de marker afdekken, waardoor klik twee nooit meer
+        // bij de marker aankomt. Daarom beheren we de enkele/dubbele klik zelf.
+        marker.off('click');
+        let singleClickTimer: ReturnType<typeof setTimeout> | undefined;
+        marker.on('click', () => {
+          if (singleClickTimer) clearTimeout(singleClickTimer);
+          singleClickTimer = setTimeout(() => {
+            marker.openPopup();
+            singleClickTimer = undefined;
+          }, 350);
+        });
         if (!hideOpeningHours) {
-          // Herstel de oorspronkelijke Leaflet-marker dubbelklik: dit was de
-          // werkende route vóór de eigen DOM-/timerconstructies.
           marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
+            if (singleClickTimer) clearTimeout(singleClickTimer);
+            singleClickTimer = undefined;
             L.DomEvent.stop(ev);
             marker.closePopup();
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
