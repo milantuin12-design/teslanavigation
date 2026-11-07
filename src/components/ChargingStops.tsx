@@ -116,7 +116,15 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
   const totalKWh = k100 ? (total / 100) * k100 : null;
   const totalClimb = climb(elevation, total, 0, total);
   const totalChargeMin = stops.reduce((s, x) => s + x.chargeDurationMin, 0);
-  const totalCost = stops.reduce((s, x) => s + (chargingCost(x, new Date(start.getTime() + (x.etaMinFromStart ?? 0) * 60000)) ?? 0) + (parkingCost(x, new Date(start.getTime() + (x.etaMinFromStart ?? 0) * 60000)) ?? 0), 0);
+  const stopCosts = stops.map((stop) => {
+    const at = new Date(start.getTime() + (stop.etaMinFromStart ?? 0) * 60000);
+    const charge = chargingCost(stop, at);
+    const parking = parkingCost(stop, at);
+    const parkingKnown = !stop.charger.parkingFee || parking !== null;
+    return { charge, parking, known: charge !== null && parkingKnown };
+  });
+  const allCostsKnown = stops.length > 0 && stopCosts.every((cost) => cost.known);
+  const totalCost = stopCosts.reduce((sum, cost) => sum + (cost.charge ?? 0) + (cost.parking ?? 0), 0);
   const arrivalTime = route ? new Date(start.getTime() + (route.totalTimeMin + totalChargeMin + restMin) * 60000) : null;
 
   if (totalDistanceKm === null || !route) {
@@ -132,7 +140,7 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
         <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Verbruik</div><div className="text-sm font-semibold text-emerald-300">{totalKWh !== null ? `${totalKWh.toFixed(0)} kWh` : '–'}{k100 ? <span className="text-[11px] font-normal text-slate-400"> · {k100.toFixed(1)}/100km</span> : null}</div></div>
         <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Actieradius nu</div><div className="text-sm font-semibold text-blue-300">{fullRange !== null ? `${fullRange} km` : '–'}<span className="text-[11px] font-normal text-slate-400"> bij 100%</span></div></div>
         <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Laden</div><div className="text-sm font-semibold text-white">{stops.length} stop{stops.length === 1 ? '' : 's'} · {dur(totalChargeMin)}</div></div>
-        <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Kosten</div><div className="text-sm font-semibold text-white">{totalCost > 0 ? euro(totalCost) : 'onbekend'}</div></div>
+        <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Kosten</div><div className="text-sm font-semibold text-white">{allCostsKnown ? euro(totalCost) : 'onbekend'}</div></div>
       </div>
       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-300">
         {totalClimb && <span className="flex items-center gap-1"><Mountain size={11} />↑ {totalClimb.up} m · ↓ {totalClimb.down} m (dalen = terugwinnen)</span>}
