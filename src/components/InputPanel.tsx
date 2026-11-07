@@ -780,15 +780,6 @@ export default function InputPanel({
               onChange={e => onChargerArrivalTargetChange(parseInt(e.target.value))}
               className="w-full h-1.5 bg-slate-700 rounded-full appearance-none cursor-pointer accent-amber-500"
             />
-            <label className="mt-2 flex items-center gap-2 text-xs text-slate-300">
-              <input
-                type="checkbox"
-                checked={preferTrailerFriendly}
-                onChange={e => onPreferTrailerFriendlyChange(e.target.checked)}
-                className="accent-blue-500"
-              />
-              Houd rekening met aanhangervriendelijke Superchargers
-            </label>
           </div>
 
 
@@ -1019,7 +1010,11 @@ export default function InputPanel({
           {/* Aanhanger / caravan */}
           <div>
             <button
-              onClick={() => onTrailerChange(!trailerEnabled, trailerLoss)}
+              onClick={() => {
+                const enabling = !trailerEnabled;
+                onTrailerChange(enabling, trailerLoss);
+                if (enabling) onPreferTrailerFriendlyChange(true);
+              }}
               className={`w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-sm font-medium ${
                 trailerEnabled
                   ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
@@ -1030,6 +1025,17 @@ export default function InputPanel({
               {trailerEnabled ? (trailerKind === 'caravan' ? 'Caravan' : 'Aanhanger') : 'Aanhanger / caravan'}
             </button>
             {trailerEnabled && (
+              <div className="mt-2 space-y-2">
+                <label className="flex items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-800/40 p-3 text-xs text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={preferTrailerFriendly}
+                    onChange={e => onPreferTrailerFriendlyChange(e.target.checked)}
+                    className="accent-blue-500"
+                  />
+                  Houd rekening met aanhangervriendelijke Superchargers
+                </label>
+              </div>
               <div className="mt-2 bg-slate-800/60 border border-slate-700 rounded-lg p-3 space-y-2">
                 <div className="grid grid-cols-2 gap-1">
                   {(['trailer', 'caravan'] as const).map((k) => (
