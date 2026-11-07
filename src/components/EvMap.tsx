@@ -410,40 +410,15 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         popup += `<button type="button" data-report-id="${escapeHtml(charger.id ?? '')}" data-report-name="${escapeHtml(charger.name ?? '')}" style="margin-top:8px;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#b91c1c;font-weight:600;cursor:pointer;">Fout melden</button>`;
         popup += `</div>`;
         marker.bindPopup(popup);
-        // Eén klik opent de gewone popup; dubbelklik op het marker-icoon opent
-        // rechtstreeks het uitgebreide informatiescherm.
-        marker.off('click');
-        let singleClickTimer: number | undefined;
-        const handleMarkerDoubleClick = (event: MouseEvent) => {
-          event.preventDefault();
-          event.stopPropagation();
-          event.stopImmediatePropagation();
-          if (singleClickTimer !== undefined) {
-            window.clearTimeout(singleClickTimer);
-            singleClickTimer = undefined;
-          }
-          marker.closePopup();
-          if (!hideOpeningHours) marker.fire('sc:details');
-        };
-        const attachMarkerDoubleClick = () => {
-          const element = marker.getElement();
-          if (element) element.addEventListener('dblclick', handleMarkerDoubleClick, true);
-        };
-        const detachMarkerDoubleClick = () => {
-          const element = marker.getElement();
-          if (element) element.removeEventListener('dblclick', handleMarkerDoubleClick, true);
-        };
-        marker.on('add', attachMarkerDoubleClick);
-        marker.on('remove', detachMarkerDoubleClick);
-        marker.on('click', () => {
-          if (singleClickTimer !== undefined) window.clearTimeout(singleClickTimer);
-          singleClickTimer = window.setTimeout(() => {
-            singleClickTimer = undefined;
-            marker.openPopup();
-          }, 550);
-        });
-        if (!hideOpeningHours) marker.on('sc:details', () => {
-          marker.closePopup();
+        if (!hideOpeningHours) {
+          popup = popup.replace('</div>', '<div style="margin-top:6px;color:#64748b;font-size:11px;">Dubbelklik voor prijzen en parkeergeld</div></div>');
+          marker.unbindPopup();
+          marker.bindPopup(popup);
+          // Herstel de oorspronkelijke Leaflet-marker dubbelklik: dit was de
+          // werkende route vóór de eigen DOM-/timerconstructies.
+          marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
+            L.DomEvent.stop(ev);
+            marker.closePopup();
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
           const priceBlocks = (charger.priceBlocks ?? []).filter((b) => typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
@@ -489,7 +464,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           if (!hideSpeed && configs.length) d += `<div style="font-weight:700;margin-top:6px;">🔌 Laders</div>${groupChargerConfigs(configs).map((l) => `<div>${escapeHtml(l)}</div>`).join('')}`;
           d += `</div>`;
           L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(d).openOn(map);
-        });
+          });
+        }
         (routeChargersOnly ? markersRef.current : (clusterRef.current ?? markersRef.current)).addLayer(marker);
       } catch { /* skip bad charger */ }
     });
