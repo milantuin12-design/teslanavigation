@@ -406,41 +406,19 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           popup += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0;display:grid;gap:2px;color:#334155;font-weight:500;">${extras.map((line) => `<div>• ${escapeHtml(line)}</div>`).join('')}</div>`;
         }
         popup += `<button type="button" data-favorite-id="${escapeHtml(charger.id ?? '')}" style="margin-top:8px;width:100%;padding:7px 8px;border-radius:6px;border:1px solid ${favoriteChargerIds.includes(charger.id ?? "") ? "#f59e0b" : "#cbd5e1"};background:${favoriteChargerIds.includes(charger.id ?? "") ? "#fffbeb" : "#f8fafc"};color:#92400e;font-weight:600;cursor:pointer;">${favoriteChargerIds.includes(charger.id ?? "") ? "★ Favoriet verwijderen" : "☆ Favoriet maken"}</button>`;
-        popup += `<div style="margin-top:6px;color:#64748b;font-size:11px;">Dubbelklik op de lader voor alle prijzen, tijden en parkeergeld</div>`;
+        if (!hideOpeningHours) popup += `<button type="button" data-extra-info style="margin-top:8px;width:100%;padding:8px 10px;border-radius:7px;border:1px solid #2563eb;background:#eff6ff;color:#1d4ed8;font-weight:700;cursor:pointer;">EXTRA INFORMATIE</button>`;
         popup += `<button type="button" data-report-id="${escapeHtml(charger.id ?? '')}" data-report-name="${escapeHtml(charger.name ?? '')}" style="margin-top:8px;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#b91c1c;font-weight:600;cursor:pointer;">Fout melden</button>`;
         popup += `</div>`;
         marker.bindPopup(popup);
-        // Gebruik de echte DOM-dblclick op het zichtbare marker-icoon. Dit omzeilt
-        // Leaflet/MarkerCluster event-afhandeling, die de marker-dblclick kan opslokken.
-        marker.off('click');
-        let singleClickTimer: number | undefined;
-        const handleMarkerDoubleClick = (event: MouseEvent) => {
-          event.preventDefault();
-          event.stopPropagation();
-          event.stopImmediatePropagation();
-          if (singleClickTimer !== undefined) {
-            window.clearTimeout(singleClickTimer);
-            singleClickTimer = undefined;
-          }
-          marker.closePopup();
-          if (!hideOpeningHours) marker.fire('sc:details');
-        };
-        const attachMarkerDoubleClick = () => {
-          const element = marker.getElement();
-          if (element) element.addEventListener('dblclick', handleMarkerDoubleClick, true);
-        };
-        const detachMarkerDoubleClick = () => {
-          const element = marker.getElement();
-          if (element) element.removeEventListener('dblclick', handleMarkerDoubleClick, true);
-        };
-        marker.on('add', attachMarkerDoubleClick);
-        marker.on('remove', detachMarkerDoubleClick);
-        marker.on('click', () => {
-          if (singleClickTimer !== undefined) window.clearTimeout(singleClickTimer);
-          singleClickTimer = window.setTimeout(() => {
-            singleClickTimer = undefined;
-            marker.openPopup();
-          }, 600);
+        // De extra-informatieknop zit in de gewone popup die bij één klik opent.
+        marker.on('popupopen', (event: L.PopupEvent) => {
+          const button = event.popup.getElement()?.querySelector<HTMLButtonElement>('[data-extra-info]');
+          button?.addEventListener('click', (clickEvent) => {
+            clickEvent.preventDefault();
+            clickEvent.stopPropagation();
+            marker.closePopup();
+            marker.fire('sc:details');
+          }, { once: true });
         });
         if (!hideOpeningHours) marker.on('sc:details', () => {
           marker.closePopup();
