@@ -120,6 +120,7 @@ export type Database = {
           lng: number | null
           message: string
           photos: string[]
+          traffic_forecast: Json | null
           status: string
           updated_at: string
           user_id: string | null
@@ -136,6 +137,7 @@ export type Database = {
           lng?: number | null
           message: string
           photos?: string[]
+          traffic_forecast?: Json | null
           status?: string
           updated_at?: string
           user_id?: string | null
