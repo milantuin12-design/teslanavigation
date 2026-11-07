@@ -120,7 +120,6 @@ export type Database = {
           lng: number | null
           message: string
           photos: string[]
-          traffic_forecast: Json | null
           status: string
           updated_at: string
           user_id: string | null
@@ -137,7 +136,6 @@ export type Database = {
           lng?: number | null
           message: string
           photos?: string[]
-          traffic_forecast?: Json | null
           status?: string
           updated_at?: string
           user_id?: string | null
@@ -422,6 +420,7 @@ export type Database = {
           peak_hours: string | null
           permanently_closed_at: string | null
           photos: string[]
+          traffic_forecast: Json | null
           planned_upgrade: Json
           price_blocks: Json | null
           price_per_kwh: number | null
@@ -473,6 +472,7 @@ export type Database = {
           peak_hours?: string | null
           permanently_closed_at?: string | null
           photos?: string[]
+          traffic_forecast?: Json | null
           planned_upgrade?: Json
           price_blocks?: Json | null
           price_per_kwh?: number | null
