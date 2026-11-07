@@ -1354,6 +1354,7 @@ function Index() {
           heading={currentHeading}
           headingUp={headingUp}
           waypoints={waypoints}
+          routeChargersOnly={!!route && !showAllChargers && chargingStops.length > 0}
         />
 
         {isNavigating && (
