@@ -92,14 +92,16 @@ function climb(profile: number[] | null | undefined, totalKm: number, fromKm: nu
   return { up: Math.round(up), down: Math.round(down) };
 }
 
-function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo }: {
+function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo, temperatureC }: {
   fromLabel: string; toLabel: string; km: number; kWh: number | null; rangeKm: number | null; from: number; to: number;
   climbInfo: { up: number; down: number } | null;
+  temperatureC: number | null;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-dashed border-white/10 px-3 py-2 text-[11px] text-slate-400">
       <span className="flex items-center gap-1 text-slate-300"><RouteIcon size={11} />{fromLabel} → {toLabel}</span>
       <span>{Math.round(km)} km</span>
+      {temperatureC !== null && <span className="flex items-center gap-1 text-amber-300"><Thermometer size={11} />{temperatureC.toFixed(1)}°C</span>}
       {kWh !== null && <span className="text-emerald-300">⚡ {kWh.toFixed(1)} kWh</span>}
       <span>🔋 {from}% → {to}%</span>
       {climbInfo && <span className="flex items-center gap-1"><Mountain size={11} />↑{climbInfo.up} m ↓{climbInfo.down} m</span>}
@@ -187,7 +189,8 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
       <LegRow key={`leg-${i}`} fromLabel={l.fromLabel} toLabel={l.toLabel} km={km}
         kWh={k100 ? (km / 100) * k100 : null}
         rangeKm={fullRange ? Math.round((l.fromPct / 100) * fullRange) : null}
-        from={l.fromPct} to={l.toPct} climbInfo={climb(elevation, total, l.fromKm, l.toKm)} />
+        from={l.fromPct} to={l.toPct} climbInfo={climb(elevation, total, l.fromKm, l.toKm)}
+        temperatureC={weather?.temperatureSegments?.length ? weather.temperatureSegments.reduce((best, point) => Math.abs(point.km - ((l.fromKm + l.toKm) / 2)) < Math.abs(best.km - ((l.fromKm + l.toKm) / 2)) ? point : best).tempC : weather?.tempC ?? null} />
     );
   };
 
