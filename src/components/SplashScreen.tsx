@@ -26,8 +26,9 @@ export default function SplashScreen({ show }: { show: boolean }) {
           <Zap size={34} className="animate-pulse" />
         </span>
         <div className="text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-white">Tesla Routeplanner</h1>
-          <p className="mt-1 text-sm text-slate-400">Superchargers laden…</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">Welkom op Tesla Navigation</h1>
+          <p className="mt-1 text-sm text-slate-300">De beste routeplanner voor Tesla’s</p>
+          <p className="mt-2 text-xs text-slate-500">Superchargers en routegegevens laden…</p>
         </div>
         <div className="h-1 w-48 overflow-hidden rounded-full bg-white/10">
           <div className="h-full w-1/3 animate-[splash-slide_1.2s_ease-in-out_infinite] rounded-full bg-blue-500" />
