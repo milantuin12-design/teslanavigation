@@ -199,6 +199,7 @@ function Index() {
 
 
   const [route, setRoute] = useState<RouteResult | null>(null);
+  const [showRouteInputs, setShowRouteInputs] = useState(true);
   const [routeOptions, setRouteOptions] = useState<RoutePlan[]>([]);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState(0);
   const [ownerPanelId, setOwnerPanelId] = useState<string | null>(null);
@@ -752,6 +753,7 @@ function Index() {
     setRouteSteps(plan.steps);
     setChargingStops(plan.stops);
     setArrivalPercent(plan.arrivalPercent);
+    setShowRouteInputs(false);
   }, []);
 
   const computeRoute = useCallback(async (
@@ -1162,6 +1164,14 @@ function Index() {
             className="flex-1 overflow-y-auto overscroll-contain"
             style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
           >
+            {route && !showRouteInputs && (
+              <div className="px-4 pt-4">
+                <button type="button" onClick={() => setShowRouteInputs(true)} className="w-full rounded-xl border border-white/15 bg-slate-800/70 px-3 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-700/80">
+                  Route aanpassen
+                </button>
+              </div>
+            )}
+            {(!route || showRouteInputs) && <>
             <div className="mx-4 mt-4 rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-3 shadow-lg">
               <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Vertrek</div>
               <div className="grid grid-cols-2 gap-2">
@@ -1245,6 +1255,7 @@ function Index() {
               lastAvailabilityUpdate={lastAvailabilityUpdate}
               arrivalPercent={arrivalPercent}
             />
+            </>}
 
           </div>
 
