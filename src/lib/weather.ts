@@ -66,6 +66,7 @@ export async function fetchRouteWeather(coords: [number, number][], date?: strin
     const weather: RouteWeather = {
       tempC: Math.round(avg((c) => c.temperature_2m) * 10) / 10,
       temperatureSegments: currents.map((c, i) => ({ km: routeDistances(points)[i] ?? 0, tempC: Math.round(Number(c.temperature_2m) * 10) / 10 })).filter((p) => Number.isFinite(p.tempC)),
+      weatherSegments: currents.map((c, i) => ({ km: routeDistances(points)[i] ?? 0, tempC: Number(c.temperature_2m) || 0, windMs: Number(c.wind_speed_10m) || 0, precipitationMm: Number(c.precipitation) || 0, snowfallCm: Number(c.snowfall) || 0 })),
       windMs: Math.round(avg((c) => c.wind_speed_10m) * 10) / 10,
       precipitationMm: Math.round(avg((c) => c.precipitation) * 100) / 100,
       snowfallCm: Math.round(avg((c) => c.snowfall) * 100) / 100,
