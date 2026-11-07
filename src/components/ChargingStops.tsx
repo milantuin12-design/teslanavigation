@@ -104,7 +104,7 @@ function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo, tem
       <span>{Math.round(km)} km</span>
       {segmentWeather && <span className="flex items-center gap-1"><Wind size={11}/>{segmentWeather.windMs.toFixed(0)} m/s</span>}
       {segmentWeather && segmentWeather.precipitationMm > 0 && <span className="flex items-center gap-1"><CloudRain size={11}/>{segmentWeather.precipitationMm.toFixed(1)} mm</span>}
-      {segmentWeather && segmentWeather.snowfallCm > 0 && <span>❄ {segmentWeather.snowfallCm.toFixed(1)} cm</span>
+      {segmentWeather && segmentWeather.snowfallCm > 0 && <span>❄ {segmentWeather.snowfallCm.toFixed(1)} cm</span>}
       {temperatureC !== null && <span className="flex items-center gap-1 text-amber-300"><Thermometer size={11} />{temperatureC.toFixed(1)}°C</span>}
       {kWh !== null && <span className="text-emerald-300">⚡ {kWh.toFixed(1)} kWh</span>}
       <span>🔋 {from}% → {to}%</span>
