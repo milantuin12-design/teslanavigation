@@ -410,14 +410,18 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         popup += `<button type="button" data-report-id="${escapeHtml(charger.id ?? '')}" data-report-name="${escapeHtml(charger.name ?? '')}" style="margin-top:8px;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#b91c1c;font-weight:600;cursor:pointer;">Fout melden</button>`;
         popup += `</div>`;
         marker.bindPopup(popup);
+        // Stel de gewone popup uit: anders ligt die na de eerste klik over de marker
+        // en raakt de tweede klik de popup in plaats van de Supercharger-marker.
+        marker.off('click');
+        let singleClickTimer: number | undefined;
+        marker.on('click', () => {
+          if (singleClickTimer !== undefined) window.clearTimeout(singleClickTimer);
+          singleClickTimer = window.setTimeout(() => marker.openPopup(), 280);
+        });
         if (!hideOpeningHours) marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
-          // Voorkom dat Leaflet de dubbelklik als kaartzoom verwerkt.
-          if (ev.originalEvent) {
-            ev.originalEvent.preventDefault();
-            ev.originalEvent.stopPropagation();
-          }
-          map.doubleClickZoom.disable();
-          window.setTimeout(() => map.doubleClickZoom.enable(), 0);
+          if (singleClickTimer !== undefined) window.clearTimeout(singleClickTimer);
+          marker.closePopup();
+          if (ev.originalEvent) L.DomEvent.stop(ev.originalEvent);
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
           const priceBlocks = (charger.priceBlocks ?? []).filter((b) => typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
