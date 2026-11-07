@@ -305,7 +305,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         if (!isVisibleOnMap(charger)) return;
 
         const status = getChargerStatus(charger);
-        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? "")) });
+        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? "")), bubblingMouseEvents: false });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const usable = isChargerUsable(charger);
@@ -411,8 +411,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         popup += `</div>`;
         marker.bindPopup(popup);
         if (!hideOpeningHours) marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
-          // Stop the native double-click before Leaflet's map zoom handler can consume it.
-          if (ev.originalEvent) L.DomEvent.stop(ev.originalEvent);
+          // Voorkom dat Leaflet de dubbelklik als kaartzoom verwerkt.
+          if (ev.originalEvent) {
+            ev.originalEvent.preventDefault();
+            ev.originalEvent.stopPropagation();
+          }
+          map.doubleClickZoom.disable();
+          window.setTimeout(() => map.doubleClickZoom.enable(), 0);
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
           const priceBlocks = (charger.priceBlocks ?? []).filter((b) => typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
