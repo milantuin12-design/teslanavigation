@@ -3,6 +3,7 @@ import { WeatherMode, TimeMode, teslaBatteryKWh, teslaModels } from './tesla-typ
 /** Ruwe weersituatie langs de route (gemiddelden). */
 export interface RouteWeather {
   tempC: number;
+  temperatureSegments?: { km: number; tempC: number }[];
   windMs: number;
   /** Tegenwindcomponent in m/s (positief = tegenwind). */
   headwindMs?: number;
