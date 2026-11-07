@@ -479,7 +479,24 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(d).openOn(map);
           });
         }
-        (routeChargersOnly ? markersRef.current : (clusterRef.current ?? markersRef.current)).addLayer(marker);
+        const targetLayer = routeChargersOnly ? markersRef.current : (clusterRef.current ?? markersRef.current);
+        targetLayer.addLayer(marker);
+        // Vang de echte browser-dubbelklik rechtstreeks op het marker-element
+        // af en stuur hem expliciet door naar de bestaande detailweergave.
+        // Zo is dit niet afhankelijk van Leaflets interne click/dblclick-afhandeling.
+        if (!hideOpeningHours) {
+          const markerElement = marker.getElement();
+          if (markerElement) {
+            markerElement.addEventListener('dblclick', (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              marker.fire('dblclick', {
+                originalEvent: event,
+                latlng: marker.getLatLng(),
+              });
+            }, true);
+          }
+        }
       } catch { /* skip bad charger */ }
     });
 
