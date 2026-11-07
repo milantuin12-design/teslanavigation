@@ -3,6 +3,16 @@ import { sampleRoutePoints } from './tesla-utils';
 
 const cache = new Map<string, RouteWeather | null>();
 
+function routeDistances(points: [number, number][]): number[] {
+  const distances = [0];
+  for (let i = 1; i < points.length; i++) {
+    const [lon1, lat1] = points[i - 1]; const [lon2, lat2] = points[i];
+    const rad = Math.PI / 180;
+    const a = Math.sin((lat2 - lat1) * rad / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin((lon2 - lon1) * rad / 2) ** 2;
+    distances.push(distances[i - 1] + 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+  }
+  return distances;
+}
 function keyFor(points: [number, number][], date?: string): string {
   const hour = new Date().toISOString().slice(0, 13);
   return `${hour}|${date ?? ''}|${points.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(';')}`;
@@ -55,6 +65,7 @@ export async function fetchRouteWeather(coords: [number, number][], date?: strin
 
     const weather: RouteWeather = {
       tempC: Math.round(avg((c) => c.temperature_2m) * 10) / 10,
+      temperatureSegments: currents.map((c, i) => ({ km: routeDistances(points)[i] ?? 0, tempC: Math.round(Number(c.temperature_2m) * 10) / 10 })).filter((p) => Number.isFinite(p.tempC)),
       windMs: Math.round(avg((c) => c.wind_speed_10m) * 10) / 10,
       precipitationMm: Math.round(avg((c) => c.precipitation) * 100) / 100,
       snowfallCm: Math.round(avg((c) => c.snowfall) * 100) / 100,
@@ -92,6 +103,7 @@ async function fetchDayWeather(points: [number, number][], date: string): Promis
     const fog = days.filter((d) => [45, 48].includes(Number(d.weather_code?.[0]))).length / days.length;
     const weather: RouteWeather = {
       tempC: Math.round(avg('temperature_2m_mean') * 10) / 10,
+      temperatureSegments: days.map((d, i) => ({ km: routeDistances(points)[i] ?? 0, tempC: Math.round(Number(d.temperature_2m_mean?.[0]) * 10) / 10 })).filter((p) => Number.isFinite(p.tempC)),
       windMs: Math.round(avg('wind_speed_10m_max') * 0.6 * 10) / 10,
       precipitationMm: Math.round((avg('precipitation_sum') / 24) * 100) / 100,
       snowfallCm: Math.round((avg('snowfall_sum') / 24) * 100) / 100,
