@@ -524,6 +524,7 @@ export type Database = {
           peak_hours?: string | null
           permanently_closed_at?: string | null
           photos?: string[]
+          traffic_forecast?: Json | null
           planned_upgrade?: Json
           price_blocks?: Json | null
           price_per_kwh?: number | null
