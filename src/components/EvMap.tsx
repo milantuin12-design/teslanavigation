@@ -414,14 +414,27 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         // en raakt de tweede klik de popup in plaats van de Supercharger-marker.
         marker.off('click');
         let singleClickTimer: number | undefined;
-        marker.on('click', () => {
-          if (singleClickTimer !== undefined) window.clearTimeout(singleClickTimer);
-          singleClickTimer = window.setTimeout(() => marker.openPopup(), 500);
+        marker.on('click', (ev: L.LeafletMouseEvent) => {
+          // Detecteer dubbelklik zelf via twee marker-clicks; Leaflet's dblclick-event
+          // wordt in combinatie met de kaart/clusterlaag niet altijd afgeleverd.
+          if (singleClickTimer !== undefined) {
+            window.clearTimeout(singleClickTimer);
+            singleClickTimer = undefined;
+            marker.closePopup();
+            if (ev.originalEvent) {
+              ev.originalEvent.preventDefault();
+              ev.originalEvent.stopPropagation();
+            }
+            if (!hideOpeningHours) marker.fire('sc:details');
+            return;
+          }
+          singleClickTimer = window.setTimeout(() => {
+            singleClickTimer = undefined;
+            marker.openPopup();
+          }, 450);
         });
-        if (!hideOpeningHours) marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
-          if (singleClickTimer !== undefined) window.clearTimeout(singleClickTimer);
+        if (!hideOpeningHours) marker.on('sc:details', () => {
           marker.closePopup();
-          if (ev.originalEvent) L.DomEvent.stop(ev.originalEvent);
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
           const priceBlocks = (charger.priceBlocks ?? []).filter((b) => typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
