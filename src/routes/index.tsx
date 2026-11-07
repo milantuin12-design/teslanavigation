@@ -168,15 +168,22 @@ function Index() {
     return () => sub.subscription.unsubscribe();
   }, []);
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
+  const [favoriteChargerIds, setFavoriteChargerIds] = useState<string[]>([]);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  useEffect(() => { try { const saved = JSON.parse(localStorage.getItem("teslanavigation:favorites") || "[]"); if (Array.isArray(saved)) setFavoriteChargerIds(saved.filter((x): x is string => typeof x === "string")); } catch { /* ignore invalid local preferences */ } }, []);
+  useEffect(() => { try { localStorage.setItem("teslanavigation:favorites", JSON.stringify(favoriteChargerIds)); } catch { /* storage may be unavailable */ } }, [favoriteChargerIds]);
+  const toggleFavoriteCharger = (id: string) => setFavoriteChargerIds((old) => old.includes(id) ? old.filter((x) => x !== id) : [...old, id]);
   const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>({ ...defaultChargerFilters });
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
   const [showAllChargers, setShowAllChargers] = useState(false);
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
   const visibleChargers = useMemo(
-    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters)),
+    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters) && (!showFavoritesOnly || (!!charger.id && favoriteChargerIds.includes(charger.id)))),
     [superchargers, chargerFilters],
   );
+
+  useEffect(() => { const handler = (event: Event) => { const id = (event as CustomEvent<{ id: string }>).detail?.id; if (id) toggleFavoriteCharger(id); }; window.addEventListener("sc-favorite", handler); return () => window.removeEventListener("sc-favorite", handler); }, []);
 
   // Meldknop in de kaart-popup
   useEffect(() => {
@@ -1293,6 +1300,7 @@ function Index() {
       <div className="flex-1 relative">
         {!isNavigating && (
           <>
+          <div className="absolute top-16 left-3 z-[1000]"><Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowFavoritesOnly((v) => !v)}>{showFavoritesOnly ? "Alle Superchargers" : `Favorieten (${favoriteChargerIds.length})`}</Button></div>
           <div className="absolute top-3 left-3 z-[1000]">
             <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowDevelopmentChargers((v) => !v)}>
               {showDevelopmentChargers ? "Verberg plannen & bouwlocaties" : "Alles tonen"}
@@ -1381,6 +1389,7 @@ function Index() {
           headingUp={headingUp}
           waypoints={waypoints}
           routeChargersOnly={!!route && !showAllChargers && chargingStops.length > 0}
+          favoriteChargerIds={favoriteChargerIds}
         />
 
         {isNavigating && (
