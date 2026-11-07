@@ -130,6 +130,8 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
     return { charge, parking, known: charge !== null && parkingKnown };
   });
   const allCostsKnown = stops.length > 0 && stopCosts.every((cost) => cost.known);
+  const knownStopCosts = stopCosts.map((cost, index) => ({ ...cost, index, total: cost.charge !== null && (!stops[index].charger.parkingFee || cost.parking !== null) ? cost.charge + (cost.parking ?? 0) : null })).filter((cost): cost is typeof cost & { total: number } => cost.total !== null);
+  const cheapestStopIndex = knownStopCosts.length ? knownStopCosts.reduce((best, item) => item.total < best.total ? item : best).index : -1;
   const totalCost = stopCosts.reduce((sum, cost) => sum + (cost.charge ?? 0) + (cost.parking ?? 0), 0);
   const arrivalTime = route ? new Date(start.getTime() + (route.totalTimeMin + totalChargeMin + restMin) * 60000) : null;
 
@@ -217,6 +219,8 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                 <div>
                   <div className="text-sm font-semibold text-white">{stop.charger.name}</div>
                   {eta && <div className="mt-0.5 text-[11px] text-blue-300">Aankomst ± {time(eta)} · vertrek ± {time(new Date(eta.getTime() + stop.chargeDurationMin * 60000))}</div>}
+                  {cheapestStopIndex === idx && knownStopCosts.length > 1 && <div className="mt-1 inline-flex rounded-md bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-300">Goedkoopste berekende laadstop incl. parkeren</div>}
+                  {eta && (stop.etaMinFromStart ?? 0) >= 25 && <div className="mt-1 text-[10px] text-cyan-300">❄ Accu-voorverwarming: Tesla kan circa 20–30 min voor aankomst beginnen bij navigeren naar deze Supercharger</div>}
                 </div>
                 <span className="rounded-md bg-blue-600/20 px-2 py-0.5 text-[10px] font-semibold text-blue-300">Stop {idx + 1}</span>
               </div>
