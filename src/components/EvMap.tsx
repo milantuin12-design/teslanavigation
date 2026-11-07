@@ -416,7 +416,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         let singleClickTimer: number | undefined;
         marker.on('click', () => {
           if (singleClickTimer !== undefined) window.clearTimeout(singleClickTimer);
-          singleClickTimer = window.setTimeout(() => marker.openPopup(), 280);
+          singleClickTimer = window.setTimeout(() => marker.openPopup(), 500);
         });
         if (!hideOpeningHours) marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
           if (singleClickTimer !== undefined) window.clearTimeout(singleClickTimer);
