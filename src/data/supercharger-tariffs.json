@@ -28249,8 +28249,18 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.36
+          "pricePerKwh": 0.34
         }
       ],
       "source": "https://www.kilowattindex.com/site/DenkendorfSupercharger/",
@@ -28805,17 +28815,17 @@
         {
           "from": "00:00",
           "to": "10:00",
-          "pricePerKwh": 0.34
+          "pricePerKwh": 0.32
         },
         {
           "from": "10:00",
           "to": "20:00",
-          "pricePerKwh": 0.46
+          "pricePerKwh": 0.47
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.34
+          "pricePerKwh": 0.32
         }
       ],
       "source": "https://www.kilowattindex.com/site/299668/",
