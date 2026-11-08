@@ -230,6 +230,7 @@ function Index() {
   const [isLoadingChargers, setIsLoadingChargers] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [gpsError, setGpsError] = useState(false);
   const [currentSpeedKmh, setCurrentSpeedKmh] = useState<number | null>(null);
   const [currentHeading, setCurrentHeading] = useState<number | null>(null);
   const [headingUp, setHeadingUp] = useState(false);
@@ -414,6 +415,7 @@ function Index() {
     if (isNavigating && navigator.geolocation) {
       watchIdRef.current = navigator.geolocation.watchPosition(
         (pos) => {
+          setGpsError(false);
           const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
           setCurrentSpeedKmh(typeof pos.coords.speed === "number" && Number.isFinite(pos.coords.speed) && pos.coords.speed >= 0 ? Math.round(pos.coords.speed * 3.6) : null);
           // Compute heading from GPS heading or from prev->new bearing
@@ -456,8 +458,11 @@ function Index() {
           };
           gpsAnimationFrameRef.current = requestAnimationFrame(animate);
         },
-        () => {},
-        { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
+        (error) => {
+          console.warn("[TeslaNavigation] GPS niet beschikbaar:", error.message);
+          setGpsError(true);
+        },
+        { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 }
       );
     } else {
       if (watchIdRef.current !== null) {
@@ -1472,6 +1477,8 @@ function Index() {
             routeChangedStops={routeChangedStops}
             currentSpeedKmh={currentSpeedKmh}
             totalDistanceKm={route?.totalDistanceKm ?? 0}
+            hasGps={!!currentPosition}
+            gpsError={gpsError}
           />
         )}
         {isNavigating && activeChargingStop && (
