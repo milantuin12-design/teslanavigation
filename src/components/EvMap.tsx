@@ -533,12 +533,20 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
             <div style="font-weight:700;margin-top:6px;">🅿️ Parkeren</div>`;
           if (!charger.parkingFee) d += `<div>Gratis parkeren</div>`;
           else if (parkingBlocks.length > 0) {
-            d += parkingBlocks.map((block) => {
-              const label = block.label || (block.durationMinutes === 0 ? "Vast bedrag" : `Vanaf ${block.afterMinutes} min`);
+            const firstFreeBlock = parkingBlocks[0];
+            const hasInitialFreePeriod = firstFreeBlock.amount === 0 && firstFreeBlock.afterMinutes === 0 && firstFreeBlock.durationMinutes > 0;
+            if (hasInitialFreePeriod) {
+              const freeMinutes = firstFreeBlock.durationMinutes;
+              d += `<div style="font-weight:600;">${freeMinutes} minuten gratis</div>`;
+            }
+            const visibleBlocks = hasInitialFreePeriod ? parkingBlocks.slice(1) : parkingBlocks;
+            d += visibleBlocks.map((block, index) => {
               const durationLabel = block.durationMinutes >= 60 && block.durationMinutes % 60 === 0 ? (block.durationMinutes / 60) + " uur" : block.durationMinutes + " min";
+              const isHourlyRepeat = block.repeat && block.durationMinutes === 60;
+              const label = block.label || (hasInitialFreePeriod && index === 0 ? "Daarna" : block.durationMinutes === 0 ? "Vast bedrag" : `Vanaf ${block.afterMinutes} min`);
               const period = block.durationMinutes > 0 ? (block.repeat ? ` per ${durationLabel}` : ` voor ${durationLabel}`) : " eenmalig";
-              const repeat = block.repeat ? " (herhaalt)" : "";
-              return row(escapeHtml(label + period + repeat), parkingMoney(block.amount, block.currency || "EUR"));
+              const displayLabel = isHourlyRepeat && hasInitialFreePeriod && index === 0 ? "Daarna per uur:" : label + period;
+              return row(escapeHtml(displayLabel), parkingMoney(block.amount, block.currency || "EUR"));
             }).join("");
           } else {
             if (charger.parkingFeeAmount) d += row('Vast bedrag', eur(charger.parkingFeeAmount));
