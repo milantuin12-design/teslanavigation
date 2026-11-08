@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Trash2, Pencil, Plus, Truck, X, ChevronDown, EyeOff } from "lucide-react";
-import { CONSTRUCTION_STEPS, constructionStepLabels, type ChargerConfig, type ChargerLifecycleStatus, type ClosureInfo, type ConstructionInfo, type OpeningDayKey, type OpeningHours, type PlannedUpgrade, type StallState, type StallCondition, type WorksInfo } from "@/lib/tesla-types";
+import { CONSTRUCTION_STEPS, constructionStepLabels, type ChargerTrafficForecast, type OpeningDayKey, type ChargerConfig, type ChargerLifecycleStatus, type ClosureInfo, type ConstructionInfo, type OpeningDayKey, type OpeningHours, type PlannedUpgrade, type StallState, type StallCondition, type WorksInfo } from "@/lib/tesla-types";
 import type { Json } from "@/integrations/supabase/types";
 import { constructionProgressLabels, defaultOpeningHours, lifecycleLabels, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
 
@@ -65,7 +65,7 @@ type Charger = {
   hidden?: boolean | null;
   photos?: string[] | null;
   permanently_closed_at?: string | null;
-  traffic_forecast?: { level: "low" | "medium" | "high"; days?: string; from?: string; to?: string; note?: string } | null;
+  traffic_forecast?: ChargerTrafficForecast | null;
 };
 
 type Owner = { id: string; name: string };
@@ -95,7 +95,7 @@ const emptyCharger = {
   data_source: "manual" as string,
   hidden: false,
   photos: [] as string[],
-  traffic_forecast: { level: "medium" as "low" | "medium" | "high", days: "dagelijks", from: "16:00", to: "19:00", note: "" },
+  traffic_forecast: { weekly: [] } as ChargerTrafficForecast,
   charger_configs: [{ count: 8, version: "V3", speedKw: 250 }] as ChargerConfig[],
 };
 
@@ -166,7 +166,7 @@ function AdminPage() {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
   const [bulkPrice, setBulkPrice] = useState({ parkingFeeAmount: "", parkingFreeMinutes: "", parkingPerMinutes: "", parkingPerEuro: "" });
-  const fileRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);\n  const trafficFileRef = useRef<HTMLInputElement>(null);
   const runImport = useServerFn(importSuperchargers);
 
   useEffect(() => {
@@ -204,7 +204,7 @@ function AdminPage() {
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from("superchargers")
-        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks")
+        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks,traffic_forecast")
 
         .order("name").range(from, from + 999);
       if (error) { toast.error(error.message); break; }
@@ -269,7 +269,7 @@ function AdminPage() {
       stall_states: (editing.stall_states || []).filter((x) => x.condition !== "available") as unknown as Json,
       data_source: editing.data_source === "automatic" ? "automatic" : "manual",
       hidden: !!editing.hidden,
-      photos: (editing.photos || []).map((u) => u.trim()).filter(Boolean),
+      photos: (editing.photos || []).map((u) => u.trim()).filter(Boolean),\n      traffic_forecast: editing.traffic_forecast?.weekly?.length ? ({ ...editing.traffic_forecast, updatedAt: new Date().toISOString() } as unknown as Json) : null,
     };
     try {
       if (editing.id) {
@@ -361,6 +361,46 @@ function AdminPage() {
     }
   };
 
+  /** CSV-formaat: charger,day,hour,level — één regel per uur. */
+  const importTrafficCsv = async (file: File) => {
+    try {
+      const lines = (await file.text()).replace(/^\\uFEFF/, "").split(/\\r?\\n/).filter((line) => line.trim());
+      if (lines.length < 2) throw new Error("CSV bevat geen gegevensregels");
+      const delimiter = lines[0].includes(";") ? ";" : ",";
+      const headers = lines[0].split(delimiter).map((v) => v.trim().toLowerCase().replace(/^"|"$/g, ""));
+      const col = (name: string) => headers.indexOf(name);
+      const required = ["charger", "day", "hour", "level"];
+      if (required.some((name) => col(name) < 0)) throw new Error("Kolommen vereist: charger,day,hour,level");
+      const dayAliases: Record<string, OpeningDayKey> = { ma: "mon", maandag: "mon", mon: "mon", monday: "mon", di: "tue", dinsdag: "tue", tue: "tue", tuesday: "tue", wo: "wed", woensdag: "wed", wed: "wed", wednesday: "wed", do: "thu", donderdag: "thu", thu: "thu", thursday: "thu", vr: "fri", vrijdag: "fri", fri: "fri", friday: "fri", za: "sat", zaterdag: "sat", sat: "sat", saturday: "sat", zo: "sun", zondag: "sun", sun: "sun", sunday: "sun" };
+      const grouped = new Map<string, { charger: Charger; weekly: { day: OpeningDayKey; hour: number; level: number }[] }>();
+      const normalize = (s: string) => s.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      const byName = new Map(chargers.map((c) => [normalize(c.name), c]));
+      let skipped = 0;
+      for (const line of lines.slice(1)) {
+        const cells = line.split(delimiter).map((v) => v.trim().replace(/^"|"$/g, ""));
+        const charger = byName.get(normalize(cells[col("charger")] ?? ""));
+        const day = dayAliases[(cells[col("day")] ?? "").toLowerCase()];
+        const hour = Number(cells[col("hour")]);
+        const level = Number(cells[col("level")]);
+        if (!charger?.id || !day || !Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isFinite(level) || level < 0 || level > 100) { skipped++; continue; }
+        const entry = grouped.get(charger.id) ?? { charger, weekly: [] };
+        entry.weekly.push({ day, hour, level: Math.round(level) });
+        grouped.set(charger.id, entry);
+      }
+      if (!grouped.size) throw new Error("Geen regels konden aan bestaande Superchargers worden gekoppeld");
+      let updated = 0;
+      for (const [id, entry] of grouped) {
+        const { error } = await supabase.from("superchargers").update({ traffic_forecast: { weekly: entry.weekly, source: "CSV-import", updatedAt: new Date().toISOString() } as unknown as Json }).eq("id", id);
+        if (error) throw new Error(entry.charger.name + ": " + error.message);
+        updated++;
+      }
+      toast.success(`${updated} Superchargers bijgewerkt · ${skipped} regels overgeslagen`);
+      load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Drukte-import mislukt");
+    }
+  };
+
   /** Eigenaar op naam: bestaat hij niet, dan maken we hem aan met alleen een titel. */
   const ensureOwnerByName = async (name: string): Promise<string | null> => {
     const trimmed = name.trim();
@@ -424,7 +464,7 @@ function AdminPage() {
             <Link to="/talen"><Button variant="outline" size="sm" className="border-slate-700">Talen</Button></Link>
             <Link to="/wijzigingen"><Button variant="outline" size="sm" className="border-slate-700">Wijzigingen</Button></Link>
             <Button variant="outline" size="sm" className="border-slate-700" onClick={publishAllDrafts}>Alle concepten publiceren</Button>
-            <Button variant="outline" size="sm" className="border-slate-700" onClick={exportData}>Exporteer back-up</Button>
+            <Button variant="outline" size="sm" className="border-slate-700" onClick={exportData}>Exporteer back-up</Button>\n            <Button variant="outline" size="sm" className="border-slate-700" onClick={() => trafficFileRef.current?.click()}>Importeer drukte-CSV</Button>\n            <input ref={trafficFileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) importTrafficCsv(file); e.target.value = ""; }} />
             <Button variant="outline" size="sm" className="border-slate-700" onClick={() => fileRef.current?.click()}>Importeer back-up</Button>
             <input
               ref={fileRef}
