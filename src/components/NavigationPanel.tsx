@@ -116,7 +116,7 @@ export default function NavigationPanel({
             <div className="max-w-[55%] truncate rounded-full border border-white/10 bg-white/[.07] px-2 py-0.5 text-[9px] font-semibold text-slate-200">{currentStep?.name || 'Route volgen'}</div>
           </div>
           <div className="flex items-center gap-3 px-3 pb-2.5 pt-1.5 sm:gap-4 sm:px-4 sm:pb-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-cyan-200/20 bg-cyan-300/10 shadow-inner sm:h-[72px] sm:w-[72px]">{currentStep ? getManeuverIcon(currentStep.maneuver.type, currentStep.maneuver.modifier, 48) : <LocateFixed size={42} />}</div>
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-cyan-200/20 bg-cyan-300/10 shadow-inner sm:h-14 sm:w-14">{currentStep ? getManeuverIcon(currentStep.maneuver.type, currentStep.maneuver.modifier, 34) : <LocateFixed size={34} />}</div>
             <div className="min-w-0 flex-1">
               <div className="text-[26px] font-black leading-none tracking-[-.04em] sm:text-[30px]">{formatDistance(liveDistance)}</div>
               <div className="mt-1 text-sm font-bold leading-tight sm:text-base">{currentStep ? getManeuverText(currentStep.maneuver.type, currentStep.maneuver.modifier, currentStep.name) : 'Volg de route'}</div>
