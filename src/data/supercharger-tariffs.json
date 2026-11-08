@@ -917,21 +917,21 @@
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.26
         },
         {
           "from": "09:00",
           "to": "21:00",
-          "pricePerKwh": 0.47
+          "pricePerKwh": 0.46
         },
         {
           "from": "21:00",
           "to": "24:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.26
         }
       ],
       "source": "https://www.kilowattindex.com/site/179718/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -25043,6 +25043,29 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/404504/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "essen kronenberg center"
+      ],
+      "label": "Essen – Kronenberg Center",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.45
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29649/",
       "sourceChecked": "2026-11-08",
       "currency": "EUR"
     }
