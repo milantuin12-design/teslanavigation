@@ -308,8 +308,6 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? "")) });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
-        const totalStalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
-        const availableStalls = getOpenStalls(charger);
         const usable = isChargerUsable(charger);
         const statusColor = usable
           ? (charger.status === 'works' ? '#b45309' : '#16a34a')
@@ -435,7 +433,6 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           const hasRegularPricing = charger.pricePerKwh != null || charger.pricePerKwhPeak != null || !!charger.peakHours;
           let d = `<div style="font-family:system-ui;font-size:13px;min-width:260px;color:#0f172a;display:grid;gap:4px;">
             <strong style="font-size:15px;">${escapeHtml(charger.name || 'Onbekend')}</strong>`;
-          if (totalStalls > 0) d += `<div style="font-weight:700;color:${availableStalls > 0 ? '#16a34a' : '#dc2626'};margin-top:3px;">${escapeHtml(formatStallAvailability(charger))}</div>`;
           if (hasTimeBasedPricing) {
             d += `<div style="font-weight:700;margin-top:4px;">⚡ Prijzen per tijdsblok</div>
               ${priceBlocks.map((b) => row(escapeHtml(`${b.days ?? 'Dagelijks'} ${b.from ?? ''}–${b.to ?? ''}`), eur(b.pricePerKwh))).join('')}`;
