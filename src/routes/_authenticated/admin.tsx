@@ -45,7 +45,8 @@ type Charger = {
   parking_free_minutes?: number | null;
   parking_per_minutes?: number | null;
   parking_per_euro?: number | null;
-  price_currency?: string | null;\n  price_per_kwh?: number | null;
+  price_currency?: string | null;
+  price_per_kwh?: number | null;
   price_per_kwh_peak?: number | null;
   peak_hours?: string | null;
   price_blocks?: { days?: string; from?: string; to?: string; pricePerKwh: number }[] | null;
