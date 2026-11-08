@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Bookmark, History, SlidersHorizontal, AlertTriangle, Loader2 } from "lucide-react";
+import { Bookmark, History, SlidersHorizontal, AlertTriangle, Loader2, Navigation as NavigationIcon } from "lucide-react";
 import ChargerFilters from "@/components/ChargerFilters";
 import ReportChargerDialog, { type ReportTarget } from "@/components/ReportChargerDialog";
 import OwnerPanel from "@/components/OwnerPanel";
@@ -230,6 +230,7 @@ function Index() {
   const [isLoadingChargers, setIsLoadingChargers] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [currentSpeedKmh, setCurrentSpeedKmh] = useState<number | null>(null);
   const [currentHeading, setCurrentHeading] = useState<number | null>(null);
   const [headingUp, setHeadingUp] = useState(false);
   const [liveBattery, setLiveBattery] = useState<number>(80);
@@ -414,6 +415,7 @@ function Index() {
       watchIdRef.current = navigator.geolocation.watchPosition(
         (pos) => {
           const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setCurrentSpeedKmh(typeof pos.coords.speed === "number" && Number.isFinite(pos.coords.speed) && pos.coords.speed >= 0 ? Math.round(pos.coords.speed * 3.6) : null);
           // Compute heading from GPS heading or from prev->new bearing
           let h: number | null = typeof pos.coords.heading === 'number' && !isNaN(pos.coords.heading) ? pos.coords.heading : null;
           if (h === null && prevPositionRef.current) {
@@ -463,6 +465,7 @@ function Index() {
         watchIdRef.current = null;
       }
       setCurrentPosition(null);
+      setCurrentSpeedKmh(null);
       setCurrentHeading(null);
       prevPositionRef.current = null;
       displayedPositionRef.current = null;
@@ -1444,6 +1447,14 @@ function Index() {
           favoriteChargerIds={favoriteChargerIds}
         />
 
+        {route && !isNavigating && (
+          <div className="absolute bottom-5 right-4 z-[1200] pointer-events-auto">
+            <Button onClick={handleStartNavigation} className="h-14 rounded-2xl bg-blue-600 hover:bg-blue-500 px-6 text-base font-bold shadow-2xl shadow-blue-950/60 ring-1 ring-white/20">
+              <NavigationIcon className="mr-2 h-5 w-5" /> Start navigatie
+            </Button>
+          </div>
+        )}
+
         {isNavigating && (
           <NavigationPanel
             steps={routeSteps}
@@ -1458,6 +1469,8 @@ function Index() {
             headingUp={headingUp}
             onToggleHeadingUp={() => setHeadingUp((v) => !v)}
             routeChangedStops={routeChangedStops}
+            currentSpeedKmh={currentSpeedKmh}
+            totalDistanceKm={route?.totalDistanceKm ?? 0}
           />
         )}
         {isNavigating && activeChargingStop && (
