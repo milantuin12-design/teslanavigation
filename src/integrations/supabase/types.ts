@@ -415,6 +415,7 @@ export type Database = {
           parking_fee: boolean
           parking_fee_amount: number | null
           parking_free_minutes: number | null
+          parking_blocks: Json | null
           parking_per_euro: number | null
           parking_per_minutes: number | null
           peak_hours: string | null
@@ -468,6 +469,7 @@ export type Database = {
           parking_fee?: boolean
           parking_fee_amount?: number | null
           parking_free_minutes?: number | null
+          parking_blocks?: Json | null
           parking_per_euro?: number | null
           parking_per_minutes?: number | null
           peak_hours?: string | null
@@ -521,6 +523,7 @@ export type Database = {
           parking_fee?: boolean
           parking_fee_amount?: number | null
           parking_free_minutes?: number | null
+          parking_blocks?: Json | null
           parking_per_euro?: number | null
           parking_per_minutes?: number | null
           peak_hours?: string | null
