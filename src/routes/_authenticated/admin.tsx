@@ -251,7 +251,8 @@ function AdminPage() {
       parking_free_minutes: editing.parking_free_minutes ?? null,
       parking_per_minutes: editing.parking_per_minutes ?? null,
       parking_per_euro: editing.parking_per_euro ?? null,
-      price_currency: (editing.price_currency || "EUR").toUpperCase(),\n      price_per_kwh: null,
+      price_currency: (editing.price_currency || "EUR").toUpperCase(),
+      price_per_kwh: null,
       price_per_kwh_peak: null,
       peak_hours: null,
       price_blocks: (editing.price_blocks && editing.price_blocks.length > 0 ? editing.price_blocks : null) as unknown as Json,
@@ -368,7 +369,8 @@ function AdminPage() {
   /** CSV-formaat: charger,day,hour,level — één regel per uur. */
   const importTrafficCsv = async (file: File) => {
     try {
-      const lines = (await file.text()).replace(/^\uFEFF/, "").split(/\r?\n/).filter((line) => line.trim());
+      const lines = (await file.text()).replace(/^\uFEFF/, "").split(/\r?
+/).filter((line) => line.trim());
       if (lines.length < 2) throw new Error("CSV bevat geen gegevensregels");
       const delimiter = lines[0].includes(";") ? ";" : ",";
       const headers = lines[0].split(delimiter).map((v) => v.trim().toLowerCase().replace(/^"|"$/g, ""));
@@ -468,7 +470,9 @@ function AdminPage() {
             <Link to="/talen"><Button variant="outline" size="sm" className="border-slate-700">Talen</Button></Link>
             <Link to="/wijzigingen"><Button variant="outline" size="sm" className="border-slate-700">Wijzigingen</Button></Link>
             <Button variant="outline" size="sm" className="border-slate-700" onClick={publishAllDrafts}>Alle concepten publiceren</Button>
-            <Button variant="outline" size="sm" className="border-slate-700" onClick={exportData}>Exporteer back-up</Button>\n            <Button variant="outline" size="sm" className="border-slate-700" onClick={() => trafficFileRef.current?.click()}>Importeer drukte-CSV</Button>\n            <input ref={trafficFileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) importTrafficCsv(file); e.target.value = ""; }} />
+            <Button variant="outline" size="sm" className="border-slate-700" onClick={exportData}>Exporteer back-up</Button>
+            <Button variant="outline" size="sm" className="border-slate-700" onClick={() => trafficFileRef.current?.click()}>Importeer drukte-CSV</Button>
+            <input ref={trafficFileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) importTrafficCsv(file); e.target.value = ""; }} />
             <Button variant="outline" size="sm" className="border-slate-700" onClick={() => fileRef.current?.click()}>Importeer back-up</Button>
             <input
               ref={fileRef}
@@ -685,7 +689,9 @@ function AdminPage() {
 
                 <div className="space-y-2 rounded-lg border border-slate-700 p-3">
                   <Label className="text-xs">Foto's (één link per regel, alleen zichtbaar in detailvenster)</Label>
-                  <textarea rows={2} value={(editing.photos || []).join("\n")} onChange={(e) => setEditing({ ...editing, photos: e.target.value.split("\n") })} className="w-full rounded-md bg-slate-800 border border-slate-700 p-2 text-sm" />
+                  <textarea rows={2} value={(editing.photos || []).join("
+")} onChange={(e) => setEditing({ ...editing, photos: e.target.value.split("
+") })} className="w-full rounded-md bg-slate-800 border border-slate-700 p-2 text-sm" />
                   <div className="flex flex-wrap gap-4 text-sm">
                     <label className="flex items-center gap-2">Bron
                       <select value={editing.data_source || "manual"} onChange={(e) => setEditing({ ...editing, data_source: e.target.value })} className="rounded bg-slate-800 border border-slate-700 px-2 py-1">
@@ -878,7 +884,12 @@ function AdminPage() {
                   <p className="col-span-2 text-slate-400">Bijv. 90 gratis minuten, daarna €1 per 10 minuten. Kosten kunnen per dag/tijd verschillen — gebruik het gemiddelde of het duurste tarief.</p>
                 </div>
               )}
-              <div className="space-y-1.5 text-xs rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">\n                <label className="flex items-center gap-2">Valuta van de tarieven\n                  <select className="h-8 rounded-md border border-slate-600 bg-slate-800 px-2" value={editing.price_currency ?? "EUR"} onChange={(e) => setEditing({ ...editing, price_currency: e.target.value })}>\n                    {["EUR","CHF","GBP","USD","NOK","SEK","DKK","PLN","CZK","HUF","RON","BGN","TRY","ISK"].map((code) => <option key={code} value={code}>{code}</option>)}\n                  </select>\n                </label>
+              <div className="space-y-1.5 text-xs rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
+                <label className="flex items-center gap-2">Valuta van de tarieven
+                  <select className="h-8 rounded-md border border-slate-600 bg-slate-800 px-2" value={editing.price_currency ?? "EUR"} onChange={(e) => setEditing({ ...editing, price_currency: e.target.value })}>
+                    {["EUR","CHF","GBP","USD","NOK","SEK","DKK","PLN","CZK","HUF","RON","BGN","TRY","ISK"].map((code) => <option key={code} value={code}>{code}</option>)}
+                  </select>
+                </label>
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <Label className="text-sm font-semibold">⚡ Tesla-prijzen per tijdsblok</Label>
