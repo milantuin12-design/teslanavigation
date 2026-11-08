@@ -7,6 +7,23 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, getOpenStalls, formatStallAvailability, isChargerUsable, normalizeChargerConfigs, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
 
+
+// Exchange rates are reference rates, cached in memory for 24 hours.
+const eurRateCache = new Map<string, { rate: number; date: string; expiresAt: number }>();
+async function getCurrencyToEurRate(currency: string): Promise<{ rate: number; date: string }> {
+  const code = currency.trim().toUpperCase();
+  if (code === "EUR") return { rate: 1, date: "" };
+  const cached = eurRateCache.get(code);
+  if (cached && cached.expiresAt > Date.now()) return cached;
+  const response = await fetch(`https://api.frankfurter.dev/v2/rate/${encodeURIComponent(code.toLowerCase())}/eur`);
+  if (!response.ok) throw new Error(`Wisselkoers voor ${code} niet beschikbaar`);
+  const data = await response.json() as { rate?: number; date?: string };
+  if (typeof data.rate !== "number" || !Number.isFinite(data.rate) || data.rate <= 0) throw new Error("Ongeldige wisselkoers ontvangen");
+  const result = { rate: data.rate, date: data.date ?? "", expiresAt: Date.now() + 24 * 60 * 60 * 1000 };
+  eurRateCache.set(code, result);
+  return result;
+}
+
 interface EvMapProps {
   startCoord: { lat: number; lng: number } | null;
   destCoord: { lat: number; lng: number } | null;
@@ -428,18 +445,32 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           popup = popup.slice(0, outerClose) + '<div style="margin-top:6px;color:#64748b;font-size:11px;">Dubbelklik voor prijzen en parkeergeld</div>' + popup.slice(outerClose);
         }
         marker.bindPopup(popup);
-        if (!hideOpeningHours) marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
+        if (!hideOpeningHours) marker.on('dblclick', async (ev: L.LeafletMouseEvent) => {
           try {
             L.DomEvent.stop(ev);
+          const rawCurrency = typeof charger.priceCurrency === 'string' ? charger.priceCurrency.trim().toUpperCase() : 'EUR';
+          const currency = /^[A-Z]{3}$/.test(rawCurrency) ? rawCurrency : 'EUR';
+          let exchangeRate = 1;
+          let rateDate = "";
+          let exchangeRateError = false;
+          if (currency !== "EUR") {
+            L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(`<div style="font-family:system-ui;padding:6px;">Wisselkoers ophalen voor ${escapeHtml(currency)}…</div>`).openOn(map);
+            try {
+              const quote = await getCurrencyToEurRate(currency);
+              exchangeRate = quote.rate;
+              rateDate = quote.date;
+            } catch (rateError) {
+              exchangeRateError = true;
+              console.warn("[TeslaNavigation] Wisselkoers niet beschikbaar:", rateError);
+            }
+          }
+          const localMoney = (v: number) => new Intl.NumberFormat('nl-NL', { style: 'currency', currency }).format(v);
+          const euroMoney = (v: number) => new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(v * exchangeRate);
           const eur = (v?: number | null) => {
             if (typeof v !== 'number' || !Number.isFinite(v)) return '—';
-            const rawCurrency = typeof charger.priceCurrency === 'string' ? charger.priceCurrency.trim().toUpperCase() : 'EUR';
-            const currency = /^[A-Z]{3}$/.test(rawCurrency) ? rawCurrency : 'EUR';
-            try {
-              return new Intl.NumberFormat('nl-NL', { style: 'currency', currency }).format(v);
-            } catch {
-              return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(v);
-            }
+            if (currency === 'EUR') return euroMoney(v);
+            if (exchangeRateError) return `${localMoney(v)} · EUR-koers niet beschikbaar`;
+            return `${localMoney(v)} → ${euroMoney(v)}`;
           };
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
           const priceBlocks = (Array.isArray(charger.priceBlocks) ? charger.priceBlocks : []).filter((b) => !!b && typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
