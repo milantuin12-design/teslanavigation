@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig } from '@/lib/tesla-types';
+import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, getOpenStalls, formatStallAvailability, isChargerUsable, normalizeChargerConfigs, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
 
 
@@ -472,6 +472,20 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
             if (exchangeRateError) return `${localMoney(v)} · EUR-koers niet beschikbaar`;
             return `${localMoney(v)} → ${euroMoney(v)}`;
           };
+          const parkingBlocks = (Array.isArray(charger.parkingBlocks) ? charger.parkingBlocks : []) as ParkingFeeBlock[];
+          const parkingRates = new Map<string, number | null>();
+          await Promise.all([...new Set(parkingBlocks.map((block) => (block.currency || "EUR").toUpperCase()))].map(async (code) => {
+            try { parkingRates.set(code, (await getCurrencyToEurRate(code)).rate); }
+            catch { parkingRates.set(code, null); }
+          }));
+          const parkingMoney = (amount: number, rawCode: string) => {
+            const code = /^[A-Z]{3}$/.test(rawCode) ? rawCode : "EUR";
+            const local = new Intl.NumberFormat("nl-NL", { style: "currency", currency: code }).format(amount);
+            if (code === "EUR") return local;
+            const rate = parkingRates.get(code);
+            if (rate == null) return local + " · EUR-koers niet beschikbaar";
+            return local + " → " + new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(amount * rate);
+          };
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
           const priceBlocks = (Array.isArray(charger.priceBlocks) ? charger.priceBlocks : []).filter((b) => !!b && typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
           const hasTimeBasedPricing = priceBlocks.length > 0;
@@ -521,7 +535,14 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           d += `${openingHoursHtml}
             <div style="font-weight:700;margin-top:6px;">🅿️ Parkeren</div>`;
           if (!charger.parkingFee) d += `<div>Gratis parkeren</div>`;
-          else {
+          else if (parkingBlocks.length > 0) {
+            d += parkingBlocks.map((block) => {
+              const label = block.label || (block.durationMinutes === 0 ? "Vast bedrag" : `Vanaf ${block.afterMinutes} min`);
+              const period = block.durationMinutes > 0 ? ` per ${block.durationMinutes >= 60 && block.durationMinutes % 60 === 0 ? (block.durationMinutes / 60) + " uur" : block.durationMinutes + " min"}` : " eenmalig";
+              const repeat = block.repeat ? " (herhaalt)" : "";
+              return row(escapeHtml(label + period + repeat), parkingMoney(block.amount, block.currency || "EUR"));
+            }).join("");
+          } else {
             if (charger.parkingFeeAmount) d += row('Vast bedrag', eur(charger.parkingFeeAmount));
             if (charger.parkingFreeMinutes) d += row('Gratis', `${charger.parkingFreeMinutes} min`);
             if (charger.parkingPerMinutes && charger.parkingPerEuro) d += row('Daarna', `${eur(charger.parkingPerEuro)} per ${charger.parkingPerMinutes} min`);
