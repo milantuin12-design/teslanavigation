@@ -344,12 +344,14 @@ function AdminPage() {
       closing_time: editing.closing_time || null,
       trailer_friendly: !!editing.trailer_friendly,
       is_available: editing.is_available !== false,
-      parking_fee: !!editing.parking_fee,
+      // Tariefblokken zijn leidend: zodra er blokken zijn, staat parkeergeld automatisch aan.
+      parking_fee: !!editing.parking_fee || !!editing.parking_blocks?.length,
       parking_fee_amount: editing.parking_fee_amount ?? null,
       parking_free_minutes: editing.parking_free_minutes ?? null,
       parking_per_minutes: editing.parking_per_minutes ?? null,
       parking_per_euro: null,
-      parking_blocks: (editing.parking_blocks?.length ? editing.parking_blocks : null) as unknown as Json,
+      // De databasekolom is NOT NULL en gebruikt [] als waarde zonder tarieven.
+      parking_blocks: (editing.parking_blocks ?? []) as unknown as Json,
       price_currency: (editing.price_currency || "EUR").toUpperCase(),
       price_per_kwh: null,
       price_per_kwh_peak: null,
@@ -387,12 +389,17 @@ function AdminPage() {
     } catch (error) {
       // Bewaar de wijziging lokaal, maar toon ook de echte databasefout zodat schema-
       // of validatiefouten niet onterecht als alleen een cloudstoring worden gemeld.
-      queueAdminChange({ type: "upsert", id: editing.id, payload: editing.id ? { id: editing.id, ...payload } : payload });
-      if (editing.id) setChargers((prev) => prev.map((c) => (c.id === editing.id ? ({ ...c, ...payload } as Charger) : c)));
       const message = error instanceof Error ? error.message : String(error);
       console.error("[TeslaNavigation] Supercharger opslaan mislukt:", error);
+      // Een ontbrekende JSONB-kolom kan niet met een lokale wachtrij worden opgelost.
+      // Laat het formulier open zodat de gebruiker geen ingevoerde tarieven verliest.
+      if (/parking_blocks/i.test(message) && /(column|schema cache|does not exist|could not find)/i.test(message)) {
+        toast.error("Parkeertarieven niet opgeslagen: de database mist parking_blocks. Voer de Supabase-migratie 20261108113000_add_parking_fee_blocks.sql uit en probeer opnieuw.");
+        return;
+      }
+      queueAdminChange({ type: "upsert", id: editing.id, payload: editing.id ? { id: editing.id, ...payload } : payload });
+      if (editing.id) setChargers((prev) => prev.map((c) => (c.id === editing.id ? ({ ...c, ...payload } as Charger) : c)));
       toast.error(`Opslaan mislukt: ${message}`);
-      setEditing(null);
       return;
     }
     setEditing(null);
