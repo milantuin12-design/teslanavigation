@@ -81,7 +81,7 @@ type AdminTariff = {
 };
 
 function normalizeTariffMatch(value: string) {
-  return value.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 /** Laat de tarieven uit het Find Us-bestand ook in het adminformulier zien.
