@@ -272,9 +272,13 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
         return rowToCharger(applyTariffOverride(merged), owners);
       });
     } catch (error) {
-      // Never silently replace live admin data with the older bundled JSON snapshot.
-      console.error("[TeslaNavigation] Supabase-data ophalen mislukt; lokale fallback bewust geblokkeerd:", error);
-      throw new Error("De actuele Supercharger-database is niet bereikbaar of onvolledig. De app toont geen verouderde lokale dataset.");
+      // De kaart blijft bruikbaar als Supabase tijdelijk onbereikbaar is.
+      // De lokale dataset bevat de volledige meegeleverde Superchargerbasis.
+      console.error("[TeslaNavigation] Supabase-data ophalen mislukt; toon lokale Superchargerdataset:", error);
+      if (!localRows.length) {
+        throw new Error("Supabase is niet bereikbaar en de lokale Superchargerdataset is leeg.");
+      }
+      return localRows.map((row) => rowToCharger(row, owners));
     }
   }
 );
