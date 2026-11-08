@@ -417,9 +417,18 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         if (!hideOpeningHours) marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
           try {
             L.DomEvent.stop(ev);
-          const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
+          const eur = (v?: number | null) => {
+            if (typeof v !== 'number' || !Number.isFinite(v)) return '—';
+            const rawCurrency = typeof charger.priceCurrency === 'string' ? charger.priceCurrency.trim().toUpperCase() : 'EUR';
+            const currency = /^[A-Z]{3}$/.test(rawCurrency) ? rawCurrency : 'EUR';
+            try {
+              return new Intl.NumberFormat('nl-NL', { style: 'currency', currency }).format(v);
+            } catch {
+              return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(v);
+            }
+          };
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
-          const priceBlocks = (charger.priceBlocks ?? []).filter((b) => typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
+          const priceBlocks = (Array.isArray(charger.priceBlocks) ? charger.priceBlocks : []).filter((b) => !!b && typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
           const hasTimeBasedPricing = priceBlocks.length > 0;
           const hasRegularPricing = charger.pricePerKwh != null || charger.pricePerKwhPeak != null || !!charger.peakHours;
           let d = `<div style="font-family:system-ui;font-size:13px;min-width:260px;color:#0f172a;display:grid;gap:4px;">
