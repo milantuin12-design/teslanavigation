@@ -12899,7 +12899,8 @@
     {
       "country": "Germany",
       "match": [
-        "bispingen"
+        "bispingen",
+        "bispringen"
       ],
       "label": "Bispingen – KFC",
       "timezone": "Europe/Berlin",
@@ -18247,24 +18248,6 @@
         "Schierling"
       ],
       "label": "Schierling – Labertaler Fachmarkt",
-      "timezone": "Europe/Berlin",
-      "currency": "EUR",
-      "source": "https://www.kilowattindex.com/country/de/bayern/",
-      "sourceChecked": "2026-11-06",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "24:00",
-          "pricePerKwh": 0.37
-        }
-      ]
-    },
-    {
-      "country": "Germany",
-      "match": [
-        "Raubling"
-      ],
-      "label": "Raubling – Dinzler Hochstraß",
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/bayern/",
@@ -24791,24 +24774,6 @@
     {
       "country": "Germany",
       "match": [
-        "raubling"
-      ],
-      "label": "Raubling – Dinzler Hochstraß",
-      "timezone": "Europe/Berlin",
-      "source": "https://www.kilowattindex.com/site/441209/",
-      "sourceChecked": "2026-11-08",
-      "currency": "EUR",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "24:00",
-          "pricePerKwh": 0.32
-        }
-      ]
-    },
-    {
-      "country": "Germany",
-      "match": [
         "pfungstadt"
       ],
       "label": "Pfungstadt – Burger King",
@@ -28947,6 +28912,24 @@
       "source": "https://kilowattindex.com/site/erftstadtsupercharger/",
       "sourceChecked": "2026-11-08",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "raubling"
+      ],
+      "label": "Raubling – Dinzler Hochstraß",
+      "timezone": "Europe/Berlin",
+      "source": "https://www.kilowattindex.com/site/441209/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ]
     }
   ]
 }
