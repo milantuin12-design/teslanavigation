@@ -150,6 +150,20 @@ export interface PriceBlock {
   pricePerKwh: number;
 }
 
+export interface ChargerBusySlot {
+  /** Weekday key: mon, tue, wed, thu, fri, sat, sun. */
+  day: OpeningDayKey;
+  /** Local hour, 0..23. */
+  hour: number;
+  /** Typical busyness: 0 = very quiet, 100 = usually very busy. */
+  level: number;
+}
+export interface ChargerTrafficForecast {
+  weekly: ChargerBusySlot[];
+  source?: string;
+  updatedAt?: string;
+}
+
 export interface Supercharger {
   id?: string;
   name: string;
@@ -213,7 +227,7 @@ export interface Supercharger {
   voting?: VotingInfo;
   hidden?: boolean;
   photos?: string[];
-  trafficForecast?: { level: "low" | "medium" | "high"; days?: string; from?: string; to?: string; note?: string } | null;
+  trafficForecast?: ChargerTrafficForecast | null;
 }
 
 
