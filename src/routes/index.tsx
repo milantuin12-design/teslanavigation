@@ -1413,7 +1413,15 @@ function Index() {
               liveTraffic={onlineTraffic && !isFutureTrip}
               ccsBlocked={ccsBlocked}
               showTrailer={preferTrailerFriendly || trailerReductionEffective > 0}
-              restMin={waypoints.filter((w) => !w.corridor).reduce((sum, w) => sum + (w.restMin ?? 0), 0)}
+              restMin={waypoints.filter((w) => !w.corridor).reduce((sum, w) => {
+                if (!w.departAt || !route) return sum + (w.restMin ?? 0);
+                const kmAtWaypoint = projectOntoRoute(w.lat, w.lng, route.coordinates).km;
+                const travelMinToWaypoint = route.totalDistanceKm > 0 ? (kmAtWaypoint / route.totalDistanceKm) * route.totalTimeMin : 0;
+                const estimatedArrivalMs = departureDate.getTime() + (travelMinToWaypoint + sum) * 60000;
+                const plannedDepartureMs = new Date(w.departAt).getTime();
+                const waitMin = Number.isFinite(plannedDepartureMs) ? Math.max(0, Math.ceil((plannedDepartureMs - estimatedArrivalMs) / 60000)) : 0;
+                return sum + waitMin;
+              }, 0)}
             />
           </div>
         </div>
