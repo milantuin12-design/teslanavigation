@@ -26,6 +26,8 @@ interface Waypoint {
   locked: boolean;
   /** Rusttijd: hoelang je op deze plek blijft (minuten). */
   restMin: number;
+  /** Optionele vaste lokale vertrektijd vanaf deze tussenstop. */
+  departAt: string;
 }
 
 export interface PlannedWaypoint {
@@ -40,6 +42,7 @@ export interface PlannedWaypoint {
   chargerId?: string | null;
   locked?: boolean;
   restMin?: number;
+  departAt?: string;
 }
 
 interface InputPanelProps {
@@ -103,6 +106,8 @@ interface InputPanelProps {
   modelYear: number;
   tripDate: string;
   onTripDateChange: (value: string) => void;
+  departTime: string;
+  onDepartTimeChange: (value: string) => void;
   manualWeather: { tempC?: number; windMs?: number; precipitationMm?: number };
   onManualWeatherChange: (value: { tempC?: number; windMs?: number; precipitationMm?: number }) => void;
   onModelYearChange: (year: number) => void;
@@ -310,6 +315,8 @@ export default function InputPanel({
   modelYear,
   tripDate,
   onTripDateChange,
+  departTime,
+  onDepartTimeChange,
   manualWeather,
   onManualWeatherChange,
   onModelYearChange,
@@ -395,6 +402,7 @@ export default function InputPanel({
       chargerId: null,
       locked: false,
       restMin: 0,
+      departAt: '',
     }]);
   }, []);
 
@@ -461,6 +469,7 @@ export default function InputPanel({
       chargerId: w.chargerId,
       locked: w.locked,
       restMin: w.corridor ? 0 : (w.restMin || 0),
+      departAt: w.corridor ? undefined : (w.departAt || undefined),
     })));
   }, [waypoints, onWaypointsChange]);
 
@@ -566,19 +575,31 @@ export default function InputPanel({
                 </label>
               ) : (
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs text-slate-300">
-                    Rusttijd
-                    <input
-                      type="number"
-                      min={0}
-                      max={1440}
-                      step={5}
-                      value={wp.restMin || 0}
-                      onChange={e => updateWaypoint(wp.id, { restMin: Math.max(0, Math.min(1440, Number(e.target.value) || 0)) })}
-                      className="w-16 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-xs text-white"
-                    />
-                    min op deze plek
-                  </label>
+                  <div className="space-y-2 rounded-lg border border-slate-700/60 bg-slate-900/40 p-2">
+                    <div className="text-xs font-semibold text-slate-300">Verblijfsduur op deze plek</div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300">
+                      <label className="flex items-center gap-1">Dagen
+                        <input type="number" min={0} max={7} value={Math.floor((wp.restMin || 0) / 1440)}
+                          onChange={e => updateWaypoint(wp.id, { restMin: Math.max(0, Math.min(10080, (Number(e.target.value) || 0) * 1440 + ((wp.restMin || 0) % 1440))) })}
+                          className="w-14 rounded border border-slate-600 bg-slate-700 px-2 py-1 text-xs text-white" />
+                      </label>
+                      <label className="flex items-center gap-1">Uren
+                        <input type="number" min={0} max={23} value={Math.floor(((wp.restMin || 0) % 1440) / 60)}
+                          onChange={e => updateWaypoint(wp.id, { restMin: Math.max(0, Math.min(10080, Math.floor((wp.restMin || 0) / 1440) * 1440 + (Number(e.target.value) || 0) * 60 + ((wp.restMin || 0) % 60))) })}
+                          className="w-14 rounded border border-slate-600 bg-slate-700 px-2 py-1 text-xs text-white" />
+                      </label>
+                      <label className="flex items-center gap-1">Min.
+                        <input type="number" min={0} max={59} step={5} value={(wp.restMin || 0) % 60}
+                          onChange={e => updateWaypoint(wp.id, { restMin: Math.max(0, Math.min(10080, Math.floor((wp.restMin || 0) / 60) * 60 + (Number(e.target.value) || 0))) })}
+                          className="w-14 rounded border border-slate-600 bg-slate-700 px-2 py-1 text-xs text-white" />
+                      </label>
+                    </div>
+                    <label className="block text-xs text-slate-300">Of vertrek op een vast moment vanaf deze plek
+                      <input type="datetime-local" value={wp.departAt || ''} onChange={e => updateWaypoint(wp.id, { departAt: e.target.value, ...(e.target.value ? { restMin: 0 } : {}) })}
+                        className="mt-1 w-full rounded border border-slate-600 bg-slate-700 px-2 py-1.5 text-xs text-white" />
+                    </label>
+                    {wp.departAt && <button type="button" onClick={() => updateWaypoint(wp.id, { departAt: '' })} className="text-[11px] text-slate-400 underline">Vaste vertrektijd wissen</button>}
+                  </div>
                   <div className="flex flex-wrap items-center gap-3">
                     <select
                       value={wp.chargeMode}
@@ -819,17 +840,18 @@ export default function InputPanel({
             </div>
             {consumptionMode === 'manual' ? (
               <div className="mt-2 space-y-2">
-            <div className="mt-2">
-              <label className="text-[11px] text-slate-400">Reisdag (optioneel, max 2 weken vooruit)</label>
-              <input
-                type="date"
-                min={new Date().toISOString().slice(0, 10)}
-                max={new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)}
-                value={tripDate}
-                onChange={(e) => onTripDateChange(e.target.value)}
-                className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
-              />
-              {tripDate && <button type="button" onClick={() => onTripDateChange('')} className="mt-1 text-[11px] text-slate-400 underline">Reisdag wissen (vandaag)</button>}
+            <div className="mt-2 rounded-xl border border-white/10 bg-slate-800/40 p-3">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-300">Vertrek</div>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="text-[11px] text-slate-400">Datum
+                  <input type="date" min={new Date().toISOString().slice(0, 10)} max={new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)} value={tripDate} onChange={e => onTripDateChange(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-600/50 bg-slate-800/70 px-2 py-1.5 text-sm text-white" />
+                </label>
+                <label className="text-[11px] text-slate-400">Tijd
+                  <input type="time" value={departTime} onChange={e => onDepartTimeChange(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-600/50 bg-slate-800/70 px-2 py-1.5 text-sm text-white" />
+                </label>
+              </div>
+              <p className="mt-1.5 text-[11px] text-slate-400">{tripDate || departTime ? 'Deze vertrektijd wordt gebruikt voor de routeplanning.' : 'Leeg = nu vertrekken.'}</p>
+              {(tripDate || departTime) && <button type="button" onClick={() => { onTripDateChange(''); onDepartTimeChange(''); }} className="mt-1 text-[11px] text-slate-400 underline">Nu vertrekken</button>}
             </div>
           {/* Weather */}
           <div>
