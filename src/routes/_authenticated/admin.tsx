@@ -270,7 +270,8 @@ function AdminPage() {
       stall_states: (editing.stall_states || []).filter((x) => x.condition !== "available") as unknown as Json,
       data_source: editing.data_source === "automatic" ? "automatic" : "manual",
       hidden: !!editing.hidden,
-      photos: (editing.photos || []).map((u) => u.trim()).filter(Boolean),\n      traffic_forecast: editing.traffic_forecast?.weekly?.length ? ({ ...editing.traffic_forecast, updatedAt: new Date().toISOString() } as unknown as Json) : null,
+      photos: (editing.photos || []).map((u) => u.trim()).filter(Boolean),
+      traffic_forecast: editing.traffic_forecast?.weekly?.length ? ({ ...editing.traffic_forecast, updatedAt: new Date().toISOString() } as unknown as Json) : null,
     };
     try {
       if (editing.id) {
