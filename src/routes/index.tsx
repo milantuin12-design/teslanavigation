@@ -245,8 +245,11 @@ function Index() {
   const displayedPositionRef = useRef<{ lat: number; lng: number } | null>(null);
   const gpsAnimationFrameRef = useRef<number | null>(null);
   const calculationIdRef = useRef(0);
-  // Cache voor hoogte + weer per traject, zodat 5 routevarianten niet 5x het netwerk raken.
-  const elevationWeatherCacheRef = useRef<Map<string, [number[] | null, import("@/lib/energy").RouteWeather | null]>>(new Map());
+  // Cache én deel lopende hoogte-/weerverzoeken tussen routevarianten.
+  // Zonder deze in-flight cache konden drie varianten tegelijk dezelfde API's aanroepen.
+  type ElevationWeather = [number[] | null, import("@/lib/energy").RouteWeather | null];
+  const elevationWeatherCacheRef = useRef<Map<string, ElevationWeather>>(new Map());
+  const elevationWeatherPendingRef = useRef<Map<string, Promise<ElevationWeather>>>(new Map());
   const fetchTrafficRoutesFn = useServerFn(fetchTrafficRoutes);
 
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
@@ -507,9 +510,13 @@ function Index() {
     for (const osrmUrl of osrmUrls) {
       try {
         const controller = new AbortController();
-         const timeoutId = setTimeout(() => controller.abort(), 5500);
-        const response = await fetch(osrmUrl, { signal: controller.signal });
-        clearTimeout(timeoutId);
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
+        let response: Response;
+        try {
+          response = await fetch(osrmUrl, { signal: controller.signal });
+        } finally {
+          clearTimeout(timeoutId);
+        }
         if (response.ok) {
           const data = await response.json();
           if (data.routes && data.routes.length > 0) {
@@ -551,17 +558,16 @@ function Index() {
     ];
 
     const parse = async (url: string): Promise<{ route: RouteResult; steps: RouteStep[] }[]> => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6500);
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
         const response = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeoutId);
         if (!response.ok) return [];
         const data = await response.json();
         const routes: OSRMRoute[] = Array.isArray(data.routes) ? data.routes : [];
-        return routes.map((osrmRoute) => {
+        return routes.filter((item) => Array.isArray(item.geometry?.coordinates) && item.geometry.coordinates.length > 1).map((osrmRoute) => {
           const steps: RouteStep[] = [];
-          for (const leg of osrmRoute.legs ?? []) steps.push(...leg.steps);
+          for (const leg of osrmRoute.legs ?? []) steps.push(...(leg.steps ?? []));
           return {
             route: {
               coordinates: osrmRoute.geometry.coordinates,
@@ -573,6 +579,8 @@ function Index() {
         });
       } catch {
         return [];
+      } finally {
+        clearTimeout(timeoutId);
       }
     };
 
@@ -603,18 +611,35 @@ function Index() {
     const cacheKey = first && last
       ? `${first[0].toFixed(1)},${first[1].toFixed(1)}>${last[0].toFixed(1)},${last[1].toFixed(1)}|${tripDate || 'nu'}`
       : null;
-    const cached = cacheKey ? elevationWeatherCacheRef.current.get(cacheKey) : undefined;
-    const [elevationProfile, fetchedWeather] = cached ?? await Promise.all([
-      fetchElevationProfile(base.route.coordinates),
-      fetchRouteWeather(base.route.coordinates, tripDate || undefined),
-    ]);
-    if (cacheKey && !cached) {
-      elevationWeatherCacheRef.current.set(cacheKey, [elevationProfile, fetchedWeather]);
-      if (elevationWeatherCacheRef.current.size > 12) {
-        const oldest = elevationWeatherCacheRef.current.keys().next().value;
-        if (oldest) elevationWeatherCacheRef.current.delete(oldest);
+    let elevationWeather = cacheKey ? elevationWeatherCacheRef.current.get(cacheKey) : undefined;
+    if (!elevationWeather && cacheKey) {
+      let pending = elevationWeatherPendingRef.current.get(cacheKey);
+      if (!pending) {
+        pending = Promise.all([
+          fetchElevationProfile(base.route.coordinates),
+          fetchRouteWeather(base.route.coordinates, tripDate || undefined),
+        ]).then(([profile, weather]) => {
+          const value: ElevationWeather = [profile, weather];
+          elevationWeatherCacheRef.current.set(cacheKey, value);
+          if (elevationWeatherCacheRef.current.size > 12) {
+            const oldest = elevationWeatherCacheRef.current.keys().next().value;
+            if (oldest) elevationWeatherCacheRef.current.delete(oldest);
+          }
+          return value;
+        }).finally(() => {
+          elevationWeatherPendingRef.current.delete(cacheKey);
+        });
+        elevationWeatherPendingRef.current.set(cacheKey, pending);
       }
+      elevationWeather = await pending;
     }
+    if (!elevationWeather) {
+      elevationWeather = await Promise.all([
+        fetchElevationProfile(base.route.coordinates),
+        fetchRouteWeather(base.route.coordinates, tripDate || undefined),
+      ]);
+    }
+    const [elevationProfile, fetchedWeather] = elevationWeather;
     // Handmatig: ingevuld weer gaat vóór de verwachting.
     let weather: RouteWeather | null = fetchedWeather;
     if (consumptionMode === 'manual' && (manualWeather.tempC !== undefined || manualWeather.windMs !== undefined || manualWeather.precipitationMm !== undefined)) {
