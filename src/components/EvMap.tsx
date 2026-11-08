@@ -472,7 +472,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
             L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(d).openOn(map);
           } catch (error) {
             console.error('Supercharger details popup failed:', error);
-            const fallback = `<div style="font-family:system-ui;font-size:14px;min-width:220px;"><strong>${escapeHtml(charger.name || 'Supercharger')}</strong><div style="margin-top:6px;">De details konden niet volledig worden geladen.</div></div>`;
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const fallback = `<div style="font-family:system-ui;font-size:14px;min-width:220px;"><strong>${escapeHtml(charger.name || 'Supercharger')}</strong><div style="margin-top:6px;">Fout bij laden details: ${escapeHtml(errorMessage)}</div></div>`;
             L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(fallback).openOn(map);
           }
         });
