@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Trash2, Pencil, Plus, Truck, X, ChevronDown, EyeOff } from "lucide-react";
-import { CONSTRUCTION_STEPS, constructionStepLabels, type ChargerTrafficForecast, type OpeningDayKey, type ChargerConfig, type ChargerLifecycleStatus, type ClosureInfo, type ConstructionInfo, type OpeningHours, type PlannedUpgrade, type StallState, type StallCondition, type WorksInfo } from "@/lib/tesla-types";
+import { CONSTRUCTION_STEPS, constructionStepLabels, type OpeningDayKey, type ChargerConfig, type ChargerLifecycleStatus, type ClosureInfo, type ConstructionInfo, type OpeningHours, type PlannedUpgrade, type StallState, type StallCondition, type WorksInfo } from "@/lib/tesla-types";
 import type { Json } from "@/integrations/supabase/types";
 import { constructionProgressLabels, defaultOpeningHours, lifecycleLabels, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
 
@@ -67,7 +67,6 @@ type Charger = {
   hidden?: boolean | null;
   photos?: string[] | null;
   permanently_closed_at?: string | null;
-  traffic_forecast?: ChargerTrafficForecast | null;
 };
 
 type Owner = { id: string; name: string };
@@ -98,7 +97,6 @@ const emptyCharger = {
   data_source: "manual" as string,
   hidden: false,
   photos: [] as string[],
-  traffic_forecast: { weekly: [] } as ChargerTrafficForecast,
   charger_configs: [{ count: 8, version: "V3", speedKw: 250 }] as ChargerConfig[],
 };
 
@@ -170,7 +168,6 @@ function AdminPage() {
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
   const [bulkPrice, setBulkPrice] = useState({ parkingFeeAmount: "", parkingFreeMinutes: "", parkingPerMinutes: "", parkingPerEuro: "" });
   const fileRef = useRef<HTMLInputElement>(null);
-  const trafficFileRef = useRef<HTMLInputElement>(null);
   const runImport = useServerFn(importSuperchargers);
 
   useEffect(() => {
@@ -207,7 +204,7 @@ function AdminPage() {
     }
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
-      const columnsWithCurrency = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks,traffic_forecast";
+      const columnsWithCurrency = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks";
       const columnsWithoutCurrency = columnsWithCurrency.replace("price_currency,", "");
       let result = await supabase.from("superchargers")
         .select(columnsWithCurrency)
@@ -227,7 +224,7 @@ function AdminPage() {
         console.error("[TeslaNavigation] Admin-cloudlijst niet bereikbaar; toon lokale dataset:", result.error.message);
         const localRows = (localDataset as { chargers?: Charger[] }).chargers ?? [];
         if (rows.length === 0 && localRows.length > 0) {
-          setChargers(localRows);
+          rows.push(...localRows);
           toast.warning("Cloud tijdelijk niet bereikbaar — lokale Superchargerlijst getoond. Wijzigingen worden pas opgeslagen zodra de cloud weer werkt.");
         } else if (rows.length === 0) {
           toast.error("Superchargers konden niet uit de cloud of lokale dataset worden geladen: " + result.error.message);
@@ -301,7 +298,6 @@ function AdminPage() {
       data_source: editing.data_source === "automatic" ? "automatic" : "manual",
       hidden: !!editing.hidden,
       photos: (editing.photos || []).map((u) => u.trim()).filter(Boolean),
-      traffic_forecast: editing.traffic_forecast?.weekly?.length ? ({ ...editing.traffic_forecast, updatedAt: new Date().toISOString() } as unknown as Json) : null,
     };
     try {
       if (editing.id) {
@@ -393,46 +389,6 @@ function AdminPage() {
     }
   };
 
-  /** CSV-formaat: charger,day,hour,level — één regel per uur. */
-  const importTrafficCsv = async (file: File) => {
-    try {
-      const lines = (await file.text()).replace(/^\uFEFF/, "").split(/\r?\n/).filter((line) => line.trim());
-      if (lines.length < 2) throw new Error("CSV bevat geen gegevensregels");
-      const delimiter = lines[0].includes(";") ? ";" : ",";
-      const headers = lines[0].split(delimiter).map((v) => v.trim().toLowerCase().replace(/^"|"$/g, ""));
-      const col = (name: string) => headers.indexOf(name);
-      const required = ["charger", "day", "hour", "level"];
-      if (required.some((name) => col(name) < 0)) throw new Error("Kolommen vereist: charger,day,hour,level");
-      const dayAliases: Record<string, OpeningDayKey> = { ma: "mon", maandag: "mon", mon: "mon", monday: "mon", di: "tue", dinsdag: "tue", tue: "tue", tuesday: "tue", wo: "wed", woensdag: "wed", wed: "wed", wednesday: "wed", do: "thu", donderdag: "thu", thu: "thu", thursday: "thu", vr: "fri", vrijdag: "fri", fri: "fri", friday: "fri", za: "sat", zaterdag: "sat", sat: "sat", saturday: "sat", zo: "sun", zondag: "sun", sun: "sun", sunday: "sun" };
-      const grouped = new Map<string, { charger: Charger; weekly: { day: OpeningDayKey; hour: number; level: number }[] }>();
-      const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-      const byName = new Map(chargers.map((c) => [normalize(c.name), c]));
-      let skipped = 0;
-      for (const line of lines.slice(1)) {
-        const cells = line.split(delimiter).map((v) => v.trim().replace(/^"|"$/g, ""));
-        const charger = byName.get(normalize(cells[col("charger")] ?? ""));
-        const day = dayAliases[(cells[col("day")] ?? "").toLowerCase()];
-        const hour = Number(cells[col("hour")]);
-        const level = Number(cells[col("level")]);
-        if (!charger?.id || !day || !Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isFinite(level) || level < 0 || level > 100) { skipped++; continue; }
-        const entry = grouped.get(charger.id) ?? { charger, weekly: [] };
-        entry.weekly.push({ day, hour, level: Math.round(level) });
-        grouped.set(charger.id, entry);
-      }
-      if (!grouped.size) throw new Error("Geen regels konden aan bestaande Superchargers worden gekoppeld");
-      let updated = 0;
-      for (const [id, entry] of grouped) {
-        const { error } = await supabase.from("superchargers").update({ traffic_forecast: { weekly: entry.weekly, source: "CSV-import", updatedAt: new Date().toISOString() } as unknown as Json }).eq("id", id);
-        if (error) throw new Error(entry.charger.name + ": " + error.message);
-        updated++;
-      }
-      toast.success(`${updated} Superchargers bijgewerkt · ${skipped} regels overgeslagen`);
-      load();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Drukte-import mislukt");
-    }
-  };
-
   /** Eigenaar op naam: bestaat hij niet, dan maken we hem aan met alleen een titel. */
   const ensureOwnerByName = async (name: string): Promise<string | null> => {
     const trimmed = name.trim();
@@ -497,8 +453,6 @@ function AdminPage() {
             <Link to="/wijzigingen"><Button variant="outline" size="sm" className="border-slate-700">Wijzigingen</Button></Link>
             <Button variant="outline" size="sm" className="border-slate-700" onClick={publishAllDrafts}>Alle concepten publiceren</Button>
             <Button variant="outline" size="sm" className="border-slate-700" onClick={exportData}>Exporteer back-up</Button>
-            <Button variant="outline" size="sm" className="border-slate-700" onClick={() => trafficFileRef.current?.click()}>Importeer drukte-CSV</Button>
-            <input ref={trafficFileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) importTrafficCsv(file); e.target.value = ""; }} />
             <Button variant="outline" size="sm" className="border-slate-700" onClick={() => fileRef.current?.click()}>Importeer back-up</Button>
             <input
               ref={fileRef}
@@ -678,35 +632,6 @@ function AdminPage() {
                     </div>
                   </div>
                 )}
-
-                <div className="space-y-2 rounded-lg border border-slate-700 p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <Label className="text-xs">Gebruikelijke drukte per dag en uur (0–100%)</Label>
-                    <span className="text-[10px] text-slate-400">{editing.traffic_forecast?.weekly?.length ?? 0} uren ingevuld</span>
-                  </div>
-                  <p className="text-xs text-slate-400">0 = rustig, 100 = zeer druk. Lege vakken betekenen: geen gegevens.</p>
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[520px] text-xs">
-                      <thead><tr><th className="p-1 text-left">Dag</th>{Array.from({length:24},(_,h)=><th key={h} className="p-0.5 font-normal">{String(h).padStart(2,"0")}</th>)}</tr></thead>
-                      <tbody>
-                        {([{key:"mon",label:"Ma"},{key:"tue",label:"Di"},{key:"wed",label:"Wo"},{key:"thu",label:"Do"},{key:"fri",label:"Vr"},{key:"sat",label:"Za"},{key:"sun",label:"Zo"}] as {key:OpeningDayKey;label:string}[]).map(({key,label}) => (
-                          <tr key={key}>
-                            <td className="p-1 font-semibold">{label}</td>
-                            {Array.from({length:24},(_,hour) => {
-                              const current = editing.traffic_forecast?.weekly?.find((slot) => slot.day === key && slot.hour === hour)?.level;
-                              return <td key={hour} className="p-0.5"><input aria-label={label+" "+hour+" uur drukte"} type="number" min="0" max="100" step="10" value={current ?? ""} placeholder="–" onChange={(e) => {
-                                const weekly = (editing.traffic_forecast?.weekly ?? []).filter((slot) => !(slot.day === key && slot.hour === hour));
-                                if (e.target.value !== "") weekly.push({ day:key, hour, level:Math.max(0,Math.min(100,Number(e.target.value))) });
-                                setEditing({ ...editing, traffic_forecast: { ...(editing.traffic_forecast ?? {weekly:[]}), weekly } });
-                              }} className="w-9 rounded bg-slate-800 border border-slate-700 px-0.5 py-1 text-center" /></td>;
-                            })}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <p className="text-[10px] text-slate-500">CSV-kolommen: charger,day,hour,level. Dagen mogen Nederlands of Engels zijn; uur is 0–23.</p>
-                </div>
 
                 <StallEditor
                   value={editing.stall_states || []}
