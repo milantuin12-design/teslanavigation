@@ -1319,19 +1319,7 @@ function Index() {
               </div>
             )}
             {(!route || showRouteInputs) && <>
-            <div className="mx-4 mt-4 rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-3 shadow-lg">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Vertrek</div>
-              <div className="grid grid-cols-2 gap-2">
-                <input type="date" aria-label="Vertrekdatum" min={new Date().toISOString().slice(0, 10)} max={new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)} value={tripDate} onChange={(e) => setTripDate(e.target.value)} className="w-full rounded-lg border border-slate-600/50 bg-slate-800/70 px-2 py-1.5 text-sm text-white" />
-                <input type="time" aria-label="Vertrektijd" value={departTime} onChange={(e) => setDepartTime(e.target.value)} className="w-full rounded-lg border border-slate-600/50 bg-slate-800/70 px-2 py-1.5 text-sm text-white" />
-              </div>
-              <p className="mt-1.5 text-[11px] text-slate-400">
-                {tripDate || departTime ? `Vertrek ${departureDate.toLocaleString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} — gebruikt voor openingstijden, tarieven en weer.` : 'Leeg = nu vertrekken.'}
-                {isFutureTrip && onlineTraffic ? ' Live files en werkzaamheden zijn alleen voor vandaag beschikbaar.' : ''}
-              </p>
-              {(tripDate || departTime) && <button type="button" onClick={() => { setTripDate(''); setDepartTime(''); }} className="mt-1 text-[11px] text-slate-400 underline">Nu vertrekken</button>}
-            </div>
-            <InputPanel
+<InputPanel
               prefill={prefill}
               onStartChange={setStartCoord}
               onDestChange={setDestCoord}
@@ -1383,6 +1371,8 @@ function Index() {
               modelYear={modelYear}
               tripDate={tripDate}
               onTripDateChange={setTripDate}
+              departTime={departTime}
+              onDepartTimeChange={setDepartTime}
               manualWeather={manualWeather}
               onManualWeatherChange={setManualWeather}
               onModelYearChange={setModelYear}
