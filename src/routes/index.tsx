@@ -1085,19 +1085,21 @@ function Index() {
     destPct = Math.max(0, runningBat - (finalLeg / fullRangeKmActive) * 100);
     if (chargingStops.length === 0) destPct = Math.max(0, liveBattery - destConsumed);
 
-    // currentStepIdx = first maneuver we haven't reached yet, based on
-    // cumulative step distance along the route vs. our projected position.
+    // Bepaal de afstand tot een manoeuvre via de echte routegeometrie.
+    // OSRM step-afstanden beginnen per leg/step opnieuw; ze optellen vanaf nul
+    // geeft daardoor een foutieve afstand (bijv. 1,4 km terwijl de afslag 300 m is).
     let currentStepIdx = 0;
     let distanceToNextManeuver: number | null = null;
     if (routeSteps.length > 0) {
-      let cumKm = 0;
-      let foundIdx = -1;
       const traveledKm = proj.km;
+      let foundIdx = -1;
       for (let i = 0; i < routeSteps.length; i++) {
-        cumKm += routeSteps[i].distance / 1000;
-        if (cumKm > traveledKm + 0.005) {
+        const [maneuverLng, maneuverLat] = routeSteps[i].maneuver.location;
+        const maneuverOnRoute = projectOntoRoute(maneuverLat, maneuverLng, route.coordinates);
+        const remainingKm = maneuverOnRoute.km - traveledKm;
+        if (remainingKm > 0.01) {
           foundIdx = i;
-          distanceToNextManeuver = Math.max(0, (cumKm - traveledKm) * 1000);
+          distanceToNextManeuver = remainingKm * 1000;
           break;
         }
       }
