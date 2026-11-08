@@ -25,6 +25,7 @@ interface NavigationPanelProps {
   currentSpeedKmh: number | null;
   totalDistanceKm: number;
   hasGps: boolean;
+  gpsError: boolean;
 }
 
 function formatDistance(meters: number): string {
@@ -84,7 +85,7 @@ function getManeuverText(type: string, modifier?: string, name?: string): string
 export default function NavigationPanel({
   steps, currentStepIndex, distanceToNextManeuver, nextChargingStop, destination,
   currentBattery, estimatedBattery, onBatteryChange, onStop, headingUp,
-  onToggleHeadingUp, routeChangedStops, currentSpeedKmh, totalDistanceKm, hasGps,
+  onToggleHeadingUp, routeChangedStops, currentSpeedKmh, totalDistanceKm, hasGps, gpsError,
 }: NavigationPanelProps) {
   const [editingBattery, setEditingBattery] = useState(false);
   const [batteryDraft, setBatteryDraft] = useState(currentBattery);
@@ -100,7 +101,7 @@ export default function NavigationPanel({
         <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#07111f]/90 px-3.5 py-2.5 text-white shadow-[0_12px_40px_rgba(0,0,0,.38)] backdrop-blur-2xl">
           <div className="flex min-w-0 items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-300"><NavIcon size={19} /></div>
-            <div className="min-w-0"><div className="text-[11px] font-black tracking-[.18em]">TESLANAVIGATION</div><div className="mt-0.5 flex items-center gap-1.5 text-[10px] font-semibold text-slate-300"><span className={`h-1.5 w-1.5 rounded-full ${hasGps ? 'bg-emerald-400 shadow-[0_0_9px_#34d399]' : 'bg-amber-400 animate-pulse'}`} />{hasGps ? 'GPS-positie actief' : 'GPS-positie zoeken…'}</div></div>
+            <div className="min-w-0"><div className="text-[11px] font-black tracking-[.18em]">TESLANAVIGATION</div><div className="mt-0.5 flex items-center gap-1.5 text-[10px] font-semibold text-slate-300"><span className={`h-1.5 w-1.5 rounded-full ${hasGps ? 'bg-emerald-400 shadow-[0_0_9px_#34d399]' : gpsError ? 'bg-rose-400' : 'bg-amber-400 animate-pulse'}`} />{hasGps ? 'GPS-positie actief' : gpsError ? 'Locatietoegang vereist' : 'GPS-positie zoeken…'}</div></div>
           </div>
           <div className="flex items-center gap-2">
             <div className="rounded-xl bg-white/[.07] px-3 py-1.5 text-right"><div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Snelheid</div><div className="text-lg font-black leading-none tabular-nums">{currentSpeedKmh == null ? '—' : currentSpeedKmh}<span className="ml-1 text-[9px] font-semibold text-slate-400">km/u</span></div></div>
