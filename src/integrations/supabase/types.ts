@@ -423,6 +423,7 @@ export type Database = {
           traffic_forecast: Json | null
           planned_upgrade: Json
           price_blocks: Json | null
+          price_currency: string
           price_per_kwh: number | null
           price_per_kwh_peak: number | null
           province: string | null
@@ -475,6 +476,7 @@ export type Database = {
           traffic_forecast?: Json | null
           planned_upgrade?: Json
           price_blocks?: Json | null
+          price_currency?: string
           price_per_kwh?: number | null
           price_per_kwh_peak?: number | null
           province?: string | null
