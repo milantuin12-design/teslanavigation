@@ -191,6 +191,16 @@ function openingSummary(openingHours?: OpeningHours | null, openingTime?: string
   }).join(" · ");
 }
 
+function priceSummary(charger: Charger) {
+  const blocks = charger.price_blocks ?? [];
+  if (blocks.length === 0) return "—";
+  const currency = charger.price_currency || "EUR";
+  const prices = Array.from(new Set(blocks.map((block) =>
+    Number(block.pricePerKwh).toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 3 })
+  )));
+  return `${prices.map((price) => `${price} ${currency}`).join(" / ")} · ${blocks.length} blok(ken)`;
+}
+
 function totalFromConfigs(configs?: ChargerConfig[] | null) {
   const total = normalizeConfigs(configs).reduce((sum, config) => sum + config.count, 0);
   return total > 0 ? total : null;
@@ -560,7 +570,7 @@ function AdminPage() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-800 sticky top-0">
                   <tr className="text-left">
-                    <th className="p-3"><Checkbox checked={filtered.length > 0 && filtered.every((c) => selectedIds.has(c.id))} onCheckedChange={(checked) => setSelectedIds(checked ? new Set(filtered.map((c) => c.id)) : new Set())} /></th><th className="p-3">Naam</th><th className="p-3">Land</th><th className="p-3">Laders</th><th className="p-3">Tijden</th><th className="p-3">Status</th><th className="p-3">🚚</th><th className="p-3"></th>
+                    <th className="p-3"><Checkbox checked={filtered.length > 0 && filtered.every((c) => selectedIds.has(c.id))} onCheckedChange={(checked) => setSelectedIds(checked ? new Set(filtered.map((c) => c.id)) : new Set())} /></th><th className="p-3">Naam</th><th className="p-3">Land</th><th className="p-3">Laders</th><th className="p-3">Tijden</th><th className="p-3">kWh-tarief</th><th className="p-3">Status</th><th className="p-3">🚚</th><th className="p-3"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -571,6 +581,7 @@ function AdminPage() {
                       <td className="p-3">{c.country}</td>
                       <td className="p-3 max-w-xs text-slate-300">{configSummary(configsForCharger(c))}</td>
                       <td className="p-3 max-w-sm text-slate-300">{openingSummary(c.opening_hours, c.opening_time, c.closing_time)}</td>
+                      <td className="p-3 max-w-xs text-emerald-300">{priceSummary(c)}</td>
                       <td className="p-3">{c.published === false ? <span className="text-amber-300">Concept</span> : c.status && c.status !== "operational" ? <span className={c.status === "expanding" ? "text-green-400" : c.status === "construction" ? "text-orange-300" : c.status === "voting" ? "text-blue-300" : c.status === "plan" || c.status === "permit" ? "text-purple-300" : "text-slate-300"}>{lifecycleLabels[c.status] ?? c.status}</span> : c.is_available === false ? <span className="text-slate-300">Niet beschikbaar</span> : <span className="text-green-400">Beschikbaar</span>}</td>
                       <td className="p-3">{c.trailer_friendly ? "✓" : "-"}</td>
                       <td className="p-3 text-right whitespace-nowrap">
