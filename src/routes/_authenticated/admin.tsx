@@ -45,7 +45,7 @@ type Charger = {
   parking_free_minutes?: number | null;
   parking_per_minutes?: number | null;
   parking_per_euro?: number | null;
-  price_per_kwh?: number | null;
+  price_currency?: string | null;\n  price_per_kwh?: number | null;
   price_per_kwh_peak?: number | null;
   peak_hours?: string | null;
   price_blocks?: { days?: string; from?: string; to?: string; pricePerKwh: number }[] | null;
@@ -80,7 +80,7 @@ const emptyCharger = {
   parking_fee: false, in_parking_garage: false,
   parking_fee_amount: null as number | null, parking_free_minutes: null as number | null,
   parking_per_minutes: null as number | null, parking_per_euro: null as number | null,
-  price_per_kwh: null as number | null, price_per_kwh_peak: null as number | null,
+  price_currency: "EUR",\n  price_per_kwh: null as number | null, price_per_kwh_peak: null as number | null,
   peak_hours: null as string | null,
   status: "operational" as ChargerLifecycleStatus,
   construction: {} as ConstructionInfo,
@@ -205,7 +205,7 @@ function AdminPage() {
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from("superchargers")
-        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks,traffic_forecast")
+        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks,traffic_forecast")
 
         .order("name").range(from, from + 999);
       if (error) { toast.error(error.message); break; }
@@ -249,7 +249,7 @@ function AdminPage() {
       parking_free_minutes: editing.parking_free_minutes ?? null,
       parking_per_minutes: editing.parking_per_minutes ?? null,
       parking_per_euro: editing.parking_per_euro ?? null,
-      price_per_kwh: null,
+      price_currency: (editing.price_currency || "EUR").toUpperCase(),\n      price_per_kwh: null,
       price_per_kwh_peak: null,
       peak_hours: null,
       price_blocks: (editing.price_blocks && editing.price_blocks.length > 0 ? editing.price_blocks : null) as unknown as Json,
@@ -870,13 +870,13 @@ function AdminPage() {
                   <label className="flex items-center gap-1">Per (minuten)
                     <Input type="number" min="1" placeholder="10" className="h-7 bg-slate-800 border-slate-600" value={editing.parking_per_minutes ?? ''} onChange={(e) => setEditing({ ...editing, parking_per_minutes: e.target.value === '' ? null : Number(e.target.value) })} />
                   </label>
-                  <label className="flex items-center gap-1">Kosten per blok €
+                  <label className="flex items-center gap-1">Kosten per blok
                     <Input type="number" step="0.10" min="0" placeholder="1.00" className="h-7 bg-slate-800 border-slate-600" value={editing.parking_per_euro ?? ''} onChange={(e) => setEditing({ ...editing, parking_per_euro: e.target.value === '' ? null : Number(e.target.value) })} />
                   </label>
                   <p className="col-span-2 text-slate-400">Bijv. 90 gratis minuten, daarna €1 per 10 minuten. Kosten kunnen per dag/tijd verschillen — gebruik het gemiddelde of het duurste tarief.</p>
                 </div>
               )}
-              <div className="space-y-1.5 text-xs rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
+              <div className="space-y-1.5 text-xs rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">\n                <label className="flex items-center gap-2">Valuta van de tarieven\n                  <select className="h-8 rounded-md border border-slate-600 bg-slate-800 px-2" value={editing.price_currency ?? "EUR"} onChange={(e) => setEditing({ ...editing, price_currency: e.target.value })}>\n                    {["EUR","CHF","GBP","USD","NOK","SEK","DKK","PLN","CZK","HUF","RON","BGN","TRY","ISK"].map((code) => <option key={code} value={code}>{code}</option>)}\n                  </select>\n                </label>
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <Label className="text-sm font-semibold">⚡ Tesla-prijzen per tijdsblok</Label>
@@ -892,7 +892,7 @@ function AdminPage() {
                       <Input placeholder="ma-vr / weekend / dagelijks" className="h-7 bg-slate-800 border-slate-600" value={block.days ?? ''} onChange={(e) => update({ days: e.target.value })} />
                       <Input type="time" className="h-7 w-24 bg-slate-800 border-slate-600" value={block.from ?? ''} onChange={(e) => update({ from: e.target.value })} />
                       <Input type="time" className="h-7 w-24 bg-slate-800 border-slate-600" value={block.to ?? ''} onChange={(e) => update({ to: e.target.value })} />
-                      <Input type="number" step="0.01" min="0" placeholder="€/kWh" className="h-7 w-20 bg-slate-800 border-slate-600" value={block.pricePerKwh} onChange={(e) => update({ pricePerKwh: Number(e.target.value) })} />
+                      <Input type="number" step="0.01" min="0" placeholder={editing.price_currency ? `${editing.price_currency}/kWh` : "EUR/kWh"} className="h-7 w-20 bg-slate-800 border-slate-600" value={block.pricePerKwh} onChange={(e) => update({ pricePerKwh: Number(e.target.value) })} />
                       <Button type="button" size="sm" variant="ghost" className="h-6 text-red-400" onClick={() => setEditing({ ...editing, price_blocks: blocks.filter((_, i) => i !== idx) })}>✕</Button>
                     </div>
                   );
