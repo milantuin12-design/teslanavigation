@@ -308,6 +308,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? "")) });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
+        const totalStalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
+        const availableStalls = getOpenStalls(charger);
         const usable = isChargerUsable(charger);
         const statusColor = usable
           ? (charger.status === 'works' ? '#b45309' : '#16a34a')
