@@ -349,7 +349,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
               <strong style="font-size:15px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
               ${place ? `<div style="color:#64748b;font-size:11px;">${escapeHtml(place)}</div>` : ''}
             </div>
-            <button type="button" data-favorite-id="${escapeHtml(charger.id ?? '')}" aria-label="${isFavorite ? "Favoriet verwijderen" : "Favoriet maken"}" title="${isFavorite ? "Favoriet verwijderen" : "Favoriet maken"}" style="flex:none;margin:-5px -7px 0 0;padding:2px 5px;border:0;background:transparent;color:${isFavorite ? "#f59e0b" : "#94a3b8"};font-size:23px;line-height:1;cursor:pointer;">${isFavorite ? "★" : "☆"}</button>
+            <button type="button" data-favorite-id="${escapeHtml(charger.id ?? '')}" aria-label="${isFavorite ? "Favoriet verwijderen" : "Favoriet maken"}" title="${isFavorite ? "Favoriet verwijderen" : "Favoriet maken"}" style="all:unset;box-sizing:border-box;flex:none;width:22px;height:22px;margin:-2px -4px 0 0;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:${isFavorite ? "#f59e0b" : "#94a3b8"};font-size:18px;line-height:1;cursor:pointer;">${isFavorite ? "★" : "☆"}</button>
           </div>
           <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
 
@@ -624,6 +624,17 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     });
   }, [startCoord, destCoord, superchargers, chargingStops, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds]);
 
+  // Draai de kaart tijdens navigatie wanneer rijrichting boven is ingeschakeld.
+  useEffect(() => {
+    const map = mapRef.current;
+    const pane = map?.getPane('mapPane');
+    if (!pane) return;
+    pane.style.rotate = isNavigating && headingUp && typeof heading === 'number' && Number.isFinite(heading)
+      ? `${-heading}deg`
+      : '0deg';
+    pane.style.transformOrigin = '50% 50%';
+  }, [heading, headingUp, isNavigating]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -764,7 +775,17 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
 
 
   return (
-    <div className={fullscreenActive ? "fixed inset-0 z-[5000] h-[100dvh] w-screen overflow-hidden bg-slate-950" : "relative h-full min-h-[400px] w-full overflow-hidden"} style={{ zIndex: fullscreenActive ? 5000 : 0 }}>\n      {!isNavigating && <button type="button" onClick={() => setFullscreen((value) => !value)} aria-label={fullscreen ? "Kaart sluiten" : "Kaart fullscreen"} title={fullscreen ? "Terug naar normale kaart" : "Kaart fullscreen"} className="absolute right-3 top-3 z-[1000] rounded-lg border border-slate-300/70 bg-white/95 px-3 py-2 text-sm font-semibold text-slate-800 shadow-lg hover:bg-white">{fullscreen ? "✕ Sluiten" : "⛶ Fullscreen"}</button>}
+    <div className={fullscreenActive ? "fixed inset-0 z-[5000] h-[100dvh] w-screen overflow-hidden bg-slate-950" : "relative h-full min-h-[400px] w-full overflow-hidden"} style={{ zIndex: fullscreenActive ? 5000 : 0 }}>\n      {isNavigating && (
+        <div className="pointer-events-none absolute right-3 top-3 z-[1100] flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-slate-950/75 shadow-lg backdrop-blur-md" aria-label={headingUp ? "Kaart draait mee met rijrichting" : "Noord boven"}>
+          <div className="relative flex h-8 w-8 items-center justify-center">
+            <span className="absolute top-0 text-[9px] font-black text-white">N</span>
+            <div className="absolute top-[7px] h-[17px] w-[2px] rounded-full bg-white" style={{ transform: `rotate(${headingUp && typeof heading === 'number' ? heading : 0}deg)`, transformOrigin: '50% 100%' }} />
+            <div className="absolute top-[6px] h-0 w-0 border-x-[4px] border-b-[7px] border-x-transparent border-b-red-500" style={{ transform: `rotate(${headingUp && typeof heading === 'number' ? heading : 0}deg)`, transformOrigin: '50% 100%' }} />
+            <div className="absolute bottom-0 h-1.5 w-1.5 rounded-full bg-white" />
+          </div>
+        </div>
+      )}
+      {!isNavigating && <button type="button" onClick={() => setFullscreen((value) => !value)} aria-label={fullscreen ? "Kaart sluiten" : "Kaart fullscreen"} title={fullscreen ? "Terug naar normale kaart" : "Kaart fullscreen"} className="absolute right-3 top-3 z-[1000] rounded-lg border border-slate-300/70 bg-white/95 px-3 py-2 text-sm font-semibold text-slate-800 shadow-lg hover:bg-white">{fullscreen ? "✕ Sluiten" : "⛶ Fullscreen"}</button>}
       <div
         ref={mapContainerRef}
         className="absolute"
