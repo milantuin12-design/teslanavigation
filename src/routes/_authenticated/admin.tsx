@@ -272,17 +272,19 @@ function AdminPage() {
       const columnsWithoutCurrency = columnsWithCurrency.replace("price_currency,", "");
       const columnsWithoutParkingBlocks = columnsWithCurrency.replace("parking_blocks,", "");
       const columnsWithoutBoth = columnsWithCurrency.replace("parking_blocks,", "").replace("price_currency,", "");
+      let parkingBlocksMissing = false;
       let result = await supabase.from("superchargers")
         .select(columnsWithCurrency)
         .order("name").range(from, from + 999);
 
       // Oudere databases kunnen de nieuwe parkeerblokkenkolom nog missen.
       if (result.error && /parking_blocks|column .* does not exist|schema cache/i.test(result.error.message)) {
+        parkingBlocksMissing = true;
         result = await supabase.from("superchargers").select(columnsWithoutParkingBlocks).order("name").range(from, from + 999);
       }
       if (result.error && /price_currency|column .* does not exist|schema cache/i.test(result.error.message)) {
         result = await supabase.from("superchargers")
-          .select(result.error.message.includes("parking_blocks") ? columnsWithoutBoth : columnsWithoutCurrency)
+          .select(parkingBlocksMissing ? columnsWithoutBoth : columnsWithoutCurrency)
           .order("name").range(from, from + 999);
       }
 
