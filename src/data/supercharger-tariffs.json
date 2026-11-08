@@ -28366,6 +28366,64 @@
       "source": "https://www.kilowattindex.com/changes/day/2026-11-06/7/",
       "sourceChecked": "2026-11-08",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "ursensollen",
+        "autohof"
+      ],
+      "label": "Ursensollen – Autohof",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/303674/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "erlangen",
+        "garner hotel"
+      ],
+      "label": "Erlangen – Garner Hotel",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/21/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "hausen bei wurzburg",
+        "hausen bei würzburg",
+        "24-autohof"
+      ],
+      "label": "Hausen bei Würzburg – 24-Autohof",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/17/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
     }
   ]
 }
