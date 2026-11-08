@@ -229,11 +229,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
       markerZoomAnimation: true,
     });
 
-    // CARTO Voyager — herstel de oorspronkelijke kaartstijl.
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20,
+    // Duidelijke straatkaart voor routebegeleiding: wegen, straatnamen en plaatsen
+    // blijven leesbaar onder de navigatie-overlay.
+    // OpenStreetMap-standaardtegels: geen CARTO-account of API-key nodig.
+    // Houd de zichtbare attributie staan en gebruik geen sleutel in de frontend.
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
       crossOrigin: true,
     }).addTo(map);
 
