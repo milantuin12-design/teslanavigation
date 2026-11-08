@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, PlannedUpgrade, PriceBlock, StallState, Supercharger, VotingInfo, WorksInfo } from "./tesla-types";
+import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, PlannedUpgrade, PriceBlock, ParkingFeeBlock, StallState, Supercharger, VotingInfo, WorksInfo } from "./tesla-types";
 import type { Json } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import tariffDataset from "@/data/supercharger-tariffs.json";
@@ -24,7 +24,7 @@ function normalizeStallData(totalStalls?: number | null, stallTypes?: string | n
 }
 
 const SELECT_COLS =
-  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,notes,reopen_at,planned_upgrade,stall_states,permanently_closed_at,data_source,voting,hidden,photos,price_blocks";
+  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,notes,reopen_at,planned_upgrade,stall_states,permanently_closed_at,data_source,voting,hidden,photos,price_blocks";
 const SELECT_COLS_WITHOUT_CURRENCY = SELECT_COLS.replace("price_currency,", "");
 
 type Row = {
@@ -51,6 +51,7 @@ type Row = {
   parking_free_minutes?: number | null;
   parking_per_minutes?: number | null;
   parking_per_euro?: number | null;
+  parking_blocks?: ParkingFeeBlock[] | null;
   price_per_kwh?: number | null;
   price_currency?: string | null;
   price_per_kwh_peak?: number | null;
@@ -117,6 +118,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
     parkingFreeMinutes: row.parking_free_minutes ?? null,
     parkingPerMinutes: row.parking_per_minutes ?? null,
     parkingPerEuro: row.parking_per_euro ?? null,
+    parkingBlocks: Array.isArray(row.parking_blocks) ? row.parking_blocks : null,
     priceCurrency: row.price_currency ?? 'EUR',
     pricePerKwh: row.price_per_kwh ?? null,
     pricePerKwhPeak: row.price_per_kwh_peak ?? null,
@@ -354,6 +356,7 @@ const chargerInput = z.object({
   parkingFreeMinutes: z.number().int().min(0).max(1440).nullable().optional(),
   parkingPerMinutes: z.number().int().min(1).max(1440).nullable().optional(),
   parkingPerEuro: z.number().min(0).max(1000).nullable().optional(),
+  parkingBlocks: z.array(z.object({ label: z.string().max(80).optional(), afterMinutes: z.number().int().min(0).max(100000), durationMinutes: z.number().int().min(0).max(100000), amount: z.number().min(0).max(100000), currency: z.string().regex(/^[A-Z]{3}$/), repeat: z.boolean().optional() })).max(20).nullable().optional(),
   pricePerKwh: z.number().min(0).max(10).nullable().optional(),
   pricePerKwhPeak: z.number().min(0).max(10).nullable().optional(),
   peakHours: z.string().max(120).nullable().optional(),
@@ -449,6 +452,7 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       parking_free_minutes: data.parkingFreeMinutes ?? null,
       parking_per_minutes: data.parkingPerMinutes ?? null,
       parking_per_euro: data.parkingPerEuro ?? null,
+      parking_blocks: data.parkingBlocks ?? null,
       price_per_kwh: data.pricePerKwh ?? null,
       price_per_kwh_peak: data.pricePerKwhPeak ?? null,
       peak_hours: data.peakHours ?? null,
