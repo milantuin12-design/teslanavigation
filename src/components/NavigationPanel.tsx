@@ -105,7 +105,7 @@ export default function NavigationPanel({
           </div>
           <div className="flex items-center gap-2">
             <div className="rounded-xl bg-white/[.07] px-3 py-1.5 text-right"><div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Snelheid</div><div className="text-lg font-black leading-none tabular-nums">{currentSpeedKmh == null ? '—' : currentSpeedKmh}<span className="ml-1 text-[9px] font-semibold text-slate-400">km/u</span></div></div>
-            <button onClick={onToggleHeadingUp} title="Kaartoriëntatie" className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[.06] text-slate-100"><Compass size={18} /></button>
+            <button onClick={onToggleHeadingUp} title={headingUp ? "Rijrichting boven" : "Noord boven"} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[.06] text-slate-100"><Compass size={18} /></button>
             <button onClick={onStop} title="Navigatie stoppen" className="flex h-10 w-10 items-center justify-center rounded-xl border border-rose-400/20 bg-rose-500/15 text-rose-200"><X size={18} /></button>
           </div>
         </div>
