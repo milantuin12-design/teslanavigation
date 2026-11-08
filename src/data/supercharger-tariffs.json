@@ -29517,6 +29517,39 @@
       "source": "https://www.kilowattindex.com/site/feuchtsupercharger/",
       "sourceChecked": "2026-11-08",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bonn kameha grand"
+      ],
+      "label": "Bonn – Kameha Grand",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/8/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
     }
   ]
 }
