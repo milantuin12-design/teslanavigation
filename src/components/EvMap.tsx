@@ -354,8 +354,14 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
 
         const hideSpeed = shouldHideSpeed(charger);
-        if (charger.photos && charger.photos.length > 0) {
-          popup += `<div style="margin-top:6px;display:flex;gap:4px;overflow-x:auto;">${charger.photos.slice(0, 4).map((u) => `<img data-photo="${escapeHtml(u)}" title="Dubbelklik om te vergroten" src="${escapeHtml(u)}" alt="" loading="lazy" style="cursor:zoom-in;width:110px;height:72px;object-fit:cover;border-radius:6px;flex:none;" />`).join('')}</div>`;
+        const photoUrls = (charger.photos ?? []).filter((url) => typeof url === "string" && url.trim().length > 0);
+        if (photoUrls.length > 0) {
+          // Toon alle opgeslagen foto's; lazy loading in Leaflet-popups liet soms
+          // afbeeldingen onzichtbaar totdat de popup opnieuw werd geopend.
+          popup += `<div style="margin-top:6px;display:flex;gap:4px;overflow-x:auto;">${photoUrls.map((url) => {
+            const photoUrl = escapeHtml(url.trim());
+            return `<img data-photo="${photoUrl}" title="Dubbelklik om te vergroten" src="${photoUrl}" alt="Supercharger foto" loading="eager" referrerpolicy="no-referrer" style="cursor:zoom-in;width:110px;height:72px;object-fit:cover;border-radius:6px;flex:none;" />`;
+          }).join('')}</div>`;
         }
 
         if (charger.ownerName) {
