@@ -25768,6 +25768,532 @@
       "source": "https://www.kilowattindex.com/site/28776/",
       "sourceChecked": "2026-11-08",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "eichenzell",
+        "eichenzell euro rastpark"
+      ],
+      "label": "Eichenzell – Euro Rastpark",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/29660/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "reiskirchen",
+        "reiskirchen rewe"
+      ],
+      "label": "Reiskirchen – REWE",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/29878/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "kassel cafe del sol",
+        "kassel"
+      ],
+      "label": "Kassel – Cafe Del Sol",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/30083/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "guxhagen",
+        "guxhagen euro rastpark"
+      ],
+      "label": "Guxhagen – Euro Rastpark",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/30232/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "aachen mcfit",
+        "aachen"
+      ],
+      "label": "Aachen – McFit gym",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29809/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "rhein-neckar-kreis scheck-in center",
+        "rhein neckar kreis scheck in"
+      ],
+      "label": "Rhein-Neckar-Kreis – Scheck-In Center",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "04:00",
+          "to": "23:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/463730/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "offenburg kfc"
+      ],
+      "label": "Offenburg – KFC",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "04:00",
+          "to": "22:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30139/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "vohringen mcdonalds",
+        "vöhringen mcdonalds"
+      ],
+      "label": "Vöhringen – McDonald's",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "04:00",
+          "to": "21:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.37
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29943/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "giessen lidl",
+        "gießen lidl",
+        "giessen"
+      ],
+      "label": "Giessen – Lidl",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.46
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30134/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "erlensee 24-autohof",
+        "erlensee"
+      ],
+      "label": "Erlensee – 24-Autohof",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.41
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/neubergsupercharger/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "herborn kfc",
+        "herborn"
+      ],
+      "label": "Herborn – KFC",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "11:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "11:00",
+          "to": "22:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Herbornq222/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "kerpen modepark rother",
+        "kerpen modepark röther"
+      ],
+      "label": "Kerpen – Modepark Röther",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/BedburgSupercharger/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "kleinostheim",
+        "kleinostheim mcdonalds"
+      ],
+      "label": "Kleinostheim – McDonald's",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/KleinostheimSupercharger/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "eschborn xxxlutz",
+        "eschborn xxxlutz mann mobilia"
+      ],
+      "label": "Eschborn – XXXLutz Mann Mobilia",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/eschbornsupercharger/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "wetzlar leitz-park",
+        "wetzlar leitz park"
+      ],
+      "label": "Wetzlar – Leitz-Park",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "04:00",
+          "to": "22:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Wetzlarq222/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "wilnsdorf maxi",
+        "wilnsdorf"
+      ],
+      "label": "Wilnsdorf – MAXI Autohof",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/wilnsdorfsupercharger/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "montabaur outlet",
+        "montabaur"
+      ],
+      "label": "Montabaur – Outlet Montabaur",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/302877/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "troisdorf west golf",
+        "troisdorf"
+      ],
+      "label": "Troisdorf – West Golf",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/TroisdorfGermanysupercharger/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "koblenz globus"
+      ],
+      "label": "Koblenz – GLOBUS",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "12:00",
+          "to": "19:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29636/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "pfalzfeld rosi",
+        "pfalzfeld rosis autohof",
+        "pfalzfeld"
+      ],
+      "label": "Pfalzfeld – ROSI'S Autohof",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "08:00",
+          "to": "19:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/pfalzfeldsupercharger/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
     }
   ]
 }
