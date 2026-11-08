@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "checkedAt": "2026-11-06",
+  "checkedAt": "2026-11-08",
   "note": "Alleen Tesla-rijderstarieven. Tijdblokken zijn lokaal per station. Alleen exact gepubliceerde blokken of vaste tarieven; onbekende tarieven blijven leeg. Matcht alleen operationele locaties.",
   "tariffs": [
     {
@@ -727,7 +727,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/296279/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -755,7 +755,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/28708/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -789,7 +789,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29818/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -817,7 +817,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/30084/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -987,7 +987,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29805/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -11568,26 +11568,26 @@
         {
           "from": "00:00",
           "to": "04:00",
-          "pricePerKwh": 0.34
+          "pricePerKwh": 0.3
         },
         {
           "from": "04:00",
           "to": "09:00",
-          "pricePerKwh": 0.4
+          "pricePerKwh": 0.37
         },
         {
           "from": "09:00",
           "to": "23:00",
-          "pricePerKwh": 0.45
+          "pricePerKwh": 0.47
         },
         {
           "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.34
+          "pricePerKwh": 0.3
         }
       ],
       "source": "https://www.kilowattindex.com/site/4006252/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -11602,16 +11602,16 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.3
+          "pricePerKwh": 0.29
         },
         {
           "from": "08:00",
           "to": "24:00",
-          "pricePerKwh": 0.45
+          "pricePerKwh": 0.47
         }
       ],
       "source": "https://www.kilowattindex.com/site/4007559/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -11639,7 +11639,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/400621/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -11658,7 +11658,7 @@
         {
           "from": "08:00",
           "to": "23:00",
-          "pricePerKwh": 0.45
+          "pricePerKwh": 0.47
         },
         {
           "from": "23:00",
@@ -11667,7 +11667,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29737/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -11695,7 +11695,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/444255/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -11723,7 +11723,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29734/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -11756,7 +11756,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/hirschbergsupercharger/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -11784,7 +11784,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/296481/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -11823,7 +11823,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/32694/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -11856,7 +11856,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/35923/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -14810,16 +14810,16 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.27
+          "pricePerKwh": 0.23
         },
         {
           "from": "08:00",
           "to": "24:00",
-          "pricePerKwh": 0.44
+          "pricePerKwh": 0.46
         }
       ],
       "source": "https://www.kilowattindex.com/site/lauenausupercharger/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -24479,6 +24479,126 @@
       ],
       "source": "https://www.kilowattindex.com/site/426052/",
       "sourceChecked": "2026-11-07"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "hattersheim"
+      ],
+      "label": "Hattersheim am Main – GLOBUS",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/296558/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "saarbrucken",
+        "saarbrücken"
+      ],
+      "label": "Saarbrücken – GLOBUS",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30091/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "sulzbach",
+        "main-taunus-zentrum"
+      ],
+      "label": "Sulzbach (Taunus) – Main-Taunus-Zentrum",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/295335/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "vohringen",
+        "vöhringen"
+      ],
+      "label": "Vöhringen – 24-Autohof",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.23
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/sulzvohringensupercharger/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
     }
   ]
 }
