@@ -25105,6 +25105,80 @@
       "pricePerKwh": 0.39,
       "source": "https://www.kilowattindex.com/site/illertissensupercharger/",
       "sourceChecked": "2026-11-08"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "neu wulmstdorf hof bartels",
+        "hof bartels"
+      ],
+      "label": "Neu Wulmstdorf – Hof Bartels - Hofladen & Café",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.42,
+      "source": "https://www.kilowattindex.com/site/303651/",
+      "sourceChecked": "2026-11-08"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "hamburg rewe"
+      ],
+      "label": "Hamburg – REWE",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/299765/",
+      "sourceChecked": "2026-11-08"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "hamburg tesla center"
+      ],
+      "label": "Hamburg – Tesla Center",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "18:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "18:00",
+          "to": "23:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/HamburgWandsbekdesupercharger/",
+      "sourceChecked": "2026-11-08"
     }
   ]
 }
