@@ -1,4 +1,4 @@
-import { ArrowUp, ArrowLeft, ArrowRight, RotateCcw, Merge, Flag, Zap, MapPin, Battery, X, Compass, Navigation as NavIcon, Clock, Gauge, ChevronRight, LocateFixed, BatteryCharging, Crosshair, Signal, SignalZero } from 'lucide-react';
+import { ArrowUp, ArrowLeft, ArrowRight, RotateCcw, Merge, Flag, Zap, MapPin, Battery, X, Compass, Navigation as NavIcon, Clock, Gauge, ChevronRight, LocateFixed, BatteryCharging } from 'lucide-react';
 import { useState } from 'react';
 import { ChargingStop } from '@/lib/tesla-types';
 
