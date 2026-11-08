@@ -29471,6 +29471,34 @@
       "source": "https://www.kilowattindex.com/site/Seevetaldesupercharger/",
       "sourceChecked": "2026-11-08",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "fuessen tesla lounge"
+      ],
+      "label": "Füssen – Tesla Lounge",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.44
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/14/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
     }
   ]
 }
