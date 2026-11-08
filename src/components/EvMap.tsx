@@ -538,7 +538,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           else if (parkingBlocks.length > 0) {
             d += parkingBlocks.map((block) => {
               const label = block.label || (block.durationMinutes === 0 ? "Vast bedrag" : `Vanaf ${block.afterMinutes} min`);
-              const period = block.durationMinutes > 0 ? ` per ${block.durationMinutes >= 60 && block.durationMinutes % 60 === 0 ? (block.durationMinutes / 60) + " uur" : block.durationMinutes + " min"}` : " eenmalig";
+              const durationLabel = block.durationMinutes >= 60 && block.durationMinutes % 60 === 0 ? (block.durationMinutes / 60) + " uur" : block.durationMinutes + " min";
+              const period = block.durationMinutes > 0 ? (block.repeat ? ` per ${durationLabel}` : ` voor ${durationLabel}`) : " eenmalig";
               const repeat = block.repeat ? " (herhaalt)" : "";
               return row(escapeHtml(label + period + repeat), parkingMoney(block.amount, block.currency || "EUR"));
             }).join("");
