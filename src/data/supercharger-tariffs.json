@@ -29180,6 +29180,70 @@
       "source": "https://www.kilowattindex.com/changes/",
       "sourceChecked": "2026-11-07",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "alsfeld restaurant hotel pfefferhoehe"
+      ],
+      "label": "Alsfeld – Restaurant-Hotel Pfefferhöhe",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/8/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bad camberg lidl"
+      ],
+      "label": "Bad Camberg – Lidl",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/14/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "eging am see exit 113 bistro"
+      ],
+      "label": "Eging am See – Exit 113 Bistro",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/3/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
     }
   ]
 }
