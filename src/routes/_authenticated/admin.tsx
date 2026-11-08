@@ -206,12 +206,28 @@ function AdminPage() {
     }
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
-      const { data, error } = await supabase.from("superchargers")
-        .select("id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks,traffic_forecast")
-
+      const columnsWithCurrency = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks,traffic_forecast";
+      const columnsWithoutCurrency = columnsWithCurrency.replace("price_currency,", "");
+      let result = await supabase.from("superchargers")
+        .select(columnsWithCurrency)
         .order("name").range(from, from + 999);
-      if (error) { toast.error(error.message); break; }
-      rows.push(...(data as Charger[]));
+
+      // Oudere Supabase-schema's hebben mogelijk de kolom price_currency nog niet.
+      // Laat daardoor nooit de volledige adminlijst verdwijnen: laad dan met de
+      // bestaande kolommen en behandel de prijzen voorlopig als EUR.
+      if (result.error && /price_currency|column .* does not exist|schema cache/i.test(result.error.message)) {
+        console.warn("[TeslaNavigation] price_currency ontbreekt in Supabase; adminlijst wordt compatibel geladen.", result.error.message);
+        result = await supabase.from("superchargers")
+          .select(columnsWithoutCurrency)
+          .order("name").range(from, from + 999);
+      }
+
+      if (result.error) { toast.error(result.error.message); break; }
+      const pageRows = (result.data || []).map((row) => ({
+        ...row,
+        price_currency: (row as typeof row & { price_currency?: string | null }).price_currency || "EUR",
+      })) as Charger[];
+      rows.push(...pageRows);
       if (!data || data.length < 1000) break;
     }
     setChargers(rows);
