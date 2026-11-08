@@ -12827,9 +12827,9 @@
       "label": "Wolfsburg – KFC",
       "timezone": "Europe/Berlin",
       "currency": "EUR",
-      "pricePerKwh": 0.3,
+      "pricePerKwh": 0.31,
       "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -12869,7 +12869,7 @@
       "currency": "EUR",
       "pricePerKwh": 0.39,
       "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -12881,19 +12881,20 @@
       "currency": "EUR",
       "pricePerKwh": 0.39,
       "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
       "match": [
-        "gottingen"
+        "gottingen",
+        "göttingen"
       ],
       "label": "Göttingen – Cafe Del Sol",
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "pricePerKwh": 0.39,
       "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -12905,7 +12906,7 @@
       "currency": "EUR",
       "pricePerKwh": 0.39,
       "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -12915,9 +12916,9 @@
       "label": "Rosengarten – EDEKA",
       "timezone": "Europe/Berlin",
       "currency": "EUR",
-      "pricePerKwh": 0.4,
+      "pricePerKwh": 0.37,
       "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "France",
@@ -24597,6 +24598,283 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/sulzvohringensupercharger/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "schorndorf"
+      ],
+      "label": "Schorndorf – EDEKA",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.32,
+      "source": "https://www.kilowattindex.com/site/29942/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "raubling"
+      ],
+      "label": "Raubling – Dinzler Hochstraß",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.32,
+      "source": "https://www.kilowattindex.com/site/441209/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "pfungstadt"
+      ],
+      "label": "Pfungstadt – Burger King",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.38,
+      "source": "https://www.kilowattindex.com/site/29821/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "mainz"
+      ],
+      "label": "Mainz – Scheck-in Center",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.33,
+      "source": "https://www.kilowattindex.com/site/444258/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bautzen"
+      ],
+      "label": "Bautzen – MARKTKAUF",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/29995/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "stralsund"
+      ],
+      "label": "Stralsund – McDonald's",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/mecklenburg-vorpommern/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "hamburg marktplatz galerie"
+      ],
+      "label": "Hamburg – Marktplatz Galerie",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.33,
+      "source": "https://www.kilowattindex.com/country/de/hamburg/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "hamburg mobel hoffner",
+        "hamburg möbel höffner"
+      ],
+      "label": "Hamburg – Möbel Höffner",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/country/de/hamburg/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bitterfeld-wolfen"
+      ],
+      "label": "Bitterfeld-Wolfen – Autohof Bitterfeld",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/sachsen-anhalt/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "waiblingen"
+      ],
+      "label": "Waiblingen – Möbel Roller",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.36,
+      "source": "https://www.kilowattindex.com/country/de/baden-wuerttemberg/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "neckargemund",
+        "neckargemünd"
+      ],
+      "label": "Neckargemünd – Edeka Arlt",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.38,
+      "source": "https://www.kilowattindex.com/country/de/baden-wuerttemberg/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "wertheim"
+      ],
+      "label": "Wertheim – HomE of Mobility",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/baden-wuerttemberg/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "buhl",
+        "bühl"
+      ],
+      "label": "Bühl – Vimbuch Center",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/baden-wuerttemberg/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "ringsheim"
+      ],
+      "label": "Ringsheim – Bistro & Shop",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/baden-wuerttemberg/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "pforzheim"
+      ],
+      "label": "Pforzheim – Tesla Lounge",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/baden-wuerttemberg/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "mannheim lilienthal"
+      ],
+      "label": "Mannheim – Lilienthal Center",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.4,
+      "source": "https://www.kilowattindex.com/country/de/baden-wuerttemberg/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "schkeuditz"
+      ],
+      "label": "Schkeuditz – 24-Autohof",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/sachsen/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "lubeck luv",
+        "lübeck luv"
+      ],
+      "label": "Lübeck – LUV Shopping",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/schleswig-holstein/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bad segeberg"
+      ],
+      "label": "Bad Segeberg – Möbel Kraft",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/schleswig-holstein/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "oldenburg in holstein"
+      ],
+      "label": "Oldenburg in Holstein – REWE",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/country/de/schleswig-holstein/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bielefeld famila"
+      ],
+      "label": "Bielefeld – famila",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29590/",
       "sourceChecked": "2026-11-08",
       "currency": "EUR"
     }
