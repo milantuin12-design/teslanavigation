@@ -158,11 +158,6 @@ export interface ChargerBusySlot {
   /** Typical busyness: 0 = very quiet, 100 = usually very busy. */
   level: number;
 }
-export interface ChargerTrafficForecast {
-  weekly: ChargerBusySlot[];
-  source?: string;
-  updatedAt?: string;
-}
 
 export interface Supercharger {
   id?: string;
@@ -227,7 +222,6 @@ export interface Supercharger {
   voting?: VotingInfo;
   hidden?: boolean;
   photos?: string[];
-  trafficForecast?: ChargerTrafficForecast | null;
 }
 
 
