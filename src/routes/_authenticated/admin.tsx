@@ -369,8 +369,7 @@ function AdminPage() {
   /** CSV-formaat: charger,day,hour,level — één regel per uur. */
   const importTrafficCsv = async (file: File) => {
     try {
-      const lines = (await file.text()).replace(/^\uFEFF/, "").split(/\r?
-/).filter((line) => line.trim());
+      const lines = (await file.text()).replace(/^\uFEFF/, "").split(/\r?\n/).filter((line) => line.trim());
       if (lines.length < 2) throw new Error("CSV bevat geen gegevensregels");
       const delimiter = lines[0].includes(";") ? ";" : ",";
       const headers = lines[0].split(delimiter).map((v) => v.trim().toLowerCase().replace(/^"|"$/g, ""));
