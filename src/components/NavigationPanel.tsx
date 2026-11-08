@@ -96,8 +96,8 @@ export default function NavigationPanel({
   const progress = totalDistanceKm > 0 ? Math.max(0, Math.min(100, ((totalDistanceKm - remainingKm) / totalDistanceKm) * 100)) : 0;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[6000] flex flex-col justify-between p-3 pt-[max(12px,env(safe-area-inset-top))] pb-[max(12px,env(safe-area-inset-bottom))] sm:p-5">
-      <div className="pointer-events-auto mx-auto w-full max-w-2xl space-y-2.5">
+    <div className="pointer-events-none fixed inset-0 z-[6000] flex flex-col justify-between p-2 pt-[max(8px,env(safe-area-inset-top))] pb-[max(8px,env(safe-area-inset-bottom))] sm:p-4">
+      <div className="pointer-events-auto mx-auto w-full max-w-3xl space-y-2">
         <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#07111f]/90 px-3.5 py-2.5 text-white shadow-[0_12px_40px_rgba(0,0,0,.38)] backdrop-blur-2xl">
           <div className="flex min-w-0 items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-300"><NavIcon size={19} /></div>
@@ -116,9 +116,9 @@ export default function NavigationPanel({
             <div className="max-w-[55%] truncate rounded-full border border-white/10 bg-white/[.07] px-3 py-1 text-[10px] font-semibold text-slate-200">{currentStep?.name || 'Route volgen'}</div>
           </div>
           <div className="flex items-center gap-4 px-4 pb-4 pt-2.5 sm:gap-5 sm:px-5 sm:pb-5">
-            <div className="flex h-[76px] w-[76px] shrink-0 items-center justify-center rounded-[22px] border border-cyan-200/20 bg-cyan-300/10 shadow-inner sm:h-[88px] sm:w-[88px]">{currentStep ? getManeuverIcon(currentStep.maneuver.type, currentStep.maneuver.modifier, 48) : <LocateFixed size={42} />}</div>
+            <div className="flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-[20px] border border-cyan-200/20 bg-cyan-300/10 shadow-inner sm:h-[72px] sm:w-[72px]">{currentStep ? getManeuverIcon(currentStep.maneuver.type, currentStep.maneuver.modifier, 48) : <LocateFixed size={42} />}</div>
             <div className="min-w-0 flex-1">
-              <div className="text-[34px] font-black leading-none tracking-[-.04em] sm:text-[42px]">{formatDistance(liveDistance)}</div>
+              <div className="text-[30px] font-black leading-none tracking-[-.04em] sm:text-[36px]">{formatDistance(liveDistance)}</div>
               <div className="mt-1.5 text-base font-bold leading-tight sm:text-lg">{currentStep ? getManeuverText(currentStep.maneuver.type, currentStep.maneuver.modifier, currentStep.name) : 'Volg de route'}</div>
               {nextStep && <div className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-300"><ChevronRight size={13} className="text-cyan-300" /> Daarna: {getManeuverText(nextStep.maneuver.type, nextStep.maneuver.modifier, nextStep.name)}</div>}
             </div>
@@ -127,9 +127,9 @@ export default function NavigationPanel({
         {routeChangedStops && <div className="rounded-2xl border border-amber-300/30 bg-amber-400/95 px-4 py-3 text-slate-950 shadow-xl"><div className="text-sm font-black">Route automatisch aangepast</div><div className="mt-1 text-xs">{routeChangedStops.length ? routeChangedStops.map((stop, i) => `${i + 1}. ${stop.charger.name} · laden tot ${stop.batteryAfter}%`).join(' • ') : 'Je hebt geen laadstops meer nodig.'}</div></div>}
       </div>
 
-      <div className="pointer-events-auto mx-auto w-full max-w-2xl space-y-2.5">
+      <div className="pointer-events-auto mx-auto w-full max-w-3xl space-y-2">
         {nextChargingStop && <div className="flex items-center gap-3 rounded-2xl border border-amber-300/20 bg-[#07111f]/90 px-4 py-3 text-white shadow-[0_12px_35px_rgba(0,0,0,.38)] backdrop-blur-2xl"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400/15 text-amber-300"><Zap size={19} /></div><div className="min-w-0 flex-1"><div className="text-[9px] font-extrabold uppercase tracking-[.18em] text-amber-300">Volgende Supercharger</div><div className="truncate text-sm font-bold">{nextChargingStop.stop.charger.name}</div><div className="text-[10px] text-slate-300">{formatKm(nextChargingStop.kmFromHere)} · {formatMin(nextChargingStop.etaMin)} · aankomst ~{Math.round(nextChargingStop.arrivalPercent)}%</div></div><ChevronRight size={18} className="text-slate-400" /></div>}
-        <div className="rounded-[24px] border border-white/10 bg-[#07111f]/92 p-4 text-white shadow-[0_18px_55px_rgba(0,0,0,.48)] backdrop-blur-2xl sm:p-5">
+        <div className="rounded-[22px] border border-white/10 bg-[#07111f]/85 p-3 text-white shadow-[0_18px_55px_rgba(0,0,0,.38)] backdrop-blur-xl sm:p-4">
           <div className="mb-3 flex items-center justify-between gap-3"><div className="text-[10px] font-extrabold uppercase tracking-[.2em] text-slate-400">Ritoverzicht</div><div className="text-xs font-bold text-cyan-300">{Math.round(progress)}% afgelegd</div></div>
           <div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-300 transition-[width] duration-500" style={{ width: `${progress}%` }} /></div>
           <div className="mt-3 grid grid-cols-3 gap-2">
