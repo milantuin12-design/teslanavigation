@@ -851,20 +851,31 @@ function Index() {
     // De gegenereerde coördinaten zijn alleen routeringshulp (geen laad-/stoplocaties).
     const corridorRoutePromises: Promise<{ route: RouteResult; steps: RouteStep[] }[]>[] = [];
     if (corridors.length > 0) {
+      // Eerst via het middelpunt: de router snapt dit naar een berijdbare weg.
+      // Daarna proberen we alternatieve snap-punten binnen de cirkel, zodat
+      // een weg vlak langs het punt gekozen kan worden zonder naar de pin te rijden.
+      const centerVia: [number, number][] = extraWaypoints.map((point) =>
+        [point.lng, point.lat] as [number, number],
+      );
+      corridorRoutePromises.push(fetchRouteAlternatives(startPoint, endPoint, centerVia));
+
       const bearings = [0, 45, 90, 135, 180, 225, 270, 315];
-      const offsetFactors = [0.55, 0.85];
-      for (const factor of offsetFactors) {
-        for (const bearing of bearings) {
-          const angle = (bearing * Math.PI) / 180;
-          const shapedVia: [number, number][] = extraWaypoints.map((point) => {
-            if (!point.corridor) return [point.lng, point.lat];
-            const distanceKm = Math.max(0.1, point.radiusKm * factor);
+      const offsetFactors = [0.45, 0.8];
+      for (let corridorIndex = 0; corridorIndex < corridors.length; corridorIndex++) {
+        const corridor = corridors[corridorIndex];
+        for (const factor of offsetFactors) {
+          for (const bearing of bearings) {
+            const angle = (bearing * Math.PI) / 180;
+            const distanceKm = Math.max(0.05, corridor.radiusKm * factor);
             const latOffset = (distanceKm * Math.cos(angle)) / 111.32;
-            const lngScale = Math.max(0.2, Math.cos((point.lat * Math.PI) / 180));
+            const lngScale = Math.max(0.2, Math.cos((corridor.lat * Math.PI) / 180));
             const lngOffset = (distanceKm * Math.sin(angle)) / (111.32 * lngScale);
-            return [point.lng + lngOffset, point.lat + latOffset];
-          });
-          corridorRoutePromises.push(fetchRouteAlternatives(startPoint, endPoint, shapedVia));
+            const shapedVia: [number, number][] = extraWaypoints.map((point) => {
+              if (!point.corridor || point !== corridor) return [point.lng, point.lat];
+              return [point.lng + lngOffset, point.lat + latOffset];
+            });
+            corridorRoutePromises.push(fetchRouteAlternatives(startPoint, endPoint, shapedVia));
+          }
         }
       }
     }
@@ -908,7 +919,7 @@ function Index() {
         const limit = Math.min(...corridors.map((c) => c.radiusKm));
         return {
           ok: false,
-          error: `Geen gevonden route komt binnen de ingestelde straal. Dichtstbij: ${nearestDistance.toFixed(1)} km (limiet ${limit} km).`,
+          error: `De route kon niet binnen ${limit} km van het punt worden gelegd. Dichtstbij gevonden: ${nearestDistance.toFixed(1)} km. Probeer een grotere straal of een punt dichter bij een berijdbare weg.`,
         };
       }
     }
