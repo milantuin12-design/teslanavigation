@@ -763,7 +763,9 @@ function Index() {
     }
 
     const finalWaypoints = [
-      ...extraWaypoints.map((point) => ({ point: [point.lng, point.lat] as [number, number], km: projectOntoRoute(point.lat, point.lng, base.route.coordinates).km })),
+      // Alleen echte tussenstops worden als routepunt doorgegeven.
+      // 'Langs punt'-corridors zijn een voorkeur voor de route, nooit een stop/verplicht waypoint.
+      ...extraWaypoints.filter((point) => !point.corridor).map((point) => ({ point: [point.lng, point.lat] as [number, number], km: projectOntoRoute(point.lat, point.lng, base.route.coordinates).km })),
       ...result.stops.filter((stop) => !stop.forced).map((stop) => ({ point: [stop.charger.lng, stop.charger.lat] as [number, number], km: stop.distanceFromStart })),
     ].sort((a, b) => a.km - b.km).map((entry) => entry.point);
 
@@ -862,14 +864,16 @@ function Index() {
         corridors.every((c) => distanceToRoute(c.lat, c.lng, base.route.coordinates) <= c.radiusKm),
       );
       if (withinCorridor.length > 0) {
+        // Kies routes die binnen de ingestelde corridor vallen.
+        // Een corridor is nadrukkelijk GEEN verplicht route-waypoint.
         bases = withinCorridor;
       } else {
-        const forced = await fetchRouteAlternatives(
-          [fromCoord.lng, fromCoord.lat],
-          [toCoord.lng, toCoord.lat],
-          [...via, ...corridors].map((w) => [w.lng, w.lat] as [number, number]),
+        // Geen alternatief binnen de straal? Kies de route die er het dichtst langs komt,
+        // maar forceer de auto nooit naar de exacte pin/locatie.
+        bases = [...bases].sort((a, b) =>
+          Math.min(...corridors.map((c) => distanceToRoute(c.lat, c.lng, a.route.coordinates))) -
+          Math.min(...corridors.map((c) => distanceToRoute(c.lat, c.lng, b.route.coordinates))),
         );
-        if (forced.length > 0) bases = forced;
       }
     }
     setCalculationProgress(48);
