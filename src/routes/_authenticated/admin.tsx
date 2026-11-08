@@ -645,6 +645,35 @@ function AdminPage() {
                   </div>
                 )}
 
+                <div className="space-y-2 rounded-lg border border-slate-700 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label className="text-xs">Gebruikelijke drukte per dag en uur (0–100%)</Label>
+                    <span className="text-[10px] text-slate-400">{editing.traffic_forecast?.weekly?.length ?? 0} uren ingevuld</span>
+                  </div>
+                  <p className="text-xs text-slate-400">0 = rustig, 100 = zeer druk. Lege vakken betekenen: geen gegevens.</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[520px] text-xs">
+                      <thead><tr><th className="p-1 text-left">Dag</th>{Array.from({length:24},(_,h)=><th key={h} className="p-0.5 font-normal">{String(h).padStart(2,"0")}</th>)}</tr></thead>
+                      <tbody>
+                        {([{key:"mon",label:"Ma"},{key:"tue",label:"Di"},{key:"wed",label:"Wo"},{key:"thu",label:"Do"},{key:"fri",label:"Vr"},{key:"sat",label:"Za"},{key:"sun",label:"Zo"}] as {key:OpeningDayKey;label:string}[]).map(({key,label}) => (
+                          <tr key={key}>
+                            <td className="p-1 font-semibold">{label}</td>
+                            {Array.from({length:24},(_,hour) => {
+                              const current = editing.traffic_forecast?.weekly?.find((slot) => slot.day === key && slot.hour === hour)?.level;
+                              return <td key={hour} className="p-0.5"><input aria-label={label+" "+hour+" uur drukte"} type="number" min="0" max="100" step="10" value={current ?? ""} placeholder="–" onChange={(e) => {
+                                const weekly = (editing.traffic_forecast?.weekly ?? []).filter((slot) => !(slot.day === key && slot.hour === hour));
+                                if (e.target.value !== "") weekly.push({ day:key, hour, level:Math.max(0,Math.min(100,Number(e.target.value))) });
+                                setEditing({ ...editing, traffic_forecast: { ...(editing.traffic_forecast ?? {weekly:[]}), weekly } });
+                              }} className="w-9 rounded bg-slate-800 border border-slate-700 px-0.5 py-1 text-center" /></td>;
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-[10px] text-slate-500">CSV-kolommen: charger,day,hour,level. Dagen mogen Nederlands of Engels zijn; uur is 0–23.</p>
+                </div>
+
                 <StallEditor
                   value={editing.stall_states || []}
                   onChange={(stall_states) => setEditing({ ...editing, stall_states })}
