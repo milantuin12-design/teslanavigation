@@ -4932,7 +4932,8 @@
     {
       "country": "Germany",
       "match": [
-        "stuhr"
+        "stuhr",
+        "brinkum"
       ],
       "label": "Stuhr – BMÖ Tankstelle",
       "timezone": "Europe/Berlin",
@@ -14836,7 +14837,8 @@
     {
       "country": "Germany",
       "match": [
-        "bremen cafe del sol"
+        "bremen cafe del sol",
+        "bremen kattenturm"
       ],
       "label": "Bremen – Cafe Del Sol",
       "timezone": "Europe/Berlin",
@@ -24851,7 +24853,8 @@
     {
       "country": "Germany",
       "match": [
-        "hamburg marktplatz galerie"
+        "hamburg marktplatz galerie",
+        "hamburg bramfeld"
       ],
       "label": "Hamburg – Marktplatz Galerie",
       "timezone": "Europe/Berlin",
@@ -24870,7 +24873,8 @@
       "country": "Germany",
       "match": [
         "hamburg mobel hoffner",
-        "hamburg möbel höffner"
+        "hamburg möbel höffner",
+        "hamburg eidelstedt"
       ],
       "label": "Hamburg – Möbel Höffner",
       "timezone": "Europe/Berlin",
@@ -25135,7 +25139,8 @@
     {
       "country": "Germany",
       "match": [
-        "bielefeld rewe"
+        "bielefeld rewe",
+        "bielefeld beckhaus center"
       ],
       "label": "Bielefeld – REWE",
       "timezone": "Europe/Berlin",
@@ -25395,7 +25400,8 @@
     {
       "country": "Germany",
       "match": [
-        "hamburg rewe"
+        "hamburg rewe",
+        "hamburg hohenfelde"
       ],
       "label": "Hamburg – REWE",
       "timezone": "Europe/Berlin",
@@ -25918,7 +25924,8 @@
       "country": "Germany",
       "match": [
         "hanau rondo",
-        "hanau rondo steinheim"
+        "hanau rondo steinheim",
+        "hanau otto hahn strasse"
       ],
       "label": "Hanau – Rondo Steinheim",
       "timezone": "Europe/Berlin",
@@ -26659,7 +26666,8 @@
     {
       "country": "Germany",
       "match": [
-        "dresden elbepark"
+        "dresden elbepark",
+        "dresden kaditz"
       ],
       "label": "Dresden – Elbepark",
       "timezone": "Europe/Berlin",
@@ -26688,7 +26696,8 @@
       "country": "Germany",
       "match": [
         "dresden kaufpark",
-        "kaufpark dresden"
+        "kaufpark dresden",
+        "dresden nickern"
       ],
       "label": "Dresden – Kaufpark Dresden",
       "timezone": "Europe/Berlin",
@@ -29429,7 +29438,8 @@
     {
       "country": "Germany",
       "match": [
-        "hamburg privathotel lindtner"
+        "hamburg privathotel lindtner",
+        "hamburg heimfeld"
       ],
       "label": "Hamburg – Privathotel Lindtner",
       "timezone": "Europe/Berlin",
@@ -29457,7 +29467,8 @@
     {
       "country": "Germany",
       "match": [
-        "hamburg leonardo hotel stillhorner weg"
+        "hamburg leonardo hotel stillhorner weg",
+        "hamburg stillhorn"
       ],
       "label": "Hamburg – Leonardo Hotel",
       "timezone": "Europe/Berlin",
