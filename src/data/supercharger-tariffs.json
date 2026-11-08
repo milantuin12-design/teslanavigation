@@ -28959,6 +28959,36 @@
       "source": "https://kilowattindex.com/changes/day/2026-11-06/20/",
       "sourceChecked": "2026-11-08",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "kamen",
+        "connies diner",
+        "connie's diner"
+      ],
+      "label": "Kamen – Connie's Diner",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/kamensupercharger/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
     }
   ]
 }
