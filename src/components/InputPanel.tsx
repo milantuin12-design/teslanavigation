@@ -838,8 +838,6 @@ export default function InputPanel({
                 </button>
               ))}
             </div>
-            {consumptionMode === 'manual' ? (
-              <div className="mt-2 space-y-2">
             <div className="mt-2 rounded-xl border border-white/10 bg-slate-800/40 p-3">
               <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-300">Vertrek</div>
               <div className="grid grid-cols-2 gap-2">
@@ -853,6 +851,8 @@ export default function InputPanel({
               <p className="mt-1.5 text-[11px] text-slate-400">{tripDate || departTime ? 'Deze vertrektijd wordt gebruikt voor de routeplanning.' : 'Leeg = nu vertrekken.'}</p>
               {(tripDate || departTime) && <button type="button" onClick={() => { onTripDateChange(''); onDepartTimeChange(''); }} className="mt-1 text-[11px] text-slate-400 underline">Nu vertrekken</button>}
             </div>
+            {consumptionMode === 'manual' ? (
+              <div className="mt-2 space-y-2">
           {/* Weather */}
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-1.5">Weer</label>
