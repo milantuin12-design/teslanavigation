@@ -25,7 +25,7 @@ function normalizeStallData(totalStalls?: number | null, stallTypes?: string | n
 
 const SELECT_COLS =
   "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,notes,reopen_at,planned_upgrade,stall_states,permanently_closed_at,data_source,voting,hidden,photos,price_blocks";
-;
+const SELECT_COLS_WITHOUT_CURRENCY = SELECT_COLS.replace("price_currency,", "");
 
 type Row = {
   id: string;
@@ -208,14 +208,30 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
       const pageSize = 1000;
       const rows: Row[] = [];
       for (let from = 0; ; from += pageSize) {
-        const { data, error } = await supabaseAdmin
+        let result = await supabaseAdmin
           .from("superchargers")
           .select(SELECT_COLS)
           .order("name")
           .range(from, from + pageSize - 1);
-        if (error) throw new Error(error.message);
-        rows.push(...((data as unknown as Row[]) ?? []));
-        if (!data || data.length < pageSize) break;
+
+        // Backward compatibility: oudere Supabase-projecten hebben de
+        // optionele valuta-kolom mogelijk nog niet. De kaart moet dan
+        // gewoon alle Superchargers blijven laden.
+        if (result.error && /price_currency|column .* does not exist|schema cache/i.test(result.error.message)) {
+          console.warn("[TeslaNavigation] price_currency ontbreekt in Supabase; kaart laadt zonder valuta-kolom.", result.error.message);
+          result = await supabaseAdmin
+            .from("superchargers")
+            .select(SELECT_COLS_WITHOUT_CURRENCY)
+            .order("name")
+            .range(from, from + pageSize - 1);
+        }
+        if (result.error) throw new Error(result.error.message);
+        const pageRows = ((result.data as unknown as Row[]) ?? []).map((row) => ({
+          ...row,
+          price_currency: row.price_currency ?? "EUR",
+        }));
+        rows.push(...pageRows);
+        if (!result.data || result.data.length < pageSize) break;
       }
       if (rows.length === 0 || rows.length < localRows.length * 0.5) {
         throw new Error("cloud dataset incomplete");
