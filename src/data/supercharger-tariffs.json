@@ -25158,7 +25158,8 @@
     {
       "country": "Germany",
       "match": [
-        "dortmund wez"
+        "dortmund wez",
+        "dortmund nord"
       ],
       "label": "Dortmund – WEZ Westfalen",
       "timezone": "Europe/Berlin",
@@ -25166,17 +25167,17 @@
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.29
+          "pricePerKwh": 0.27
         },
         {
           "from": "09:00",
-          "to": "23:00",
-          "pricePerKwh": 0.39
+          "to": "20:00",
+          "pricePerKwh": 0.42
         },
         {
-          "from": "23:00",
+          "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.29
+          "pricePerKwh": 0.38
         }
       ],
       "source": "https://www.kilowattindex.com/site/401859/",
