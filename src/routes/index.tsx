@@ -769,12 +769,16 @@ function Index() {
       ...result.stops.filter((stop) => !stop.forced).map((stop) => ({ point: [stop.charger.lng, stop.charger.lat] as [number, number], km: stop.distanceFromStart })),
     ].sort((a, b) => a.km - b.km).map((entry) => entry.point);
 
-    const finalResult = await fetchRouteWithInstructions(
-      [fromCoord.lng, fromCoord.lat],
-      [toCoord.lng, toCoord.lat],
-      finalWaypoints,
-      0,
-    );
+    // Bij 'langs punt' behouden we de gekozen corridor-route exact.
+    // Een tweede OSRM-aanvraag zonder corridor zou die route anders weer kunnen afsnijden.
+    const finalResult = corridors.length > 0
+      ? base
+      : await fetchRouteWithInstructions(
+          [fromCoord.lng, fromCoord.lat],
+          [toCoord.lng, toCoord.lat],
+          finalWaypoints,
+          0,
+        );
     if (!finalResult) {
       return { route: base.route, steps: base.steps, stops: result.stops, arrivalPercent: result.arrivalPercent };
     }
@@ -871,9 +875,9 @@ function Index() {
         // Geen alternatief binnen de straal? Kies de route die er het dichtst langs komt,
         // maar forceer de auto nooit naar de exacte pin/locatie.
         bases = [...bases].sort((a, b) =>
-          Math.min(...corridors.map((c) => distanceToRoute(c.lat, c.lng, a.route.coordinates))) -
-          Math.min(...corridors.map((c) => distanceToRoute(c.lat, c.lng, b.route.coordinates))),
-        );
+          Math.max(...corridors.map((c) => distanceToRoute(c.lat, c.lng, a.route.coordinates))) -
+          Math.max(...corridors.map((c) => distanceToRoute(c.lat, c.lng, b.route.coordinates))),
+        ).slice(0, 3);
       }
     }
     setCalculationProgress(48);
