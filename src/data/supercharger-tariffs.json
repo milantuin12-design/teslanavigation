@@ -14961,21 +14961,21 @@
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.27
+          "pricePerKwh": 0.26
         },
         {
           "from": "09:00",
           "to": "22:00",
-          "pricePerKwh": 0.45
+          "pricePerKwh": 0.47
         },
         {
           "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.27
+          "pricePerKwh": 0.26
         }
       ],
       "source": "https://www.kilowattindex.com/site/30288/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -14986,7 +14986,7 @@
       "label": "Burgdorf – Autohof Burgdorf",
       "timezone": "Europe/Berlin",
       "source": "https://kilowattindex.com/site/burgdorfsupercharger/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR",
       "priceBlocks": [
         {
@@ -16744,18 +16744,13 @@
       "priceBlocks": [
         {
           "from": "00:00",
-          "to": "04:00",
-          "pricePerKwh": 0.26
-        },
-        {
-          "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.26
+          "pricePerKwh": 0.24
         },
         {
           "from": "08:00",
           "to": "20:00",
-          "pricePerKwh": 0.44
+          "pricePerKwh": 0.47
         },
         {
           "from": "20:00",
@@ -16764,7 +16759,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/32698/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -18218,12 +18213,12 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/bayern/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "24:00",
-          "pricePerKwh": 0.35
+          "pricePerKwh": 0.37
         }
       ]
     },
@@ -18236,7 +18231,7 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/bayern/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "priceBlocks": [
         {
           "from": "00:00",
@@ -18254,12 +18249,12 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/bayern/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "24:00",
-          "pricePerKwh": 0.38
+          "pricePerKwh": 0.39
         }
       ]
     },
@@ -18272,12 +18267,12 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/bayern/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "24:00",
-          "pricePerKwh": 0.38
+          "pricePerKwh": 0.39
         }
       ]
     },
@@ -18290,7 +18285,7 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/bayern/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "priceBlocks": [
         {
           "from": "00:00",
@@ -18308,7 +18303,7 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/bayern/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "priceBlocks": [
         {
           "from": "00:00",
@@ -18326,7 +18321,7 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/bayern/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "priceBlocks": [
         {
           "from": "00:00",
@@ -18344,12 +18339,12 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/bayern/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "24:00",
-          "pricePerKwh": 0.42
+          "pricePerKwh": 0.36
         }
       ]
     },
@@ -18362,12 +18357,12 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/bayern/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "24:00",
-          "pricePerKwh": 0.43
+          "pricePerKwh": 0.39
         }
       ]
     },
@@ -18380,12 +18375,22 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/nordrhein-westfalen/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.32
+          "pricePerKwh": 0.29
         }
       ]
     },
@@ -18398,7 +18403,7 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/nordrhein-westfalen/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "priceBlocks": [
         {
           "from": "00:00",
@@ -18416,12 +18421,22 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "source": "https://www.kilowattindex.com/country/de/nordrhein-westfalen/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.36
+          "pricePerKwh": 0.33
         }
       ]
     },
@@ -24530,7 +24545,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29835/",
-      "sourceChecked": "2026-11-07"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -24559,7 +24574,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29744/",
-      "sourceChecked": "2026-11-07"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -24587,7 +24602,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29605/",
-      "sourceChecked": "2026-11-07"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -24616,7 +24631,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/426052/",
-      "sourceChecked": "2026-11-07"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -24628,8 +24643,13 @@
       "priceBlocks": [
         {
           "from": "00:00",
-          "to": "08:00",
+          "to": "04:00",
           "pricePerKwh": 0.23
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.28
         },
         {
           "from": "08:00",
@@ -24752,7 +24772,7 @@
         {
           "from": "00:00",
           "to": "24:00",
-          "pricePerKwh": 0.32
+          "pricePerKwh": 0.33
         }
       ]
     },
@@ -25123,17 +25143,17 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.29
+          "pricePerKwh": 0.27
         },
         {
           "from": "08:00",
           "to": "23:00",
-          "pricePerKwh": 0.37
+          "pricePerKwh": 0.4
         },
         {
           "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.29
+          "pricePerKwh": 0.27
         }
       ],
       "source": "https://www.kilowattindex.com/site/32670/",
