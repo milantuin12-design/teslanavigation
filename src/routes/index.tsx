@@ -871,7 +871,9 @@ function Index() {
     const basePromise = corridors.length > 0
       ? Promise.all(corridorRoutePromises).then((groups) => groups.flat())
       : fetchRouteAlternatives(startPoint, endPoint, normalVia);
-    const trafficPromise = onlineTraffic && !isFutureTrip
+    // Verkeersroutes bevatten geen corridor-shaping; gebruik ze daarom niet
+    // wanneer "langs punt" actief is, anders kunnen ze geldige kandidaten verdringen.
+    const trafficPromise = onlineTraffic && !isFutureTrip && corridors.length === 0
       ? fetchTrafficRoutesFn({ data: { origin: fromCoord, destination: toCoord, waypoints: via.map(({ lat, lng }) => ({ lat, lng })), avoidHighways: false, alternatives: true } })
       : Promise.resolve(null);
     const [offlineBases, trafficRoutes] = await Promise.all([basePromise, trafficPromise]);
