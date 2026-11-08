@@ -390,7 +390,13 @@ function Index() {
     })();
   }, []);
 
-  useEffect(() => { setExcludedChargerIds([]); setAcceptedUnknownIds([]); }, [startCoord, destCoord]);
+  useEffect(() => {
+    setExcludedChargerIds([]);
+    setAcceptedUnknownIds([]);
+    setRiskCharger(null);
+    setRiskChargerQueue([]);
+    strictUnknownExclusionRef.current = false;
+  }, [startCoord, destCoord]);
   const recalcAfterExcludeRef = useRef(false);
   useEffect(() => {
     if (!recalcAfterExcludeRef.current) return;
@@ -983,6 +989,8 @@ function Index() {
       return;
     }
 
+    setRiskCharger(null);
+    setRiskChargerQueue([]);
     setIsCalculating(true);
     setCalculationProgress(2);
     setLiveBattery(batteryPercent);
