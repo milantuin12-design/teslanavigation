@@ -470,6 +470,7 @@ function Index() {
         watchIdRef.current = null;
       }
       setCurrentPosition(null);
+      setGpsError(false);
       setCurrentSpeedKmh(null);
       setCurrentHeading(null);
       prevPositionRef.current = null;
