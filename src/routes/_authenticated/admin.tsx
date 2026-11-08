@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Trash2, Pencil, Plus, Truck, X, ChevronDown, EyeOff } from "lucide-react";
 import { CONSTRUCTION_STEPS, constructionStepLabels, type OpeningDayKey, type ChargerConfig, type ChargerLifecycleStatus, type ClosureInfo, type ConstructionInfo, type OpeningHours, type PlannedUpgrade, type StallState, type StallCondition, type WorksInfo } from "@/lib/tesla-types";
 import type { Json } from "@/integrations/supabase/types";
+import type { ParkingFeeBlock } from "@/lib/tesla-types";
 import { constructionProgressLabels, defaultOpeningHours, lifecycleLabels, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
 
 
@@ -47,6 +48,7 @@ type Charger = {
   parking_free_minutes?: number | null;
   parking_per_minutes?: number | null;
   parking_per_euro?: number | null;
+  parking_blocks?: ParkingFeeBlock[] | null;
   price_currency?: string | null;
   price_per_kwh?: number | null;
   price_per_kwh_peak?: number | null;
@@ -132,6 +134,7 @@ const emptyCharger = {
   parking_fee: false, in_parking_garage: false,
   parking_fee_amount: null as number | null, parking_free_minutes: null as number | null,
   parking_per_minutes: null as number | null, parking_per_euro: null as number | null,
+  parking_blocks: [] as ParkingFeeBlock[],
   price_currency: "EUR",
   price_per_kwh: null as number | null, price_per_kwh_peak: null as number | null,
   peak_hours: null as string | null,
@@ -265,19 +268,21 @@ function AdminPage() {
     }
     const rows: Charger[] = [];
     for (let from = 0; ; from += 1000) {
-      const columnsWithCurrency = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks";
+      const columnsWithCurrency = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks";
       const columnsWithoutCurrency = columnsWithCurrency.replace("price_currency,", "");
+      const columnsWithoutParkingBlocks = columnsWithCurrency.replace("parking_blocks,", "");
+      const columnsWithoutBoth = columnsWithCurrency.replace("parking_blocks,", "").replace("price_currency,", "");
       let result = await supabase.from("superchargers")
         .select(columnsWithCurrency)
         .order("name").range(from, from + 999);
 
-      // Oudere Supabase-schema's hebben mogelijk de kolom price_currency nog niet.
-      // Laat daardoor nooit de volledige adminlijst verdwijnen: laad dan met de
-      // bestaande kolommen en behandel de prijzen voorlopig als EUR.
+      // Oudere databases kunnen de nieuwe parkeerblokkenkolom nog missen.
+      if (result.error && /parking_blocks|column .* does not exist|schema cache/i.test(result.error.message)) {
+        result = await supabase.from("superchargers").select(columnsWithoutParkingBlocks).order("name").range(from, from + 999);
+      }
       if (result.error && /price_currency|column .* does not exist|schema cache/i.test(result.error.message)) {
-        console.warn("[TeslaNavigation] price_currency ontbreekt in Supabase; adminlijst wordt compatibel geladen.", result.error.message);
         result = await supabase.from("superchargers")
-          .select(columnsWithoutCurrency)
+          .select(result.error.message.includes("parking_blocks") ? columnsWithoutBoth : columnsWithoutCurrency)
           .order("name").range(from, from + 999);
       }
 
@@ -308,7 +313,13 @@ function AdminPage() {
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
   const openNew = () => { setEditing({ ...emptyCharger, opening_hours: defaultOpeningHours() }); setCoordsInput(""); };
-  const openEdit = (c: Charger) => { setEditing({ ...c, charger_configs: configsForCharger(c), opening_hours: normalizeOpeningHours(c.opening_hours, c.opening_time, c.closing_time) }); setCoordsInput(`${c.lat},${c.lng}`); };
+  const openEdit = (c: Charger) => {
+    const legacyParking: ParkingFeeBlock[] = [];
+    if (c.parking_fee_amount != null && c.parking_fee_amount > 0) legacyParking.push({ label: "Vast starttarief", afterMinutes: 0, durationMinutes: 0, amount: c.parking_fee_amount, currency: "EUR" });
+    if (c.parking_per_euro != null && c.parking_per_minutes != null) legacyParking.push({ label: c.parking_free_minutes ? "Daarna" : "Parkeertarief", afterMinutes: c.parking_free_minutes ?? 0, durationMinutes: c.parking_per_minutes, amount: c.parking_per_euro, currency: "EUR", repeat: true });
+    setEditing({ ...c, parking_blocks: c.parking_blocks?.length ? c.parking_blocks : legacyParking, charger_configs: configsForCharger(c), opening_hours: normalizeOpeningHours(c.opening_hours, c.opening_time, c.closing_time) });
+    setCoordsInput(`${c.lat},${c.lng}`);
+  };
 
   const save = async () => {
     if (!editing) return;
@@ -335,7 +346,8 @@ function AdminPage() {
       parking_fee_amount: editing.parking_fee_amount ?? null,
       parking_free_minutes: editing.parking_free_minutes ?? null,
       parking_per_minutes: editing.parking_per_minutes ?? null,
-      parking_per_euro: editing.parking_per_euro ?? null,
+      parking_per_euro: null,
+      parking_blocks: (editing.parking_blocks?.length ? editing.parking_blocks : null) as unknown as Json,
       price_currency: (editing.price_currency || "EUR").toUpperCase(),
       price_per_kwh: null,
       price_per_kwh_peak: null,
@@ -879,20 +891,28 @@ function AdminPage() {
                 💶 Parkeergeld verplicht
               </label>
               {editing.parking_fee && (
-                <div className="ml-6 grid grid-cols-2 gap-2 text-xs">
-                  <label className="flex items-center gap-1">Vast bedrag €
-                    <Input type="number" step="0.10" min="0" className="h-7 bg-slate-800 border-slate-600" value={editing.parking_fee_amount ?? ''} onChange={(e) => setEditing({ ...editing, parking_fee_amount: e.target.value === '' ? null : Number(e.target.value) })} />
-                  </label>
-                  <label className="flex items-center gap-1">Gratis minuten
-                    <Input type="number" min="0" className="h-7 bg-slate-800 border-slate-600" value={editing.parking_free_minutes ?? ''} onChange={(e) => setEditing({ ...editing, parking_free_minutes: e.target.value === '' ? null : Number(e.target.value) })} />
-                  </label>
-                  <label className="flex items-center gap-1">Per (minuten)
-                    <Input type="number" min="1" placeholder="10" className="h-7 bg-slate-800 border-slate-600" value={editing.parking_per_minutes ?? ''} onChange={(e) => setEditing({ ...editing, parking_per_minutes: e.target.value === '' ? null : Number(e.target.value) })} />
-                  </label>
-                  <label className="flex items-center gap-1">Kosten per blok
-                    <Input type="number" step="0.10" min="0" placeholder="1.00" className="h-7 bg-slate-800 border-slate-600" value={editing.parking_per_euro ?? ''} onChange={(e) => setEditing({ ...editing, parking_per_euro: e.target.value === '' ? null : Number(e.target.value) })} />
-                  </label>
-                  <p className="col-span-2 text-slate-400">Bijv. 90 gratis minuten, daarna €1 per 10 minuten. Kosten kunnen per dag/tijd verschillen — gebruik het gemiddelde of het duurste tarief.</p>
+                <div className="ml-6 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div><Label className="text-sm font-semibold">🅿️ Parkeertarieven per stap</Label><p className="text-[11px] text-slate-400">Iedere stap heeft een eigen valuta. Periode 0 = eenmalig vast bedrag.</p></div>
+                    <Button type="button" size="sm" variant="outline" onClick={() => setEditing({ ...editing, parking_blocks: [...(editing.parking_blocks ?? []), { label: "Nieuw tarief", afterMinutes: 0, durationMinutes: 60, amount: 0, currency: "EUR", repeat: false }] })}>+ Tariefstap</Button>
+                  </div>
+                  {(editing.parking_blocks ?? []).map((block: ParkingFeeBlock, idx: number) => {
+                    const blocks = [...(editing.parking_blocks ?? [])];
+                    const update = (patch: Partial<ParkingFeeBlock>) => { blocks[idx] = { ...block, ...patch }; setEditing({ ...editing, parking_blocks: blocks }); };
+                    return <div key={idx} className="rounded-lg border border-slate-700 bg-slate-900/70 p-2 space-y-2">
+                      <div className="flex items-center gap-2"><Input className="h-8 flex-1 bg-slate-800 border-slate-600" placeholder="Bijv. Starttarief / eerste uur / daarna" value={block.label ?? ""} onChange={(e) => update({ label: e.target.value })} /><Button type="button" size="sm" variant="ghost" className="text-red-400" onClick={() => setEditing({ ...editing, parking_blocks: blocks.filter((_, i) => i !== idx) })}>✕</Button></div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                        <label>Vanaf (min)<Input type="number" min="0" className="mt-1 h-8 bg-slate-800 border-slate-600" value={block.afterMinutes} onChange={(e) => update({ afterMinutes: Math.max(0, Number(e.target.value) || 0) })} /></label>
+                        <label>Periode (min)<Input type="number" min="0" className="mt-1 h-8 bg-slate-800 border-slate-600" value={block.durationMinutes} onChange={(e) => update({ durationMinutes: Math.max(0, Number(e.target.value) || 0) })} /></label>
+                        <label>Bedrag<Input type="number" min="0" step="0.01" className="mt-1 h-8 bg-slate-800 border-slate-600" value={block.amount} onChange={(e) => update({ amount: Math.max(0, Number(e.target.value) || 0) })} /></label>
+                        <label>Valuta<select className="mt-1 h-8 w-full rounded-md border border-slate-600 bg-slate-800 px-2" value={block.currency || "EUR"} onChange={(e) => update({ currency: e.target.value })}>{["EUR","CHF","GBP","USD","NOK","SEK","DKK","PLN","CZK","HUF","RON","BGN","TRY","ISK"].map((code) => <option key={code} value={code}>{code}</option>)}</select></label>
+                      </div>
+                      <label className="flex items-center gap-2 text-xs text-slate-300"><Checkbox checked={!!block.repeat} onCheckedChange={(checked) => update({ repeat: !!checked })} /> Herhaal dit bedrag iedere periode</label>
+                      {block.durationMinutes === 0 && <p className="text-[10px] text-slate-500">Eenmalig vast bedrag bij aanvang (bijvoorbeeld toegang/parkeerticket).</p>}
+                    </div>;
+                  })}
+                  {(editing.parking_blocks ?? []).length === 0 && <p className="text-xs text-slate-500">Nog geen tariefstappen toegevoegd.</p>}
+                  <p className="text-[11px] text-slate-400">Voorbeeld: starttarief 2 EUR (periode 0), eerste uur 2,50 EUR (vanaf 0, periode 60), daarna 5 EUR per uur (vanaf 60, periode 60, herhalen aan).</p>
                 </div>
               )}
               <div className="space-y-1.5 text-xs rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
