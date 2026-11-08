@@ -163,8 +163,12 @@ function normalizeTariffMatch(value: string) {
 }
 
 function applyTariffOverride(row: Row): Row {
-  // Never assign tariffs to sites that are not explicitly operational.
-  if (row.status !== "operational") return row;
+  // An explicitly saved admin tariff takes precedence over the bundled import.
+  // The bundled file is only a fallback for stations without a cloud tariff.
+  const hasSavedTariff =
+    (Array.isArray(row.price_blocks) && row.price_blocks.length > 0) ||
+    typeof row.price_per_kwh === "number";
+  if (hasSavedTariff || row.status !== "operational") return row;
   const tariffs = (tariffDataset as unknown as { tariffs: TariffOverride[] }).tariffs;
   const country = normalizeTariffMatch(row.country ?? "");
   const name = normalizeTariffMatch([row.name, row.city, row.province].filter(Boolean).join(" "));
@@ -250,15 +254,19 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
       return result.rows.map((row) => {
         const local = localById.get(row.id);
         const merged: Row = !local ? row : (() => {
+          const cloudHasTariff =
+            (Array.isArray(row.price_blocks) && row.price_blocks.length > 0) ||
+            typeof row.price_per_kwh === "number";
           const localHasTariff =
             (Array.isArray(local.price_blocks) && local.price_blocks.length > 0) ||
             typeof local.price_per_kwh === "number";
+          const useLocalTariff = !cloudHasTariff && localHasTariff;
           return {
             ...row,
-            price_per_kwh: localHasTariff ? local.price_per_kwh ?? null : row.price_per_kwh ?? null,
-            price_per_kwh_peak: localHasTariff ? local.price_per_kwh_peak ?? null : row.price_per_kwh_peak ?? null,
-            peak_hours: localHasTariff ? local.peak_hours ?? null : row.peak_hours ?? null,
-            price_blocks: localHasTariff
+            price_per_kwh: useLocalTariff ? local.price_per_kwh ?? null : row.price_per_kwh ?? null,
+            price_per_kwh_peak: useLocalTariff ? local.price_per_kwh_peak ?? null : row.price_per_kwh_peak ?? null,
+            peak_hours: useLocalTariff ? local.peak_hours ?? null : row.peak_hours ?? null,
+            price_blocks: useLocalTariff
               ? (Array.isArray(local.price_blocks) ? (local.price_blocks as PriceBlock[]) : null)
               : (Array.isArray(row.price_blocks) && row.price_blocks.length > 0
                   ? row.price_blocks
