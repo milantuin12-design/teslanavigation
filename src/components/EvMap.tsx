@@ -229,14 +229,18 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
       markerZoomAnimation: true,
     });
 
-    // Duidelijke straatkaart voor routebegeleiding: wegen, straatnamen en plaatsen
-    // blijven leesbaar onder de navigatie-overlay.
-    // OpenStreetMap-standaardtegels: geen CARTO-account of API-key nodig.
-    // Houd de zichtbare attributie staan en gebruik geen sleutel in de frontend.
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-      crossOrigin: true,
+    // Oorspronkelijke satellietkaart: Esri World Imagery met plaatsnamen en grenzen.
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics',
+      maxZoom: 18,
+    }).addTo(map);
+
+    // Landgrenzen en plaatsnamen boven op de satellietbeelden.
+    L.tileLayer('https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri Boundaries',
+      maxZoom: 18,
+      pane: 'overlayPane',
+      opacity: 0.9,
     }).addTo(map);
 
 
