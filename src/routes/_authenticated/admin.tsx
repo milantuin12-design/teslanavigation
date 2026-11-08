@@ -97,7 +97,7 @@ function addAdminTariff(row: Charger): Charger {
 
   const tariffs = (tariffDataset as unknown as { tariffs: AdminTariff[] }).tariffs;
   const country = normalizeTariffMatch(row.country ?? "");
-  const name = normalizeTariffMatch(row.name ?? "");
+  const name = normalizeTariffMatch([row.name, row.city, row.province].filter(Boolean).join(" "));
   const match = tariffs.find((tariff) => {
     if (normalizeTariffMatch(tariff.country) !== country) return false;
     return tariff.match.some((term) => {
