@@ -155,6 +155,8 @@ function Index() {
   const [excludedChargerIds, setExcludedChargerIds] = useState<string[]>([]);
   const [acceptedUnknownIds, setAcceptedUnknownIds] = useState<string[]>([]);
   const [riskCharger, setRiskCharger] = useState<Supercharger | null>(null);
+  const [riskChargerQueue, setRiskChargerQueue] = useState<Supercharger[]>([]);
+  const strictUnknownExclusionRef = useRef(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [prefill, setPrefill] = useState<{ start: string; dest: string; key: number } | null>(null);
 
@@ -755,11 +757,12 @@ function Index() {
       ccsBlocked,
       forcedStops,
       excludeIds: excludedChargerIds,
+      preferNearestCharger: strictUnknownExclusionRef.current,
       departureTime: departureDate,
     };
     let result = calculateChargingStops(base.route, calcOpts);
     // "Liever niet hier laden": kan het niet anders, dan toch die lader gebruiken.
-    if (result.unreachable && excludedChargerIds.length > 0) {
+    if (result.unreachable && excludedChargerIds.length > 0 && !strictUnknownExclusionRef.current) {
       const retry = calculateChargingStops(base.route, { ...calcOpts, excludeIds: [] });
       if (!retry.unreachable) {
         result = retry;
@@ -985,12 +988,19 @@ function Index() {
     setLiveBattery(batteryPercent);
     try {
       const res = await computeRoute(startCoord, destCoord, batteryPercent, waypoints);
-      const risky = res.plan?.stops.find((st) => st.charger.status === "unknown" && !(st.charger.id && acceptedUnknownIds.includes(st.charger.id)) && !acceptedUnknownIds.includes(st.charger.name));
-      if (risky) setRiskCharger(risky.charger);
+      strictUnknownExclusionRef.current = false;
+      const riskyStops = (res.plan?.stops ?? []).filter((st) =>
+        st.charger.status === "unknown" &&
+        !(st.charger.id && acceptedUnknownIds.includes(st.charger.id)) &&
+        !acceptedUnknownIds.includes(st.charger.name)
+      );
+      setRiskCharger(riskyStops[0]?.charger ?? null);
+      setRiskChargerQueue(riskyStops.slice(1).map((st) => st.charger));
       if (!res.ok) setError(res.error || "Er ging iets mis.");
     } catch {
       setError("Er ging iets mis. Probeer opnieuw.");
     } finally {
+      strictUnknownExclusionRef.current = false;
       setIsCalculating(false);
     }
   }, [startCoord, destCoord, superchargers, batteryPercent, waypoints, computeRoute, acceptedUnknownIds]);
@@ -1614,17 +1624,20 @@ function Index() {
       <Dialog open={!!riskCharger} onOpenChange={(o) => { if (!o) setRiskCharger(null); }}>
         <DialogContent className="bg-slate-900 border-slate-700 text-white">
           <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="size-5 text-amber-400" />Status onbekend</DialogTitle></DialogHeader>
-          <p className="text-sm text-slate-300">Wil je het risico aangaan om <strong>{riskCharger?.name}</strong> te gebruiken? Status = Onbekend.</p>
+          <p className="text-sm text-slate-300">De status van <strong>{riskCharger?.name}</strong> is onbekend. Wil je het risico aangaan om hier te gaan laden?</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => {
               const key = riskCharger?.id ?? riskCharger?.name;
               setRiskCharger(null);
-              if (key) { recalcAfterExcludeRef.current = true; setExcludedChargerIds((prev) => (prev.includes(key) ? prev : [...prev, key])); }
+              setRiskChargerQueue([]);
+              if (key) { strictUnknownExclusionRef.current = true; recalcAfterExcludeRef.current = true; setExcludedChargerIds((prev) => (prev.includes(key) ? prev : [...prev, key])); }
             }}>Nee, andere Supercharger</Button>
             <Button className="bg-amber-600 hover:bg-amber-700" onClick={() => {
               const key = riskCharger?.id ?? riskCharger?.name;
               if (key) setAcceptedUnknownIds((prev) => (prev.includes(key) ? prev : [...prev, key]));
-              setRiskCharger(null);
+              const [next, ...remaining] = riskChargerQueue;
+              setRiskChargerQueue(remaining);
+              setRiskCharger(next ?? null);
             }}>Ja, gebruiken</Button>
           </DialogFooter>
         </DialogContent>
