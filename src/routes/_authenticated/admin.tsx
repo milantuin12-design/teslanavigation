@@ -688,9 +688,7 @@ function AdminPage() {
 
                 <div className="space-y-2 rounded-lg border border-slate-700 p-3">
                   <Label className="text-xs">Foto's (één link per regel, alleen zichtbaar in detailvenster)</Label>
-                  <textarea rows={2} value={(editing.photos || []).join("
-")} onChange={(e) => setEditing({ ...editing, photos: e.target.value.split("
-") })} className="w-full rounded-md bg-slate-800 border border-slate-700 p-2 text-sm" />
+                  <textarea rows={2} value={(editing.photos || []).join("\n")} onChange={(e) => setEditing({ ...editing, photos: e.target.value.split("\n") })} className="w-full rounded-md bg-slate-800 border border-slate-700 p-2 text-sm" />
                   <div className="flex flex-wrap gap-4 text-sm">
                     <label className="flex items-center gap-2">Bron
                       <select value={editing.data_source || "manual"} onChange={(e) => setEditing({ ...editing, data_source: e.target.value })} className="rounded bg-slate-800 border border-slate-700 px-2 py-1">
