@@ -177,9 +177,9 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
   const currentMarkerRef = useRef<L.Marker | null>(null);
   const followPausedUntilRef = useRef(0);
   const lastAutoPanRef = useRef(0);
-  const [statusTick, setStatusTick] = useState(0);
+  const [statusTick, setStatusTick] = useState(0);\n  const [fullscreen, setFullscreen] = useState(false);
 
-  // Refresh charger colours every 60s zodat openingstijden/beschikbaarheid live is.
+  useEffect(() => {\n    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setFullscreen(false); };\n    window.addEventListener("keydown", onKeyDown);\n    return () => window.removeEventListener("keydown", onKeyDown);\n  }, []);\n\n  useEffect(() => {\n    const map = mapRef.current;\n    if (!map) return;\n    const timer = window.setTimeout(() => map.invalidateSize({ animate: false }), 180);\n    return () => window.clearTimeout(timer);\n  }, [fullscreen]);\n\n  // Refresh charger colours every 60s zodat openingstijden/beschikbaarheid live is.
   useEffect(() => {
     const id = setInterval(() => setStatusTick((v) => v + 1), 60000);
     return () => clearInterval(id);
@@ -442,6 +442,23 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
               ${charger.pricePerKwhPeak != null ? row('Piek per kWh', eur(charger.pricePerKwhPeak)) : ''}
               ${charger.peakHours ? row('Piekuren', escapeHtml(charger.peakHours)) : ''}`;
           }
+          const forecast = charger.trafficForecast?.weekly ?? [];
+          if (forecast.length) {
+            const dayNames: Record<string,string> = { mon:"Ma", tue:"Di", wed:"Wo", thu:"Do", fri:"Vr", sat:"Za", sun:"Zo" };
+            const byDay = ["mon","tue","wed","thu","fri","sat","sun"];
+            const levelAt = (day: string, hour: number) => forecast.find((slot) => slot.day === day && slot.hour === hour)?.level;
+            const heat = (level?: number) => level == null ? "#e2e8f0" : level < 25 ? "#86efac" : level < 50 ? "#fde68a" : level < 75 ? "#fdba74" : "#fca5a5";
+            d += `<div style="font-weight:700;margin-top:8px;">📊 Gebruikelijke drukte</div><div style="font-size:10px;color:#64748b;">Gemiddelde drukte per uur (0–100%)</div><div style="display:grid;grid-template-columns:24px repeat(24,minmax(5px,1fr));gap:2px;margin-top:4px;">`;
+            d += Array.from({length:24},(_,h)=>`<span style="font-size:8px;text-align:center;color:#64748b;">${h%3===0?String(h).padStart(2,"0"):""}</span>`).join("");
+            for (const day of byDay) {
+              d += `<span style="font-size:9px;color:#475569;align-self:center;">${dayNames[day]}</span>`;
+              for (let hour=0;hour<24;hour++) {
+                const value = levelAt(day,hour);
+                d += `<span title="${dayNames[day]} ${hour}:00 · ${value == null ? "geen data" : value+"%"}" style="height:12px;border-radius:2px;background:${heat(value)};"></span>`;
+              }
+            }
+            d += `</div><div style="display:flex;justify-content:space-between;font-size:9px;color:#64748b;margin-top:3px;"><span>Rustig</span><span>Gemiddeld</span><span>Druk</span></div>`;
+          }
           const openingHours = normalizeOpeningHours(charger.openingHours, charger.openingTime, charger.closingTime);
           const openingHoursHtml = openingHours.mode === '24_7' ? '' : `
             <div style="font-weight:700;margin-top:6px;">🕒 Openingstijden hele week</div>
@@ -660,7 +677,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
 
 
   return (
-    <div className="w-full h-full min-h-[400px] relative overflow-hidden" style={{ zIndex: 0 }}>
+    <div className={fullscreen ? "fixed inset-0 z-[5000] h-[100dvh] w-screen bg-slate-950" : "w-full h-full min-h-[400px] relative overflow-hidden"} style={{ zIndex: fullscreen ? 5000 : 0 }}>\n      <button type="button" onClick={() => setFullscreen((value) => !value)} aria-label={fullscreen ? "Kaart sluiten" : "Kaart fullscreen"} title={fullscreen ? "Terug naar normale kaart" : "Kaart fullscreen"} className="absolute right-3 top-3 z-[1000] rounded-lg border border-slate-300/70 bg-white/95 px-3 py-2 text-sm font-semibold text-slate-800 shadow-lg hover:bg-white">{fullscreen ? "✕ Sluiten" : "⛶ Fullscreen"}</button>
       <div
         ref={mapContainerRef}
         className="absolute"
