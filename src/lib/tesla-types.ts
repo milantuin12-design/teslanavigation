@@ -150,6 +150,16 @@ export interface PriceBlock {
   pricePerKwh: number;
 }
 
+/** One parking tariff step; durationMinutes=0 is a one-time fixed fee. */
+export interface ParkingFeeBlock {
+  label?: string;
+  afterMinutes: number;
+  durationMinutes: number;
+  amount: number;
+  currency: string;
+  repeat?: boolean;
+}
+
 export interface ChargerBusySlot {
   /** Weekday key: mon, tue, wed, thu, fri, sat, sun. */
   day: OpeningDayKey;
@@ -181,6 +191,8 @@ export interface Supercharger {
   connectors?: string[];
   isAvailable?: boolean;
   parkingFee?: boolean;
+  /** Ordered parking fee steps; each step may use its own currency. */
+  parkingBlocks?: ParkingFeeBlock[] | null;
   /** Vast parkeerbedrag in euro (optioneel). */
   parkingFeeAmount?: number | null;
   /** Gratis parkeerminuten voordat kosten ingaan (bijv. 90). */
