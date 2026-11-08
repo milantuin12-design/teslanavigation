@@ -874,12 +874,17 @@ function Index() {
         // Een corridor is nadrukkelijk GEEN verplicht route-waypoint.
         bases = withinCorridor;
       } else {
-        // Geen alternatief binnen de straal? Kies de route die er het dichtst langs komt,
-        // maar forceer de auto nooit naar de exacte pin/locatie.
-        bases = [...bases].sort((a, b) =>
-          Math.max(...corridors.map((c) => distanceToRoute(c.lat, c.lng, a.route.coordinates))) -
-          Math.max(...corridors.map((c) => distanceToRoute(c.lat, c.lng, b.route.coordinates))),
-        ).slice(0, 3);
+        // Weiger een route buiten de straal; toon nooit alsof de corridor is gehaald.
+        const nearestDistance = Math.min(
+          ...bases.map((base) => Math.max(
+            ...corridors.map((c) => distanceToRoute(c.lat, c.lng, base.route.coordinates)),
+          )),
+        );
+        const limit = Math.min(...corridors.map((c) => c.radiusKm));
+        return {
+          ok: false,
+          error: `Geen gevonden route komt binnen de ingestelde straal. Dichtstbij: ${nearestDistance.toFixed(1)} km (limiet ${limit} km).`,
+        };
       }
     }
     setCalculationProgress(48);
