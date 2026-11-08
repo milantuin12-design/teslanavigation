@@ -229,17 +229,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
       markerZoomAnimation: true,
     });
 
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics',
-      maxZoom: 18,
-    }).addTo(map);
-
-    // Country/region borders + place labels overlay
-    L.tileLayer('https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-      attribution: '&copy; Esri Boundaries',
-      maxZoom: 18,
-      pane: 'overlayPane',
-      opacity: 0.9,
+    // Duidelijke straatkaart voor routebegeleiding: wegen, straatnamen en plaatsen
+    // blijven leesbaar onder de navigatie-overlay.
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 20,
+      crossOrigin: true,
     }).addTo(map);
 
 
