@@ -576,7 +576,7 @@ function Index() {
         const routes: OSRMRoute[] = Array.isArray(data.routes) ? data.routes : [];
         return routes.filter((item) => Array.isArray(item.geometry?.coordinates) && item.geometry.coordinates.length > 1).map((osrmRoute) => {
           const steps: RouteStep[] = [];
-          for (const leg of osrmRoute.legs ?? []) steps.push(...(leg.steps ?? []));
+          for (const leg of osrmRoute.legs ?? []) steps.push(...(leg.steps ?? []).filter((step) => step.maneuver?.type !== "depart"));
           return {
             route: {
               coordinates: osrmRoute.geometry.coordinates,
