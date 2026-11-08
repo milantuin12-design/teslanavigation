@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { importSuperchargers } from "@/lib/tesla.functions";
+import localDataset from "@/data/superchargers.json";
 import { queueAdminChange, getPendingAdminChanges, clearPendingAdminChanges } from "@/lib/local-store";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -222,13 +223,23 @@ function AdminPage() {
           .order("name").range(from, from + 999);
       }
 
-      if (result.error) { toast.error(result.error.message); break; }
+      if (result.error) {
+        console.error("[TeslaNavigation] Admin-cloudlijst niet bereikbaar; toon lokale dataset:", result.error.message);
+        const localRows = (localDataset as { chargers?: Charger[] }).chargers ?? [];
+        if (rows.length === 0 && localRows.length > 0) {
+          setChargers(localRows);
+          toast.warning("Cloud tijdelijk niet bereikbaar — lokale Superchargerlijst getoond. Wijzigingen worden pas opgeslagen zodra de cloud weer werkt.");
+        } else if (rows.length === 0) {
+          toast.error("Superchargers konden niet uit de cloud of lokale dataset worden geladen: " + result.error.message);
+        }
+        break;
+      }
       const pageRows = (result.data || []).map((row) => ({
         ...row,
         price_currency: (row as typeof row & { price_currency?: string | null }).price_currency || "EUR",
       })) as Charger[];
       rows.push(...pageRows);
-      if (!data || data.length < 1000) break;
+      if (!result.data || result.data.length < 1000) break;
     }
     setChargers(rows);
     const { data: ownerRows } = await supabase.from("charger_owners").select("id,name").order("name");
