@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { importSuperchargers } from "@/lib/tesla.functions";
 import localDataset from "@/data/superchargers.json";
+import tariffDataset from "@/data/supercharger-tariffs.json";
 import { queueAdminChange, getPendingAdminChanges, clearPendingAdminChanges } from "@/lib/local-store";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,56 @@ type Charger = {
 };
 
 type Owner = { id: string; name: string };
+
+type AdminTariff = {
+  country: string;
+  match: string[];
+  pricePerKwh?: number;
+  currency?: string;
+  priceBlocks?: { from: string; to: string; pricePerKwh: number }[];
+};
+
+function normalizeTariffMatch(value: string) {
+  return value.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+/** Laat de tarieven uit het Find Us-bestand ook in het adminformulier zien.
+ * Een expliciet in Supabase opgeslagen tarief heeft altijd voorrang.
+ */
+function addAdminTariff(row: Charger): Charger {
+  const hasSavedTariff =
+    (Array.isArray(row.price_blocks) && row.price_blocks.length > 0) ||
+    typeof row.price_per_kwh === "number";
+  if (hasSavedTariff || row.status !== "operational") return row;
+
+  const tariffs = (tariffDataset as unknown as { tariffs: AdminTariff[] }).tariffs;
+  const country = normalizeTariffMatch(row.country ?? "");
+  const name = normalizeTariffMatch(row.name ?? "");
+  const match = tariffs.find((tariff) => {
+    if (normalizeTariffMatch(tariff.country) !== country) return false;
+    return tariff.match.some((term) => {
+      const normalizedTerm = normalizeTariffMatch(term);
+      return name === normalizedTerm || name.includes(normalizedTerm);
+    });
+  });
+  if (!match) return row;
+
+  const priceBlocks = match.priceBlocks?.length
+    ? match.priceBlocks.map((block) => ({
+        days: "dagelijks",
+        from: block.from,
+        to: block.to === "24:00" ? "23:59" : block.to,
+        pricePerKwh: block.pricePerKwh,
+      }))
+    : typeof match.pricePerKwh === "number"
+      ? [{ days: "dagelijks", from: "00:00", to: "23:59", pricePerKwh: match.pricePerKwh }]
+      : [];
+  return {
+    ...row,
+    price_currency: match.currency || "EUR",
+    price_blocks: priceBlocks.length ? priceBlocks : null,
+  };
+}
 
 const emptyCharger = {
   name: "", lat: 0, lng: 0, country: "", province: null as string | null, city: null as string | null,
@@ -231,10 +282,10 @@ function AdminPage() {
         }
         break;
       }
-      const pageRows = (result.data || []).map((row) => ({
+      const pageRows = (result.data || []).map((row) => addAdminTariff({
         ...row,
         price_currency: (row as typeof row & { price_currency?: string | null }).price_currency || "EUR",
-      })) as Charger[];
+      } as Charger));
       rows.push(...pageRows);
       if (!result.data || result.data.length < 1000) break;
     }
