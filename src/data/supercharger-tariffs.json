@@ -14756,12 +14756,12 @@
         {
           "from": "00:00",
           "to": "04:00",
-          "pricePerKwh": 0.28
+          "pricePerKwh": 0.26
         },
         {
           "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.32
+          "pricePerKwh": 0.31
         },
         {
           "from": "08:00",
@@ -14770,7 +14770,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/440309/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
