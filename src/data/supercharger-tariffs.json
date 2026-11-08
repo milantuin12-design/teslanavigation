@@ -25179,6 +25179,595 @@
       ],
       "source": "https://www.kilowattindex.com/site/HamburgWandsbekdesupercharger/",
       "sourceChecked": "2026-11-08"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "engen",
+        "engen mcdonalds"
+      ],
+      "label": "Engen – McDonald's",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30267/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "freiburg im breisgau",
+        "freiburg tiengen edeka"
+      ],
+      "label": "Freiburg im Breisgau – EDEKA",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/416962/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "schwetzingen",
+        "schwetzingen mobel hoffner",
+        "schwetzingen möbel höffner"
+      ],
+      "label": "Schwetzingen – Möbel Höffner",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.37
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29673/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "eislingen",
+        "eislingen fils edeka"
+      ],
+      "label": "Eislingen/Fils – EDEKA",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.37
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/297599/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "gilching",
+        "gilching allguth"
+      ],
+      "label": "Gilching – Allguth",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29842/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "fürstenfeldbruck",
+        "furstenfeldbruck edeka"
+      ],
+      "label": "Fürstenfeldbruck – EDEKA",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/416811/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "munchen hirschau",
+        "münchen hirschau",
+        "hirschau im englischen garten"
+      ],
+      "label": "München – Hirschau im Englischen Garten",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.42
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/400303/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "schwaig lidl",
+        "schwaig"
+      ],
+      "label": "Schwaig – LIDL",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/444358/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "munchen pasing arcaden",
+        "münchen pasing arcaden",
+        "pasing arcaden"
+      ],
+      "label": "München – Pasing Arcaden",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/pasingarcadensupercharger/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "augsburg edeka",
+        "augsburg"
+      ],
+      "label": "Augsburg – EDEKA",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29676/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "munchen riem arcaden",
+        "münchen riem arcaden",
+        "riem arcaden"
+      ],
+      "label": "München – Riem Arcaden",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29702/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "munchen mobel hoffner",
+        "münchen möbel höffner",
+        "munchen moebel hoffner"
+      ],
+      "label": "München – Möbel Höffner",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/400885/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "wiesbaden xxxlutz"
+      ],
+      "label": "Wiesbaden – XXXLutz",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.37
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30087/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "friedrichsdorf taunus carre",
+        "friedrichsdorf taunus carré",
+        "friedrichsdorf"
+      ],
+      "label": "Friedrichsdorf – Taunus Carré",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/298809/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "frankfurt the squaire",
+        "the squaire frankfurt airport",
+        "frankfurt am main"
+      ],
+      "label": "Frankfurt am Main – The Squaire / Frankfurt Airport",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "09:00",
+          "to": "23:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.27
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30403/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "hanau rondo",
+        "hanau rondo steinheim"
+      ],
+      "label": "Hanau – Rondo Steinheim",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/400777/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "viernheim best western"
+      ],
+      "label": "Viernheim – Best Western Hotel",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "04:00",
+          "to": "23:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29958/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "raunheim edeka"
+      ],
+      "label": "Raunheim – EDEKA",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/32688/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "hockenheim globus",
+        "hockenheim"
+      ],
+      "label": "Hockenheim – GLOBUS",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "19:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29630/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "hemsbach gigamot",
+        "hemsbach gigamot lounge",
+        "hemsbach"
+      ],
+      "label": "Hemsbach – Gigamot Lounge",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.33,
+      "source": "https://www.kilowattindex.com/site/28776/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
     }
   ]
 }
