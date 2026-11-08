@@ -342,9 +342,15 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           ? (charger.status === 'works' ? '#b45309' : '#16a34a')
           : (charger.status === 'construction' ? '#f59e0b' : charger.status === 'long_closed' || charger.isAvailable === false ? '#64748b' : '#dc2626');
         const place = [charger.city, charger.province, charger.country].filter(Boolean).join(', ');
+        const isFavorite = favoriteChargerIds.includes(charger.id ?? "");
         let popup = `<div style="font-family:system-ui;font-size:13px;min-width:240px;color:#0f172a;">
-          <strong style="font-size:15px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
-          ${place ? `<div style="color:#64748b;font-size:11px;">${escapeHtml(place)}</div>` : ''}
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-right:2px;">
+            <div style="min-width:0;flex:1;">
+              <strong style="font-size:15px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
+              ${place ? `<div style="color:#64748b;font-size:11px;">${escapeHtml(place)}</div>` : ''}
+            </div>
+            <button type="button" data-favorite-id="${escapeHtml(charger.id ?? '')}" aria-label="${isFavorite ? "Favoriet verwijderen" : "Favoriet maken"}" title="${isFavorite ? "Favoriet verwijderen" : "Favoriet maken"}" style="flex:none;margin:-5px -7px 0 0;padding:2px 5px;border:0;background:transparent;color:${isFavorite ? "#f59e0b" : "#94a3b8"};font-size:23px;line-height:1;cursor:pointer;">${isFavorite ? "★" : "☆"}</button>
+          </div>
           <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
 
         const hideSpeed = shouldHideSpeed(charger);
@@ -434,7 +440,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         if (extras.length > 0) {
           popup += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0;display:grid;gap:2px;color:#334155;font-weight:500;">${extras.map((line) => `<div>• ${escapeHtml(line)}</div>`).join('')}</div>`;
         }
-        popup += `<button type="button" data-favorite-id="${escapeHtml(charger.id ?? '')}" style="margin-top:8px;width:100%;padding:7px 8px;border-radius:6px;border:1px solid ${favoriteChargerIds.includes(charger.id ?? "") ? "#f59e0b" : "#cbd5e1"};background:${favoriteChargerIds.includes(charger.id ?? "") ? "#fffbeb" : "#f8fafc"};color:#92400e;font-weight:600;cursor:pointer;">${favoriteChargerIds.includes(charger.id ?? "") ? "★ Favoriet verwijderen" : "☆ Favoriet maken"}</button>`;
+
 
         popup += `<button type="button" data-report-id="${escapeHtml(charger.id ?? '')}" data-report-name="${escapeHtml(charger.name ?? '')}" style="margin-top:8px;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#b91c1c;font-weight:600;cursor:pointer;">Fout melden</button>`;
         popup += `</div>`;
