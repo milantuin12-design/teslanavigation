@@ -305,7 +305,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         if (!isVisibleOnMap(charger)) return;
 
         const status = getChargerStatus(charger);
-        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? "")), bubblingMouseEvents: false });
+        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? "")) });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const usable = isChargerUsable(charger);
@@ -415,7 +415,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         }
         marker.bindPopup(popup);
         if (!hideOpeningHours) marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
-          L.DomEvent.stop(ev);
+          try {
+            L.DomEvent.stop(ev);
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
           const priceBlocks = (charger.priceBlocks ?? []).filter((b) => typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
@@ -460,7 +461,12 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           if (charger.trailerFriendly) d += `<div>Aanhangervriendelijk</div>`;
           if (!hideSpeed && configs.length) d += `<div style="font-weight:700;margin-top:6px;">🔌 Laders</div>${groupChargerConfigs(configs).map((l) => `<div>${escapeHtml(l)}</div>`).join('')}`;
           d += `</div>`;
-          L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(d).openOn(map);
+            L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(d).openOn(map);
+          } catch (error) {
+            console.error('Supercharger details popup failed:', error);
+            const fallback = `<div style="font-family:system-ui;font-size:14px;min-width:220px;"><strong>${escapeHtml(charger.name || 'Supercharger')}</strong><div style="margin-top:6px;">De details konden niet volledig worden geladen.</div></div>`;
+            L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(fallback).openOn(map);
+          }
         });
         const targetLayer = routeChargersOnly ? markersRef.current : (clusterRef.current ?? markersRef.current);
         targetLayer.addLayer(marker);
