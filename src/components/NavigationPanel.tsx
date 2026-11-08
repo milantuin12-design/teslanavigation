@@ -96,48 +96,48 @@ export default function NavigationPanel({
   const progress = totalDistanceKm > 0 ? Math.max(0, Math.min(100, ((totalDistanceKm - remainingKm) / totalDistanceKm) * 100)) : 0;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[6000] flex flex-col justify-between p-2 pt-[max(8px,env(safe-area-inset-top))] pb-[max(8px,env(safe-area-inset-bottom))] sm:p-4">
-      <div className="pointer-events-auto mx-auto w-full max-w-3xl space-y-2">
-        <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#07111f]/90 px-3.5 py-2.5 text-white shadow-[0_12px_40px_rgba(0,0,0,.38)] backdrop-blur-2xl">
+    <div className="pointer-events-none fixed inset-0 z-[6000] flex flex-col justify-between p-2 pt-[max(6px,env(safe-area-inset-top))] pb-[max(6px,env(safe-area-inset-bottom))] sm:p-3">
+      <div className="pointer-events-auto mx-auto w-full max-w-[560px] space-y-1.5">
+        <div className="flex items-center justify-between rounded-xl border border-white/10 bg-[#07111f]/75 px-3 py-1.5 text-white shadow-[0_12px_40px_rgba(0,0,0,.38)] backdrop-blur-2xl">
           <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-300"><NavIcon size={19} /></div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-400/15 text-cyan-300"><NavIcon size={19} /></div>
             <div className="min-w-0"><div className="text-[11px] font-black tracking-[.18em]">TESLANAVIGATION</div><div className="mt-0.5 flex items-center gap-1.5 text-[10px] font-semibold text-slate-300"><span className={`h-1.5 w-1.5 rounded-full ${hasGps ? 'bg-emerald-400 shadow-[0_0_9px_#34d399]' : gpsError ? 'bg-rose-400' : 'bg-amber-400 animate-pulse'}`} />{hasGps ? 'GPS-positie actief' : gpsError ? 'Locatietoegang vereist' : 'GPS-positie zoeken…'}</div></div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="rounded-xl bg-white/[.07] px-3 py-1.5 text-right"><div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Snelheid</div><div className="text-lg font-black leading-none tabular-nums">{currentSpeedKmh == null ? '—' : currentSpeedKmh}<span className="ml-1 text-[9px] font-semibold text-slate-400">km/u</span></div></div>
-            <button onClick={onToggleHeadingUp} title={headingUp ? "Rijrichting boven" : "Noord boven"} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[.06] text-slate-100"><Compass size={18} /></button>
-            <button onClick={onStop} title="Navigatie stoppen" className="flex h-10 w-10 items-center justify-center rounded-xl border border-rose-400/20 bg-rose-500/15 text-rose-200"><X size={18} /></button>
+            <div className="rounded-lg bg-white/[.07] px-2 py-1 text-right"><div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Snelheid</div><div className="text-base font-black leading-none tabular-nums">{currentSpeedKmh == null ? '—' : currentSpeedKmh}<span className="ml-1 text-[9px] font-semibold text-slate-400">km/u</span></div></div>
+            <button onClick={onToggleHeadingUp} title={headingUp ? "Rijrichting boven" : "Noord boven"} className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[.06] text-slate-100"><Compass size={18} /></button>
+            <button onClick={onStop} title="Navigatie stoppen" className="flex h-9 w-9 items-center justify-center rounded-lg border border-rose-400/20 bg-rose-500/15 text-rose-200"><X size={18} /></button>
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[26px] border border-white/15 bg-gradient-to-br from-[#102b50]/95 via-[#0a1c35]/95 to-[#07111f]/95 text-white shadow-[0_18px_55px_rgba(0,0,0,.48)] backdrop-blur-2xl">
-          <div className="flex items-center justify-between gap-3 px-4 pt-3.5 sm:px-5">
-            <div className="text-[10px] font-extrabold uppercase tracking-[.2em] text-cyan-200/80">Volgende manoeuvre</div>
-            <div className="max-w-[55%] truncate rounded-full border border-white/10 bg-white/[.07] px-3 py-1 text-[10px] font-semibold text-slate-200">{currentStep?.name || 'Route volgen'}</div>
+        <div className="overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-[#102b50]/85 via-[#0a1c35]/85 to-[#07111f]/85 text-white shadow-[0_18px_55px_rgba(0,0,0,.48)] backdrop-blur-2xl">
+          <div className="flex items-center justify-between gap-3 px-3 pt-2 sm:px-4">
+            <div className="text-[9px] font-extrabold uppercase tracking-[.18em] text-cyan-200/80">Volgende manoeuvre</div>
+            <div className="max-w-[55%] truncate rounded-full border border-white/10 bg-white/[.07] px-2 py-0.5 text-[9px] font-semibold text-slate-200">{currentStep?.name || 'Route volgen'}</div>
           </div>
-          <div className="flex items-center gap-4 px-4 pb-4 pt-2.5 sm:gap-5 sm:px-5 sm:pb-5">
-            <div className="flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-[20px] border border-cyan-200/20 bg-cyan-300/10 shadow-inner sm:h-[72px] sm:w-[72px]">{currentStep ? getManeuverIcon(currentStep.maneuver.type, currentStep.maneuver.modifier, 48) : <LocateFixed size={42} />}</div>
+          <div className="flex items-center gap-3 px-3 pb-2.5 pt-1.5 sm:gap-4 sm:px-4 sm:pb-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-cyan-200/20 bg-cyan-300/10 shadow-inner sm:h-[72px] sm:w-[72px]">{currentStep ? getManeuverIcon(currentStep.maneuver.type, currentStep.maneuver.modifier, 48) : <LocateFixed size={42} />}</div>
             <div className="min-w-0 flex-1">
-              <div className="text-[30px] font-black leading-none tracking-[-.04em] sm:text-[36px]">{formatDistance(liveDistance)}</div>
-              <div className="mt-1.5 text-base font-bold leading-tight sm:text-lg">{currentStep ? getManeuverText(currentStep.maneuver.type, currentStep.maneuver.modifier, currentStep.name) : 'Volg de route'}</div>
-              {nextStep && <div className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-300"><ChevronRight size={13} className="text-cyan-300" /> Daarna: {getManeuverText(nextStep.maneuver.type, nextStep.maneuver.modifier, nextStep.name)}</div>}
+              <div className="text-[26px] font-black leading-none tracking-[-.04em] sm:text-[30px]">{formatDistance(liveDistance)}</div>
+              <div className="mt-1 text-sm font-bold leading-tight sm:text-base">{currentStep ? getManeuverText(currentStep.maneuver.type, currentStep.maneuver.modifier, currentStep.name) : 'Volg de route'}</div>
+              {nextStep && <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-300"><ChevronRight size={13} className="text-cyan-300" /> Daarna: {getManeuverText(nextStep.maneuver.type, nextStep.maneuver.modifier, nextStep.name)}</div>}
             </div>
           </div>
         </div>
         {routeChangedStops && <div className="rounded-2xl border border-amber-300/30 bg-amber-400/95 px-4 py-3 text-slate-950 shadow-xl"><div className="text-sm font-black">Route automatisch aangepast</div><div className="mt-1 text-xs">{routeChangedStops.length ? routeChangedStops.map((stop, i) => `${i + 1}. ${stop.charger.name} · laden tot ${stop.batteryAfter}%`).join(' • ') : 'Je hebt geen laadstops meer nodig.'}</div></div>}
       </div>
 
-      <div className="pointer-events-auto mx-auto w-full max-w-3xl space-y-2">
-        {nextChargingStop && <div className="flex items-center gap-3 rounded-2xl border border-amber-300/20 bg-[#07111f]/90 px-4 py-3 text-white shadow-[0_12px_35px_rgba(0,0,0,.38)] backdrop-blur-2xl"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400/15 text-amber-300"><Zap size={19} /></div><div className="min-w-0 flex-1"><div className="text-[9px] font-extrabold uppercase tracking-[.18em] text-amber-300">Volgende Supercharger</div><div className="truncate text-sm font-bold">{nextChargingStop.stop.charger.name}</div><div className="text-[10px] text-slate-300">{formatKm(nextChargingStop.kmFromHere)} · {formatMin(nextChargingStop.etaMin)} · aankomst ~{Math.round(nextChargingStop.arrivalPercent)}%</div></div><ChevronRight size={18} className="text-slate-400" /></div>}
-        <div className="rounded-[22px] border border-white/10 bg-[#07111f]/85 p-3 text-white shadow-[0_18px_55px_rgba(0,0,0,.38)] backdrop-blur-xl sm:p-4">
-          <div className="mb-3 flex items-center justify-between gap-3"><div className="text-[10px] font-extrabold uppercase tracking-[.2em] text-slate-400">Ritoverzicht</div><div className="text-xs font-bold text-cyan-300">{Math.round(progress)}% afgelegd</div></div>
+      <div className="pointer-events-auto mx-auto w-full max-w-[560px] space-y-1.5">
+        {nextChargingStop && <div className="flex items-center gap-3 rounded-xl border border-amber-300/20 bg-[#07111f]/80 px-3 py-2 text-white shadow-[0_12px_35px_rgba(0,0,0,.38)] backdrop-blur-2xl"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/15 text-amber-300"><Zap size={19} /></div><div className="min-w-0 flex-1"><div className="text-[9px] font-extrabold uppercase tracking-[.18em] text-amber-300">Volgende Supercharger</div><div className="truncate text-sm font-bold">{nextChargingStop.stop.charger.name}</div><div className="text-[10px] text-slate-300">{formatKm(nextChargingStop.kmFromHere)} · {formatMin(nextChargingStop.etaMin)} · aankomst ~{Math.round(nextChargingStop.arrivalPercent)}%</div></div><ChevronRight size={18} className="text-slate-400" /></div>}
+        <div className="rounded-xl border border-white/10 bg-[#07111f]/80 p-2 text-white shadow-[0_18px_55px_rgba(0,0,0,.38)] backdrop-blur-xl sm:p-4">
+          <div className="mb-1.5 flex items-center justify-between gap-3"><div className="text-[10px] font-extrabold uppercase tracking-[.2em] text-slate-400">Ritoverzicht</div><div className="text-xs font-bold text-cyan-300">{Math.round(progress)}% afgelegd</div></div>
           <div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-300 transition-[width] duration-500" style={{ width: `${progress}%` }} /></div>
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            <div><div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-400"><Clock size={11} /> Aankomst</div><div className="mt-1 text-xl font-black tabular-nums sm:text-2xl">{destination ? arrivalClock(destination.etaMin) : '--:--'}</div><div className="text-[10px] text-slate-400">{destination ? formatMin(destination.etaMin) + ' resterend' : 'ETA'}</div></div>
-            <div><div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-400"><MapPin size={11} /> Afstand</div><div className="mt-1 text-xl font-black tabular-nums sm:text-2xl">{destination ? formatKm(destination.kmFromHere) : '--'}</div><div className="text-[10px] text-slate-400">tot bestemming</div></div>
-            <div><div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-400"><BatteryCharging size={11} /> Batterij</div><div className={`mt-1 text-xl font-black tabular-nums sm:text-2xl ${(destination?.arrivalPercent ?? 50) < 5 ? 'text-rose-400' : 'text-emerald-300'}`}>{destination ? `~${Math.round(destination.arrivalPercent)}%` : '--'}</div><div className="text-[10px] text-slate-400">bij aankomst</div></div>
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            <div><div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-400"><Clock size={11} /> Aankomst</div><div className="mt-0.5 text-lg font-black tabular-nums sm:text-xl">{destination ? arrivalClock(destination.etaMin) : '--:--'}</div><div className="text-[10px] text-slate-400">{destination ? formatMin(destination.etaMin) + ' resterend' : 'ETA'}</div></div>
+            <div><div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-400"><MapPin size={11} /> Afstand</div><div className="mt-0.5 text-lg font-black tabular-nums sm:text-xl">{destination ? formatKm(destination.kmFromHere) : '--'}</div><div className="text-[10px] text-slate-400">tot bestemming</div></div>
+            <div><div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-400"><BatteryCharging size={11} /> Batterij</div><div className={`mt-0.5 text-lg font-black tabular-nums sm:text-xl ${(destination?.arrivalPercent ?? 50) < 5 ? 'text-rose-400' : 'text-emerald-300'}`}>{destination ? `~${Math.round(destination.arrivalPercent)}%` : '--'}</div><div className="text-[10px] text-slate-400">bij aankomst</div></div>
           </div>
-          <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-3">
+          <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-2">
             <div className="flex items-center gap-2 text-[10px] text-slate-300"><Battery size={14} className="text-emerald-300" /> Batterij nu</div>
             {editingBattery ? <div className="flex items-center gap-1.5"><input type="number" min={1} max={100} value={batteryDraft} onChange={(e) => setBatteryDraft(parseInt(e.target.value) || 0)} className="w-16 rounded-lg border border-white/15 bg-slate-900 px-2 py-1.5 text-sm" autoFocus /><button onClick={() => { onBatteryChange(Math.max(1, Math.min(100, batteryDraft))); setEditingBattery(false); }} className="rounded-lg bg-emerald-400 px-2.5 py-1.5 text-[10px] font-bold text-slate-950">Opslaan</button><button onClick={() => { setBatteryDraft(currentBattery); setEditingBattery(false); }} className="rounded-lg bg-white/10 px-2 py-1.5 text-[10px]">Annuleer</button></div> : <button onClick={() => { setBatteryDraft(currentBattery); setEditingBattery(true); }} className="text-sm font-black text-white">{currentBattery}% <span className="text-[10px] font-medium text-slate-400">aanpassen</span>{estimatedBattery !== null && <span className="ml-2 text-[10px] font-medium text-emerald-300">schatting ~{Math.round(estimatedBattery)}%</span>}</button>}
           </div>
