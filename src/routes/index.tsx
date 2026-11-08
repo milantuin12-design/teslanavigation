@@ -245,6 +245,7 @@ function Index() {
   const chargedStopKeysRef = useRef<Set<string>>(new Set());
   const prevPositionRef = useRef<{ lat: number; lng: number } | null>(null);
   const displayedPositionRef = useRef<{ lat: number; lng: number } | null>(null);
+  const gpsTargetPositionRef = useRef<{ lat: number; lng: number } | null>(null);
   const gpsAnimationFrameRef = useRef<number | null>(null);
   const calculationIdRef = useRef(0);
   // Cache én deel lopende hoogte-/weerverzoeken tussen routevarianten.
@@ -431,32 +432,50 @@ function Index() {
           }
           if (h !== null) setCurrentHeading(h);
           prevPositionRef.current = newPos;
-          const from = displayedPositionRef.current ?? newPos;
-          if (gpsAnimationFrameRef.current !== null) cancelAnimationFrame(gpsAnimationFrameRef.current);
+          // Bewaar steeds de nieuwste GPS-fix als doel. Laat één doorlopende animatie
+          // daar vloeiend naartoe bewegen; een nieuwe GPS-fix mag de huidige beweging
+          // nooit afbreken of opnieuw vanaf nul laten beginnen.
+          gpsTargetPositionRef.current = newPos;
           if (!displayedPositionRef.current) {
             displayedPositionRef.current = newPos;
             setCurrentPosition(newPos);
             return;
           }
-          const start = performance.now();
-          const durationMs = 1100;
-           let lastPaint = 0;
-           const animate = (now: number) => {
-            const t = Math.min(1, (now - start) / durationMs);
-            const eased = 1 - Math.pow(1 - t, 3);
-            const interpolated = {
-              lat: from.lat + (newPos.lat - from.lat) * eased,
-              lng: from.lng + (newPos.lng - from.lng) * eased,
+          if (gpsAnimationFrameRef.current === null) {
+            let previousFrameTime = 0;
+            let lastPaint = 0;
+            const animate = (now: number) => {
+              const target = gpsTargetPositionRef.current;
+              const current = displayedPositionRef.current;
+              if (!target || !current) {
+                gpsAnimationFrameRef.current = null;
+                return;
+              }
+              const deltaMs = previousFrameTime ? Math.min(50, now - previousFrameTime) : 16;
+              previousFrameTime = now;
+              // Exponentiële smoothing is onafhankelijk van de GPS-updatefrequentie.
+              const alpha = 1 - Math.exp(-deltaMs / 260);
+              const next = {
+                lat: current.lat + (target.lat - current.lat) * alpha,
+                lng: current.lng + (target.lng - current.lng) * alpha,
+              };
+              const remaining = Math.abs(target.lat - next.lat) + Math.abs(target.lng - next.lng);
+              const settled = remaining < 0.000003;
+              const displayed = settled ? target : next;
+              displayedPositionRef.current = displayed;
+              // Maximaal 30 updates per seconde voorkomt onnodige zware kaart-redraws.
+              if (now - lastPaint >= 33 || settled) {
+                lastPaint = now;
+                setCurrentPosition(displayed);
+              }
+              if (settled) {
+                gpsAnimationFrameRef.current = null;
+              } else {
+                gpsAnimationFrameRef.current = requestAnimationFrame(animate);
+              }
             };
-            displayedPositionRef.current = interpolated;
-             // 20fps is visually smooth while avoiding a full React/map redraw at 60fps.
-             if (now - lastPaint >= 50 || t >= 1) {
-               lastPaint = now;
-               setCurrentPosition(interpolated);
-             }
-            if (t < 1) gpsAnimationFrameRef.current = requestAnimationFrame(animate);
-          };
-          gpsAnimationFrameRef.current = requestAnimationFrame(animate);
+            gpsAnimationFrameRef.current = requestAnimationFrame(animate);
+          }
         },
         (error) => {
           console.warn("[TeslaNavigation] GPS niet beschikbaar:", error.message);
