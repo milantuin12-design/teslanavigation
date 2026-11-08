@@ -74,7 +74,7 @@ type Row = {
   voting?: VotingInfo | null;
   hidden?: boolean | null;
   photos?: string[] | null;
-  traffic_forecast?: { level: "low" | "medium" | "high"; days?: string; from?: string; to?: string; note?: string } | null;
+  traffic_forecast?: import("./tesla-types").ChargerTrafficForecast | null;
 };
 
 const LIFECYCLE: ChargerLifecycleStatus[] = ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed', 'voting', 'plan', 'permit', 'expanding', 'permanent_closed', 'unknown'];
