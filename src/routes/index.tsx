@@ -932,6 +932,7 @@ function Index() {
     setLiveBattery(batteryPercent);
     setNavStartBattery(batteryPercent);
     setNavStartKm(0);
+    setHeadingUp(true);
     setIsNavigating(true);
     setRouteChangedStops(null);
     setRouteChangedAt(null);
