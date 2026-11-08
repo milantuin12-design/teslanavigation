@@ -531,28 +531,34 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
             </div>`;
           d += `${openingHoursHtml}
             <div style="font-weight:700;margin-top:6px;">🅿️ Parkeren</div>`;
-          if (!charger.parkingFee) d += `<div>Gratis parkeren</div>`;
-          else if (parkingBlocks.length > 0) {
-            const firstFreeBlock = parkingBlocks[0];
-            const hasInitialFreePeriod = firstFreeBlock.amount === 0 && firstFreeBlock.afterMinutes === 0 && firstFreeBlock.durationMinutes > 0;
-            if (hasInitialFreePeriod) {
-              const freeMinutes = firstFreeBlock.durationMinutes;
-              d += `<div style="font-weight:600;">${freeMinutes} minuten gratis</div>`;
-            }
-            const visibleBlocks = hasInitialFreePeriod ? parkingBlocks.slice(1) : parkingBlocks;
-            d += visibleBlocks.map((block, index) => {
-              const durationLabel = block.durationMinutes >= 60 && block.durationMinutes % 60 === 0 ? (block.durationMinutes / 60) + " uur" : block.durationMinutes + " min";
-              const isHourlyRepeat = block.repeat && block.durationMinutes === 60;
-              const label = block.label || (hasInitialFreePeriod && index === 0 ? "Daarna" : block.durationMinutes === 0 ? "Vast bedrag" : `Vanaf ${block.afterMinutes} min`);
-              const period = block.durationMinutes > 0 ? (block.repeat ? ` per ${durationLabel}` : ` voor ${durationLabel}`) : " eenmalig";
-              const displayLabel = isHourlyRepeat && hasInitialFreePeriod && index === 0 ? "Daarna per uur:" : label + period;
-              return row(escapeHtml(displayLabel), parkingMoney(block.amount, block.currency || "EUR"));
-            }).join("");
+          // Free initial periods may be stored in the legacy field or as a zero-cost
+          // parking block. Detect them for every Supercharger.
+          const freeBlockIndex = parkingBlocks.findIndex((block) =>
+            Number(block.amount) === 0 && Number(block.afterMinutes) === 0 && Number(block.durationMinutes) > 0
+          );
+          const freeMinutes = Number(charger.parkingFreeMinutes) > 0
+            ? Number(charger.parkingFreeMinutes)
+            : freeBlockIndex >= 0 ? Number(parkingBlocks[freeBlockIndex].durationMinutes) : 0;
+          const hasFreeInitialPeriod = freeMinutes > 0;
+          if (!charger.parkingFee && !hasFreeInitialPeriod) {
+            d += `<div>Gratis parkeren</div>`;
           } else {
-            if (charger.parkingFeeAmount) d += row('Vast bedrag', eur(charger.parkingFeeAmount));
-            if (charger.parkingFreeMinutes) d += row('Gratis', `${charger.parkingFreeMinutes} min`);
-            if (charger.parkingPerMinutes && charger.parkingPerEuro) d += row('Daarna', `${eur(charger.parkingPerEuro)} per ${charger.parkingPerMinutes} min`);
-            if (!charger.parkingFeeAmount && !charger.parkingPerEuro) d += `<div>Parkeergeld verplicht (bedrag onbekend)</div>`;
+            if (hasFreeInitialPeriod) d += `<div style="font-weight:600;">${freeMinutes} minuten gratis</div>`;
+            const paidBlocks = parkingBlocks.filter((_, index) => index !== freeBlockIndex);
+            if (paidBlocks.length > 0) {
+              d += paidBlocks.map((block, index) => {
+                const durationLabel = block.durationMinutes >= 60 && block.durationMinutes % 60 === 0 ? (block.durationMinutes / 60) + " uur" : block.durationMinutes + " min";
+                const isHourlyRepeat = !!block.repeat && block.durationMinutes === 60;
+                const label = block.label || (hasFreeInitialPeriod && index === 0 ? "Daarna" : block.durationMinutes === 0 ? "Vast bedrag" : `Vanaf ${block.afterMinutes} min`);
+                const period = block.durationMinutes > 0 ? (block.repeat ? ` per ${durationLabel}` : ` voor ${durationLabel}`) : " eenmalig";
+                const displayLabel = isHourlyRepeat && hasFreeInitialPeriod && index === 0 ? "Daarna per uur:" : label + period;
+                return row(escapeHtml(displayLabel), parkingMoney(block.amount, block.currency || "EUR"));
+              }).join("");
+            } else {
+              if (charger.parkingFeeAmount) d += row('Vast bedrag', eur(charger.parkingFeeAmount));
+              if (charger.parkingPerMinutes && charger.parkingPerEuro) d += row(hasFreeInitialPeriod ? 'Daarna per uur:' : 'Daarna', `${eur(charger.parkingPerEuro)} per ${charger.parkingPerMinutes} min`);
+              if (!charger.parkingFeeAmount && !charger.parkingPerEuro && !hasFreeInitialPeriod) d += `<div>Parkeergeld verplicht (bedrag onbekend)</div>`;
+            }
           }
           if (charger.inParkingGarage) d += `<div>In parkeergarage</div>`;
           if (charger.trailerFriendly) d += `<div>Aanhangervriendelijk</div>`;
