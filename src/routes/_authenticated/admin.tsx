@@ -166,7 +166,8 @@ function AdminPage() {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
   const [bulkPrice, setBulkPrice] = useState({ parkingFeeAmount: "", parkingFreeMinutes: "", parkingPerMinutes: "", parkingPerEuro: "" });
-  const fileRef = useRef<HTMLInputElement>(null);\n  const trafficFileRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const trafficFileRef = useRef<HTMLInputElement>(null);
   const runImport = useServerFn(importSuperchargers);
 
   useEffect(() => {
