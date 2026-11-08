@@ -267,6 +267,7 @@ function AdminPage() {
       }
     }
     const rows: Charger[] = [];
+    let parkingBlocksColumnMissing = false;
     for (let from = 0; ; from += 1000) {
       const columnsWithCurrency = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks";
       const columnsWithoutCurrency = columnsWithCurrency.replace("price_currency,", "");
@@ -280,6 +281,7 @@ function AdminPage() {
       // Oudere databases kunnen de nieuwe parkeerblokkenkolom nog missen.
       if (result.error && /parking_blocks|column .* does not exist|schema cache/i.test(result.error.message)) {
         parkingBlocksMissing = true;
+        parkingBlocksColumnMissing = true;
         result = await supabase.from("superchargers").select(columnsWithoutParkingBlocks).order("name").range(from, from + 999);
       }
       if (result.error && /price_currency|column .* does not exist|schema cache/i.test(result.error.message)) {
@@ -307,6 +309,9 @@ function AdminPage() {
       if (!result.data || result.data.length < 1000) break;
     }
     setChargers(rows);
+    if (parkingBlocksColumnMissing) {
+      toast.warning("Nieuwe parkeertarieven zijn nog niet beschikbaar in de database. De migratie parking_blocks moet eerst worden uitgevoerd; bestaande gegevens blijven behouden.");
+    }
     const { data: ownerRows } = await supabase.from("charger_owners").select("id,name").order("name");
     setOwners((ownerRows as Owner[] | null) ?? []);
     setLoading(false);
