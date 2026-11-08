@@ -365,7 +365,7 @@ function AdminPage() {
   /** CSV-formaat: charger,day,hour,level — één regel per uur. */
   const importTrafficCsv = async (file: File) => {
     try {
-      const lines = (await file.text()).replace(/^\\uFEFF/, "").split(/\\r?\\n/).filter((line) => line.trim());
+      const lines = (await file.text()).replace(/^\uFEFF/, "").split(/\r?\n/).filter((line) => line.trim());
       if (lines.length < 2) throw new Error("CSV bevat geen gegevensregels");
       const delimiter = lines[0].includes(";") ? ";" : ",";
       const headers = lines[0].split(delimiter).map((v) => v.trim().toLowerCase().replace(/^"|"$/g, ""));
@@ -374,7 +374,7 @@ function AdminPage() {
       if (required.some((name) => col(name) < 0)) throw new Error("Kolommen vereist: charger,day,hour,level");
       const dayAliases: Record<string, OpeningDayKey> = { ma: "mon", maandag: "mon", mon: "mon", monday: "mon", di: "tue", dinsdag: "tue", tue: "tue", tuesday: "tue", wo: "wed", woensdag: "wed", wed: "wed", wednesday: "wed", do: "thu", donderdag: "thu", thu: "thu", thursday: "thu", vr: "fri", vrijdag: "fri", fri: "fri", friday: "fri", za: "sat", zaterdag: "sat", sat: "sat", saturday: "sat", zo: "sun", zondag: "sun", sun: "sun", sunday: "sun" };
       const grouped = new Map<string, { charger: Charger; weekly: { day: OpeningDayKey; hour: number; level: number }[] }>();
-      const normalize = (s: string) => s.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
       const byName = new Map(chargers.map((c) => [normalize(c.name), c]));
       let skipped = 0;
       for (const line of lines.slice(1)) {
