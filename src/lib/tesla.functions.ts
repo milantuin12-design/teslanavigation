@@ -260,6 +260,11 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
           const useLocalTariff = !cloudHasTariff && localHasTariff;
           return {
             ...row,
+            // Cloud admin-data may contain an empty photos array while the bundled
+            // dataset still has the original location photos. Never erase those photos.
+            photos: Array.isArray(row.photos) && row.photos.length > 0
+              ? row.photos
+              : (Array.isArray(local.photos) ? local.photos : []),
             price_per_kwh: useLocalTariff ? local.price_per_kwh ?? null : row.price_per_kwh ?? null,
             price_per_kwh_peak: useLocalTariff ? local.price_per_kwh_peak ?? null : row.price_per_kwh_peak ?? null,
             peak_hours: useLocalTariff ? local.peak_hours ?? null : row.peak_hours ?? null,
