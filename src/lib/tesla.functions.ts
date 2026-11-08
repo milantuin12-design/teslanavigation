@@ -281,7 +281,7 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
       if (!localRows.length) {
         throw new Error("Supabase is niet bereikbaar en de lokale Superchargerdataset is leeg.");
       }
-      return localRows.map((row) => rowToCharger(row, owners));
+      return localRows.map((row) => rowToCharger(applyTariffOverride(row), owners));
     }
   }
 );
