@@ -414,7 +414,21 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           popup = popup.slice(0, outerClose) + '<div style="margin-top:6px;color:#64748b;font-size:11px;">Dubbelklik voor prijzen en parkeergeld</div>' + popup.slice(outerClose);
         }
         marker.bindPopup(popup);
+        // Stel de gewone popup uit: anders bedekt die na klik 1 de marker
+        // en komt de tweede klik niet meer bij de marker-dubbelklik aan.
+        marker.off('click');
+        let singleClickTimer: ReturnType<typeof setTimeout> | undefined;
+        marker.on('click', () => {
+          if (singleClickTimer) clearTimeout(singleClickTimer);
+          singleClickTimer = setTimeout(() => {
+            marker.openPopup();
+            singleClickTimer = undefined;
+          }, 300);
+        });
         if (!hideOpeningHours) marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
+          if (singleClickTimer) clearTimeout(singleClickTimer);
+          singleClickTimer = undefined;
+          marker.closePopup();
           if (ev.originalEvent) L.DomEvent.stop(ev.originalEvent);
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
