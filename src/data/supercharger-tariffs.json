@@ -28994,6 +28994,192 @@
       "source": "https://www.kilowattindex.com/site/kamensupercharger/",
       "sourceChecked": "2026-11-08",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "brunnthal marken outlet"
+      ],
+      "label": "Brunnthal – Brunnthal - Marken-Outlet",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/7/",
+      "sourceChecked": "2026-11-07",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "busdorf autohof wikingerland"
+      ],
+      "label": "Busdorf – Autohof Wikingerland",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "04:00",
+          "to": "11:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "11:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/23/",
+      "sourceChecked": "2026-11-07",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bergkamen aldi"
+      ],
+      "label": "Bergkamen – ALDI",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/8/",
+      "sourceChecked": "2026-11-07",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "erharting 24 autohof"
+      ],
+      "label": "Erharting – 24-Autohof",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/17/",
+      "sourceChecked": "2026-11-07",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "blankenfelde mahlow van der valk hotel"
+      ],
+      "label": "Blankenfelde-Mahlow – Van der Valk Hotel",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/19/",
+      "sourceChecked": "2026-11-07",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "bensheim burger king"
+      ],
+      "label": "Bensheim – Burger King",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/20/",
+      "sourceChecked": "2026-11-07",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "endsee tesla lounge"
+      ],
+      "label": "Endsee – Tesla Lounge",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/",
+      "sourceChecked": "2026-11-07",
+      "currency": "EUR"
     }
   ]
 }
