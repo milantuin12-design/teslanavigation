@@ -177,9 +177,23 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
   const currentMarkerRef = useRef<L.Marker | null>(null);
   const followPausedUntilRef = useRef(0);
   const lastAutoPanRef = useRef(0);
-  const [statusTick, setStatusTick] = useState(0);\n  const [fullscreen, setFullscreen] = useState(false);
+  const [statusTick, setStatusTick] = useState(0);
+  const [fullscreen, setFullscreen] = useState(false);
 
-  useEffect(() => {\n    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setFullscreen(false); };\n    window.addEventListener("keydown", onKeyDown);\n    return () => window.removeEventListener("keydown", onKeyDown);\n  }, []);\n\n  useEffect(() => {\n    const map = mapRef.current;\n    if (!map) return;\n    const timer = window.setTimeout(() => map.invalidateSize({ animate: false }), 180);\n    return () => window.clearTimeout(timer);\n  }, [fullscreen]);\n\n  // Refresh charger colours every 60s zodat openingstijden/beschikbaarheid live is.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setFullscreen(false); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const timer = window.setTimeout(() => map.invalidateSize({ animate: false }), 180);
+    return () => window.clearTimeout(timer);
+  }, [fullscreen]);
+
+  // Refresh charger colours every 60s zodat openingstijden/beschikbaarheid live is.
   useEffect(() => {
     const id = setInterval(() => setStatusTick((v) => v + 1), 60000);
     return () => clearInterval(id);
