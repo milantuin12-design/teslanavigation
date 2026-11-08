@@ -24364,6 +24364,121 @@
       "source": "https://www.kilowattindex.com/site/331947/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "villingen-schwenningen edeka",
+        "villingen-schwenningen"
+      ],
+      "label": "Villingen-Schwenningen – EDEKA",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.46
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29835/",
+      "sourceChecked": "2026-11-07"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "werkstadt munchen sendling",
+        "muenchen sendling"
+      ],
+      "label": "München – WerkStadt München-Sendling",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29744/",
+      "sourceChecked": "2026-11-07"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "eschborn globus"
+      ],
+      "label": "Eschborn – GLOBUS",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29605/",
+      "sourceChecked": "2026-11-07"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "koln bonn airport",
+        "koeln bonn airport"
+      ],
+      "label": "Köln – Köln Bonn Airport",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/426052/",
+      "sourceChecked": "2026-11-07"
     }
   ]
 }
