@@ -12828,7 +12828,7 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "pricePerKwh": 0.31,
-      "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
+      "source": "https://www.kilowattindex.com/site/30138/",
       "sourceChecked": "2026-11-08"
     },
     {
@@ -12917,7 +12917,7 @@
       "timezone": "Europe/Berlin",
       "currency": "EUR",
       "pricePerKwh": 0.37,
-      "source": "https://www.kilowattindex.com/country/de/niedersachsen/",
+      "source": "https://www.kilowattindex.com/site/405257/",
       "sourceChecked": "2026-11-08"
     },
     {
@@ -25068,6 +25068,43 @@
       "source": "https://www.kilowattindex.com/site/29649/",
       "sourceChecked": "2026-11-08",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "neu wulmstorf rade hoyer",
+        "neu wulmstorf rade"
+      ],
+      "label": "Neu Wulmstorf / Rade – Hoyer Autohof",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/radedesupercharger/",
+      "sourceChecked": "2026-11-08"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "illertissen waschheld",
+        "illertissen"
+      ],
+      "label": "Illertissen – Waschheld Illertissen",
+      "timezone": "Europe/Berlin",
+      "currency": "EUR",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/illertissensupercharger/",
+      "sourceChecked": "2026-11-08"
     }
   ]
 }
