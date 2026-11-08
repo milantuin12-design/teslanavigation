@@ -414,35 +414,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           popup = popup.slice(0, outerClose) + '<div style="margin-top:6px;color:#64748b;font-size:11px;">Dubbelklik voor prijzen en parkeergeld</div>' + popup.slice(outerClose);
         }
         marker.bindPopup(popup);
-        // Leaflet opent een gekoppelde popup direct bij de eerste klik.
-        // Die popup kan de marker afdekken, waardoor klik twee nooit meer
-        // bij de marker aankomt. Daarom beheren we de enkele/dubbele klik zelf.
-        marker.off('click');
-        let singleClickTimer: ReturnType<typeof setTimeout> | undefined;
-        marker.on('click', () => {
-          // Wacht op een mogelijke tweede klik. De basis-popup mag de marker
-          // niet afdekken voordat de gebruiker dubbel kan klikken.
-          if (singleClickTimer) {
-            clearTimeout(singleClickTimer);
-            singleClickTimer = undefined;
-            if (!hideOpeningHours) {
-              marker.fire('dblclick', { latlng: marker.getLatLng() });
-            } else {
-              marker.openPopup();
-            }
-            return;
-          }
-          singleClickTimer = setTimeout(() => {
-            marker.openPopup();
-            singleClickTimer = undefined;
-          }, 800);
-        });
-        if (!hideOpeningHours) {
-          marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
-            if (singleClickTimer) clearTimeout(singleClickTimer);
-            singleClickTimer = undefined;
-            if (ev.originalEvent) L.DomEvent.stop(ev.originalEvent);
-            marker.closePopup();
+        if (!hideOpeningHours) marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
+          if (ev.originalEvent) L.DomEvent.stop(ev.originalEvent);
           const eur = (v?: number | null) => (typeof v === 'number' ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: charger.priceCurrency ?? 'EUR' }).format(v) : '—');
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
           const priceBlocks = (charger.priceBlocks ?? []).filter((b) => typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
@@ -488,9 +461,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           if (!hideSpeed && configs.length) d += `<div style="font-weight:700;margin-top:6px;">🔌 Laders</div>${groupChargerConfigs(configs).map((l) => `<div>${escapeHtml(l)}</div>`).join('')}`;
           d += `</div>`;
           L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(d).openOn(map);
-          });
-        }
-        // Dubbelklik wordt afgehandeld via de twee opeenvolgende marker-clicks hierboven.
+        });
         const targetLayer = routeChargersOnly ? markersRef.current : (clusterRef.current ?? markersRef.current);
         targetLayer.addLayer(marker);
       } catch { /* skip bad charger */ }
