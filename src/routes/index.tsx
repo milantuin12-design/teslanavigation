@@ -771,7 +771,9 @@ function Index() {
 
     // Bij 'langs punt' behouden we de gekozen corridor-route exact.
     // Een tweede OSRM-aanvraag zonder corridor zou die route anders weer kunnen afsnijden.
-    const finalResult = corridors.length > 0
+    // Lees de corridorpunten hier uit de functie-input; corridors bestaat alleen in computeRoute.
+    const hasCorridors = extraWaypoints.some((point) => point.corridor);
+    const finalResult = hasCorridors
       ? base
       : await fetchRouteWithInstructions(
           [fromCoord.lng, fromCoord.lat],
