@@ -28941,6 +28941,24 @@
           "pricePerKwh": 0.32
         }
       ]
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "rosenheim"
+      ],
+      "label": "Rosenheim – My Home My Hotel",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/20/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
     }
   ]
 }
