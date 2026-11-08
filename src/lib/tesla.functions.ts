@@ -74,7 +74,6 @@ type Row = {
   voting?: VotingInfo | null;
   hidden?: boolean | null;
   photos?: string[] | null;
-  traffic_forecast?: import("./tesla-types").ChargerTrafficForecast | null;
 };
 
 const LIFECYCLE: ChargerLifecycleStatus[] = ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed', 'voting', 'plan', 'permit', 'expanding', 'permanent_closed', 'unknown'];
@@ -146,7 +145,6 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
     voting: row.voting ?? {},
     hidden: !!row.hidden,
     photos: row.photos ?? [],
-    trafficForecast: row.traffic_forecast ?? null,
   };
 }
 
