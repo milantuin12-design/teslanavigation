@@ -843,11 +843,34 @@ function Index() {
     const corridors = extraWaypoints.filter((w) => w.corridor);
     setCalculationProgress(8);
 
-    const basePromise = fetchRouteAlternatives(
-      [fromCoord.lng, fromCoord.lat],
-      [toCoord.lng, toCoord.lat],
-      via.map((w) => [w.lng, w.lat] as [number, number]),
-    );
+    const startPoint: [number, number] = [fromCoord.lng, fromCoord.lat];
+    const endPoint: [number, number] = [toCoord.lng, toCoord.lat];
+    const normalVia = via.map((w) => [w.lng, w.lat] as [number, number]);
+
+    // Zoek bij "langs punt" actief naar routes via wegen in de cirkel.
+    // De gegenereerde coördinaten zijn alleen routeringshulp (geen laad-/stoplocaties).
+    const corridorRoutePromises: Promise<{ route: RouteResult; steps: RouteStep[] }[]>[] = [];
+    if (corridors.length > 0) {
+      const bearings = [0, 45, 90, 135, 180, 225, 270, 315];
+      const offsetFactors = [0.55, 0.85];
+      for (const factor of offsetFactors) {
+        for (const bearing of bearings) {
+          const angle = (bearing * Math.PI) / 180;
+          const shapedVia: [number, number][] = extraWaypoints.map((point) => {
+            if (!point.corridor) return [point.lng, point.lat];
+            const distanceKm = Math.max(0.1, point.radiusKm * factor);
+            const latOffset = (distanceKm * Math.cos(angle)) / 111.32;
+            const lngScale = Math.max(0.2, Math.cos((point.lat * Math.PI) / 180));
+            const lngOffset = (distanceKm * Math.sin(angle)) / (111.32 * lngScale);
+            return [point.lng + lngOffset, point.lat + latOffset];
+          });
+          corridorRoutePromises.push(fetchRouteAlternatives(startPoint, endPoint, shapedVia));
+        }
+      }
+    }
+    const basePromise = corridors.length > 0
+      ? Promise.all(corridorRoutePromises).then((groups) => groups.flat())
+      : fetchRouteAlternatives(startPoint, endPoint, normalVia);
     const trafficPromise = onlineTraffic && !isFutureTrip
       ? fetchTrafficRoutesFn({ data: { origin: fromCoord, destination: toCoord, waypoints: via.map(({ lat, lng }) => ({ lat, lng })), avoidHighways: false, alternatives: true } })
       : Promise.resolve(null);
@@ -864,7 +887,7 @@ function Index() {
     }
     if (bases.length === 0) return { ok: false, error: "Kon geen route vinden." };
 
-    // "Langs punt": houd alleen routes die binnen de straal blijven; anders forceer het punt erin.
+    // "Langs punt": accepteer uitsluitend routes die werkelijk binnen iedere ingestelde straal lopen.
     if (corridors.length > 0) {
       const withinCorridor = bases.filter((base) =>
         corridors.every((c) => distanceToRoute(c.lat, c.lng, base.route.coordinates) <= c.radiusKm),
