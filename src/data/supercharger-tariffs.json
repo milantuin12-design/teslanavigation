@@ -11828,28 +11828,8 @@
       "priceBlocks": [
         {
           "from": "00:00",
-          "to": "04:00",
-          "pricePerKwh": 0.32
-        },
-        {
-          "from": "04:00",
-          "to": "10:00",
-          "pricePerKwh": 0.37
-        },
-        {
-          "from": "10:00",
-          "to": "18:00",
-          "pricePerKwh": 0.47
-        },
-        {
-          "from": "18:00",
-          "to": "22:00",
-          "pricePerKwh": 0.37
-        },
-        {
-          "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.32
+          "pricePerKwh": 0.39
         }
       ],
       "source": "https://www.kilowattindex.com/site/32694/",
@@ -11901,7 +11881,7 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.27
+          "pricePerKwh": 0.26
         },
         {
           "from": "08:00",
@@ -11911,7 +11891,7 @@
         {
           "from": "12:00",
           "to": "20:00",
-          "pricePerKwh": 0.46
+          "pricePerKwh": 0.47
         },
         {
           "from": "20:00",
@@ -11920,7 +11900,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29808/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -11948,7 +11928,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/416961/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Spain",
@@ -12774,18 +12754,13 @@
       "priceBlocks": [
         {
           "from": "00:00",
-          "to": "04:00",
-          "pricePerKwh": 0.26
-        },
-        {
-          "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.32
+          "pricePerKwh": 0.26
         },
         {
           "from": "08:00",
           "to": "23:00",
-          "pricePerKwh": 0.42
+          "pricePerKwh": 0.45
         },
         {
           "from": "23:00",
@@ -12794,7 +12769,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29558/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -12809,21 +12784,21 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.26
+          "pricePerKwh": 0.25
         },
         {
           "from": "08:00",
           "to": "22:00",
-          "pricePerKwh": 0.45
+          "pricePerKwh": 0.44
         },
         {
           "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.26
+          "pricePerKwh": 0.25
         }
       ],
       "source": "https://www.kilowattindex.com/site/29639/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -12838,16 +12813,16 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.27
+          "pricePerKwh": 0.25
         },
         {
           "from": "08:00",
           "to": "24:00",
-          "pricePerKwh": 0.42
+          "pricePerKwh": 0.44
         }
       ],
       "source": "https://www.kilowattindex.com/site/32691/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -12894,7 +12869,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29574/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-08"
     },
     {
       "country": "Germany",
@@ -13329,13 +13304,13 @@
       "label": "Herbolzheim – Autohof Europa Park",
       "timezone": "Europe/Berlin",
       "source": "https://www.kilowattindex.com/site/herbolzheimsupercharger/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
           "to": "24:00",
-          "pricePerKwh": 0.43
+          "pricePerKwh": 0.39
         }
       ]
     },
@@ -14735,13 +14710,23 @@
       "label": "Bissendorf – Netto",
       "timezone": "Europe/Berlin",
       "source": "https://www.kilowattindex.com/site/BissendorfSupercharger/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR",
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "21:00",
           "to": "24:00",
-          "pricePerKwh": 0.38
+          "pricePerKwh": 0.36
         }
       ]
     },
@@ -14784,21 +14769,21 @@
         {
           "from": "00:00",
           "to": "09:00",
-          "pricePerKwh": 0.26
+          "pricePerKwh": 0.25
         },
         {
           "from": "09:00",
           "to": "22:00",
-          "pricePerKwh": 0.45
+          "pricePerKwh": 0.47
         },
         {
           "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.26
+          "pricePerKwh": 0.25
         }
       ],
       "source": "https://www.kilowattindex.com/site/portawestfalicasuperchargerq122/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -14812,11 +14797,6 @@
       "priceBlocks": [
         {
           "from": "00:00",
-          "to": "04:00",
-          "pricePerKwh": 0.39
-        },
-        {
-          "from": "04:00",
           "to": "10:00",
           "pricePerKwh": 0.39
         },
@@ -14832,7 +14812,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/emsburensupercharger/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -14843,7 +14823,7 @@
       "label": "Holdorf – Roatel",
       "timezone": "Europe/Berlin",
       "source": "https://www.kilowattindex.com/site/176637/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR",
       "priceBlocks": [
         {
@@ -14869,12 +14849,12 @@
         {
           "from": "04:00",
           "to": "10:00",
-          "pricePerKwh": 0.41
+          "pricePerKwh": 0.39
         },
         {
           "from": "10:00",
           "to": "22:00",
-          "pricePerKwh": 0.45
+          "pricePerKwh": 0.44
         },
         {
           "from": "22:00",
@@ -14883,7 +14863,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/29776/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -14920,21 +14900,21 @@
         {
           "from": "00:00",
           "to": "08:00",
-          "pricePerKwh": 0.27
+          "pricePerKwh": 0.25
         },
         {
           "from": "08:00",
           "to": "23:00",
-          "pricePerKwh": 0.41
+          "pricePerKwh": 0.44
         },
         {
           "from": "23:00",
           "to": "24:00",
-          "pricePerKwh": 0.27
+          "pricePerKwh": 0.25
         }
       ],
       "source": "https://www.kilowattindex.com/site/paderbornsupercharger/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
@@ -14948,21 +14928,26 @@
         {
           "from": "00:00",
           "to": "04:00",
-          "pricePerKwh": 0.34
+          "pricePerKwh": 0.32
         },
         {
           "from": "04:00",
+          "to": "11:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "11:00",
           "to": "20:00",
-          "pricePerKwh": 0.38
+          "pricePerKwh": 0.41
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.34
+          "pricePerKwh": 0.32
         }
       ],
       "source": "https://www.kilowattindex.com/site/posthausensupercharger/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-08",
       "currency": "EUR"
     },
     {
