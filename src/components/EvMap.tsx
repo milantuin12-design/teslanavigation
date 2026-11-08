@@ -157,14 +157,10 @@ function chargeStopIcon() {
   });
 }
 
-function currentPositionIcon() {
-  return L.divIcon({
-    className: 'custom-marker',
-    html: `<div style="width:20px;height:20px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 10px rgba(59,130,246,0.6);animation:pulse 2s infinite;"></div>
-<style>@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.3);opacity:0.7;}}</style>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-  });
+function currentPositionIcon(heading?: number | null) {
+  const rotation = typeof heading === "number" && Number.isFinite(heading) ? heading : 0;
+  const html = '<div style="position:relative;width:42px;height:42px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 8px rgba(0,0,0,.55))"><div style="position:absolute;inset:2px;border-radius:50%;background:rgba(34,153,255,.20);border:1px solid rgba(255,255,255,.38);animation:gps-ring 2s ease-out infinite"></div><div style="position:relative;width:30px;height:30px;border-radius:50%;background:linear-gradient(145deg,#62c7ff,#0878ed);border:3px solid #fff;box-shadow:0 0 0 2px #0878ed,0 0 18px rgba(0,132,255,.85);display:flex;align-items:center;justify-content:center"><div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:13px solid #fff;transform:translateY(-2px) rotate(' + rotation + 'deg);transform-origin:50% 60%"></div></div></div><style>@keyframes gps-ring{0%{transform:scale(.75);opacity:.85}100%{transform:scale(1.45);opacity:0}}</style>';
+  return L.divIcon({ className: "tesla-gps-marker", html, iconSize: [42, 42], iconAnchor: [21, 21] });
 }
 
 function escapeHtml(value: string): string {
@@ -196,19 +192,20 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
   const lastAutoPanRef = useRef(0);
   const [statusTick, setStatusTick] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
+  const fullscreenActive = fullscreen || !!isNavigating;
 
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setFullscreen(false); };
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape" && !isNavigating) setFullscreen(false); };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [isNavigating]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const timer = window.setTimeout(() => map.invalidateSize({ animate: false }), 180);
+    const timer = window.setTimeout(() => map.invalidateSize({ animate: false }), 220);
     return () => window.clearTimeout(timer);
-  }, [fullscreen]);
+  }, [fullscreenActive]);
 
   // Refresh charger colours every 60s zodat openingstijden/beschikbaarheid live is.
   useEffect(() => {
@@ -619,11 +616,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     }
 
     if (!currentMarkerRef.current) {
-      currentMarkerRef.current = L.marker([currentPosition.lat, currentPosition.lng], { icon: currentPositionIcon() }).addTo(map);
+      currentMarkerRef.current = L.marker([currentPosition.lat, currentPosition.lng], { icon: currentPositionIcon(heading), zIndexOffset: 10000, keyboard: false }).addTo(map);
     } else {
       currentMarkerRef.current.setLatLng([currentPosition.lat, currentPosition.lng]);
+      currentMarkerRef.current.setIcon(currentPositionIcon(heading));
+      currentMarkerRef.current.setZIndexOffset(10000);
     }
-  }, [currentPosition]);
+  }, [currentPosition, heading]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -744,7 +743,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
 
 
   return (
-    <div className={fullscreen ? "fixed inset-0 z-[5000] h-[100dvh] w-screen bg-slate-950" : "w-full h-full min-h-[400px] relative overflow-hidden"} style={{ zIndex: fullscreen ? 5000 : 0 }}>\n      <button type="button" onClick={() => setFullscreen((value) => !value)} aria-label={fullscreen ? "Kaart sluiten" : "Kaart fullscreen"} title={fullscreen ? "Terug naar normale kaart" : "Kaart fullscreen"} className="absolute right-3 top-3 z-[1000] rounded-lg border border-slate-300/70 bg-white/95 px-3 py-2 text-sm font-semibold text-slate-800 shadow-lg hover:bg-white">{fullscreen ? "✕ Sluiten" : "⛶ Fullscreen"}</button>
+    <div className={fullscreenActive ? "fixed inset-0 z-[5000] h-[100dvh] w-screen overflow-hidden bg-slate-950" : "relative h-full min-h-[400px] w-full overflow-hidden"} style={{ zIndex: fullscreenActive ? 5000 : 0 }}>\n      {!isNavigating && <button type="button" onClick={() => setFullscreen((value) => !value)} aria-label={fullscreen ? "Kaart sluiten" : "Kaart fullscreen"} title={fullscreen ? "Terug naar normale kaart" : "Kaart fullscreen"} className="absolute right-3 top-3 z-[1000] rounded-lg border border-slate-300/70 bg-white/95 px-3 py-2 text-sm font-semibold text-slate-800 shadow-lg hover:bg-white">{fullscreen ? "✕ Sluiten" : "⛶ Fullscreen"}</button>}
       <div
         ref={mapContainerRef}
         className="absolute"
