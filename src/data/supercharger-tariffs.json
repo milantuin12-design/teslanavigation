@@ -29499,6 +29499,24 @@
       "source": "https://www.kilowattindex.com/changes/day/2026-11-06/14/",
       "sourceChecked": "2026-11-08",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "greding kfc"
+      ],
+      "label": "Greding – KFC",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/feuchtsupercharger/",
+      "sourceChecked": "2026-11-08",
+      "currency": "EUR"
     }
   ]
 }
