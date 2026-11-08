@@ -370,6 +370,8 @@ export interface CalcChargingOptions {
   forcedStops?: { routeKm: number; chargeTo: number; charger: Supercharger; kw: number }[];
   /** Laders die de gebruiker heeft geweigerd (bijv. status Onbekend of 'liever niet laden'). Id of naam. */
   excludeIds?: string[];
+  /** Na afwijzen van een onbekende locatie: kies de dichtstbijzijnde haalbare volgende lader. */
+  preferNearestCharger?: boolean;
   /** Laders met parkeerkosten overslaan. */
   avoidParkingFee?: boolean;
 
@@ -420,6 +422,7 @@ export function calculateChargingStops(
     ccsBlocked = false,
     forcedStops = [],
     excludeIds = [],
+    preferNearestCharger = false,
     avoidParkingFee = false,
   } = opts;
   const pendingForced = [...forcedStops].sort((a, b) => a.routeKm - b.routeKm);
@@ -607,7 +610,9 @@ export function calculateChargingStops(
       : (comfy.length > 0 ? comfy : feasible.length > 0 ? feasible : candidates)
           .sort((x, y) => (y.routeKm - penalty(y)) - (x.routeKm - penalty(x)));
     // Bij finishing: kies de lader waarvandaan de bestemming het best haalbaar is (verst = minder laden).
-    const best: Candidate = finishing.length > 0 ? pool[pool.length - 1] : pool[0];
+    const best: Candidate = preferNearestCharger && feasible.length > 0
+      ? [...feasible].sort((a, b) => a.distanceTravelled - b.distanceTravelled)[0]
+      : (finishing.length > 0 ? pool[pool.length - 1] : pool[0]);
 
     const distToDestFromCharger = route.totalDistanceKm - best.routeKm;
     const needForDest = (distToDestFromCharger / fullRangeKm) * 100 + targetArrivalPercent;
