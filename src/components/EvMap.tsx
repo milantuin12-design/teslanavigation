@@ -7,6 +7,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, getOpenStalls, formatStallAvailability, isChargerUsable, normalizeChargerConfigs, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
 import { TRAFFIC_PERIODS, estimateFreeStalls, getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
+import { estimateChargingCost } from '@/lib/charging-cost';
 
 
 // Exchange rates are reference rates, cached in memory for 24 hours.
@@ -31,6 +32,9 @@ interface EvMapProps {
   superchargers: Supercharger[];
   chargingStops: ChargingStop[];
   departure?: Date;
+  modelName?: string;
+  packKWh?: number;
+  carMaxKwOverride?: number;
   route: RouteResult | null;
   routeVariants?: Partial<Record<string, RouteResult>>;
   selectedRouteType?: string;
@@ -177,7 +181,7 @@ function groupChargerConfigs(configs: ChargerConfig[]): string[] {
   });
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, chargingStops = [], departure, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, chargingStops = [], departure, modelName = 'Model 3 Long Range AWD', packKWh, carMaxKwOverride, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -392,6 +396,11 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         const estimatedFree = currentCrowd ? Math.min(getOpenStalls(charger, forecastAt), estimateFreeStalls(totalForEstimate, currentCrowd.level) ?? totalForEstimate) : null;
         if (estimatedFree !== null) {
           popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${totalForEstimate} vrij</div><div style="font-size:10px;color:#64748b;">Inschatting op basis van verwachte drukte (${currentCrowd.level}%)${routeStop ? ` · bij aankomst rond ${forecastAt.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : ''}</div>`;
+        }
+        const routeCost = routeStop ? estimateChargingCost(routeStop, forecastAt, modelName, packKWh, carMaxKwOverride) : null;
+        if (routeCost) {
+          const formattedCost = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: routeCost.currency }).format(routeCost.amount);
+          popup += `<div style="margin-top:5px;color:#047857;font-weight:700;">Geschatte laadkosten: ${formattedCost} ${routeCost.type === "minute" ? "· per minuut" : "· kWh-tarief"}</div>`;
         }
         if (winterSportsMode && isSnowRegion(charger)) {
           popup += `<div style="margin-top:8px;padding:8px;border-radius:7px;background:#e0f2fe;color:#075985;font-weight:700;">❄️ Let op! Waarschijnlijk erg druk bij deze Supercharger! In verband met sneeuw kan het zijn dat er laadplekken niet beschikbaar zijn. Houd hier rekening mee!</div>`;
@@ -631,7 +640,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
       marker.bindPopup(`<div style="font-family:system-ui;font-size:13px"><strong>${escapeHtml(waypoint.label || 'Tussenstop')}</strong><br/>${detail}</div>`);
       markersRef.current.addLayer(marker);
     });
-  }, [startCoord, destCoord, superchargers, chargingStops, departure, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode]);
+  }, [startCoord, destCoord, superchargers, chargingStops, departure, modelName, packKWh, carMaxKwOverride, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode]);
 
   // Draai de kaart tijdens navigatie wanneer rijrichting boven is ingeschakeld.
   useEffect(() => {
