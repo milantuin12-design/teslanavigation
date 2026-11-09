@@ -1656,7 +1656,7 @@ function Index() {
                 payload: JSON.parse(JSON.stringify({
                   plan: { route, steps: routeSteps, stops: chargingStops, arrivalPercent: arrivalPercent ?? 0 },
                   waypoints,
-                  settings: { targetArrivalPercent, chargeTargetPercent, chargerArrivalTarget, modelYear },
+                  settings: { targetArrivalPercent, chargeTargetPercent, chargerArrivalTarget, modelYear, departureDate: departureDate.toISOString(), packKWh },
                 })),
                 total_distance_km: route.totalDistanceKm,
                 total_time_min: route.totalTimeMin,
