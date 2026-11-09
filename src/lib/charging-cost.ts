@@ -78,9 +78,10 @@ export function estimateChargingCost(
       const powerKw = Math.min(powerCap, estimatedChargePowerKw(modelName, midpoint, stationCap, carMaxKwOverride));
       if (!initialPowerKw) initialPowerKw = powerKw;
       const minutes = (capacity * (next - pct) / 100 / powerKw) * 60;
-      const tier = powerBlocks.find((block) =>
+      const sortedTiers = [...powerBlocks].sort((a, b) => (a.minKw ?? 0) - (b.minKw ?? 0));
+      const tier = sortedTiers.find((block) =>
         powerKw >= (block.minKw ?? 0) && (block.maxKw == null || powerKw < block.maxKw)
-      );
+      ) ?? sortedTiers.filter((block) => (block.minKw ?? 0) <= powerKw).at(-1) ?? sortedTiers[0];
       if (!tier) return null;
       amount += minutes * (tier.pricePerMinute ?? 0);
       elapsedMinutes += minutes;
