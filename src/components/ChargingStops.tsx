@@ -24,6 +24,10 @@ interface ChargingStopsProps {
   restMin?: number;
   modelName?: string;
   carMaxKwOverride?: number;
+  whatIf?: {
+    minus5: { reachable: boolean; arrivalPercent: number; stops: number };
+    plus5: { reachable: boolean; arrivalPercent: number; stops: number };
+  };
 }
 
 function isWeekend(d: Date) { const day = d.getDay(); return day === 0 || day === 6; }
@@ -129,7 +133,7 @@ function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo, tem
   );
 }
 
-export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic, ccsBlocked, showTrailer, restMin = 0, modelName = 'Model 3 Long Range AWD', carMaxKwOverride }: ChargingStopsProps) {
+export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic, ccsBlocked, showTrailer, restMin = 0, modelName = 'Model 3 Long Range AWD', carMaxKwOverride, whatIf }: ChargingStopsProps) {
   const start = departure ?? new Date();
   const total = route?.totalDistanceKm ?? totalDistanceKm ?? 0;
   const k100 = consumptionKWh100 && consumptionKWh100 > 0 ? consumptionKWh100 : null;
@@ -166,6 +170,15 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
         <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Laden</div><div className="text-sm font-semibold text-white">{stops.length} stop{stops.length === 1 ? '' : 's'} · {dur(totalChargeMin)}</div></div>
         <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Kosten</div><div className="text-sm font-semibold text-white">{allCostsKnown ? euro(totalCost) : 'onbekend'}</div></div>
       </div>
+      {whatIf && (
+        <div className="mt-2">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Wat als je 5% meer of minder vertrekt?</div>
+          <div className="grid grid-cols-2 gap-2 text-[11px]">
+            <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">5% minder accu</div><div className="font-semibold text-white">{whatIf.minus5.reachable ? `${whatIf.minus5.arrivalPercent}% aankomst · ${whatIf.minus5.stops} stops` : "Route niet haalbaar"}</div></div>
+            <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">5% meer accu</div><div className="font-semibold text-white">{whatIf.plus5.reachable ? `${whatIf.plus5.arrivalPercent}% aankomst · ${whatIf.plus5.stops} stops` : "Route niet haalbaar"}</div></div>
+          </div>
+        </div>
+      )}
       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-300">
         {totalClimb && <span className="flex items-center gap-1"><Mountain size={11} />↑ {totalClimb.up} m · ↓ {totalClimb.down} m (dalen = terugwinnen)</span>}
         {weather && <span className="flex items-center gap-1"><Thermometer size={11} />{Math.round(weather.tempC)}°C</span>}
