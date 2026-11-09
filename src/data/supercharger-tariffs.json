@@ -851,7 +851,9 @@
     {
       "country": "Germany",
       "match": [
-        "wittlich globus"
+        "wittlich globus",
+        "wittlich justus von lieblig straße",
+        "wittlich justus von lieblig strasse"
       ],
       "label": "Wittlich – GLOBUS",
       "timezone": "Europe/Berlin",
@@ -26275,7 +26277,8 @@
       "country": "Germany",
       "match": [
         "erlensee 24-autohof",
-        "erlensee"
+        "erlensee",
+        "neuberg"
       ],
       "label": "Erlensee – 24-Autohof",
       "timezone": "Europe/Berlin",
@@ -27621,7 +27624,9 @@
       "match": [
         "grunheide",
         "grünheide",
-        "gigaberlin"
+        "gigaberlin",
+        "gigafactory berlin-brandenburg",
+        "gigafactory berlin brandenburg"
       ],
       "label": "Grünheide (Mark) – GigaBerlin",
       "timezone": "Europe/Berlin",
@@ -29257,7 +29262,9 @@
     {
       "country": "Germany",
       "match": [
-        "altdorf takko fashion"
+        "altdorf takko fashion",
+        "altdorf bei nürnberg",
+        "altdorf bei nuernberg"
       ],
       "label": "Altdorf – Takko Fashion",
       "timezone": "Europe/Berlin",
