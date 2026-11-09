@@ -26808,7 +26808,11 @@
       "country": "Germany",
       "match": [
         "leipzig konsum listplatz",
-        "konsum listplatz"
+        "konsum listplatz",
+        "leipzig rosa luxemburg strasse",
+        "leipzig rosa-luxemburg-strasse",
+        "rosa luxemburg strasse",
+        "rosa-luxemburg-strasse"
       ],
       "label": "Leipzig – KONSUM Listplatz",
       "timezone": "Europe/Berlin",
