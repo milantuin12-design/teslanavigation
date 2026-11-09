@@ -6,7 +6,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, getOpenStalls, formatStallAvailability, isChargerUsable, normalizeChargerConfigs, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
-import { TRAFFIC_PERIODS } from '@/lib/traffic-forecast';
+import { TRAFFIC_PERIODS, estimateFreeStalls, getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
 
 
 // Exchange rates are reference rates, cached in memory for 24 hours.
@@ -46,6 +46,7 @@ interface EvMapProps {
   /** Route-only mode: show route chargers individually, without marker clusters. */
   routeChargersOnly?: boolean;
   favoriteChargerIds?: string[];
+  winterSportsMode?: boolean;
 }
 
 
@@ -70,7 +71,7 @@ const waypointIcon = L.divIcon({
   iconAnchor: [14, 14],
 });
 
-function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = false) {
+function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = false, routeUsed = false) {
   // Kleurlogica ongewijzigd: groen = open, rood = gesloten (openingstijden/sluiting), grijs = niet beschikbaar.
   let color = '#22c55e'; // groen = open/beschikbaar
   if (status === 'Niet beschikbaar' || status === 'Langdurig gesloten') color = '#94a3b8'; // grijs
@@ -83,6 +84,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   else if (status === 'Permanent gesloten') color = '#0f172a';
   else if (status === 'Tijdelijk gesloten') color = '#cbd5e1';
   else if (status !== 'Beschikbaar' && status !== 'In bedrijf') color = '#ef4444'; // rood: gesloten varianten
+  if (routeUsed) color = '#7dd3fc'; // lichtblauw = geselecteerde laadstop
 
   if (status === 'Voting') {
     return L.divIcon({
@@ -180,7 +182,7 @@ function groupChargerConfigs(configs: ChargerConfig[]): string[] {
   });
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [] }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -335,7 +337,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         if (!isVisibleOnMap(charger)) return;
 
         const status = getChargerStatus(charger);
-        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? "")) });
+        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? ""), routeChargersOnly) });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const usable = isChargerUsable(charger);
@@ -386,6 +388,16 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           popup += `<br/><span style="color:#475569;">${charger.totalStalls} laadplekken</span>`;
         }
 
+
+        const currentCrowd = getTrafficForecastAt(charger.trafficForecast, new Date(), charger.province);
+        const totalForEstimate = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
+        const estimatedFree = currentCrowd ? estimateFreeStalls(totalForEstimate, currentCrowd.level) : null;
+        if (estimatedFree !== null) {
+          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${totalForEstimate} vrij</div><div style="font-size:10px;color:#64748b;">Inschatting op basis van verwachte drukte (${currentCrowd.level}%)</div>`;
+        }
+        if (winterSportsMode && isSnowRegion(charger)) {
+          popup += `<div style="margin-top:8px;padding:8px;border-radius:7px;background:#e0f2fe;color:#075985;font-weight:700;">❄️ Let op! Waarschijnlijk erg druk bij deze Supercharger! In verband met sneeuw kan het zijn dat er laadplekken niet beschikbaar zijn. Houd hier rekening mee!</div>`;
+        }
 
         if (charger.status === 'works' || charger.status === 'works_closed') {
           const closedConfigs = normalizeChargerConfigs(charger.works?.closedConfigs);
@@ -607,29 +619,6 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
     });
 
 
-    chargingStops.forEach((stop, idx) => {
-      try {
-        const maxSpeed = parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
-        const configs = getChargerConfigs(stop.charger);
-        const marker = L.marker([stop.charger.lat, stop.charger.lng], { icon: chargeStopIcon() });
-        let popup = `<div style="font-family:system-ui;font-size:13px;">
-          <strong>Opladen #${idx + 1}</strong><br/>
-          ${escapeHtml(stop.charger.name)}<br/>
-          Batterij: ${stop.batteryBefore}% &#8594; ${stop.batteryAfter}%`;
-        if (configs.length > 0) {
-          popup += `<br/>${configs.map((config) => escapeHtml(formatChargerConfig(config))).join('<br/>')}`;
-        } else if (stop.charger.totalStalls) {
-          popup += `<br/><span style="color:#94a3b8;">${stop.charger.totalStalls} laadplekken</span>`;
-        }
-        if (maxSpeed) {
-          popup += `<br/><span style="color:#60a5fa;">Max ${maxSpeed}kW</span>`;
-        }
-        popup += `</div>`;
-        marker.bindPopup(popup);
-        markersRef.current.addLayer(marker);
-      } catch { /* skip bad stop */ }
-    });
-
     if (startCoord) {
       markersRef.current.addLayer(L.marker([startCoord.lat, startCoord.lng], { icon: startIcon }));
     }
@@ -644,7 +633,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
       marker.bindPopup(`<div style="font-family:system-ui;font-size:13px"><strong>${escapeHtml(waypoint.label || 'Tussenstop')}</strong><br/>${detail}</div>`);
       markersRef.current.addLayer(marker);
     });
-  }, [startCoord, destCoord, superchargers, chargingStops, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds]);
+  }, [startCoord, destCoord, superchargers, chargingStops, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode]);
 
   // Draai de kaart tijdens navigatie wanneer rijrichting boven is ingeschakeld.
   useEffect(() => {
