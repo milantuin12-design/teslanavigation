@@ -231,6 +231,7 @@ function Index() {
   const [showAllChargers, setShowAllChargers] = useState(false);
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
   const countryPriceStats = useMemo(() => {
+    if (!countryPricesOpen) return [];
     const groups = new Map<string, { country: string; currency: string; total: number; count: number }>();
     for (const charger of superchargers) {
       if (charger.published === false || !charger.country) continue;
@@ -255,7 +256,7 @@ function Index() {
     }
     return [...groups.values()].map((group) => ({ ...group, average: group.total / group.count }))
       .sort((a, b) => a.currency.localeCompare(b.currency) || a.average - b.average);
-  }, [superchargers, departureDate, selectedModel, packKWh, carMaxKwOverride]);
+  }, [countryPricesOpen, superchargers, departureDate, selectedModel, packKWh, carMaxKwOverride]);
 
   const visibleChargers = useMemo(
     () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters) && (!showFavoritesOnly || (!!charger.id && favoriteChargerIds.includes(charger.id)))),
