@@ -141,13 +141,20 @@ export interface SiteUpdate {
 
 /** Een kWh-tarief dat geldt in een bepaald tijdsblok (bijv. ma-vr 07:00-19:00). */
 export interface PriceBlock {
+  /** kWh-tijdstarief of tarief op basis van het actuele laadvermogen. */
+  type?: "kwh" | "power";
   /** Bijv. "ma-vr", "weekend", "dagelijks". */
   days?: string;
   /** "HH:MM" */
   from?: string;
   /** "HH:MM" */
   to?: string;
-  pricePerKwh: number;
+  pricePerKwh?: number;
+  /** Vermogensgrenzen in kW; maxKw is exclusief. */
+  minKw?: number;
+  maxKw?: number | null;
+  /** Bedrag per minuut binnen dit vermogensblok. */
+  pricePerMinute?: number;
 }
 
 /** One parking tariff step; durationMinutes=0 is a one-time fixed fee. */
