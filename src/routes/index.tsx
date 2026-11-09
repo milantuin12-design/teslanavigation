@@ -1651,6 +1651,9 @@ function Index() {
           superchargers={mapChargers}
           chargingStops={chargingStops}
           departure={departureDate}
+          modelName={selectedModel}
+          packKWh={packKWh}
+          carMaxKwOverride={carMaxKwOverride}
           route={route}
           routeVariants={Object.fromEntries(routeOptions.map((plan, i) => [String(i), plan.route]))}
           selectedRouteType={String(selectedRouteIndex)}
