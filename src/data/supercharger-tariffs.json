@@ -31031,6 +31031,110 @@
       "source": "https://www.kilowattindex.com/site/stgeorgensupercharger/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "innsbruck alphotel",
+        "alphotel"
+      ],
+      "label": "Innsbruck – Alphotel",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "19:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/innsbrucksupercharger/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "spittal an der drau",
+        "spittal tauernpark",
+        "tauernpark"
+      ],
+      "label": "Spittal an der Drau – Tauernpark",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/SpittalanderDrau-SelfServeDemoDrive/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "imst",
+        "imster kaufpark"
+      ],
+      "label": "Imst – Imster Kaufpark",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/301208/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "lermoos",
+        "hotel mohr life resort"
+      ],
+      "label": "Lermoos – Hotel MOHR Life Resort",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.37,
+      "source": "https://www.kilowattindex.com/site/lermoossupercharger/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "st anton am arlberg",
+        "stanton",
+        "zentrum st anton"
+      ],
+      "label": "St. Anton am Arlberg – Zentrum",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.36,
+      "source": "https://kilowattindex.com/site/stantonsupercharger/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
