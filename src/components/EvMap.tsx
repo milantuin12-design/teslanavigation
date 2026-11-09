@@ -583,6 +583,9 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
           }
           if (charger.inParkingGarage) d += `<div>In parkeergarage</div>`;
           if (charger.trailerFriendly) d += `<div>Aanhangervriendelijk</div>`;
+          if (charger.siteAmenities?.length) {
+            d += `<div style="font-weight:700;margin-top:7px;">🛍️ Voorzieningen</div>${charger.siteAmenities.map((amenity) => `<span style="display:inline-block;margin:2px 3px 0 0;padding:3px 7px;border-radius:10px;background:#e0f2fe;color:#075985;font-size:11px;">${escapeHtml(amenity)}</span>`).join("")}`;
+          }
           if (!hideSpeed && configs.length) d += `<div style="font-weight:700;margin-top:6px;">🔌 Laders</div>${groupChargerConfigs(configs).map((l) => `<div>${escapeHtml(l)}</div>`).join('')}`;
           d += `</div>`;
             L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(d).openOn(map);
