@@ -28794,7 +28794,11 @@
       "match": [
         "hausen bei wurzburg",
         "hausen bei würzburg",
-        "24-autohof"
+        "24-autohof",
+        "grams chatzer wald",
+        "gramschatzer wald",
+        "am wiesenweg",
+        "hausen bei würzburg gramschatzer wald"
       ],
       "label": "Hausen bei Würzburg – 24-Autohof",
       "timezone": "Europe/Berlin",
@@ -30230,7 +30234,10 @@
       "country": "Germany",
       "match": [
         "hengersberg",
-        "euro rastpark"
+        "euro rastpark",
+        "hengersberg euro rastpark",
+        "donaustraße 8",
+        "donaustrasse 8"
       ],
       "label": "Hengersberg",
       "timezone": "Europe/Berlin",
