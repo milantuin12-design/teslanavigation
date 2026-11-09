@@ -74,11 +74,12 @@ export function activePricePerKwh(stop: ChargingStop, at?: Date): number | null 
       return true;
     };
     for (const b of blocks) {
-      if (!dayMatch(b.days)) continue;
+      if (b.type === "power" || !dayMatch(b.days)) continue;
       const from = b.from ? parseInt(b.from.slice(0, 2), 10) * 60 + parseInt(b.from.slice(3, 5) || '0', 10) : 0;
       const to = b.to ? parseInt(b.to.slice(0, 2), 10) * 60 + parseInt(b.to.slice(3, 5) || '0', 10) : 1439;
-      if (mins >= from && mins <= to && b.pricePerKwh > 0) return b.pricePerKwh;
+      if (mins >= from && mins < to && typeof b.pricePerKwh === "number" && b.pricePerKwh >= 0) return b.pricePerKwh;
     }
+    return null;
   }
   const price = stop.charger.pricePerKwh;
   return typeof price === 'number' && price > 0 ? price : null;
