@@ -841,6 +841,11 @@ function AdminPage() {
                 )}
               </div>
 
+              <TrafficForecastEditor
+                value={editing.traffic_forecast ?? createEmptyTrafficForecast()}
+                onChange={(traffic_forecast) => setEditing({ ...editing, traffic_forecast })}
+              />
+
               <div>
                 <Label>Eigenaar</Label>
                 <select value={editing.owner_id || ""} onChange={(e) => setEditing({ ...editing, owner_id: e.target.value || null })} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm">
