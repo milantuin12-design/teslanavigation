@@ -1,5 +1,5 @@
-import type { ChargingStop, PriceBlock } from "./tesla-types";
-import { estimatedChargePowerKw, parseMaxSpeed, teslaBatteryKWh, teslaMaxChargeKw } from "./tesla-utils";
+import { teslaBatteryKWh, teslaMaxChargeKw, type ChargingStop, type PriceBlock } from "./tesla-types";
+import { estimatedChargePowerKw, parseMaxSpeed } from "./tesla-utils";
 
 export interface ChargingCostEstimate {
   amount: number;
