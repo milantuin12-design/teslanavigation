@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { importSuperchargers, getWinterSportsMode, setWinterSportsMode } from "@/lib/tesla.functions";
+import { importSuperchargers, getWinterSportsMode, setWinterSportsMode, getHolidayPeriodMode, setHolidayPeriodMode } from "@/lib/tesla.functions";
 import localDataset from "@/data/superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
 import { queueAdminChange, getPendingAdminChanges, clearPendingAdminChanges } from "@/lib/local-store";
@@ -298,6 +298,17 @@ function versionsFromConfigs(configs?: ChargerConfig[] | null) {
   return Array.from(new Set(normalizeConfigs(configs).map((config) => config.version)));
 }
 
+function stripLegacyTrafficColumn<T extends Record<string, unknown>>(input: T): T {
+  const output = { ...input } as Record<string, unknown>;
+  const legacyForecast = output.traffic_forecast;
+  delete output.traffic_forecast;
+  if (legacyForecast && typeof legacyForecast === "object") {
+    const construction = output.construction && typeof output.construction === "object" ? output.construction as Record<string, unknown> : {};
+    output.construction = { ...construction, trafficForecast: legacyForecast };
+  }
+  return output as T;
+}
+
 function AdminPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [chargers, setChargers] = useState<Charger[]>([]);
@@ -315,6 +326,10 @@ function AdminPage() {
   const runImport = useServerFn(importSuperchargers);
   const readWinterSportsMode = useServerFn(getWinterSportsMode);
   const saveWinterSportsMode = useServerFn(setWinterSportsMode);
+  const readHolidayPeriodMode = useServerFn(getHolidayPeriodMode);
+  const saveHolidayPeriodMode = useServerFn(setHolidayPeriodMode);
+  const [holidayPeriodEnabled, setHolidayPeriodEnabled] = useState(false);
+  const [holidayPeriodSaving, setHolidayPeriodSaving] = useState(false);
   const [winterSportsEnabled, setWinterSportsEnabled] = useState(false);
   const [winterSportsSaving, setWinterSportsSaving] = useState(false);
 
@@ -324,7 +339,7 @@ function AdminPage() {
       if (!userData.user) return;
       const { data } = await supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
       setIsAdmin(!!data);
-      if (data) { try { setWinterSportsEnabled(await readWinterSportsMode()); } catch { setWinterSportsEnabled(false); } }
+      if (data) { try { setWinterSportsEnabled(await readWinterSportsMode()); setHolidayPeriodEnabled(await readHolidayPeriodMode()); } catch { setWinterSportsEnabled(false); setHolidayPeriodEnabled(false); } }
     })();
   }, [readWinterSportsMode]);
 
@@ -339,6 +354,17 @@ function AdminPage() {
     } finally { setWinterSportsSaving(false); }
   };
 
+  const toggleHolidayPeriod = async (enabled: boolean) => {
+    setHolidayPeriodSaving(true);
+    try {
+      await saveHolidayPeriodMode({ data: { enabled } });
+      setHolidayPeriodEnabled(enabled);
+      toast.success(enabled ? "Vakantieperiode ingeschakeld" : "Vakantieperiode uitgeschakeld");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Vakantieperiode opslaan mislukt");
+    } finally { setHolidayPeriodSaving(false); }
+  };
+
   const load = useCallback(async () => {
     setLoading(true);
     // Eerst eventuele wijzigingen versturen die in de wachtrij stonden (cloud was weg).
@@ -351,7 +377,7 @@ function AdminPage() {
             const { error } = await supabase.from("superchargers").delete().eq("id", change.id);
             if (error) failed = true;
           } else if (change.type === "upsert" && change.payload) {
-            const { error } = await supabase.from("superchargers").upsert(change.payload as never);
+            const { error } = await supabase.from("superchargers").upsert(stripLegacyTrafficColumn(change.payload as Record<string, unknown>) as never);
             if (error) failed = true;
           }
         } catch { failed = true; }
@@ -370,6 +396,7 @@ function AdminPage() {
       const columnsWithoutParkingBlocks = columnsWithCurrency.replace("parking_blocks,", "");
       const columnsWithoutBoth = columnsWithCurrency.replace("parking_blocks,", "").replace("price_currency,", "");
       const columnsWithoutTraffic = columnsWithCurrency.replace("traffic_forecast,", "");
+      const columnsWithoutTrafficAndParking = columnsWithoutTraffic.replace("parking_blocks,", "");
       let parkingBlocksMissing = false;
       let result = await supabase.from("superchargers")
         .select(columnsWithCurrency)
@@ -384,7 +411,7 @@ function AdminPage() {
       if (result.error && /parking_blocks|column .* does not exist|schema cache/i.test(result.error.message)) {
         parkingBlocksMissing = true;
         parkingBlocksColumnMissing = true;
-        result = await supabase.from("superchargers").select(columnsWithoutParkingBlocks).order("name").range(from, from + 999);
+        result = await supabase.from("superchargers").select(columnsWithoutTrafficAndParking).order("name").range(from, from + 999);
       }
       if (result.error && /price_currency|column .* does not exist|schema cache/i.test(result.error.message)) {
         result = await supabase.from("superchargers")
@@ -490,11 +517,11 @@ function AdminPage() {
     };
     try {
       if (editing.id) {
-        const { error } = await supabase.from("superchargers").update(payload).eq("id", editing.id);
+        const { error } = await supabase.from("superchargers").update(stripLegacyTrafficColumn(payload as Record<string, unknown>) as never).eq("id", editing.id);
         if (error) throw new Error(error.message);
         toast.success("Bijgewerkt");
       } else {
-        const { error } = await supabase.from("superchargers").insert(payload);
+        const { error } = await supabase.from("superchargers").insert(stripLegacyTrafficColumn(payload as Record<string, unknown>) as never);
         if (error) throw new Error(error.message);
         toast.success("Toegevoegd");
       }
@@ -509,7 +536,7 @@ function AdminPage() {
         toast.error("Parkeertarieven niet opgeslagen: de database mist parking_blocks. Voer de Supabase-migratie 20261108113000_add_parking_fee_blocks.sql uit en probeer opnieuw.");
         return;
       }
-      queueAdminChange({ type: "upsert", id: editing.id, payload: editing.id ? { id: editing.id, ...payload } : payload });
+      queueAdminChange({ type: "upsert", id: editing.id, payload: stripLegacyTrafficColumn(editing.id ? { id: editing.id, ...payload } : payload) });
       if (editing.id) setChargers((prev) => prev.map((c) => (c.id === editing.id ? ({ ...c, ...payload } as Charger) : c)));
       toast.error(`Opslaan mislukt: ${message}`);
       return;
@@ -661,6 +688,10 @@ function AdminPage() {
         <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-sky-500/40 bg-sky-500/10 p-3">
           <div><div className="text-sm font-semibold text-sky-200">❄ Wintersportmodus</div><p className="text-xs text-slate-300">Toont een sneeuwvlok en een druktewaarschuwing bij Superchargers in sneeuw- en wintersportgebieden.</p></div>
           <label className="flex shrink-0 items-center gap-2 text-sm"><Checkbox checked={winterSportsEnabled} disabled={winterSportsSaving} onCheckedChange={(checked) => void toggleWinterSports(!!checked)} />{winterSportsSaving ? "Opslaan…" : winterSportsEnabled ? "Aan" : "Uit"}</label>
+        </div>
+        <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3">
+          <div><div className="text-sm font-semibold text-amber-200">🏖 Vakantieperiode</div><p className="text-xs text-slate-300">Activeert direct het vakantieprofiel voor alle Superchargers. Wintersportmodus activeert dit profiel ook automatisch.</p></div>
+          <label className="flex shrink-0 items-center gap-2 text-sm"><Checkbox checked={holidayPeriodEnabled} disabled={holidayPeriodSaving} onCheckedChange={(checked) => void toggleHolidayPeriod(!!checked)} />{holidayPeriodSaving ? "Opslaan…" : holidayPeriodEnabled ? "Actief" : "Uit"}</label>
         </div>
         {selectedIds.size > 0 && (
           <div className="mb-4 flex flex-wrap items-center gap-2 border border-blue-500/40 bg-blue-500/10 p-3 rounded-lg">
