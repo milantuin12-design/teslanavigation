@@ -25042,7 +25042,10 @@
     {
       "country": "Germany",
       "match": [
-        "schkeuditz"
+        "schkeuditz",
+        "leipzig flughafen",
+        "leipzig-flughafen",
+        "an der autobahn"
       ],
       "label": "Schkeuditz – 24-Autohof",
       "timezone": "Europe/Berlin",
@@ -29120,7 +29123,11 @@
     {
       "country": "Germany",
       "match": [
-        "erharting 24 autohof"
+        "erharting 24 autohof",
+        "mühldorf am inn",
+        "mühldorf",
+        "gewerbepark frixing",
+        "frixing 3"
       ],
       "label": "Erharting – 24-Autohof",
       "timezone": "Europe/Berlin",
