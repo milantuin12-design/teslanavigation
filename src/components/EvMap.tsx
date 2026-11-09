@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
+import { Supercharger, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, getOpenStalls, formatStallAvailability, isChargerUsable, normalizeChargerConfigs, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
 import { TRAFFIC_PERIODS, estimateFreeStalls, getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
 
@@ -32,7 +32,6 @@ interface EvMapProps {
   route: RouteResult | null;
   routeVariants?: Partial<Record<string, RouteResult>>;
   selectedRouteType?: string;
-  chargingStops: ChargingStop[];
   currentPosition?: { lat: number; lng: number } | null;
   isNavigating?: boolean;
   /** Heading in degrees clockwise from north; map rotates so this faces up when headingUp. */
@@ -131,6 +130,9 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   if (hasClosedWorks) {
     badges.push(`<div style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#dc2626;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&times;</div>`);
   }
+  if (charger.winterSportsMode && isSnowRegion(charger)) {
+    badges.push(`<div title="Wintersportgebied" style="position:absolute;top:-5px;left:-5px;width:15px;height:15px;border-radius:50%;background:#e0f2fe;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#0369a1;font-size:10px;line-height:1;">❄</div>`);
+  }
   if (isLowSpeed) {
     badges.push(`<div style="position:absolute;bottom:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#0f172a;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fbbf24;font-size:9px;line-height:1;">&#9660;</div>`);
   }
@@ -150,15 +152,6 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
 }
 
 
-
-function chargeStopIcon() {
-  return L.divIcon({
-    className: 'custom-marker',
-    html: `<div style="width:26px;height:26px;border-radius:50%;background:#f59e0b;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;">&#9889;</div>`,
-    iconSize: [26, 26],
-    iconAnchor: [13, 13],
-  });
-}
 
 function currentPositionIcon(heading?: number | null) {
   const rotation = typeof heading === "number" && Number.isFinite(heading) ? heading : 0;
@@ -182,7 +175,7 @@ function groupChargerConfigs(configs: ChargerConfig[]): string[] {
   });
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, chargingStops, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -633,7 +626,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
       marker.bindPopup(`<div style="font-family:system-ui;font-size:13px"><strong>${escapeHtml(waypoint.label || 'Tussenstop')}</strong><br/>${detail}</div>`);
       markersRef.current.addLayer(marker);
     });
-  }, [startCoord, destCoord, superchargers, chargingStops, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode]);
+  }, [startCoord, destCoord, superchargers, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode]);
 
   // Draai de kaart tijdens navigatie wanneer rijrichting boven is ingeschakeld.
   useEffect(() => {
