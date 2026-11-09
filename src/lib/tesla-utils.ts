@@ -1,4 +1,5 @@
 import { canUseConnectors, normalizeConnectors, rangeFromEnergy } from './energy';
+import { getTrafficForecastAt } from './traffic-forecast';
 import { Supercharger, ChargingStop, ChargerStatus, RouteResult, WeatherMode, TimeMode, teslaBatteryKWh, teslaMaxChargeKw, ChargerConfig, OpeningHours, OpeningDayKey, ChargerLifecycleStatus, ChargerFilterState, constructionStepLabels } from './tesla-types';
 
 export function parseCoordinates(input: string): { lat: number; lng: number } | null {
@@ -646,10 +647,17 @@ export function calculateChargingStops(
     // Zo min mogelijk laadstops: kies de VERST haalbare lader. Liefst met het gewenste
     // aankomstpercentage; lukt dat niet, dan de verste met minimaal de veiligheidsmarge.
     const arriveTarget = Math.max(minSafetyPercent, maxArrivalAtChargerPercent);
-    const penalty = (c: Candidate) =>
-      c.detourKm * 2
-      + (preferTrailerFriendly && c.charger.trailerFriendly ? -15 : 0)
-      + (c.charger.inParkingGarage ? 10 : 0);
+    const penalty = (c: Candidate) => {
+      // Vermijd bij vergelijkbare routes liever een drukke laadlocatie.
+      // Een voorspelling met lage zekerheid weegt minder zwaar dan een handmatig beheerd profiel.
+      const crowd = getTrafficForecastAt(c.charger.trafficForecast, c.estArrival, c.charger.province);
+      const confidenceFactor = crowd?.confidence === "high" ? 0.3 : crowd?.confidence === "medium" ? 0.22 : 0.12;
+      const crowdPenaltyKm = (crowd?.level ?? 0) * confidenceFactor;
+      return c.detourKm * 2
+        + crowdPenaltyKm
+        + (preferTrailerFriendly && c.charger.trailerFriendly ? -15 : 0)
+        + (c.charger.inParkingGarage ? 10 : 0);
+    };
     const feasible = candidates.filter((c) => c.batteryAtCharger >= minSafetyPercent);
     const comfy = feasible.filter((c) => c.batteryAtCharger >= arriveTarget - 0.5);
     // Kan je vanaf een lader de bestemming halen (ook met max 100%), kies dan alleen uit die laders.
