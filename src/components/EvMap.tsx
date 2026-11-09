@@ -497,15 +497,23 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
             return local + " → " + new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(amount * rate);
           };
           const row = (k: string, v: string) => `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#64748b;">${k}</span><strong>${v}</strong></div>`;
-          const priceBlocks = (Array.isArray(charger.priceBlocks) ? charger.priceBlocks : []).filter((b) => !!b && typeof b.pricePerKwh === 'number' && Number.isFinite(b.pricePerKwh));
+          const allPriceBlocks = (Array.isArray(charger.priceBlocks) ? charger.priceBlocks : []).filter((b) => !!b);
+          const priceBlocks = allPriceBlocks.filter((b) => b.type !== "power" && typeof b.pricePerKwh === "number" && Number.isFinite(b.pricePerKwh));
+          const powerPriceBlocks = allPriceBlocks.filter((b) => b.type === "power" && typeof b.pricePerMinute === "number" && Number.isFinite(b.pricePerMinute));
           const hasTimeBasedPricing = priceBlocks.length > 0;
+          const hasPowerPricing = powerPriceBlocks.length > 0;
           const hasRegularPricing = charger.pricePerKwh != null || charger.pricePerKwhPeak != null || !!charger.peakHours;
           let d = `<div style="font-family:system-ui;font-size:13px;min-width:260px;color:#0f172a;display:grid;gap:4px;">
             <strong style="font-size:15px;">${escapeHtml(charger.name || 'Onbekend')}</strong>`;
           if (hasTimeBasedPricing) {
             d += `<div style="font-weight:700;margin-top:4px;">⚡ Prijzen per tijdsblok</div>
               ${priceBlocks.map((b) => row(escapeHtml(`${b.days ?? 'Dagelijks'} ${b.from ?? ''}–${b.to ?? ''}`), eur(b.pricePerKwh))).join('')}`;
-          } else if (hasRegularPricing) {
+          }
+          if (hasPowerPricing) {
+            d += `<div style="font-weight:700;margin-top:8px;">⏱️ Prijzen per minuut · actueel laadvermogen</div>
+              ${powerPriceBlocks.sort((a,b) => (a.minKw ?? 0) - (b.minKw ?? 0)).map((b) => row(escapeHtml(`${b.minKw ?? 0}–${b.maxKw == null ? '∞' : b.maxKw} kW`), eur(b.pricePerMinute) + ' / min')).join('')}`;
+          }
+          if (!hasTimeBasedPricing && !hasPowerPricing && hasRegularPricing) {
             d += `<div style="font-weight:700;margin-top:4px;">⚡ Prijzen</div>
               ${charger.pricePerKwh != null ? row('Per kWh', eur(charger.pricePerKwh)) : ''}
               ${charger.pricePerKwhPeak != null ? row('Piek per kWh', eur(charger.pricePerKwhPeak)) : ''}
