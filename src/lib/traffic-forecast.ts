@@ -167,7 +167,7 @@ export function estimateFreeStalls(total: number | undefined, level: number): nu
 export function isSnowRegion(charger: Pick<Supercharger, "name" | "city" | "province" | "country" | "lat" | "lng">): boolean {
   const text = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
   const country = (charger.country ?? "").toLowerCase();
-  if (/switzerland|schweiz|suisse|osterreich|österreich|austria|norway|norge|sweden|sverige|finland|suomi/.test(country)) return true;
+  if (/switzerland|schweiz|suisse|norway|norge|sweden|sverige|finland|suomi/.test(country)) return true;
   if (/alps|alpen|dolomit|ski|berg|brenner|tauern|arlberg|tirol|tyrol|salzburg|kitzb[uü]hel|zell am see|sölden|soelden|ischgl|st anton|lermoos|innsbruck|chamonix|val thorens|courchevel|les arcs|tignes|verbier|davos|zermatt|laax|st moritz|livigno|cortina|bormio|geilo|try sil|trysil|are|åre|kiruna|rovaniemi/.test(text)) return true;
   return charger.lat >= 45.5 && charger.lat <= 48.5 && charger.lng >= 5.5 && charger.lng <= 17.5;
 }
