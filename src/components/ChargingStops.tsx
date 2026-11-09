@@ -2,6 +2,7 @@ import { Zap, BatteryCharging, MapPin, Gauge, Clock, Ban, Mountain, Thermometer,
 import type { ChargingStop, RouteResult } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
 import { parseMaxSpeed, v2SpeedKw } from '@/lib/tesla-utils';
+import { getTrafficForecastAt, trafficLevelLabel } from '@/lib/traffic-forecast';
 
 interface ChargingStopsProps {
   stops: ChargingStop[];
@@ -236,14 +237,15 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                   : <span className="rounded-md bg-red-500/10 px-1.5 py-0.5 text-red-300">🚐 Niet aanhangervriendelijk</span>)}
                 {typeof stop.energyChargedKWh === 'number' && <span className="text-emerald-300">+{stop.energyChargedKWh} kWh</span>}
               </div>
-              {stop.charger.trafficForecast && (
-        <div className="mt-2 flex items-center gap-2 text-[11px]">
-          <span className={`rounded-md px-2 py-1 ${stop.charger.trafficForecast.level === "high" ? "bg-red-500/15 text-red-300" : stop.charger.trafficForecast.level === "low" ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300"}`}>
-            {stop.charger.trafficForecast.level === "high" ? "Verwacht druk" : stop.charger.trafficForecast.level === "low" ? "Verwacht rustig" : "Gemiddelde drukte"}
-          </span>
-          <span className="text-slate-400">{[stop.charger.trafficForecast.days, stop.charger.trafficForecast.from && stop.charger.trafficForecast.to ? `${stop.charger.trafficForecast.from}–${stop.charger.trafficForecast.to}` : null].filter(Boolean).join(" · ")}</span>
-        </div>
-      )}
+              {stop.charger.trafficForecast && eta && (() => {
+                const forecast = getTrafficForecastAt(stop.charger.trafficForecast, eta);
+                if (!forecast) return null;
+                const color = forecast.level >= 70 ? "bg-red-500/15 text-red-300" : forecast.level <= 30 ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300";
+                return <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                  <span className={`rounded-md px-2 py-1 ${color}`}>{trafficLevelLabel(forecast.level)} · {forecast.level}%</span>
+                  <span className="text-slate-400">{forecast.from}–{forecast.to} · {forecast.confidence === "low" ? "lage zekerheid" : forecast.confidence === "high" ? "hoge zekerheid" : "gemiddelde zekerheid"}</span>
+                </div>;
+              })()}
       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
                 {activePrice !== null && (
                   <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">{localCurrency(activePrice, stop.charger.priceCurrency)}/kWh{charge !== null ? ` · ${localCurrency(charge, stop.charger.priceCurrency)}` : ''}</span>
