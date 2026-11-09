@@ -73,6 +73,35 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
       holiday: [10, 22, 32, 28, 14],
     },
   };
+  // Externe bezettingsmetingen per specifieke Tesla-locatie (november 2026).
+  // Norden: Ladespiegel, 7 dagen/96 laadsessies; gemiddeld 3% bezet.
+  if (/norden/.test(identity)) return {
+    label: "gemeten zeer rustige Tesla-locatie Norden (gemiddeld circa 3% bezet)",
+    levels: {
+      weekday: [1, 2, 8, 5, 1],
+      weekend: [1, 2, 8, 5, 1],
+      holiday: [2, 3, 10, 7, 2],
+    },
+  };
+  // Bispingen: Ladespiegel, 7 dagen/993 laadsessies; gemiddeld 7% bezet.
+  if (/bispingen|behringen/.test(identity)) return {
+    label: "gemeten rustige Tesla-locatie Bispingen (gemiddeld circa 7% bezet)",
+    levels: {
+      weekday: [3, 5, 13, 14, 6],
+      weekend: [3, 5, 13, 14, 6],
+      holiday: [4, 7, 17, 18, 8],
+    },
+  };
+  // Groningen: ChargeQueue rapporteert voor de Tesla-locatie 18,8% bezetting.
+  // Er is geen volledige historische uurreeks beschikbaar; dit profiel blijft indicatief.
+  if (/groningen/.test(identity)) return {
+    label: "locatieschatting Groningen, gebaseerd op gerapporteerde bezetting van circa 19%",
+    levels: {
+      weekday: [8, 15, 22, 24, 12],
+      weekend: [8, 18, 26, 28, 14],
+      holiday: [10, 20, 30, 32, 16],
+    },
+  };
   return null;
 }
 
