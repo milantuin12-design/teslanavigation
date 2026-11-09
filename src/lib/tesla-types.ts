@@ -261,8 +261,10 @@ export interface Supercharger {
   inParkingGarage?: boolean;
   status?: ChargerLifecycleStatus;
   construction?: ConstructionInfo;
-  /** Expected crowd level, separately for weekdays, weekends and school holidays. */
+  /** Expected crowd level, separately for weekdays, weekends and general holiday periods. */
   trafficForecast?: TrafficForecast;
+  /** Global admin-controlled winter-sports warning mode. */
+  winterSportsMode?: boolean;
   siteAmenities?: string[];
   works?: WorksInfo;
   closure?: ClosureInfo;
