@@ -5,7 +5,8 @@ import EvMap from "@/components/EvMap";
 import InputPanel, { type PlannedWaypoint } from "@/components/InputPanel";
 import { estimateConsumption, needsCcsAdapter, type RouteWeather } from "@/lib/energy";
 import { fetchRouteWeather } from "@/lib/weather";
-import ChargingStops from "@/components/ChargingStops";
+import ChargingStops, { parkingCost } from "@/components/ChargingStops";
+import { estimateChargingCost } from "@/lib/charging-cost";
 import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
@@ -106,6 +107,20 @@ interface RoutePlan {
   steps: RouteStep[];
   stops: ChargingStop[];
   arrivalPercent: number;
+}
+
+function estimateRouteCost(plan: RoutePlan, departure: Date, modelName: string, packKWh: number, carMaxKwOverride?: number): number | null {
+  if (plan.stops.length === 0) return null;
+  let total = 0;
+  for (const stop of plan.stops) {
+    const eta = new Date(departure.getTime() + (stop.etaMinFromStart ?? 0) * 60000);
+    const charge = estimateChargingCost(stop, eta, modelName, packKWh, carMaxKwOverride);
+    if (!charge || charge.currency !== "EUR") return null;
+    const parking = parkingCost(stop, eta);
+    if (stop.charger.parkingFee && parking === null) return null;
+    total += charge.amount + (parking ?? 0);
+  }
+  return Number.isFinite(total) ? total : null;
 }
 
 const OFF_ROUTE_KM_THRESHOLD = 0.2; // 200m
@@ -220,6 +235,9 @@ function Index() {
     return total < bestTotal ? i : best;
   }, 0) : -1;
   const fewestStopsIndex = routeOptions.length ? routeOptions.reduce((best, plan, i) => plan.stops.length < routeOptions[best].stops.length ? i : best, 0) : -1;
+  const routeCosts = routeOptions.map((plan) => estimateRouteCost(plan, departureDate, selectedModel, packKWh, carMaxKwOverride));
+  const pricedRoutes = routeCosts.map((cost, index) => ({ cost, index })).filter((item): item is { cost: number; index: number } => item.cost !== null);
+  const cheapestRouteIndex = pricedRoutes.length ? pricedRoutes.reduce((best, item) => item.cost < best.cost ? item : best).index : -1;
   const [ownerPanelId, setOwnerPanelId] = useState<string | null>(null);
   const [focusCoord, setFocusCoord] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -1431,7 +1449,7 @@ function Index() {
               liveTraffic={onlineTraffic && !isFutureTrip}
               ccsBlocked={ccsBlocked}
               showTrailer={preferTrailerFriendly || trailerReductionEffective > 0}
-              restMin={waypoints.filter((w) => !w.corridor).reduce((sum, w) => {
+              modelName={selectedModel}\n              carMaxKwOverride={carMaxKwOverride}\n              restMin={waypoints.filter((w) => !w.corridor).reduce((sum, w) => {
                 if (!w.departAt || !route) return sum + (w.restMin ?? 0);
                 const kmAtWaypoint = projectOntoRoute(w.lat, w.lng, route.coordinates).km;
                 const travelMinToWaypoint = route.totalDistanceKm > 0 ? (kmAtWaypoint / route.totalDistanceKm) * route.totalTimeMin : 0;
@@ -1475,9 +1493,11 @@ function Index() {
                     onClick={() => handleSelectRoute(i)}
                     className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${selectedRouteIndex === i ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30" : "text-slate-300 hover:bg-white/10 hover:text-white"}`}
                   >
-                    Route {i + 1} · {plan.route.totalDistanceKm} km · {plan.stops.length} stop{plan.stops.length === 1 ? "" : "s"}
+                    Route {i + 1} · {plan.route.totalDistanceKm} km · {plan.stops.length} stop{plan.stops.length === 1 ? "" : "s"} · {Math.round(plan.route.totalTimeMin + plan.stops.reduce((sum, stop) => sum + stop.chargeDurationMin, 0))} min totaal
                     {i === fastestRouteIndex && <span className="ml-1 rounded bg-emerald-500/20 px-1 text-emerald-300">Snelst</span>}
                     {i === fewestStopsIndex && <span className="ml-1 rounded bg-blue-500/20 px-1 text-blue-300">Minste stops</span>}
+                    {i === cheapestRouteIndex && <span className="ml-1 rounded bg-amber-500/20 px-1 text-amber-300">Goedkoopst · €{routeCosts[i]!.toFixed(2)}</span>}
+                    {routeCosts[i] !== null && i !== cheapestRouteIndex && <span className="ml-1 text-slate-400">± €{routeCosts[i]!.toFixed(2)}</span>}
                     {(plan.route.trafficDelayMin ?? 0) > 0 && (
                       <span className={plan.route.trafficDelayMin! >= 20 ? "text-red-400" : "text-amber-400"}>
                         {" "}· +{plan.route.trafficDelayMin} min file
