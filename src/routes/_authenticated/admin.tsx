@@ -18,7 +18,7 @@ import type { Json } from "@/integrations/supabase/types";
 import type { ParkingFeeBlock } from "@/lib/tesla-types";
 import { constructionProgressLabels, defaultOpeningHours, lifecycleLabels, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
 import { TRAFFIC_DAYS, TRAFFIC_PERIODS, createAustriaTrafficForecast, createEmptyTrafficForecast } from "@/lib/traffic-forecast";
-import type { TrafficForecast } from "@/lib/tesla-types";
+import type { TrafficForecast, TrafficForecastPeriodSlot } from "@/lib/tesla-types";
 
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -59,6 +59,7 @@ type Charger = {
   in_parking_garage: boolean;
   status: ChargerLifecycleStatus;
   construction: ConstructionInfo | null;
+  traffic_forecast?: TrafficForecast | null;
   works: WorksInfo | null;
   closure: ClosureInfo | null;
   owner_id: string | null;
@@ -146,6 +147,7 @@ const emptyCharger = {
   peak_hours: null as string | null,
   status: "operational" as ChargerLifecycleStatus,
   construction: {} as ConstructionInfo,
+  traffic_forecast: createEmptyTrafficForecast(),
   works: {} as WorksInfo,
   closure: {} as ClosureInfo,
   owner_id: null as string | null,
@@ -159,6 +161,63 @@ const emptyCharger = {
   photos: [] as string[],
   charger_configs: [{ count: 8, version: "V3", speedKw: 250 }] as ChargerConfig[],
 };
+
+
+function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; onChange: (value: TrafficForecast) => void }) {
+  const groups: { key: "weekdaySlots" | "weekendSlots" | "holidaySlots"; label: string; description: string }[] = [
+    { key: "weekdaySlots", label: "Doordeweeks", description: "Maandag t/m vrijdag" },
+    { key: "weekendSlots", label: "Weekend", description: "Zaterdag en zondag" },
+    { key: "holidaySlots", label: "Vakanties", description: "Oostenrijkse schoolvakanties en piekperiodes" },
+  ];
+  const update = (key: "weekdaySlots" | "weekendSlots" | "holidaySlots", index: number, level: number) => {
+    const current = value[key] ?? TRAFFIC_PERIODS.map((period): TrafficForecastPeriodSlot => ({ from: period.from, to: period.to, level: 25 }));
+    onChange({ ...value, source: "admin", confidence: "medium", [key]: current.map((slot, i) => i === index ? { ...slot, level: Math.max(0, Math.min(100, level)) } : slot) });
+  };
+  return (
+    <div className="rounded-lg border border-cyan-700/50 bg-slate-900/70 p-3 space-y-3">
+      <div>
+        <div className="text-sm font-semibold text-cyan-200">Druktevoorspelling</div>
+        <p className="text-[11px] text-slate-400">Vul per tijdsblok 0–100% verwachte drukte in. De drie profielen worden apart gebruikt in de routeplanner.</p>
+      </div>
+      {groups.map((group) => (
+        <div key={group.key} className="space-y-2">
+          <div>
+            <div className="text-xs font-semibold text-white">{group.label}</div>
+            <div className="text-[10px] text-slate-500">{group.description}</div>
+          </div>
+          <div className="grid grid-cols-5 gap-1.5">
+            {TRAFFIC_PERIODS.map((period, index) => {
+              const slot = value[group.key]?.[index];
+              return (
+                <label key={period.from} className="min-w-0 text-center">
+                  <span className="block text-[9px] text-slate-400">{period.label}</span>
+                  <input
+                    type="number" min="0" max="100" step="5"
+                    value={slot?.level ?? 25}
+                    onChange={(event) => update(group.key, index, Number(event.target.value) || 0)}
+                    className="mt-1 w-full min-w-0 rounded-md border border-slate-700 bg-slate-800 px-1 py-2 text-center text-xs text-white"
+                  />
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+      {value.holidayPeriods?.length ? (
+        <div className="rounded-md bg-slate-800/70 p-2">
+          <div className="mb-1 text-[10px] font-semibold text-cyan-200">Ingebouwde Oostenrijkse vakantiedata 2026/2027</div>
+          <div className="space-y-0.5 text-[10px] text-slate-400">
+            {value.holidayPeriods.map((period) => <div key={period.label}>{period.label}: {period.from} t/m {period.to}</div>)}
+          </div>
+        </div>
+      ) : null}
+      <label className="block text-[10px] text-slate-400">
+        Toelichting / bron
+        <input value={value.note ?? ""} onChange={(event) => onChange({ ...value, source: "admin", confidence: "medium", note: event.target.value })} className="mt-1 w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-2 text-xs text-white" />
+      </label>
+    </div>
+  );
+}
 
 const STATUS_OPTIONS: ChargerLifecycleStatus[] = [
   "operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed", "unknown",
@@ -275,14 +334,20 @@ function AdminPage() {
     const rows: Charger[] = [];
     let parkingBlocksColumnMissing = false;
     for (let from = 0; ; from += 1000) {
-      const columnsWithCurrency = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks";
+      const columnsWithCurrency = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,traffic_forecast,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks";
       const columnsWithoutCurrency = columnsWithCurrency.replace("price_currency,", "");
       const columnsWithoutParkingBlocks = columnsWithCurrency.replace("parking_blocks,", "");
       const columnsWithoutBoth = columnsWithCurrency.replace("parking_blocks,", "").replace("price_currency,", "");
+      const columnsWithoutTraffic = columnsWithCurrency.replace("traffic_forecast,", "");
       let parkingBlocksMissing = false;
       let result = await supabase.from("superchargers")
         .select(columnsWithCurrency)
         .order("name").range(from, from + 999);
+
+      // Oudere databases kunnen de druktevoorspellingskolom nog missen.
+      if (result.error && /traffic_forecast|column .* does not exist|schema cache/i.test(result.error.message)) {
+        result = await supabase.from("superchargers").select(columnsWithoutTraffic).order("name").range(from, from + 999);
+      }
 
       // Oudere databases kunnen de nieuwe parkeerblokkenkolom nog missen.
       if (result.error && /parking_blocks|column .* does not exist|schema cache/i.test(result.error.message)) {
@@ -325,12 +390,12 @@ function AdminPage() {
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
-  const openNew = () => { setEditing({ ...emptyCharger, opening_hours: defaultOpeningHours() }); setCoordsInput(""); };
+  const openNew = () => { setEditing({ ...emptyCharger, opening_hours: defaultOpeningHours(), traffic_forecast: createEmptyTrafficForecast() }); setCoordsInput(""); };
   const openEdit = (c: Charger) => {
     const legacyParking: ParkingFeeBlock[] = [];
     if (c.parking_fee_amount != null && c.parking_fee_amount > 0) legacyParking.push({ label: "Vast starttarief", afterMinutes: 0, durationMinutes: 0, amount: c.parking_fee_amount, currency: "EUR" });
     if (c.parking_per_euro != null && c.parking_per_minutes != null) legacyParking.push({ label: c.parking_free_minutes ? "Daarna" : "Parkeertarief", afterMinutes: c.parking_free_minutes ?? 0, durationMinutes: c.parking_per_minutes, amount: c.parking_per_euro, currency: "EUR", repeat: true });
-    setEditing({ ...c, construction: { ...(c.construction || {}), trafficForecast: c.construction?.trafficForecast ?? (/^(austria|österreich)$/i.test(c.country ?? "") ? createAustriaTrafficForecast({ name: c.name, city: c.city ?? undefined, province: c.province ?? undefined, lat: c.lat, lng: c.lng }) : createEmptyTrafficForecast()) }, parking_blocks: c.parking_blocks?.length ? c.parking_blocks : legacyParking, charger_configs: configsForCharger(c), opening_hours: normalizeOpeningHours(c.opening_hours, c.opening_time, c.closing_time) });
+    setEditing({ ...c, traffic_forecast: c.traffic_forecast ?? createAustriaTrafficForecast({ name: c.name, city: c.city ?? undefined, province: c.province ?? undefined, lat: c.lat, lng: c.lng }), parking_blocks: c.parking_blocks?.length ? c.parking_blocks : legacyParking, charger_configs: configsForCharger(c), opening_hours: normalizeOpeningHours(c.opening_hours, c.opening_time, c.closing_time) });
     setCoordsInput(`${c.lat},${c.lng}`);
   };
 
@@ -373,6 +438,7 @@ function AdminPage() {
       city: editing.city || null,
       status: editing.status || "operational",
       construction: (editing.construction || {}) as Json,
+      traffic_forecast: (editing.traffic_forecast || createEmptyTrafficForecast()) as unknown as Json,
       works: (editing.works || {}) as Json,
       closure: (editing.closure || {}) as Json,
       owner_id: editing.owner_id || null,
