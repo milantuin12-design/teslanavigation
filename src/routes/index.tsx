@@ -108,6 +108,10 @@ interface RoutePlan {
   steps: RouteStep[];
   stops: ChargingStop[];
   arrivalPercent: number;
+  whatIf?: {
+    minus5: { reachable: boolean; arrivalPercent: number; stops: number };
+    plus5: { reachable: boolean; arrivalPercent: number; stops: number };
+  };
 }
 
 function estimateRouteCost(plan: RoutePlan, departure: Date, modelName: string, packKWh: number, carMaxKwOverride?: number): number | null {
@@ -877,6 +881,12 @@ function Index() {
       if (result.suggestions?.length) setRouteAdvice(result.suggestions);
       return null;
     }
+    const minus5Result = calculateChargingStops(base.route, { ...calcOpts, batteryPercent: Math.max(0, fromBattery - 5) });
+    const plus5Result = calculateChargingStops(base.route, { ...calcOpts, batteryPercent: Math.min(100, fromBattery + 5) });
+    const whatIf = {
+      minus5: { reachable: !minus5Result.unreachable, arrivalPercent: minus5Result.arrivalPercent, stops: minus5Result.stops.length },
+      plus5: { reachable: !plus5Result.unreachable, arrivalPercent: plus5Result.arrivalPercent, stops: plus5Result.stops.length },
+    };
     setRouteAdvice([]);
     setEnergySummary({
       usedKWh: Math.round((base.route.totalDistanceKm / 100) * consumptionKWh100),
@@ -884,7 +894,7 @@ function Index() {
       kWh100: consumptionKWh100,
     });
     if (result.stops.length === 0) {
-      return { route: base.route, steps: base.steps, stops: [], arrivalPercent: result.arrivalPercent };
+      return { route: base.route, steps: base.steps, stops: [], arrivalPercent: result.arrivalPercent, whatIf };
     }
 
     const finalWaypoints = [
@@ -907,7 +917,7 @@ function Index() {
           0,
         );
     if (!finalResult) {
-      return { route: base.route, steps: base.steps, stops: result.stops, arrivalPercent: result.arrivalPercent };
+      return { route: base.route, steps: base.steps, stops: result.stops, arrivalPercent: result.arrivalPercent, whatIf };
     }
 
     // Uitsluitend op verbruik: bereik = bruikbare kWh / kWh per km.
@@ -945,6 +955,7 @@ function Index() {
       steps: finalResult.steps,
       stops: fixedStops,
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
+      whatIf,
     };
   }, [departureDate, excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
 
