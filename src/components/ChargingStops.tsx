@@ -3,6 +3,7 @@ import type { ChargingStop, RouteResult } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
 import { parseMaxSpeed, v2SpeedKw } from '@/lib/tesla-utils';
 import { getTrafficForecastAt, trafficLevelLabel } from '@/lib/traffic-forecast';
+import { estimateChargingCost } from '@/lib/charging-cost';
 
 interface ChargingStopsProps {
   stops: ChargingStop[];
@@ -21,6 +22,8 @@ interface ChargingStopsProps {
   ccsBlocked?: boolean;
   showTrailer?: boolean;
   restMin?: number;
+  modelName?: string;
+  carMaxKwOverride?: number;
 }
 
 function isWeekend(d: Date) { const day = d.getDay(); return day === 0 || day === 6; }
@@ -115,7 +118,7 @@ function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo, tem
   );
 }
 
-export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic, ccsBlocked, showTrailer, restMin = 0 }: ChargingStopsProps) {
+export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic, ccsBlocked, showTrailer, restMin = 0, modelName = 'Model 3 Long Range AWD', carMaxKwOverride }: ChargingStopsProps) {
   const start = departure ?? new Date();
   const total = route?.totalDistanceKm ?? totalDistanceKm ?? 0;
   const k100 = consumptionKWh100 && consumptionKWh100 > 0 ? consumptionKWh100 : null;
@@ -212,6 +215,7 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
         const park = parkingCost(stop, eta ?? undefined);
         const charge = chargingCost(stop, eta ?? undefined);
         const activePrice = activePricePerKwh(stop, eta ?? undefined);
+        const costEstimate = eta ? estimateChargingCost(stop, eta, modelName, packKWh ?? undefined, carMaxKwOverride) : null;
         return (
           <div key={idx} className="space-y-2">
             {legEl(idx)}
@@ -247,7 +251,17 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                 </div>;
               })()}
       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-                {activePrice !== null && (
+                {costEstimate?.type === "minute" && (
+                  <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+                    {localCurrency(costEstimate.amount, costEstimate.currency)} · per minuut ({Math.round(costEstimate.initialPowerKw ?? 0)} kW start)
+                  </span>
+                )}
+                {costEstimate?.type === "kwh" && (
+                  <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+                    {localCurrency(costEstimate.amount, costEstimate.currency)} totaal · kWh-tarief
+                  </span>
+                )}
+                {!costEstimate && activePrice !== null && (
                   <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">{localCurrency(activePrice, stop.charger.priceCurrency)}/kWh{charge !== null ? ` · ${localCurrency(charge, stop.charger.priceCurrency)}` : ''}</span>
                 )}
                 {stop.charger.parkingFee && (
