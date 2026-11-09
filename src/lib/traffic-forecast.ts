@@ -102,6 +102,50 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
       holiday: [10, 20, 30, 32, 16],
     },
   };
+  // Voor deze locaties publiceert ladestatistik.de een gemiddelde bezetting over 30 dagen.
+  // Omdat geen uurverdeling is gepubliceerd, wordt alleen het gemeten gemiddelde gebruikt.
+  const measured30Day: Array<{ match: RegExp; name: string; level: number }> = [
+    { match: /helbingtwiete|wandsbek/, name: "Hamburg Helbingtwiete", level: 49 },
+    { match: /mercedesstra[sß]e|duesseltal|düsseltal/, name: "Düsseldorf Mercedesstraße", level: 44 },
+    { match: /westerfeld|altenh[oö]fen/, name: "Herne Am Westerfeld", level: 38 },
+    { match: /ring.?center|laut(er|)born/, name: "Offenbach Ring-Center", level: 38 },
+    { match: /euref/, name: "Berlin EUREF-Campus", level: 37 },
+    { match: /gy[sß]lingstra[sß]e/, name: "München Gyßlingstraße", level: 37 },
+    { match: /schanzenstra[sß]e/, name: "Köln Schanzenstraße", level: 36 },
+    { match: /krefelder.?str|vinn/, name: "Moers Krefelder Straße", level: 35 },
+    { match: /gewerbegebiet.?nord|magdeburg/, name: "Magdeburg Gewerbegebiet Nord", level: 34 },
+    { match: /wolfartsweierer/, name: "Karlsruhe Wolfartsweierer Straße", level: 34 },
+  ];
+  const measured = measured30Day.find((item) => item.match.test(identity));
+  if (measured) {
+    const level = measured.level;
+    const profile = [level, level, level, level, level];
+    return {
+      label: `gemeten 30-dagen-gemiddelde voor ${measured.name} (circa ${level}% bezet)`,
+      levels: {
+        weekday: [...profile],
+        weekend: [...profile],
+        holiday: [...profile],
+      },
+    };
+  }
+  // Eimeldingen en Lehre hebben gepubliceerde bezettingspercentages per uur over 7 dagen.
+  if (/eimeldingen|im rebacker/.test(identity)) return {
+    label: "gemeten uurprofiel Eimeldingen (piek circa 42% rond 20:00)",
+    levels: {
+      weekday: [4, 20, 27, 30, 28],
+      weekend: [4, 20, 27, 30, 28],
+      holiday: [5, 23, 31, 34, 31],
+    },
+  };
+  if (/lehre|loh(balken|balken)/.test(identity)) return {
+    label: "gemeten uurprofiel Lehre (piek circa 28% rond 15:00)",
+    levels: {
+      weekday: [2, 8, 18, 23, 15],
+      weekend: [2, 8, 18, 23, 15],
+      holiday: [3, 10, 21, 26, 17],
+    },
+  };
   return null;
 }
 
