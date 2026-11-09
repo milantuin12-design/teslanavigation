@@ -332,7 +332,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         if (!isVisibleOnMap(charger)) return;
 
         const status = getChargerStatus(charger);
-        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? ""), routeChargersOnly) });
+        const isRouteStop = chargingStops.some((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
+        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? ""), isRouteStop) });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const usable = isChargerUsable(charger);
