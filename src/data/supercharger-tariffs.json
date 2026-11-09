@@ -25809,7 +25809,11 @@
       "match": [
         "munchen mobel hoffner",
         "münchen möbel höffner",
-        "munchen moebel hoffner"
+        "munchen moebel hoffner",
+        "münchen freiham",
+        "munchen freiham",
+        "ludwig-koch-straße",
+        "ludwig-koch-strasse"
       ],
       "label": "München – Möbel Höffner",
       "timezone": "Europe/Berlin",
@@ -27021,7 +27025,10 @@
     {
       "country": "Germany",
       "match": [
-        "leipzig globus"
+        "leipzig globus",
+        "leipzig seehausen",
+        "leipzig globus seehausen",
+        "an der passage 1"
       ],
       "label": "Leipzig – GLOBUS",
       "timezone": "Europe/Berlin",
