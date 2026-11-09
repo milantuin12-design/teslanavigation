@@ -182,46 +182,90 @@ export function effectiveChargeSpeedKw(chargerKw: number, modelName: string, max
 }
 
 
-// Tesla-typische laadtijden op ~79 kWh accu.
-// Cumulatieve minuten vanaf 0% naar elk 10%-punt, per laadsnelheid.
-const CHARGE_CURVES: Record<number, number[]> = {
-  125: [0, 5, 10, 15, 21, 28, 36, 45, 56, 71, 91],
-  150: [0, 4, 8, 12, 17, 23, 30, 38, 48, 62, 81],
-  250: [0, 3, 6, 10, 14, 19, 25, 32, 41, 54, 72],
+// Laadvermogen per batterijpercentage, aangeleverd voor de vier Tesla-modelfamilies.
+// Tussen de opgegeven percentages wordt lineair geïnterpoleerd.
+const TESLA_CHARGE_POWER_CURVES: Record<string, { percent: number; kw: number }[]> = {
+  'Model 3': [
+    { percent: 0, kw: 250 }, { percent: 10, kw: 227 }, { percent: 20, kw: 201 },
+    { percent: 30, kw: 173 }, { percent: 40, kw: 125 }, { percent: 50, kw: 101 },
+    { percent: 60, kw: 81 }, { percent: 70, kw: 64 }, { percent: 80, kw: 39 },
+    { percent: 90, kw: 35 }, { percent: 95, kw: 28 },
+  ],
+  'Model Y': [
+    { percent: 0, kw: 250 }, { percent: 10, kw: 225 }, { percent: 20, kw: 189 },
+    { percent: 30, kw: 159 }, { percent: 40, kw: 130 }, { percent: 50, kw: 103 },
+    { percent: 60, kw: 82 }, { percent: 70, kw: 71 }, { percent: 80, kw: 40 },
+    { percent: 90, kw: 32 }, { percent: 95, kw: 30 },
+  ],
+  'Model S': [
+    { percent: 0, kw: 250 }, { percent: 10, kw: 250 }, { percent: 20, kw: 220 },
+    { percent: 30, kw: 195 }, { percent: 40, kw: 176 }, { percent: 50, kw: 140 },
+    { percent: 60, kw: 112 }, { percent: 70, kw: 87 }, { percent: 80, kw: 62 },
+    { percent: 90, kw: 41 }, { percent: 95, kw: 28 },
+  ],
+  'Model X': [
+    { percent: 0, kw: 250 }, { percent: 10, kw: 250 }, { percent: 20, kw: 220 },
+    { percent: 30, kw: 197 }, { percent: 40, kw: 176 }, { percent: 50, kw: 140 },
+    { percent: 60, kw: 112 }, { percent: 70, kw: 87 }, { percent: 80, kw: 62 },
+    { percent: 90, kw: 41 }, { percent: 95, kw: 28 },
+  ],
 };
 
-function curveArrayForSpeed(speedKw: number): number[] {
-  const s = Math.max(30, Math.min(400, speedKw || 150));
-  if (s <= 125) return CHARGE_CURVES[125];
-  if (s >= 250) return CHARGE_CURVES[250];
-  let lo = 125, hi = 150;
-  if (s > 150) { lo = 150; hi = 250; }
-  const t = (s - lo) / (hi - lo);
-  const a = CHARGE_CURVES[lo];
-  const b = CHARGE_CURVES[hi];
-  return a.map((v, i) => v + (b[i] - v) * t);
+function chargeCurveFamily(modelName: string): string {
+  if (/model\\s*y/i.test(modelName)) return 'Model Y';
+  if (/model\\s*s/i.test(modelName)) return 'Model S';
+  if (/model\\s*x/i.test(modelName)) return 'Model X';
+  return 'Model 3';
 }
 
-function curveMinutesAt(percent: number, speedKw: number): number {
-  const curve = curveArrayForSpeed(speedKw);
-  const p = Math.max(0, Math.min(100, percent));
-  const idx = Math.floor(p / 10);
-  const frac = (p - idx * 10) / 10;
-  const a = curve[idx] ?? curve[curve.length - 1];
-  const b = curve[Math.min(idx + 1, curve.length - 1)];
-  return a + (b - a) * frac;
+/** Geschat laadvermogen bij een SOC, begrensd door de Supercharger en de auto. */
+export function estimatedChargePowerKw(
+  modelName: string,
+  batteryPercent: number,
+  chargerMaxSpeedKw: number,
+  carMaxKwOverride?: number
+): number {
+  const points = TESLA_CHARGE_POWER_CURVES[chargeCurveFamily(modelName)];
+  const p = Math.max(0, Math.min(100, batteryPercent));
+  let lower = points[0];
+  let upper = points[points.length - 1];
+  for (let i = 1; i < points.length; i++) {
+    if (p <= points[i].percent) {
+      lower = points[i - 1];
+      upper = points[i];
+      break;
+    }
+  }
+  const span = upper.percent - lower.percent;
+  const fraction = span > 0 ? Math.max(0, Math.min(1, (p - lower.percent) / span)) : 0;
+  const curveKw = lower.kw + (upper.kw - lower.kw) * fraction;
+  const carCap = carMaxKwOverride && carMaxKwOverride > 0
+    ? carMaxKwOverride
+    : (teslaMaxChargeKw[modelName] ?? 250);
+  return Math.max(1, Math.min(curveKw, chargerMaxSpeedKw || 250, carCap));
 }
 
 export function calculateChargeDuration(
   batteryBefore: number,
   batteryAfter: number,
   batteryCapacityKWh: number,
-  chargerMaxSpeedKw: number
+  chargerMaxSpeedKw: number,
+  modelName: string = 'Model 3 Long Range AWD',
+  carMaxKwOverride?: number
 ): number {
-  if (batteryAfter <= batteryBefore) return 0;
-  const base = Math.max(0, curveMinutesAt(batteryAfter, chargerMaxSpeedKw) - curveMinutesAt(batteryBefore, chargerMaxSpeedKw));
-  const kwhScale = Math.max(0.7, batteryCapacityKWh / 79);
-  return Math.max(1, Math.round(base * kwhScale));
+  if (batteryAfter <= batteryBefore || batteryCapacityKWh <= 0) return 0;
+  // Reken in stappen van 1% zodat de taper en tariefgrenzen nauwkeurig gevolgd kunnen worden.
+  let minutes = 0;
+  const start = Math.max(0, batteryBefore);
+  const end = Math.min(100, batteryAfter);
+  for (let pct = start; pct < end; pct += 1) {
+    const next = Math.min(end, pct + 1);
+    const midpoint = (pct + next) / 2;
+    const powerKw = estimatedChargePowerKw(modelName, midpoint, chargerMaxSpeedKw, carMaxKwOverride);
+    const energyKWh = batteryCapacityKWh * (next - pct) / 100;
+    minutes += (energyKWh / powerKw) * 60;
+  }
+  return Math.max(1, Math.round(minutes));
 }
 
 
