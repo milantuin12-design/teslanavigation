@@ -799,6 +799,17 @@ function AdminPage() {
                 />
 
                 <div className="space-y-2 rounded-lg border border-slate-700 p-3">
+                  <Label className="text-xs">Voorzieningen op locatie (één per regel)</Label>
+                  <p className="text-[11px] text-slate-400">Vul alleen voorzieningen in die je hebt gecontroleerd, bijvoorbeeld toilet, restaurant, supermarkt, overdekt laden of speeltuin.</p>
+                  <textarea
+                    rows={3}
+                    value={(editing.construction?.siteAmenities ?? []).join("\n")}
+                    onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), siteAmenities: e.target.value.split("\n").map((item) => item.trim()).filter(Boolean).slice(0, 20) } })}
+                    placeholder={"Toilet\nRestaurant\nSupermarkt"}
+                    className="w-full rounded-md bg-slate-800 border border-slate-700 p-2 text-sm"
+                  />
+                </div>
+                <div className="space-y-2 rounded-lg border border-slate-700 p-3">
                   <Label className="text-xs">Foto's (één link per regel, alleen zichtbaar in detailvenster)</Label>
                   <textarea rows={2} value={(editing.photos || []).join("\n")} onChange={(e) => setEditing({ ...editing, photos: e.target.value.split("\n") })} className="w-full rounded-md bg-slate-800 border border-slate-700 p-2 text-sm" />
                   <div className="flex flex-wrap gap-4 text-sm">
