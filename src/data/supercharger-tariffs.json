@@ -24585,7 +24585,11 @@
     {
       "country": "Germany",
       "match": [
-        "eschborn globus"
+        "eschborn globus",
+        "eschborn ginnheimer straße",
+        "eschborn ginnheimer strasse",
+        "ginnheimer straße 18",
+        "ginnheimer strasse 18"
       ],
       "label": "Eschborn – GLOBUS",
       "timezone": "Europe/Berlin",
