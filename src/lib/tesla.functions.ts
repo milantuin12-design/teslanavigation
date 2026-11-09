@@ -249,11 +249,14 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
         .from("charger_owners")
         .select("id,name,logo_url,description,website,contact,notes");
       let winterSportsMode = false;
+      let holidayPeriodMode = false;
       try {
         const setting = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "winter_sports_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
         winterSportsMode = setting.data?.details?.enabled === true;
-      } catch { /* setting table may not yet be migrated in a hosted environment */ }
-      return { rows, ownerRows: (ownerRows ?? []) as (OwnerRow & { id: string })[], winterSportsMode };
+        const holidaySetting = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "holiday_period_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        holidayPeriodMode = holidaySetting.data?.details?.enabled === true;
+      } catch { /* global settings are optional in older hosted environments */ }
+      return { rows, ownerRows: (ownerRows ?? []) as (OwnerRow & { id: string })[], winterSportsMode, holidayPeriodMode };
     };
 
     try {
@@ -292,7 +295,7 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
                     : null),
           };
         })();
-        return { ...rowToCharger(applyTariffOverride(merged), owners), winterSportsMode: result.winterSportsMode };
+        return { ...rowToCharger(applyTariffOverride(merged), owners), winterSportsMode: result.winterSportsMode, holidayPeriodMode: result.holidayPeriodMode };
       });
     } catch (error) {
       // De kaart blijft bruikbaar als Supabase tijdelijk onbereikbaar is.
@@ -465,6 +468,29 @@ export const setWinterSportsMode = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await (supabaseAdmin as any).from("admin_audit_log").insert({ action: "winter_sports_mode", target_count: 0, details: { enabled: data.enabled } });
+    if (error) throw new Error(error.message);
+    return { enabled: data.enabled };
+  });
+
+export const getHolidayPeriodMode = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "holiday_period_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (error) throw error;
+    return data?.details?.enabled === true;
+  } catch (error) {
+    console.warn("[TeslaNavigation] Vakantieperiode-instelling niet beschikbaar:", error);
+    return false;
+  }
+});
+
+export const setHolidayPeriodMode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ enabled: z.boolean() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any).from("admin_audit_log").insert({ action: "holiday_period_mode", target_count: 0, details: { enabled: data.enabled } });
     if (error) throw new Error(error.message);
     return { enabled: data.enabled };
   });
