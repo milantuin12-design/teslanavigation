@@ -109,11 +109,20 @@ function findProfileSlot(slots: TrafficForecastPeriodSlot[] | undefined, minutes
   });
 }
 
+function normalizeProvince(value: string) {
+  const normalized = value.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim();
+  const aliases: Record<string, string> = {
+    vienna: "wien", "lower austria": "niederosterreich", "lower austria ": "niederosterreich",
+    "upper austria": "oberosterreich", carinthia: "karnten", styria: "steiermark", tyrol: "tirol",
+  };
+  return aliases[normalized] ?? normalized;
+}
+
 function isHolidayDate(forecast: TrafficForecast, at: Date, province?: string) {
   const date = `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, "0")}-${String(at.getDate()).padStart(2, "0")}`;
   return (forecast.holidayPeriods ?? []).find((period) =>
     date >= period.from && date <= period.to &&
-    (!period.provinces?.length || !province || period.provinces.some((item) => item.toLowerCase() === province.toLowerCase()))
+    (!period.provinces?.length || !province || period.provinces.some((item) => normalizeProvince(item) === normalizeProvince(province)))
   );
 }
 
