@@ -5,7 +5,7 @@ import type { Json } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import tariffDataset from "@/data/supercharger-tariffs.json";
 import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, normalizeOpeningHours, parseChargerConfigsFromLegacy } from "./tesla-utils";
-import { createAustriaTrafficForecast } from "./traffic-forecast";
+import { createRegionalTrafficForecast } from "./traffic-forecast";
 
 function normalizeStallData(totalStalls?: number | null, stallTypes?: string | null) {
   const rawParts = (stallTypes ?? "")
@@ -132,7 +132,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
     inParkingGarage: !!row.in_parking_garage,
     status,
     construction: row.construction ?? {},
-    trafficForecast: (() => { const forecast = row.traffic_forecast ?? row.construction?.trafficForecast ?? (/^(austria|österreich)$/i.test(row.country ?? "") ? createAustriaTrafficForecast({ name: row.name, city: row.city ?? undefined, province: row.province ?? undefined, lat: row.lat, lng: row.lng }) : undefined); return forecast?.source === "regional-estimate" ? { ...forecast, holidayPeriods: [] } : forecast; })(),
+    trafficForecast: (() => { const forecast = row.traffic_forecast ?? row.construction?.trafficForecast ?? createRegionalTrafficForecast({ name: row.name, city: row.city ?? undefined, province: row.province ?? undefined, lat: row.lat, lng: row.lng }); return forecast?.source === "regional-estimate" ? { ...forecast, holidayPeriods: [] } : forecast; })(),
     siteAmenities: Array.isArray(row.construction?.siteAmenities) ? row.construction.siteAmenities.filter((item: unknown): item is string => typeof item === "string") : [],
     works: row.works ?? {},
     closure: row.closure ?? {},
