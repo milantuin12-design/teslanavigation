@@ -11831,12 +11831,32 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "10:00",
+          "to": "18:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "22:00",
           "to": "24:00",
-          "pricePerKwh": 0.39
+          "pricePerKwh": 0.32
         }
       ],
-      "source": "https://www.kilowattindex.com/site/32694/",
-      "sourceChecked": "2026-11-08"
+      "source": "https://kilowattindex.com/site/32694/",
+      "sourceChecked": "2026-11-09"
     },
     {
       "country": "Germany",
@@ -26887,6 +26907,11 @@
       "priceBlocks": [
         {
           "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "04:00",
           "to": "10:00",
           "pricePerKwh": 0.3
         },
@@ -26902,7 +26927,7 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/455802/",
-      "sourceChecked": "2026-11-08",
+      "sourceChecked": "2026-11-09",
       "currency": "EUR"
     },
     {
@@ -26916,22 +26941,12 @@
       "priceBlocks": [
         {
           "from": "00:00",
-          "to": "10:00",
-          "pricePerKwh": 0.31
-        },
-        {
-          "from": "10:00",
-          "to": "20:00",
-          "pricePerKwh": 0.37
-        },
-        {
-          "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.31
+          "pricePerKwh": 0.33
         }
       ],
       "source": "https://www.kilowattindex.com/site/402759/",
-      "sourceChecked": "2026-11-08",
+      "sourceChecked": "2026-11-09",
       "currency": "EUR"
     },
     {
@@ -29047,26 +29062,26 @@
         {
           "from": "00:00",
           "to": "04:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.27
         },
         {
           "from": "04:00",
           "to": "08:00",
-          "pricePerKwh": 0.25
+          "pricePerKwh": 0.27
         },
         {
           "from": "08:00",
           "to": "20:00",
-          "pricePerKwh": 0.47
+          "pricePerKwh": 0.45
         },
         {
           "from": "20:00",
           "to": "24:00",
-          "pricePerKwh": 0.33
+          "pricePerKwh": 0.34
         }
       ],
-      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/7/",
-      "sourceChecked": "2026-11-07",
+      "source": "https://www.kilowattindex.com/site/Brunnthaldesupercharger/",
+      "sourceChecked": "2026-11-09",
       "currency": "EUR"
     },
     {
@@ -30797,6 +30812,26 @@
         }
       ],
       "source": "https://www.kilowattindex.com/changes/day/2026-11-06/14/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "hanau best western",
+        "hanau best western premier villa stokkum",
+        "best western premier villa stokkum"
+      ],
+      "label": "Hanau – Best Western Premier Villa Stokkum",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/28532/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
     }
