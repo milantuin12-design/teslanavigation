@@ -1649,6 +1649,8 @@ function Index() {
           startCoord={startCoord}
           destCoord={destCoord}
           superchargers={mapChargers}
+          chargingStops={chargingStops}
+          departure={departureDate}
           route={route}
           routeVariants={Object.fromEntries(routeOptions.map((plan, i) => [String(i), plan.route]))}
           selectedRouteType={String(selectedRouteIndex)}
