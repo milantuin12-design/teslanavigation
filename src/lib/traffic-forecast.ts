@@ -52,25 +52,62 @@ function levelFor(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weeke
   return rows[zone][category][period];
 }
 
-function makeProfile(charger: Supercharger, zone: ReturnType<typeof zoneFor>, category: "weekday" | "weekend" | "holiday"): TrafficForecastPeriodSlot[] {
-  const identity = [charger.name, charger.city, charger.lat.toFixed(3), charger.lng.toFixed(3)].join("|").toLowerCase();
-  let hash = 0;
-  for (let i = 0; i < identity.length; i++) hash = (hash * 31 + identity.charCodeAt(i)) | 0;
-  const siteOffset = (Math.abs(hash) % 9) - 4;
+type TrafficCategory = "weekday" | "weekend" | "holiday";
+
+function siteOverride(charger: Supercharger): { label: string; levels: Record<TrafficCategory, number[]> } | null {
+  const identity = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase();
+  // Bekende uitzonderingen die niet uit de algemene regio-indeling af te leiden zijn.
+  if (/badhoevedorp/.test(identity)) return {
+    label: "structureel zeer drukke locatie Badhoevedorp",
+    levels: {
+      weekday: [62, 88, 94, 92, 78],
+      weekend: [58, 82, 92, 94, 82],
+      holiday: [65, 90, 96, 95, 84],
+    },
+  };
+  if (/breukelen/.test(identity)) return {
+    label: "relatief rustige locatie Breukelen",
+    levels: {
+      weekday: [8, 16, 22, 24, 12],
+      weekend: [8, 18, 28, 25, 12],
+      holiday: [10, 22, 32, 28, 14],
+    },
+  };
+  return null;
+}
+
+function siteDemandAdjustment(charger: Supercharger): number {
+  const identity = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
+  let adjustment = 0;
+  if (/airport|flughafen|a[eé]roport|schiphol|terminal/.test(identity)) adjustment += 18;
+  if (/knooppunt|junction|interchange|border|grens|tunnel|pass/.test(identity)) adjustment += 10;
+  if (/outlet|shopping|mall|einkaufszentrum|retail park|ikea|carrefour|auchan|leclerc|kaufland|globus/.test(identity)) adjustment += 10;
+  if (/autohof|rastst[aä]tte|aire de|service area|autobahn|motorway|autoroute|tankstelle|tankstation/.test(identity)) adjustment += 7;
+  if (/centrum|city centre|downtown|innenstadt/.test(identity)) adjustment += 7;
+  if (/industrial|industriegebiet|business park/.test(identity)) adjustment -= 8;
+  if (/rural|landelijk|dorp|village/.test(identity)) adjustment -= 8;
+  return Math.max(-15, Math.min(25, adjustment));
+}
+
+function makeProfile(charger: Supercharger, zone: ReturnType<typeof zoneFor>, category: TrafficCategory): TrafficForecastPeriodSlot[] {
+  const override = siteOverride(charger);
+  const adjustment = siteDemandAdjustment(charger);
+  const base = override?.levels[category] ?? TRAFFIC_PERIODS.map((_, index) => levelFor(zone, category, index));
   return TRAFFIC_PERIODS.map((period, index) => ({
     from: period.from,
     to: period.to,
-    level: Math.max(0, Math.min(100, levelFor(zone, category, index) + siteOffset)),
+    level: Math.max(0, Math.min(100, base[index] + (override ? 0 : adjustment))),
   }));
 }
 
 export function createRegionalTrafficForecast(charger: Supercharger): TrafficForecast {
   const zone = zoneFor(charger);
-  const corridor = zone === "transit" ? "A10 Tauern / A11 Karawanken" : zone === "ski" ? "A12 Inntal / A13 Brenner / Tirol" : zone === "urban" ? "stedelijke regio" : zone === "retail" ? "winkelgebied" : "regionaal gebied";
+  const override = siteOverride(charger);
+  const corridor = override?.label ?? (zone === "transit" ? "snelweg- en doorgangsgebied" : zone === "ski" ? "wintersportgebied" : zone === "urban" ? "stedelijke regio" : zone === "retail" ? "winkelgebied" : "regionaal gebied");
   return {
     source: "regional-estimate",
     confidence: "low",
-    note: `Indicatieve locatie-inschatting voor ${corridor}, met een kleine locatiespecifieke correctie. Geen live bezettingsdata. Het vakantieprofiel geldt voor algemene vakantieperiodes die de beheerder instelt.`,
+    note: `Indicatieve locatie-inschatting voor ${corridor}. De beheerder kan de drie tijdprofielen per Supercharger afzonderlijk aanpassen. Geen live bezettingsdata; drukte kan per dag afwijken.`,
     weekdaySlots: makeProfile(charger, zone, "weekday"),
     weekendSlots: makeProfile(charger, zone, "weekend"),
     holidaySlots: makeProfile(charger, zone, "holiday"),
