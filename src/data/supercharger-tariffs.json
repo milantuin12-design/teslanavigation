@@ -27278,7 +27278,12 @@
       "country": "Germany",
       "match": [
         "koln tesla center",
-        "köln tesla center"
+        "köln tesla center",
+        "köln carlswerk",
+        "koln carlswerk",
+        "köln schanzenstraße",
+        "koln schanzenstrasse",
+        "scha(n)zenstraße 6-20"
       ],
       "label": "Köln – Tesla Center",
       "timezone": "Europe/Berlin",
