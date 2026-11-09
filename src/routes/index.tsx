@@ -178,6 +178,7 @@ function Index() {
 
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
+  const [countryPricesOpen, setCountryPricesOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user ? { id: data.user.id } : null));
@@ -221,6 +222,33 @@ function Index() {
 
   const [showAllChargers, setShowAllChargers] = useState(false);
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
+  const countryPriceStats = useMemo(() => {
+    const groups = new Map<string, { country: string; currency: string; total: number; count: number }>();
+    for (const charger of superchargers) {
+      if (charger.published === false || !charger.country) continue;
+      const hasKwhPrice = typeof charger.pricePerKwh === "number" || (charger.priceBlocks ?? []).some((block) => block.type !== "power" && typeof block.pricePerKwh === "number");
+      const hasMinutePrice = (charger.priceBlocks ?? []).some((block) => block.type === "power" && typeof block.pricePerMinute === "number");
+      if (!hasKwhPrice && !hasMinutePrice) continue;
+      const sampleStop: ChargingStop = {
+        charger,
+        batteryBefore: 10,
+        batteryAfter: 80,
+        distanceFromStart: 0,
+        chargeDurationMin: 0,
+        energyChargedKWh: packKWh * 0.7,
+      };
+      const estimate = estimateChargingCost(sampleStop, departureDate, selectedModel, packKWh, carMaxKwOverride);
+      if (!estimate) continue;
+      const key = `${charger.country}|${estimate.currency}`;
+      const group = groups.get(key) ?? { country: charger.country, currency: estimate.currency, total: 0, count: 0 };
+      group.total += estimate.amount / (packKWh * 0.7);
+      group.count += 1;
+      groups.set(key, group);
+    }
+    return [...groups.values()].map((group) => ({ ...group, average: group.total / group.count }))
+      .sort((a, b) => a.currency.localeCompare(b.currency) || a.average - b.average);
+  }, [superchargers, departureDate, selectedModel, packKWh, carMaxKwOverride]);
+
   const visibleChargers = useMemo(
     () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters) && (!showFavoritesOnly || (!!charger.id && favoriteChargerIds.includes(charger.id)))),
     [superchargers, chargerFilters, showFavoritesOnly, favoriteChargerIds],
@@ -1522,6 +1550,7 @@ function Index() {
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setFiltersOpen((v) => !v)} title="Filters">
                 <SlidersHorizontal className="size-4" aria-hidden="true" /><span className="hidden sm:inline">Filters</span>
               </Button>
+              <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCountryPricesOpen(true)}>Prijs per land</Button>
               <LanguageSwitcher />
               <AccountMenu />
             </div>
@@ -1656,6 +1685,23 @@ function Index() {
           />
         )}
       </div>
+      <Dialog open={countryPricesOpen} onOpenChange={setCountryPricesOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto bg-slate-900 border-slate-700 text-white">
+          <DialogHeader><DialogTitle>Laadprijzen per land vergelijken</DialogTitle></DialogHeader>
+          <p className="text-xs text-slate-400">Gemiddelde geschatte prijs per kWh-equivalent voor laden van 10% naar 80% met {selectedModel}. Zowel kWh-tarieven als tarieven per minuut worden omgerekend met de laadcurve en vermogenslimieten. Tijdstarieven worden beoordeeld op het geplande vertrekmoment.</p>
+          {countryPriceStats.length === 0 ? <p className="text-sm text-slate-400">Er zijn nog niet genoeg bekende tarieven om landen te vergelijken.</p> : (
+            <div className="space-y-2">
+              {countryPriceStats.map((item) => (
+                <div key={item.country + item.currency} className="flex items-center justify-between gap-3 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2">
+                  <div><div className="text-sm font-medium">{item.country}</div><div className="text-[10px] text-slate-400">{item.count} Superchargers met bekend tarief</div></div>
+                  <div className="text-right"><div className="text-sm font-semibold tabular-nums">{new Intl.NumberFormat("nl-NL", { style: "currency", currency: item.currency }).format(item.average)}/kWh</div><div className="text-[10px] text-slate-500">gemiddelde</div></div>
+                </div>
+              ))}
+            </div>
+          )}
+          <DialogFooter><Button variant="outline" onClick={() => setCountryPricesOpen(false)}>Sluiten</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
         <DialogContent className="bg-slate-900 border-slate-700 text-white">
           <DialogHeader><DialogTitle>Route opslaan</DialogTitle></DialogHeader>
