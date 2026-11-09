@@ -192,6 +192,30 @@ function Index() {
   useEffect(() => { try { const saved = JSON.parse(localStorage.getItem("teslanavigation:favorites") || "[]"); if (Array.isArray(saved)) setFavoriteChargerIds(saved.filter((x): x is string => typeof x === "string")); } catch { /* ignore invalid local preferences */ } }, []);
   useEffect(() => { try { localStorage.setItem("teslanavigation:favorites", JSON.stringify(favoriteChargerIds)); } catch { /* storage may be unavailable */ } }, [favoriteChargerIds]);
   const toggleFavoriteCharger = (id: string) => setFavoriteChargerIds((old) => old.includes(id) ? old.filter((x) => x !== id) : [...old, id]);
+  // Price alerts for favourite Superchargers: changes are detected on the next app refresh.
+  useEffect(() => {
+    if (isLoadingChargers || favoriteChargerIds.length === 0 || superchargers.length === 0) return;
+    const key = "teslanavigation:favorite-price-snapshots";
+    let previous: Record<string, string> = {};
+    try { previous = JSON.parse(localStorage.getItem(key) || "{}") as Record<string, string>; } catch { previous = {}; }
+    const next: Record<string, string> = {};
+    const changes: string[] = [];
+    for (const charger of superchargers) {
+      if (!charger.id || !favoriteChargerIds.includes(charger.id)) continue;
+      const snapshot = JSON.stringify({
+        currency: charger.priceCurrency || "EUR",
+        blocks: charger.priceBlocks ?? [],
+        legacy: charger.pricePerKwh ?? null,
+      });
+      next[charger.id] = snapshot;
+      if (previous[charger.id] && previous[charger.id] !== snapshot) changes.push(charger.name);
+    }
+    try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* local storage may be disabled */ }
+    if (changes.length) {
+      const first = changes.slice(0, 3).join(", ");
+      toast.info(`Laadprijs gewijzigd bij favoriet: ${first}${changes.length > 3 ? ` en ${changes.length - 3} andere locatie(s)` : ""}.`);
+    }
+  }, [favoriteChargerIds, isLoadingChargers, superchargers]);
   const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>({ ...defaultChargerFilters });
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
