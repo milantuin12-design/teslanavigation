@@ -58,9 +58,9 @@ function makeProfile(zone: ReturnType<typeof zoneFor>, category: "weekday" | "we
   }));
 }
 
-export function createAustriaTrafficForecast(charger: Supercharger): TrafficForecast {
+export function createRegionalTrafficForecast(charger: Supercharger): TrafficForecast {
   const zone = zoneFor(charger);
-  const corridor = zone === "transit" ? "A10 Tauern / A11 Karawanken" : zone === "ski" ? "A12 Inntal / A13 Brenner / Tirol" : zone === "urban" ? "stedelijke regio" : "regionaal Oostenrijk";
+  const corridor = zone === "transit" ? "A10 Tauern / A11 Karawanken" : zone === "ski" ? "A12 Inntal / A13 Brenner / Tirol" : zone === "urban" ? "stedelijke regio" : "regionaal gebied";
   return {
     source: "regional-estimate",
     confidence: "low",
@@ -71,6 +71,8 @@ export function createAustriaTrafficForecast(charger: Supercharger): TrafficFore
     holidayPeriods: [],
   };
 }
+
+export const createAustriaTrafficForecast = createRegionalTrafficForecast;
 
 export function createEmptyTrafficForecast(): TrafficForecast {
   const defaults = TRAFFIC_PERIODS.map((period) => ({ from: period.from, to: period.to, level: 25 }));
