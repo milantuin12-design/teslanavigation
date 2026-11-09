@@ -699,7 +699,7 @@ export function calculateChargingStops(
             const timeOk = fromMinute <= toMinute ? minute >= fromMinute && minute < toMinute : minute >= fromMinute || minute < toMinute;
             return dayOk && timeOk;
           });
-          const price = tier?.pricePerKwh ?? charger.pricePerKwh;
+          const price = tier?.pricePerKwh ?? (kwhBlocks.length > 0 ? undefined : charger.pricePerKwh);
           if (typeof price !== "number") return null;
           amount += energy * price;
         }
