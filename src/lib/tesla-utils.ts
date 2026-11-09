@@ -559,7 +559,7 @@ export function calculateChargingStops(
         const before = Math.round(atForced);
         const after = Math.max(before, Math.min(100, nextForced.chargeTo));
         const kWhNow = batteryCapacityKWhOverride || teslaBatteryKWh[modelName] || 79;
-        const dur = calculateChargeDuration(before, after, kWhNow, nextForced.kw);
+        const dur = calculateChargeDuration(before, after, kWhNow, nextForced.kw, modelName, carMaxKwOverride);
         stops.push({
           charger: nextForced.charger,
           batteryBefore: before,
@@ -702,7 +702,9 @@ export function calculateChargingStops(
       Math.round(Math.max(minSafetyPercent, best.batteryAtCharger)),
       Math.round(batteryAfter),
       batteryKWh,
-      chargerSpeedKw
+      chargerSpeedKw,
+      modelName,
+      carMaxKwOverride
     );
 
 
