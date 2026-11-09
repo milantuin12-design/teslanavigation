@@ -160,10 +160,11 @@ function isHolidayDate(forecast: TrafficForecast, at: Date, province?: string) {
   );
 }
 
-export function getTrafficForecastAt(forecast: TrafficForecast | undefined, at: Date, province?: string) {
+export function getTrafficForecastAt(forecast: TrafficForecast | undefined, at: Date, province?: string, forceHoliday = false) {
   if (!forecast) return null;
   const minutes = at.getHours() * 60 + at.getMinutes();
-  const holiday = isHolidayDate(forecast, at, province);
+  const configuredHoliday = isHolidayDate(forecast, at, province);
+  const holiday = forceHoliday ? { label: "Actieve vakantieperiode" } : configuredHoliday;
   const weekend = at.getDay() === 0 || at.getDay() === 6;
   const profile = holiday
     ? (forecast.holidaySlots ?? forecast.weekendSlots)
