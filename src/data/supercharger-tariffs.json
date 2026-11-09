@@ -30030,6 +30030,122 @@
       "source": "https://www.kilowattindex.com/site/posthausensupercharger/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "weyarn",
+        "lounge"
+      ],
+      "label": "Weyarn",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "09:00",
+          "to": "18:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "18:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/weyarnsupercharger/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "wildau",
+        "a10 center"
+      ],
+      "label": "Wildau",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/295342/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "willich",
+        "tesla lounge"
+      ],
+      "label": "Willich",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://kilowattindex.com/site/404126/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "wittenburg",
+        "alpincenter"
+      ],
+      "label": "Wittenburg",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/9/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
