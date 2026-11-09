@@ -30683,6 +30683,44 @@
       "source": "https://www.kilowattindex.com/changes/day/2026-11-06/13/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "regensburg-ost",
+        "regensburg euro rastpark"
+      ],
+      "label": "Regensburg-Ost",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/23/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "regensburg-ostenviertel",
+        "regensburg burger king"
+      ],
+      "label": "Regensburg-Ostenviertel",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/297408/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
