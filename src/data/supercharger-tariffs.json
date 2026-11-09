@@ -26171,7 +26171,11 @@
       "country": "Germany",
       "match": [
         "rhein-neckar-kreis scheck-in center",
-        "rhein neckar kreis scheck in"
+        "rhein neckar kreis scheck in",
+        "brühl",
+        "bruehl",
+        "mannheimer landstraße",
+        "mannheimer landstrasse"
       ],
       "label": "Rhein-Neckar-Kreis – Scheck-In Center",
       "timezone": "Europe/Berlin",
