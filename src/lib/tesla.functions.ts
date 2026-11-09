@@ -5,6 +5,7 @@ import type { Json } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import tariffDataset from "@/data/supercharger-tariffs.json";
 import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, normalizeOpeningHours, parseChargerConfigsFromLegacy } from "./tesla-utils";
+import { createAustriaTrafficForecast } from "./traffic-forecast";
 
 function normalizeStallData(totalStalls?: number | null, stallTypes?: string | null) {
   const rawParts = (stallTypes ?? "")
