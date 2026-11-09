@@ -212,9 +212,9 @@ const TESLA_CHARGE_POWER_CURVES: Record<string, { percent: number; kw: number }[
 };
 
 function chargeCurveFamily(modelName: string): string {
-  if (/model\\s*y/i.test(modelName)) return 'Model Y';
-  if (/model\\s*s/i.test(modelName)) return 'Model S';
-  if (/model\\s*x/i.test(modelName)) return 'Model X';
+  if (/model\s*y/i.test(modelName)) return 'Model Y';
+  if (/model\s*s/i.test(modelName)) return 'Model S';
+  if (/model\s*x/i.test(modelName)) return 'Model X';
   return 'Model 3';
 }
 
