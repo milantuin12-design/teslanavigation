@@ -559,7 +559,13 @@ export function calculateChargingStops(
         const before = Math.round(atForced);
         const after = Math.max(before, Math.min(100, nextForced.chargeTo));
         const kWhNow = batteryCapacityKWhOverride || teslaBatteryKWh[modelName] || 79;
-        const dur = calculateChargeDuration(before, after, kWhNow, nextForced.kw, modelName, carMaxKwOverride);
+        // Ook bij verplichte tussenstops geldt de laagste limiet van de
+        // gekozen laadconfiguratie en de daadwerkelijke Superchargerlocatie.
+        const stationMaxKw = ccsBlocked
+          ? (v2SpeedKw(nextForced.charger) ?? parseMaxSpeed(nextForced.charger.stallTypes, nextForced.charger.maxSpeedKw, nextForced.charger.chargerConfigs))
+          : parseMaxSpeed(nextForced.charger.stallTypes, nextForced.charger.maxSpeedKw, nextForced.charger.chargerConfigs);
+        const chargingLimitKw = Math.min(nextForced.kw, stationMaxKw);
+        const dur = calculateChargeDuration(before, after, kWhNow, chargingLimitKw, modelName, carMaxKwOverride);
         stops.push({
           charger: nextForced.charger,
           batteryBefore: before,
