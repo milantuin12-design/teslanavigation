@@ -38,6 +38,11 @@ function levelFor(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weeke
       weekend: [12, 82, 70, 76, 24],
       holiday: [15, 92, 88, 82, 30],
     },
+    retail: {
+      weekday: [8, 24, 35, 48, 12],
+      weekend: [8, 30, 72, 65, 20],
+      holiday: [10, 42, 82, 75, 22],
+    },
     other: {
       weekday: [8, 25, 30, 32, 15],
       weekend: [10, 38, 58, 48, 18],
