@@ -55,7 +55,7 @@ function levelFor(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weeke
 type TrafficCategory = "weekday" | "weekend" | "holiday";
 
 function siteOverride(charger: Supercharger): { label: string; levels: Record<TrafficCategory, number[]> } | null {
-  const identity = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase();
+  const identity = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
   // Bekende uitzonderingen die niet uit de algemene regio-indeling af te leiden zijn.
   if (/badhoevedorp/.test(identity)) return {
     label: "structureel zeer drukke locatie Badhoevedorp",
