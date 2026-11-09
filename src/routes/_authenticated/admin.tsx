@@ -164,6 +164,18 @@ const emptyCharger = {
 
 
 function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; onChange: (value: TrafficForecast) => void }) {
+  const formatHolidayPeriods = (periods: TrafficForecast["holidayPeriods"] = []) =>
+    periods.map((period) => [period.label, period.from, period.to, (period.provinces ?? []).join(",")].join("|")).join("\n");
+  const [holidayText, setHolidayText] = useState(() => formatHolidayPeriods(value.holidayPeriods));
+  useEffect(() => setHolidayText(formatHolidayPeriods(value.holidayPeriods)), [value.holidayPeriods]);
+  const saveHolidayPeriods = () => {
+    const holidayPeriods = holidayText.split("\n").map((line) => {
+      const [label, from, to, provinces] = line.split("|").map((part) => part.trim());
+      if (!label || !/^\d{4}-\d{2}-\d{2}$/.test(from ?? "") || !/^\d{4}-\d{2}-\d{2}$/.test(to ?? "") || from > to) return null;
+      return { label, from, to, provinces: provinces ? provinces.split(",").map((item) => item.trim()).filter(Boolean) : undefined };
+    }).filter((period): period is { label: string; from: string; to: string; provinces?: string[] } => period !== null);
+    onChange({ ...value, source: "admin", confidence: "medium", holidayPeriods });
+  };
   const groups: { key: "weekdaySlots" | "weekendSlots" | "holidaySlots"; label: string; description: string }[] = [
     { key: "weekdaySlots", label: "Doordeweeks", description: "Maandag t/m vrijdag" },
     { key: "weekendSlots", label: "Weekend", description: "Zaterdag en zondag" },
@@ -208,15 +220,9 @@ function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; on
         <p className="text-[10px] text-slate-400">Eén periode per regel: naam | startdatum | einddatum | provincies (optioneel, kommagescheiden). De Oostenrijkse data zijn alvast ingevuld en kun je aanpassen.</p>
         <textarea
           rows={Math.min(9, Math.max(3, value.holidayPeriods?.length ?? 0))}
-          value={(value.holidayPeriods ?? []).map((period) => [period.label, period.from, period.to, (period.provinces ?? []).join(",")].join("|")).join("\n")}
-          onChange={(event) => {
-            const holidayPeriods = event.target.value.split("\n").map((line) => {
-              const [label, from, to, provinces] = line.split("|").map((part) => part.trim());
-              if (!label || !/^\d{4}-\d{2}-\d{2}$/.test(from ?? "") || !/^\d{4}-\d{2}-\d{2}$/.test(to ?? "") || from > to) return null;
-              return { label, from, to, provinces: provinces ? provinces.split(",").map((item) => item.trim()).filter(Boolean) : undefined };
-            }).filter((period): period is { label: string; from: string; to: string; provinces?: string[] } => period !== null);
-            onChange({ ...value, source: "admin", confidence: "medium", holidayPeriods });
-          }}
+          value={holidayText}
+          onChange={(event) => setHolidayText(event.target.value)}
+          onBlur={saveHolidayPeriods}
           className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-2 py-2 text-[10px] text-white"
         />
       </div>
