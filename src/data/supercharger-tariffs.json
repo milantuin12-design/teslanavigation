@@ -30559,6 +30559,26 @@
       "source": "https://www.kilowattindex.com/site/32689/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "winsen (luhe)",
+        "winsen",
+        "soetebiers dorfbäckerei"
+      ],
+      "label": "Winsen (Luhe)",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/17/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
