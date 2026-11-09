@@ -32,8 +32,8 @@ interface ChargingStopsProps {
 
 function isWeekend(d: Date) { const day = d.getDay(); return day === 0 || day === 6; }
 
-function batteryPreheatMinutes(tempC: number | null | undefined): number {
-  if (tempC == null || !Number.isFinite(tempC)) return 20;
+function batteryPreheatMinutes(tempC: number | null | undefined): number | null {
+  if (tempC == null || !Number.isFinite(tempC)) return null;
   if (tempC <= -15) return 55;
   if (tempC <= -10) return 50;
   if (tempC <= -5) return 40;
@@ -264,7 +264,7 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                   <div className="text-sm font-semibold text-white">{stop.charger.name}</div>
                   {eta && <div className="mt-0.5 text-[11px] text-blue-300">Aankomst ± {time(eta)} · vertrek ± {time(new Date(eta.getTime() + stop.chargeDurationMin * 60000))}</div>}
                   {cheapestStopIndex === idx && knownStopCosts.length > 1 && <div className="mt-1 inline-flex rounded-md bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-300">Goedkoopste berekende laadstop incl. parkeren</div>}
-                  {eta && (() => { const chargerTemp = weather?.temperatureSegments?.length ? weather.temperatureSegments.reduce((best, point) => Math.abs(point.km - stop.distanceFromStart) < Math.abs(best.km - stop.distanceFromStart) ? point : best).tempC : weather?.tempC ?? null; const preheat = batteryPreheatMinutes(chargerTemp); return <div className="mt-1 text-[10px] text-cyan-300">❄ Accu-voorverwarming: reken bij ongeveer {chargerTemp == null ? "onbekende temperatuur" : `${Math.round(chargerTemp)}°C`} op circa {preheat} min. Tesla past de werkelijke duur zelf aan; navigeren naar de Supercharger activeert de automatische voorverwarming.</div>; })()}
+                  {eta && (() => { const chargerTemp = weather?.temperatureSegments?.length ? weather.temperatureSegments.reduce((best, point) => Math.abs(point.km - stop.distanceFromStart) < Math.abs(best.km - stop.distanceFromStart) ? point : best).tempC : weather?.tempC ?? null; const preheat = batteryPreheatMinutes(chargerTemp); return <div className="mt-1 text-[10px] text-cyan-300">❄ Accu-voorverwarming: {preheat == null ? "temperatuurverwachting niet beschikbaar; Tesla bepaalt de benodigde tijd automatisch." : `bij ongeveer ${Math.round(chargerTemp!)}°C kan Tesla circa ${preheat} min voor aankomst beginnen.`} Navigeren naar de Supercharger activeert de automatische voorverwarming.</div>; })()}
                 </div>
                 <span className="rounded-md bg-blue-600/20 px-2 py-0.5 text-[10px] font-semibold text-blue-300">Stop {idx + 1}</span>
               </div>
