@@ -30638,6 +30638,51 @@
       "source": "https://www.kilowattindex.com/changes/day/2026-11-06/2/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "rade",
+        "neu wulmstorf rade",
+        "hoyer autohof"
+      ],
+      "label": "Rade",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/radedesupercharger/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "würzburg",
+        "wuerzburg",
+        "mcdonald's"
+      ],
+      "label": "Würzburg",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/13/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
