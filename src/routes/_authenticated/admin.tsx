@@ -165,7 +165,7 @@ const emptyCharger = {
 
 function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; onChange: (value: TrafficForecast) => void }) {
   const formatHolidayPeriods = (periods: TrafficForecast["holidayPeriods"] = []) =>
-    periods.map((period) => [period.label, period.from, period.to, (period.provinces ?? []).join(",")].join("|")).join("\n");
+    periods.map((period) => [period.label, period.from, period.to].join("|")).join("\n");
   const [holidayText, setHolidayText] = useState(() => formatHolidayPeriods(value.holidayPeriods));
   useEffect(() => setHolidayText(formatHolidayPeriods(value.holidayPeriods)), [value.holidayPeriods]);
   const saveHolidayPeriods = () => {
@@ -326,7 +326,18 @@ function AdminPage() {
       setIsAdmin(!!data);
       if (data) { try { setWinterSportsEnabled(await readWinterSportsMode()); } catch { setWinterSportsEnabled(false); } }
     })();
-  }, []);
+  }, [readWinterSportsMode]);
+
+  const toggleWinterSports = async (enabled: boolean) => {
+    setWinterSportsSaving(true);
+    try {
+      await saveWinterSportsMode({ data: { enabled } });
+      setWinterSportsEnabled(enabled);
+      toast.success(enabled ? "Wintersportmodus ingeschakeld" : "Wintersportmodus uitgeschakeld");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Instelling opslaan mislukt");
+    } finally { setWinterSportsSaving(false); }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -643,6 +654,10 @@ function AdminPage() {
             <Button onClick={openNew} className="bg-red-600 hover:bg-red-700"><Plus className="w-4 h-4 mr-1" /> Nieuw</Button>
           </div>
         </div>
+        <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-sky-500/40 bg-sky-500/10 p-3">
+          <div><div className="text-sm font-semibold text-sky-200">❄ Wintersportmodus</div><p className="text-xs text-slate-300">Toont een sneeuwvlok en een druktewaarschuwing bij Superchargers in sneeuw- en wintersportgebieden.</p></div>
+          <label className="flex shrink-0 items-center gap-2 text-sm"><Checkbox checked={winterSportsEnabled} disabled={winterSportsSaving} onCheckedChange={(checked) => void toggleWinterSports(!!checked)} />{winterSportsSaving ? "Opslaan…" : winterSportsEnabled ? "Aan" : "Uit"}</label>
+        </div>
         {selectedIds.size > 0 && (
           <div className="mb-4 flex flex-wrap items-center gap-2 border border-blue-500/40 bg-blue-500/10 p-3 rounded-lg">
             <span className="text-sm font-semibold mr-2">{selectedIds.size} geselecteerd</span>
@@ -873,7 +888,7 @@ function AdminPage() {
               </div>
 
               <TrafficForecastEditor
-                value={editing.traffic_forecast ?? createEmptyTrafficForecast()}
+                value={editing.traffic_forecast ? { ...editing.traffic_forecast, holidayPeriods: editing.traffic_forecast.source === "regional-estimate" ? [] : editing.traffic_forecast.holidayPeriods } : createEmptyTrafficForecast()}
                 onChange={(traffic_forecast) => setEditing({ ...editing, traffic_forecast })}
               />
 
