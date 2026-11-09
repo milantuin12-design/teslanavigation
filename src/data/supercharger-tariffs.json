@@ -30253,6 +30253,56 @@
       "source": "https://www.kilowattindex.com/changes/day/2026-11-06/8/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "nörten - hardenberg",
+        "noerten hardenberg",
+        "hotel restaurant sachsenross"
+      ],
+      "label": "Nörten - Hardenberg",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/6/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "öhringen",
+        "oehringen",
+        "ö-center"
+      ],
+      "label": "Öhringen",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "04:00",
+          "to": "22:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/6/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
