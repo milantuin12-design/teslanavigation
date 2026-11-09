@@ -31,6 +31,17 @@ function isWeekend(d: Date) { const day = d.getDay(); return day === 0 || day ==
 export function parkingCost(stop: ChargingStop, at?: Date): number | null {
   const c = stop.charger;
   if (!c.parkingFee) return null;
+  if (Array.isArray(c.parkingBlocks) && c.parkingBlocks.length > 0) {
+    const currencies = new Set(c.parkingBlocks.filter((block) => block.amount > 0).map((block) => (block.currency || "EUR").toUpperCase()));
+    if (currencies.size > 1 || (currencies.size === 1 && !currencies.has("EUR"))) return null;
+    const duration = Math.max(0, stop.chargeDurationMin);
+    return c.parkingBlocks.reduce((sum, block) => {
+      if (block.amount <= 0 || duration <= block.afterMinutes) return sum;
+      if (block.durationMinutes <= 0) return sum + block.amount;
+      const billable = Math.max(0, duration - block.afterMinutes);
+      return sum + (block.repeat ? Math.ceil(billable / block.durationMinutes) * block.amount : block.amount);
+    }, 0);
+  }
   // "alleen weekend" in de notitie/piekuren: doordeweeks gratis.
   const weekendOnly = /weekend/i.test(`${c.peakHours ?? ''} ${c.notes ?? ''}`) && /park/i.test(`${c.peakHours ?? ''} ${c.notes ?? ''}`);
   if (weekendOnly && at && !isWeekend(at)) return 0;
