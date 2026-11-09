@@ -719,7 +719,7 @@ export function calculateChargingStops(
       const estimatedCost = candidateCosts.get(c) ?? null;
       // Eén euro laadkosten telt mee als circa 1,2 km routevoorkeur.
       // Onbekende tarieven krijgen alleen een kleine voorkeurssanctie wanneer er wél prijzen bekend zijn.
-      const tariffPenaltyKm = estimatedCost !== null ? estimatedCost * 1.2 : hasKnownCandidateCosts ? 6 : 0;
+      const tariffPenaltyKm = estimatedCost !== null ? estimatedCost * 1.2 : hasKnownCandidateCosts && (c.charger.priceCurrency || "EUR").toUpperCase() === "EUR" ? 6 : 0;
       return c.detourKm * 2
         + crowdPenaltyKm
         + tariffPenaltyKm
