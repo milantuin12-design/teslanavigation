@@ -51,6 +51,7 @@ import {
   fetchElevationProfile,
 } from "@/lib/tesla-utils";
 import { fetchTrafficRoutes } from "@/lib/traffic.functions";
+import { getTrafficForecastAt } from "@/lib/traffic-forecast";
 
 import { listSuperchargers } from "@/lib/tesla.functions";
 import { lookupThirdPartyCharger } from "@/lib/third-party";
@@ -302,15 +303,22 @@ function Index() {
         const departure = new Date(departureDate.getTime() + offset * 60000);
         if (departure.getTime() < Date.now() - 60000) return null;
         const cost = estimateRouteCost(plan, departure, selectedModel, packKWh, carMaxKwOverride);
-        return cost === null ? null : { departure, cost, offset };
+        if (cost === null) return null;
+        const crowdLevels = plan.stops
+          .map((stop) => getTrafficForecastAt(stop.charger.trafficForecast, new Date(departure.getTime() + (stop.etaMinFromStart ?? 0) * 60000), stop.charger.province)?.level)
+          .filter((level): level is number => typeof level === "number");
+        const traffic = crowdLevels.length ? crowdLevels.reduce((sum, level) => sum + level, 0) / crowdLevels.length : null;
+        return { departure, cost, offset, traffic };
       })
-      .filter((item): item is { departure: Date; cost: number; offset: number } => item !== null);
+      .filter((item): item is { departure: Date; cost: number; offset: number; traffic: number | null } => item !== null);
     if (candidates.length < 2) return null;
     const current = candidates.find((item) => item.offset === 0);
     if (!current) return null;
-    const best = candidates.reduce((a, b) => b.cost < a.cost ? b : a);
+    const trafficSafe = current.traffic === null ? candidates : candidates.filter((item) => item.traffic === null || item.traffic <= current.traffic! + 10);
+    const pool = trafficSafe.length ? trafficSafe : candidates;
+    const best = pool.reduce((a, b) => b.cost < a.cost ? b : a);
     const saving = current.cost - best.cost;
-    return saving >= 0.5 && best.offset !== 0 ? { ...best, saving } : null;
+    return saving >= 0.5 && best.offset !== 0 ? { ...best, saving, currentTraffic: current.traffic } : null;
   }, [routeOptions, selectedRouteIndex, departureDate, selectedModel, packKWh, carMaxKwOverride]);
   const [ownerPanelId, setOwnerPanelId] = useState<string | null>(null);
   const [focusCoord, setFocusCoord] = useState<{ lat: number; lng: number } | null>(null);
@@ -1562,7 +1570,7 @@ function Index() {
             {departureAdvice && (
               <div className="glass-panel rounded-xl border border-amber-400/20 px-3 py-2 text-[11px] text-amber-200">
                 💡 Tariefadvies: vertrek rond {departureAdvice.departure.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })} voor ongeveer €{departureAdvice.saving.toFixed(2)} lagere laadkosten.
-                <span className="ml-1 text-slate-400">Alleen op basis van de opgeslagen laadtarieven; verkeer en weer kunnen veranderen.</span>
+                <span className="ml-1 text-slate-400">{departureAdvice.traffic !== null ? `Verwachte drukte bij laadstops: ${Math.round(departureAdvice.traffic)}%` : "Geen druktegegevens voor deze laadstops"}. Het weer wordt op reisdatum geschat; verkeerssituatie kan veranderen.</span>
               </div>
             )}
             {routeOptions.length > 0 && (
