@@ -92,6 +92,16 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
       holiday: [4, 7, 17, 18, 8],
     },
   };
+  // Zuidbroek: 20 Tesla-stalls bij Van der Valk, direct bij A7/N33.
+  // Geen Tesla-specifieke historische bezettingsreeks gevonden: dit is nadrukkelijk een schatting.
+  if (/zuidbroek/.test(identity)) return {
+    label: "indicatieve schatting Zuidbroek (A7/N33 en Van der Valk; geen Tesla-historische meetreeks)",
+    levels: {
+      weekday: [8, 18, 28, 30, 14],
+      weekend: [10, 24, 36, 34, 18],
+      holiday: [12, 28, 40, 38, 20],
+    },
+  };
   // Groningen: ChargeQueue rapporteert voor de Tesla-locatie 18,8% bezetting.
   // Er is geen volledige historische uurreeks beschikbaar; dit profiel blijft indicatief.
   if (/groningen/.test(identity)) return {
