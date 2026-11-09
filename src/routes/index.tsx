@@ -1566,7 +1566,8 @@ function Index() {
               </div>
             )}
             {routeOptions.length > 0 && (
-              <div className="glass-panel flex flex-wrap gap-1.5 rounded-xl px-2 py-1.5">
+              <div className="glass-panel flex flex-wrap items-center gap-1.5 rounded-xl px-2 py-1.5">
+                {cheapestRouteIndex >= 0 && <button onClick={() => handleSelectRoute(cheapestRouteIndex)} className="rounded-lg bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-200 hover:bg-amber-500/25">Kies goedkoopste route</button>}
                 {routeOptions.map((plan, i) => (
                   <button
                     key={i}
