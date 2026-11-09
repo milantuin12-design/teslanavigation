@@ -203,14 +203,23 @@ function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; on
           </div>
         </div>
       ))}
-      {value.holidayPeriods?.length ? (
-        <div className="rounded-md bg-slate-800/70 p-2">
-          <div className="mb-1 text-[10px] font-semibold text-cyan-200">Ingebouwde Oostenrijkse vakantiedata 2026/2027</div>
-          <div className="space-y-0.5 text-[10px] text-slate-400">
-            {value.holidayPeriods.map((period) => <div key={period.label}>{period.label}: {period.from} t/m {period.to}</div>)}
-          </div>
-        </div>
-      ) : null}
+      <div className="space-y-1 rounded-md bg-slate-800/70 p-2">
+        <div className="text-[10px] font-semibold text-cyan-200">Vakantieperiodes die het vakantieprofiel activeren</div>
+        <p className="text-[10px] text-slate-400">Eén periode per regel: naam | startdatum | einddatum | provincies (optioneel, kommagescheiden). De Oostenrijkse data zijn alvast ingevuld en kun je aanpassen.</p>
+        <textarea
+          rows={Math.min(9, Math.max(3, value.holidayPeriods?.length ?? 0))}
+          value={(value.holidayPeriods ?? []).map((period) => [period.label, period.from, period.to, (period.provinces ?? []).join(",")].join("|")).join("\n")}
+          onChange={(event) => {
+            const holidayPeriods = event.target.value.split("\n").map((line) => {
+              const [label, from, to, provinces] = line.split("|").map((part) => part.trim());
+              if (!label || !/^\d{4}-\d{2}-\d{2}$/.test(from ?? "") || !/^\d{4}-\d{2}-\d{2}$/.test(to ?? "") || from > to) return null;
+              return { label, from, to, provinces: provinces ? provinces.split(",").map((item) => item.trim()).filter(Boolean) : undefined };
+            }).filter((period): period is NonNullable<typeof period> => period !== null);
+            onChange({ ...value, source: "admin", confidence: "medium", holidayPeriods });
+          }}
+          className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-2 py-2 text-[10px] text-white"
+        />
+      </div>
       <label className="block text-[10px] text-slate-400">
         Toelichting / bron
         <input value={value.note ?? ""} onChange={(event) => onChange({ ...value, source: "admin", confidence: "medium", note: event.target.value })} className="mt-1 w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-2 text-xs text-white" />
