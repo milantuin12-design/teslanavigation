@@ -13,17 +13,14 @@ export const TRAFFIC_PERIODS = [
   { from: "20:00", to: "24:00", label: "20–24" },
 ] as const;
 
-function zoneFor(charger: Pick<Supercharger, "name" | "city" | "province" | "lat" | "lng">): "transit" | "ski" | "urban" | "other" {
+function zoneFor(charger: Pick<Supercharger, "name" | "city" | "province" | "lat" | "lng">): "transit" | "ski" | "urban" | "retail" | "other" {
   const text = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
-  if (/tauern|spittal|villach|katschberg|st\. michael|eben im pongau|flachau|golling|werfen|karawanken|arnoldstein/.test(text) ||
-      (charger.lat > 46.7 && charger.lat < 47.9 && charger.lng > 12.7 && charger.lng < 14.8)) return "transit";
-  if (/brenner|innsbruck|inntal|wörgl|kufstein|imst|landeck|ötztal|tirol|fernpass|reutte|lermoos|heiterwang|arlberg|st anton/.test(text) ||
-      (charger.lat > 46.7 && charger.lat < 47.8 && charger.lng > 10.0 && charger.lng < 12.7)) return "ski";
-  if (/wien|vienna|graz|linz|salzburg|st\. pölten|eisenstadt|klagenfurt/.test(text) ||
-      (charger.lat > 47.8 && charger.lat < 48.4 && charger.lng > 16.0 && charger.lng < 16.8)) return "urban";
+  if (/autohof|rastst[aä]tte|aire de|area di servizio|service area|service station|autobahn|motorway|autoroute|autostrada|highway|tankstelle|tankstation/.test(text)) return "transit";
+  if (/ski|alpen|alps|dolomit|brenner|tauern|arlberg|tirol|tyrol|salzburg|kitzb[uü]hel|zell am see|s[oö]lden|ischgl|st anton|lermoos|innsbruck|chamonix|val thorens|courchevel|les arcs|tignes|verbier|davos|zermatt|laax|st moritz|livigno|cortina|bormio|geilo|trysil|are|åre|kiruna|rovaniemi/.test(text)) return "ski";
+  if (/ikea|shopping|mall|centre commercial|einkaufszentrum|outlet|retail park|carrefour|auchan|leclerc|kaufland|globus/.test(text)) return "retail";
+  if (/wien|vienna|graz|linz|salzburg|m[uü]nchen|munich|berlin|hamburg|frankfurt|paris|lyon|marseille|brussels|bruxelles|amsterdam|rotterdam|utrecht|antwerp|antwerpen|gent|ghent|zurich|z[uü]rich|geneva|gen[eè]ve|milan|milano|rome|roma|barcelona|madrid|prague|praha|warsaw|warschau/.test(text)) return "urban";
   return "other";
 }
-
 function levelFor(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weekend" | "holiday", period: number): number {
   const rows: Record<typeof zone, Record<typeof category, number[]>> = {
     urban: {
@@ -50,24 +47,28 @@ function levelFor(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weeke
   return rows[zone][category][period];
 }
 
-function makeProfile(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weekend" | "holiday"): TrafficForecastPeriodSlot[] {
+function makeProfile(charger: Supercharger, zone: ReturnType<typeof zoneFor>, category: "weekday" | "weekend" | "holiday"): TrafficForecastPeriodSlot[] {
+  const identity = [charger.name, charger.city, charger.lat.toFixed(3), charger.lng.toFixed(3)].join("|").toLowerCase();
+  let hash = 0;
+  for (let i = 0; i < identity.length; i++) hash = (hash * 31 + identity.charCodeAt(i)) | 0;
+  const siteOffset = (Math.abs(hash) % 9) - 4;
   return TRAFFIC_PERIODS.map((period, index) => ({
     from: period.from,
     to: period.to,
-    level: levelFor(zone, category, index),
+    level: Math.max(0, Math.min(100, levelFor(zone, category, index) + siteOffset)),
   }));
 }
 
 export function createRegionalTrafficForecast(charger: Supercharger): TrafficForecast {
   const zone = zoneFor(charger);
-  const corridor = zone === "transit" ? "A10 Tauern / A11 Karawanken" : zone === "ski" ? "A12 Inntal / A13 Brenner / Tirol" : zone === "urban" ? "stedelijke regio" : "regionaal gebied";
+  const corridor = zone === "transit" ? "A10 Tauern / A11 Karawanken" : zone === "ski" ? "A12 Inntal / A13 Brenner / Tirol" : zone === "urban" ? "stedelijke regio" : zone === "retail" ? "winkelgebied" : "regionaal gebied";
   return {
     source: "regional-estimate",
     confidence: "low",
-    note: `Indicatieve regionale inschatting voor ${corridor}. Geen live bezettingsdata. Het vakantieprofiel geldt voor algemene vakantieperiodes die de beheerder instelt.`,
-    weekdaySlots: makeProfile(zone, "weekday"),
-    weekendSlots: makeProfile(zone, "weekend"),
-    holidaySlots: makeProfile(zone, "holiday"),
+    note: `Indicatieve locatie-inschatting voor ${corridor}, met een kleine locatiespecifieke correctie. Geen live bezettingsdata. Het vakantieprofiel geldt voor algemene vakantieperiodes die de beheerder instelt.`,
+    weekdaySlots: makeProfile(charger, zone, "weekday"),
+    weekendSlots: makeProfile(charger, zone, "weekend"),
+    holidaySlots: makeProfile(charger, zone, "holiday"),
     holidayPeriods: [],
   };
 }
