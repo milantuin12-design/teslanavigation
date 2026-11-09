@@ -426,7 +426,7 @@ function AdminPage() {
     const legacyParking: ParkingFeeBlock[] = [];
     if (c.parking_fee_amount != null && c.parking_fee_amount > 0) legacyParking.push({ label: "Vast starttarief", afterMinutes: 0, durationMinutes: 0, amount: c.parking_fee_amount, currency: "EUR" });
     if (c.parking_per_euro != null && c.parking_per_minutes != null) legacyParking.push({ label: c.parking_free_minutes ? "Daarna" : "Parkeertarief", afterMinutes: c.parking_free_minutes ?? 0, durationMinutes: c.parking_per_minutes, amount: c.parking_per_euro, currency: "EUR", repeat: true });
-    setEditing({ ...c, traffic_forecast: c.traffic_forecast ?? createRegionalTrafficForecast({ name: c.name, city: c.city ?? undefined, province: c.province ?? undefined, lat: c.lat, lng: c.lng }), parking_blocks: c.parking_blocks?.length ? c.parking_blocks : legacyParking, charger_configs: configsForCharger(c), opening_hours: normalizeOpeningHours(c.opening_hours, c.opening_time, c.closing_time) });
+    setEditing({ ...c, traffic_forecast: c.traffic_forecast ?? c.construction?.trafficForecast ?? createRegionalTrafficForecast({ name: c.name, city: c.city ?? undefined, province: c.province ?? undefined, lat: c.lat, lng: c.lng }), parking_blocks: c.parking_blocks?.length ? c.parking_blocks : legacyParking, charger_configs: configsForCharger(c), opening_hours: normalizeOpeningHours(c.opening_hours, c.opening_time, c.closing_time) });
     setCoordsInput(`${c.lat},${c.lng}`);
   };
 
@@ -468,8 +468,12 @@ function AdminPage() {
       province: editing.province || null,
       city: editing.city || null,
       status: editing.status || "operational",
-      construction: (editing.construction || {}) as Json,
-      traffic_forecast: (editing.traffic_forecast || createEmptyTrafficForecast()) as unknown as Json,
+      // Bewaar drukteprofielen in het bestaande construction JSONB-veld.
+      // Zo werkt opslaan ook bij databases zonder de optionele traffic_forecast-kolom.
+      construction: {
+        ...(editing.construction || {}),
+        trafficForecast: editing.traffic_forecast || createEmptyTrafficForecast(),
+      } as unknown as Json,
       works: (editing.works || {}) as Json,
       closure: (editing.closure || {}) as Json,
       owner_id: editing.owner_id || null,
