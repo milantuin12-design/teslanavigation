@@ -29696,6 +29696,101 @@
       "source": "https://www.kilowattindex.com/changes/day/2026-11-06/9/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "mücke",
+        "muecke"
+      ],
+      "label": "Mücke",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/16/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "norden"
+      ],
+      "label": "Norden",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.32
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/8/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "northeim",
+        "backwerk"
+      ],
+      "label": "Northeim",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30090/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "pfaffenhofen an der ilm",
+        "hotel straßhof",
+        "hotel strasshof"
+      ],
+      "label": "Pfaffenhofen an der Ilm",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/15/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "irxleben",
+        "hohe börde"
+      ],
+      "label": "Irxleben",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Irxlebendesupercharger/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
