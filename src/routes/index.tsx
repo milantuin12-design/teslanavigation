@@ -1541,6 +1541,7 @@ function Index() {
               showTrailer={preferTrailerFriendly || trailerReductionEffective > 0}
               modelName={selectedModel}
               carMaxKwOverride={carMaxKwOverride}
+              whatIf={routeOptions[selectedRouteIndex]?.whatIf}
               restMin={waypoints.filter((w) => !w.corridor).reduce((sum, w) => {
                 if (!w.departAt || !route) return sum + (w.restMin ?? 0);
                 const kmAtWaypoint = projectOntoRoute(w.lat, w.lng, route.coordinates).km;
