@@ -91,9 +91,11 @@ function normalizeTariffMatch(value: string) {
  * Een expliciet in Supabase opgeslagen tarief heeft altijd voorrang.
  */
 function addAdminTariff(row: Charger): Charger {
+  // Only saved time blocks count as a complete tariff.
+  // Legacy price_per_kwh values are hidden in admin and must be upgraded
+  // from the published time-block dataset whenever a matching station exists.
   const hasSavedTariff =
-    (Array.isArray(row.price_blocks) && row.price_blocks.length > 0) ||
-    typeof row.price_per_kwh === "number";
+    Array.isArray(row.price_blocks) && row.price_blocks.length > 0;
   if (hasSavedTariff || row.status !== "operational") return row;
 
   const tariffs = (tariffDataset as unknown as { tariffs: AdminTariff[] }).tariffs;
