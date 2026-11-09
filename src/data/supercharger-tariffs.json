@@ -24555,7 +24555,9 @@
       "country": "Germany",
       "match": [
         "werkstadt munchen sendling",
-        "muenchen sendling"
+        "muenchen sendling",
+        "münchen - sendling",
+        "munchen sendling"
       ],
       "label": "München – WerkStadt München-Sendling",
       "timezone": "Europe/Berlin",
@@ -25927,6 +25929,8 @@
       "match": [
         "hanau rondo",
         "hanau rondo steinheim",
+        "hanau otto hahn strasse",
+        "hanau - otto hahn straße",
         "hanau otto hahn strasse"
       ],
       "label": "Hanau – Rondo Steinheim",
@@ -25955,7 +25959,8 @@
     {
       "country": "Germany",
       "match": [
-        "viernheim best western"
+        "viernheim best western",
+        "viernheim"
       ],
       "label": "Viernheim – Best Western Hotel",
       "timezone": "Europe/Berlin",
@@ -30533,6 +30538,25 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/munchenoezsupercharger/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "viernheim am alten weinheimer weg",
+        "viernheim rhein-neckar-zentrum"
+      ],
+      "label": "Viernheim – Am Alten Weinheimer Weg",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/32689/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
     }
