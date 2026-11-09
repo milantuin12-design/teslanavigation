@@ -14,6 +14,7 @@ export const TRAFFIC_PERIODS = [
 ] as const;
 
 const AUSTRIA_HOLIDAYS = [
+  { label: "Herfstvakantie", from: "2026-10-27", to: "2026-10-31" },
   { label: "Kerstvakantie", from: "2026-12-24", to: "2027-01-06" },
   { label: "Semesterferien Wien & Niederösterreich", from: "2027-02-01", to: "2027-02-06", provinces: ["Wien", "Niederösterreich"] },
   { label: "Semesterferien Burgenland & Kärnten", from: "2027-02-08", to: "2027-02-13", provinces: ["Burgenland", "Kärnten"] },
