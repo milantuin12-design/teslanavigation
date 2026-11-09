@@ -287,7 +287,7 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
                     : null),
           };
         })();
-        return rowToCharger(applyTariffOverride(merged), owners);
+        return { ...rowToCharger(applyTariffOverride(merged), owners), winterSportsMode: result.winterSportsMode };
       });
     } catch (error) {
       // De kaart blijft bruikbaar als Supabase tijdelijk onbereikbaar is.
@@ -440,6 +440,29 @@ async function assertAdmin(context: { supabase: unknown; userId: string }) {
 
 
 
+
+export const getWinterSportsMode = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await (supabaseAdmin as any).from("app_settings").select("value").eq("key", "winter_sports_mode").maybeSingle();
+    if (error) throw error;
+    return data?.value === true;
+  } catch (error) {
+    console.warn("[TeslaNavigation] Wintersportmodus-instelling niet beschikbaar:", error);
+    return false;
+  }
+});
+
+export const setWinterSportsMode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ enabled: z.boolean() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any).from("app_settings").upsert({ key: "winter_sports_mode", value: data.enabled, updated_at: new Date().toISOString() }, { onConflict: "key" });
+    if (error) throw new Error(error.message);
+    return { enabled: data.enabled };
+  });
 
 export const upsertSupercharger = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
