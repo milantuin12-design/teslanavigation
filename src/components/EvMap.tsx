@@ -91,19 +91,16 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   else if (status !== 'Beschikbaar' && status !== 'In bedrijf') color = '#ef4444'; // rood: gesloten varianten
   if (routeUsed) color = '#7dd3fc'; // lichtblauw = geselecteerde laadstop
 
-  if (status === 'Voting') {
+  if (status === 'Voting' || status === 'Plan') {
+    const dotColor = status === 'Voting' ? '#3b82f6' : '#a855f7';
+    const dotSize = status === 'Voting' ? 12 : 10;
+    const snowBadge = charger.winterSportsMode && isSnowRegion(charger)
+      ? `<span title="Wintersportgebied" style="position:absolute;right:-5px;top:-5px;width:14px;height:14px;border-radius:50%;background:#e0f2fe;border:1px solid #fff;color:#0369a1;font-size:9px;display:flex;align-items:center;justify-content:center;">❄</span>`
+      : '';
     return L.divIcon({
       className: 'custom-marker',
-      html: `<div title="Voting" style="width:12px;height:12px;border-radius:50%;background:#3b82f6;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>`,
-      iconSize: [12, 12], iconAnchor: [6, 6], popupAnchor: [0, -6],
-    });
-  }
-
-  if (status === 'Plan') {
-    return L.divIcon({
-      className: 'custom-marker',
-      html: `<div title="Plan" style="width:10px;height:10px;border-radius:50%;background:#a855f7;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>`,
-      iconSize: [10, 10], iconAnchor: [5, 5], popupAnchor: [0, -5],
+      html: `<div style="position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center;"><div style="width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:${dotColor};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>${snowBadge}</div>`,
+      iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9],
     });
   }
 
