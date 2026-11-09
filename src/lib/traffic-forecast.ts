@@ -13,18 +13,6 @@ export const TRAFFIC_PERIODS = [
   { from: "20:00", to: "24:00", label: "20–24" },
 ] as const;
 
-const AUSTRIA_HOLIDAYS = [
-  { label: "Herfstvakantie", from: "2026-10-27", to: "2026-10-31" },
-  { label: "Kerstvakantie", from: "2026-12-24", to: "2027-01-06" },
-  { label: "Semesterferien Wien & Niederösterreich", from: "2027-02-01", to: "2027-02-06", provinces: ["Wien", "Niederösterreich"] },
-  { label: "Semesterferien Burgenland & Kärnten", from: "2027-02-08", to: "2027-02-13", provinces: ["Burgenland", "Kärnten"] },
-  { label: "Semesterferien overige deelstaten", from: "2027-02-15", to: "2027-02-20", provinces: ["Oberösterreich", "Salzburg", "Steiermark", "Tirol", "Vorarlberg"] },
-  { label: "Paasvakantie", from: "2027-03-20", to: "2027-03-29" },
-  { label: "Pinkstervakantie", from: "2027-05-15", to: "2027-05-17" },
-  { label: "Zomervakantie Burgenland, Niederösterreich & Wien", from: "2027-07-03", to: "2027-09-05", provinces: ["Burgenland", "Niederösterreich", "Wien"] },
-  { label: "Zomervakantie overige deelstaten", from: "2027-07-10", to: "2027-09-12", provinces: ["Kärnten", "Oberösterreich", "Salzburg", "Steiermark", "Tirol", "Vorarlberg"] },
-];
-
 function zoneFor(charger: Pick<Supercharger, "name" | "city" | "province" | "lat" | "lng">): "transit" | "ski" | "urban" | "other" {
   const text = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
   if (/tauern|spittal|villach|katschberg|st\. michael|eben im pongau|flachau|golling|werfen|karawanken|arnoldstein/.test(text) ||
@@ -76,11 +64,11 @@ export function createAustriaTrafficForecast(charger: Supercharger): TrafficFore
   return {
     source: "regional-estimate",
     confidence: "low",
-    note: `Indicatieve regionale inschatting voor ${corridor}. Geen live bezettingsdata; de vakantieprofielen zijn gebaseerd op de officiële Oostenrijkse schoolvakanties 2026/2027.`,
+    note: `Indicatieve regionale inschatting voor ${corridor}. Geen live bezettingsdata. Het vakantieprofiel geldt voor algemene vakantieperiodes die de beheerder instelt.`,
     weekdaySlots: makeProfile(zone, "weekday"),
     weekendSlots: makeProfile(zone, "weekend"),
     holidaySlots: makeProfile(zone, "holiday"),
-    holidayPeriods: AUSTRIA_HOLIDAYS,
+    holidayPeriods: [],
   };
 }
 
@@ -167,4 +155,19 @@ export function getTrafficForecastAt(forecast: TrafficForecast | undefined, at: 
 
 export function trafficLevelLabel(level: number): string {
   return level >= 70 ? "Verwacht druk" : level <= 30 ? "Verwacht rustig" : "Gemiddelde drukte";
+}
+
+/** Schat het aantal vrije laadplekken op basis van het ingestelde druktepercentage. */
+export function estimateFreeStalls(total: number | undefined, level: number): number | null {
+  if (!total || total <= 0) return null;
+  return Math.max(0, Math.min(total, Math.round(total * (1 - Math.max(0, Math.min(100, level)) / 100))));
+}
+
+/** Herkent Alpen-, wintersport- en noordelijke sneeuwgebieden voor de admin-waarschuwing. */
+export function isSnowRegion(charger: Pick<Supercharger, "name" | "city" | "province" | "country" | "lat" | "lng">): boolean {
+  const text = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
+  const country = (charger.country ?? "").toLowerCase();
+  if (/switzerland|schweiz|suisse|osterreich|österreich|austria|norway|norge|sweden|sverige|finland|suomi/.test(country)) return true;
+  if (/alps|alpen|dolomit|ski|berg|brenner|tauern|arlberg|tirol|tyrol|salzburg|kitzb[uü]hel|zell am see|sölden|soelden|ischgl|st anton|lermoos|innsbruck|chamonix|val thorens|courchevel|les arcs|tignes|verbier|davos|zermatt|laax|st moritz|livigno|cortina|bormio|geilo|try sil|trysil|are|åre|kiruna|rovaniemi/.test(text)) return true;
+  return charger.lat >= 45.5 && charger.lat <= 48.5 && charger.lng >= 5.5 && charger.lng <= 17.5;
 }
