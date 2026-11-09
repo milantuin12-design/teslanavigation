@@ -246,6 +246,15 @@ export function estimatedChargePowerKw(
   return Math.max(1, Math.min(curveKw, chargerMaxSpeedKw || 250, carCap));
 }
 
+/** Charging-curve sample points after applying the selected car and station power caps. */
+export function getChargeCurvePoints(modelName: string, chargerMaxSpeedKw: number, carMaxKwOverride?: number) {
+  const family = chargeCurveFamily(modelName);
+  return TESLA_CHARGE_POWER_CURVES[family].map((point) => ({
+    percent: point.percent,
+    kw: estimatedChargePowerKw(modelName, point.percent, chargerMaxSpeedKw, carMaxKwOverride),
+  }));
+}
+
 export function calculateChargeDuration(
   batteryBefore: number,
   batteryAfter: number,
