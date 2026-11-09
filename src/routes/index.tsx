@@ -1449,7 +1449,9 @@ function Index() {
               liveTraffic={onlineTraffic && !isFutureTrip}
               ccsBlocked={ccsBlocked}
               showTrailer={preferTrailerFriendly || trailerReductionEffective > 0}
-              modelName={selectedModel}\n              carMaxKwOverride={carMaxKwOverride}\n              restMin={waypoints.filter((w) => !w.corridor).reduce((sum, w) => {
+              modelName={selectedModel}
+              carMaxKwOverride={carMaxKwOverride}
+              restMin={waypoints.filter((w) => !w.corridor).reduce((sum, w) => {
                 if (!w.departAt || !route) return sum + (w.restMin ?? 0);
                 const kmAtWaypoint = projectOntoRoute(w.lat, w.lng, route.coordinates).km;
                 const travelMinToWaypoint = route.totalDistanceKm > 0 ? (kmAtWaypoint / route.totalDistanceKm) * route.totalTimeMin : 0;
