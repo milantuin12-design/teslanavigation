@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { importSuperchargers } from "@/lib/tesla.functions";
+import { importSuperchargers, getWinterSportsMode, setWinterSportsMode } from "@/lib/tesla.functions";
 import localDataset from "@/data/superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
 import { queueAdminChange, getPendingAdminChanges, clearPendingAdminChanges } from "@/lib/local-store";
@@ -170,16 +170,16 @@ function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; on
   useEffect(() => setHolidayText(formatHolidayPeriods(value.holidayPeriods)), [value.holidayPeriods]);
   const saveHolidayPeriods = () => {
     const holidayPeriods = holidayText.split("\n").map((line) => {
-      const [label, from, to, provinces] = line.split("|").map((part) => part.trim());
+      const [label, from, to] = line.split("|").map((part) => part.trim());
       if (!label || !/^\d{4}-\d{2}-\d{2}$/.test(from ?? "") || !/^\d{4}-\d{2}-\d{2}$/.test(to ?? "") || from > to) return null;
-      return { label, from, to, provinces: provinces ? provinces.split(",").map((item) => item.trim()).filter(Boolean) : undefined };
-    }).filter((period): period is { label: string; from: string; to: string; provinces?: string[] } => period !== null);
+      return { label, from, to };
+    }).filter((period): period is { label: string; from: string; to: string } => period !== null);
     onChange({ ...value, source: "admin", confidence: "medium", holidayPeriods });
   };
   const groups: { key: "weekdaySlots" | "weekendSlots" | "holidaySlots"; label: string; description: string }[] = [
     { key: "weekdaySlots", label: "Doordeweeks", description: "Maandag t/m vrijdag" },
     { key: "weekendSlots", label: "Weekend", description: "Zaterdag en zondag" },
-    { key: "holidaySlots", label: "Vakanties", description: "Oostenrijkse schoolvakanties en piekperiodes" },
+    { key: "holidaySlots", label: "Vakanties", description: "Algemene schoolvakanties, feestdagen en vakantieperiodes" },
   ];
   const update = (key: "weekdaySlots" | "weekendSlots" | "holidaySlots", index: number, level: number) => {
     const current = value[key] ?? TRAFFIC_PERIODS.map((period): TrafficForecastPeriodSlot => ({ from: period.from, to: period.to, level: 25 }));
@@ -217,7 +217,7 @@ function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; on
       ))}
       <div className="space-y-1 rounded-md bg-slate-800/70 p-2">
         <div className="text-[10px] font-semibold text-cyan-200">Vakantieperiodes die het vakantieprofiel activeren</div>
-        <p className="text-[10px] text-slate-400">Eén periode per regel: naam | startdatum | einddatum | provincies (optioneel, kommagescheiden). De Oostenrijkse data zijn alvast ingevuld en kun je aanpassen.</p>
+        <p className="text-[10px] text-slate-400">Eén periode per regel: naam | startdatum | einddatum. Gebruik dit voor algemene vakantieperiodes; geen land- of provinciegebonden Oostenrijkse kalender.</p>
         <textarea
           rows={Math.min(9, Math.max(3, value.holidayPeriods?.length ?? 0))}
           value={holidayText}
@@ -313,6 +313,10 @@ function AdminPage() {
   const [bulkPrice, setBulkPrice] = useState({ parkingFeeAmount: "", parkingFreeMinutes: "", parkingPerMinutes: "", parkingPerEuro: "" });
   const fileRef = useRef<HTMLInputElement>(null);
   const runImport = useServerFn(importSuperchargers);
+  const readWinterSportsMode = useServerFn(getWinterSportsMode);
+  const saveWinterSportsMode = useServerFn(setWinterSportsMode);
+  const [winterSportsEnabled, setWinterSportsEnabled] = useState(false);
+  const [winterSportsSaving, setWinterSportsSaving] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -320,6 +324,7 @@ function AdminPage() {
       if (!userData.user) return;
       const { data } = await supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
       setIsAdmin(!!data);
+      if (data) { try { setWinterSportsEnabled(await readWinterSportsMode()); } catch { setWinterSportsEnabled(false); } }
     })();
   }, []);
 
