@@ -128,6 +128,8 @@ export interface ConstructionInfo {
   dataUnknown?: boolean;
   /** Opgeslagen in bestaand JSONB-veld construction zodat geen databasemigratie nodig is. */
   trafficForecast?: TrafficForecast;
+  /** On-site amenities manually verified by the admin. */
+  siteAmenities?: string[];
 }
 
 
@@ -261,6 +263,7 @@ export interface Supercharger {
   construction?: ConstructionInfo;
   /** Expected crowd level, separately for weekdays, weekends and school holidays. */
   trafficForecast?: TrafficForecast;
+  siteAmenities?: string[];
   works?: WorksInfo;
   closure?: ClosureInfo;
   ownerId?: string | null;
