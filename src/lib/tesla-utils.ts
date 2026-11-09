@@ -668,7 +668,9 @@ export function calculateChargingStops(
         : parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
       const capacity = batteryCapacityKWhOverride || usableBatteryKWh || teslaBatteryKWh[modelName] || 79;
       const from = Math.max(0, Math.min(99, Math.round(candidate.batteryAtCharger)));
-      const to = Math.max(from + 1, Math.min(100, chargeTargetPercent));
+      const needForDestination = ((route.totalDistanceKm - candidate.routeKm) / fullRangeKm) * 100 + targetArrivalPercent;
+      const targetSoc = !nextForced && needForDestination <= 100 ? Math.ceil(needForDestination) + 1 : chargeTargetPercent;
+      const to = Math.max(from + 1, Math.min(100, targetSoc));
       let amount = 0;
       let elapsed = 0;
       for (let pct = from; pct < to; pct += 1) {
