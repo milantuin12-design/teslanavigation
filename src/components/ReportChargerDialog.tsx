@@ -17,6 +17,10 @@ const CATEGORIES: { value: string; label: string }[] = [
   { value: "wrong_location", label: "Verkeerde locatie" },
   { value: "closed", label: "Lader is dicht / buiten gebruik" },
   { value: "opening_hours", label: "Openingstijden kloppen niet" },
+  { value: "amenities", label: "Voorzieningen kloppen niet / ontbreken" },
+  { value: "trailer_access", label: "Niet bereikbaar of bruikbaar met caravan/aanhanger" },
+  { value: "defective_stalls", label: "Laadplekken defect of geblokkeerd" },
+  { value: "price", label: "Laadprijs of parkeertarief klopt niet" },
   { value: "missing", label: "Supercharger ontbreekt" },
   { value: "other", label: "Anders" },
 ];
