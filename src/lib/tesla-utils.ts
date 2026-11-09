@@ -656,14 +656,73 @@ export function calculateChargingStops(
     // Zo min mogelijk laadstops: kies de VERST haalbare lader. Liefst met het gewenste
     // aankomstpercentage; lukt dat niet, dan de verste met minimaal de veiligheidsmarge.
     const arriveTarget = Math.max(minSafetyPercent, maxArrivalAtChargerPercent);
+    const estimateCandidateChargeCost = (candidate: Candidate): number | null => {
+      const charger = candidate.charger;
+      if ((charger.priceCurrency || "EUR").toUpperCase() !== "EUR") return null;
+      const blocks = charger.priceBlocks ?? [];
+      const powerBlocks = blocks.filter((block) => block.type === "power" && typeof block.pricePerMinute === "number");
+      const kwhBlocks = blocks.filter((block) => block.type !== "power" && typeof block.pricePerKwh === "number");
+      if (powerBlocks.length === 0 && kwhBlocks.length === 0 && typeof charger.pricePerKwh !== "number") return null;
+      const stationCap = ccsBlocked
+        ? (v2SpeedKw(charger) ?? parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs))
+        : parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
+      const capacity = batteryCapacityKWhOverride || usableBatteryKWh || teslaBatteryKWh[modelName] || 79;
+      const from = Math.max(0, Math.min(99, Math.round(candidate.batteryAtCharger)));
+      const to = Math.max(from + 1, Math.min(100, chargeTargetPercent));
+      let amount = 0;
+      let elapsed = 0;
+      for (let pct = from; pct < to; pct += 1) {
+        const next = Math.min(to, pct + 1);
+        const midpoint = (pct + next) / 2;
+        const power = estimatedChargePowerKw(modelName, midpoint, stationCap, carMaxKwOverride);
+        const energy = capacity * (next - pct) / 100;
+        const minutes = energy / power * 60;
+        if (powerBlocks.length > 0) {
+          const tier = powerBlocks.find((block) => power >= (block.minKw ?? 0) && (block.maxKw == null || power < block.maxKw));
+          if (!tier) return null;
+          amount += minutes * (tier.pricePerMinute ?? 0);
+        } else {
+          const at = new Date(candidate.estArrival.getTime() + elapsed * 60000);
+          const day = at.getDay();
+          const minute = at.getHours() * 60 + at.getMinutes();
+          const tier = kwhBlocks.find((block) => {
+            const days = (block.days ?? "").toLowerCase();
+            const dayOk = !days || days.includes("dagelijks") || days.includes("daily") || days.includes("ma-zo") ||
+              (days.includes("weekend") ? day === 0 || day === 6 : days.includes("ma-vr") || days.includes("weekdag") ? day >= 1 && day <= 5 : true);
+            const parseTime = (value: string | undefined, fallback: number) => {
+              if (!value) return fallback;
+              const [hours, mins] = value.split(":").map(Number);
+              return Number.isFinite(hours) && Number.isFinite(mins) ? hours * 60 + mins : fallback;
+            };
+            const fromMinute = parseTime(block.from, 0);
+            const toMinute = parseTime(block.to, 1440);
+            const timeOk = fromMinute <= toMinute ? minute >= fromMinute && minute < toMinute : minute >= fromMinute || minute < toMinute;
+            return dayOk && timeOk;
+          });
+          const price = tier?.pricePerKwh ?? charger.pricePerKwh;
+          if (typeof price !== "number") return null;
+          amount += energy * price;
+        }
+        elapsed += minutes;
+      }
+      return Number.isFinite(amount) ? amount : null;
+    };
+    const candidateCosts = new Map(candidates.map((candidate) => [candidate, estimateCandidateChargeCost(candidate)]));
+    const hasKnownCandidateCosts = [...candidateCosts.values()].some((cost) => cost !== null);
+
     const penalty = (c: Candidate) => {
       // Vermijd bij vergelijkbare routes liever een drukke laadlocatie.
       // Een voorspelling met lage zekerheid weegt minder zwaar dan een handmatig beheerd profiel.
       const crowd = getTrafficForecastAt(c.charger.trafficForecast, c.estArrival, c.charger.province);
       const confidenceWeightKm = crowd?.confidence === "high" ? 8 : crowd?.confidence === "medium" ? 5 : 2;
       const crowdPenaltyKm = ((crowd?.level ?? 0) / 100) * confidenceWeightKm;
+      const estimatedCost = candidateCosts.get(c) ?? null;
+      // Eén euro laadkosten telt mee als circa 1,2 km routevoorkeur.
+      // Onbekende tarieven krijgen alleen een kleine voorkeurssanctie wanneer er wél prijzen bekend zijn.
+      const tariffPenaltyKm = estimatedCost !== null ? estimatedCost * 1.2 : hasKnownCandidateCosts ? 6 : 0;
       return c.detourKm * 2
         + crowdPenaltyKm
+        + tariffPenaltyKm
         + (preferTrailerFriendly && c.charger.trailerFriendly ? -15 : 0)
         + (c.charger.inParkingGarage ? 10 : 0);
     };
