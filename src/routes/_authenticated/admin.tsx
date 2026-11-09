@@ -658,6 +658,10 @@ function AdminPage() {
           <div><div className="text-sm font-semibold text-sky-200">❄ Wintersportmodus</div><p className="text-xs text-slate-300">Toont een sneeuwvlok en een druktewaarschuwing bij Superchargers in sneeuw- en wintersportgebieden.</p></div>
           <label className="flex shrink-0 items-center gap-2 text-sm"><Checkbox checked={winterSportsEnabled} disabled={winterSportsSaving} onCheckedChange={(checked) => void toggleWinterSports(!!checked)} />{winterSportsSaving ? "Opslaan…" : winterSportsEnabled ? "Aan" : "Uit"}</label>
         </div>
+        <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-sky-500/40 bg-sky-500/10 p-3">
+          <div><div className="text-sm font-semibold text-sky-200">❄ Wintersportmodus</div><p className="text-xs text-slate-300">Toont een sneeuwvlok en een druktewaarschuwing bij Superchargers in sneeuw- en wintersportgebieden.</p></div>
+          <label className="flex shrink-0 items-center gap-2 text-sm"><Checkbox checked={winterSportsEnabled} disabled={winterSportsSaving} onCheckedChange={(checked) => void toggleWinterSports(!!checked)} />{winterSportsSaving ? "Opslaan…" : winterSportsEnabled ? "Aan" : "Uit"}</label>
+        </div>
         {selectedIds.size > 0 && (
           <div className="mb-4 flex flex-wrap items-center gap-2 border border-blue-500/40 bg-blue-500/10 p-3 rounded-lg">
             <span className="text-sm font-semibold mr-2">{selectedIds.size} geselecteerd</span>
