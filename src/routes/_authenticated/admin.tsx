@@ -76,6 +76,7 @@ type Owner = { id: string; name: string };
 
 type AdminTariff = {
   country: string;
+  countryAliases?: string[];
   match: string[];
   pricePerKwh?: number;
   currency?: string;
@@ -99,7 +100,8 @@ function addAdminTariff(row: Charger): Charger {
   const country = normalizeTariffMatch(row.country ?? "");
   const name = normalizeTariffMatch([row.name, row.city, row.province].filter(Boolean).join(" "));
   const match = tariffs.find((tariff) => {
-    if (normalizeTariffMatch(tariff.country) !== country) return false;
+    const countries = [tariff.country, ...(tariff.countryAliases ?? [])];
+    if (!countries.some((value) => normalizeTariffMatch(value) === country)) return false;
     return tariff.match.some((term) => {
       const normalizedTerm = normalizeTariffMatch(term);
       return name === normalizedTerm || name.includes(normalizedTerm);
