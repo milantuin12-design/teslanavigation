@@ -30579,6 +30579,65 @@
       "source": "https://www.kilowattindex.com/changes/day/2026-11-06/17/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "limburg an der lahn nord",
+        "limburg globus"
+      ],
+      "label": "Limburg an der Lahn - Nord",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/3/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "limburg an der lahn süd",
+        "limburg an der lahn sud",
+        "limburg kfc"
+      ],
+      "label": "Limburg an der Lahn - Süd",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "10:00",
+          "to": "21:00",
+          "pricePerKwh": 0.4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/2/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
