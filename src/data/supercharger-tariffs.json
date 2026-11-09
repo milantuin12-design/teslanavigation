@@ -30146,6 +30146,55 @@
       "source": "https://www.kilowattindex.com/changes/day/2026-11-06/9/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "woringen",
+        "cafe kult"
+      ],
+      "label": "Woringen",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/WoringenSupercharger/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "wörrstadt",
+        "woerrstadt",
+        "24-autohof"
+      ],
+      "label": "Wörrstadt",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/7/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
