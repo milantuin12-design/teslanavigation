@@ -30898,6 +30898,79 @@
       "source": "https://kilowattindex.com/site/villachostsupercharger/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "klagenfurt",
+        "klagenfurt am wörthersee",
+        "müller klagenfurt"
+      ],
+      "label": "Klagenfurt am Wörthersee – Müller",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://kilowattindex.com/site/32609/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "völkermarkt",
+        "volkermarkt",
+        "mcdonalds völkermarkt"
+      ],
+      "label": "Völkermarkt – McDonald's",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://kilowattindex.com/site/Veldensupercharger/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "villach fachmarktzentrum",
+        "fachmarktzentrum villach"
+      ],
+      "label": "Villach – Fachmarktzentrum",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.37,
+      "source": "https://kilowattindex.com/site/436258/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
