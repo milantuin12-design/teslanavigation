@@ -248,7 +248,12 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
       const { data: ownerRows } = await supabaseAdmin
         .from("charger_owners")
         .select("id,name,logo_url,description,website,contact,notes");
-      return { rows, ownerRows: (ownerRows ?? []) as (OwnerRow & { id: string })[] };
+      let winterSportsMode = false;
+      try {
+        const setting = await (supabaseAdmin as any).from("app_settings").select("value").eq("key", "winter_sports_mode").maybeSingle();
+        winterSportsMode = setting.data?.value === true;
+      } catch { /* setting table may not yet be migrated in a hosted environment */ }
+      return { rows, ownerRows: (ownerRows ?? []) as (OwnerRow & { id: string })[], winterSportsMode };
     };
 
     try {
