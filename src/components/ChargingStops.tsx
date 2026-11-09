@@ -238,12 +238,12 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                 {typeof stop.energyChargedKWh === 'number' && <span className="text-emerald-300">+{stop.energyChargedKWh} kWh</span>}
               </div>
               {stop.charger.trafficForecast && eta && (() => {
-                const forecast = getTrafficForecastAt(stop.charger.trafficForecast, eta);
+                const forecast = getTrafficForecastAt(stop.charger.trafficForecast, eta, stop.charger.province);
                 if (!forecast) return null;
                 const color = forecast.level >= 70 ? "bg-red-500/15 text-red-300" : forecast.level <= 30 ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300";
                 return <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
                   <span className={`rounded-md px-2 py-1 ${color}`}>{trafficLevelLabel(forecast.level)} · {forecast.level}%</span>
-                  <span className="text-slate-400">{forecast.from}–{forecast.to} · {forecast.confidence === "low" ? "lage zekerheid" : forecast.confidence === "high" ? "hoge zekerheid" : "gemiddelde zekerheid"}</span>
+                  <span className="text-slate-400">{forecast.from}–{forecast.to} · {forecast.holiday ? `vakantie: ${forecast.holiday}` : forecast.category === "weekend" ? "weekend" : "doordeweeks"} · {forecast.confidence === "low" ? "lage zekerheid" : forecast.confidence === "high" ? "hoge zekerheid" : "gemiddelde zekerheid"}</span>
                 </div>;
               })()}
       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
