@@ -169,5 +169,5 @@ export function isSnowRegion(charger: Pick<Supercharger, "name" | "city" | "prov
   const country = (charger.country ?? "").toLowerCase();
   if (/switzerland|schweiz|suisse|norway|norge|sweden|sverige|finland|suomi/.test(country)) return true;
   if (/alps|alpen|dolomit|ski|berg|brenner|tauern|arlberg|tirol|tyrol|salzburg|kitzb[uü]hel|zell am see|sölden|soelden|ischgl|st anton|lermoos|innsbruck|chamonix|val thorens|courchevel|les arcs|tignes|verbier|davos|zermatt|laax|st moritz|livigno|cortina|bormio|geilo|try sil|trysil|are|åre|kiruna|rovaniemi/.test(text)) return true;
-  return charger.lat >= 45.5 && charger.lat <= 48.5 && charger.lng >= 5.5 && charger.lng <= 17.5;
+  return charger.lat >= 46.0 && charger.lat <= 47.8 && charger.lng >= 9.5 && charger.lng <= 14.8;
 }
