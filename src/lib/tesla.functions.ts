@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, PlannedUpgrade, PriceBlock, ParkingFeeBlock, StallState, Supercharger, VotingInfo, WorksInfo } from "./tesla-types";
+import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, PlannedUpgrade, PriceBlock, ParkingFeeBlock, StallState, Supercharger, VotingInfo, WorksInfo, TrafficForecast } from "./tesla-types";
 import type { Json } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import tariffDataset from "@/data/supercharger-tariffs.json";
@@ -25,8 +25,9 @@ function normalizeStallData(totalStalls?: number | null, stallTypes?: string | n
 }
 
 const SELECT_COLS =
-  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,notes,reopen_at,planned_upgrade,stall_states,permanently_closed_at,data_source,voting,hidden,photos,price_blocks";
+  "id,name,lat,lng,total_stalls,stall_types,occupied_stalls,country,province,city,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,works,closure,owner_id,owner_name,low_speed,published,notes,reopen_at,planned_upgrade,stall_states,permanently_closed_at,data_source,voting,hidden,photos,price_blocks,traffic_forecast";
 const SELECT_COLS_WITHOUT_CURRENCY = SELECT_COLS.replace("price_currency,", "");
+const SELECT_COLS_WITHOUT_TRAFFIC = SELECT_COLS.replace(",traffic_forecast", "");
 const SELECT_COLS_WITHOUT_PARKING_BLOCKS = SELECT_COLS.replace("parking_blocks,", "");
 const SELECT_COLS_WITHOUT_BOTH = SELECT_COLS_WITHOUT_PARKING_BLOCKS.replace("price_currency,", "");
 
@@ -78,6 +79,7 @@ type Row = {
   voting?: VotingInfo | null;
   hidden?: boolean | null;
   photos?: string[] | null;
+  traffic_forecast?: TrafficForecast | null;
 };
 
 const LIFECYCLE: ChargerLifecycleStatus[] = ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed', 'voting', 'plan', 'permit', 'expanding', 'permanent_closed', 'unknown'];
@@ -130,6 +132,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
     inParkingGarage: !!row.in_parking_garage,
     status,
     construction: row.construction ?? {},
+    trafficForecast: row.traffic_forecast ?? (/^(austria|österreich)$/i.test(row.country ?? "") ? createAustriaTrafficForecast({ name: row.name, city: row.city ?? undefined, province: row.province ?? undefined, lat: row.lat, lng: row.lng }) : undefined),
     works: row.works ?? {},
     closure: row.closure ?? {},
     ownerId: row.owner_id,
@@ -222,6 +225,9 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
         if (result.error && /parking_blocks|column .* does not exist|schema cache/i.test(result.error.message)) {
           parkingBlocksMissing = true;
           result = await supabaseAdmin.from("superchargers").select(SELECT_COLS_WITHOUT_PARKING_BLOCKS).order("name").range(from, from + pageSize - 1);
+        }
+        if (result.error && /traffic_forecast|column .* does not exist|schema cache/i.test(result.error.message)) {
+          result = await supabaseAdmin.from("superchargers").select(SELECT_COLS_WITHOUT_TRAFFIC).order("name").range(from, from + pageSize - 1);
         }
         if (result.error && /price_currency|column .* does not exist|schema cache/i.test(result.error.message)) {
           console.warn("[TeslaNavigation] Optionele parkeer-/valutakolom ontbreekt; compatibele dataset wordt geladen.", result.error.message);
