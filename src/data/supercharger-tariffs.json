@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "checkedAt": "2026-11-08",
+  "checkedAt": "2026-11-09",
   "note": "Alleen Tesla-rijderstarieven. Tijdblokken zijn lokaal per station. Alleen exact gepubliceerde blokken of vaste tarieven; onbekende tarieven blijven leeg. Matcht alleen operationele locaties.",
   "tariffs": [
     {
@@ -30719,6 +30719,55 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/297408/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "nottuln",
+        "mcdonald's"
+      ],
+      "label": "Nottuln",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "04:00",
+          "to": "22:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Nottulnq222/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Germany",
+      "match": [
+        "füssen",
+        "fussen",
+        "tesla lounge"
+      ],
+      "label": "Füssen",
+      "timezone": "Europe/Berlin",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/14/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
     }
