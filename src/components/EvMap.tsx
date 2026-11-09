@@ -392,7 +392,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         const totalForEstimate = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
         const estimatedFree = currentCrowd ? Math.min(getOpenStalls(charger, forecastAt), estimateFreeStalls(totalForEstimate, currentCrowd.level) ?? totalForEstimate) : null;
         if (estimatedFree !== null) {
-          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${totalForEstimate} vrij</div><div style="font-size:10px;color:#64748b;">Inschatting op basis van verwachte drukte (${currentCrowd.level}%)${routeStop ? ` · bij aankomst rond ${forecastAt.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : ''}</div>`;
+          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${totalForEstimate} vrij</div>`;
         }
         const routeCost = routeStop ? estimateChargingCost(routeStop, forecastAt, modelName, packKWh, carMaxKwOverride) : null;
         if (routeCost) {
