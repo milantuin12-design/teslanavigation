@@ -660,8 +660,8 @@ export function calculateChargingStops(
       // Vermijd bij vergelijkbare routes liever een drukke laadlocatie.
       // Een voorspelling met lage zekerheid weegt minder zwaar dan een handmatig beheerd profiel.
       const crowd = getTrafficForecastAt(c.charger.trafficForecast, c.estArrival, c.charger.province);
-      const confidenceFactor = crowd?.confidence === "high" ? 0.3 : crowd?.confidence === "medium" ? 0.22 : 0.12;
-      const crowdPenaltyKm = (crowd?.level ?? 0) * confidenceFactor;
+      const confidenceWeightKm = crowd?.confidence === "high" ? 8 : crowd?.confidence === "medium" ? 5 : 2;
+      const crowdPenaltyKm = ((crowd?.level ?? 0) / 100) * confidenceWeightKm;
       return c.detourKm * 2
         + crowdPenaltyKm
         + (preferTrailerFriendly && c.charger.trailerFriendly ? -15 : 0)
