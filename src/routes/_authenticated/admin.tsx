@@ -53,7 +53,7 @@ type Charger = {
   price_per_kwh?: number | null;
   price_per_kwh_peak?: number | null;
   peak_hours?: string | null;
-  price_blocks?: { days?: string; from?: string; to?: string; pricePerKwh: number }[] | null;
+  price_blocks?: { type?: "kwh" | "power"; days?: string; from?: string; to?: string; pricePerKwh?: number; minKw?: number; maxKw?: number | null; pricePerMinute?: number }[] | null;
   in_parking_garage: boolean;
   status: ChargerLifecycleStatus;
   construction: ConstructionInfo | null;
@@ -933,7 +933,7 @@ function AdminPage() {
                   <p className="text-[11px] text-slate-400">Voorbeeld: starttarief 2 EUR (periode 0), eerste uur 2,50 EUR (vanaf 0, periode 60), daarna 5 EUR per uur (vanaf 60, periode 60, herhalen aan).</p>
                 </div>
               )}
-              <div className="space-y-1.5 text-xs rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
+              <div className="space-y-3 text-xs rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
                 <label className="flex items-center gap-2">Valuta van de tarieven
                   <select className="h-8 rounded-md border border-slate-600 bg-slate-800 px-2" value={editing.price_currency ?? "EUR"} onChange={(e) => setEditing({ ...editing, price_currency: e.target.value })}>
                     {["EUR","CHF","GBP","USD","NOK","SEK","DKK","PLN","CZK","HUF","RON","BGN","TRY","ISK"].map((code) => <option key={code} value={code}>{code}</option>)}
@@ -942,23 +942,38 @@ function AdminPage() {
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <Label className="text-sm font-semibold">⚡ Tesla-prijzen per tijdsblok</Label>
-                    <p className="text-[11px] text-slate-400">Voeg voor elk tarief de dagen, begin- en eindtijd en prijs per kWh toe.</p>
+                    <p className="text-[11px] text-slate-400">Tarieven per kWh op basis van dag en tijd.</p>
                   </div>
-                  <Button type="button" size="sm" variant="outline" className="h-7 shrink-0" onClick={() => setEditing({ ...editing, price_blocks: [...(editing.price_blocks ?? []), { days: "dagelijks", from: "00:00", to: "23:59", pricePerKwh: 0.4 }] })}>+ Tijdsblok</Button>
+                  <Button type="button" size="sm" variant="outline" className="h-7 shrink-0" onClick={() => setEditing({ ...editing, price_blocks: [...(editing.price_blocks ?? []), { type: "kwh", days: "dagelijks", from: "00:00", to: "23:59", pricePerKwh: 0.4 }] })}>+ kWh-tijdsblok</Button>
                 </div>
-                {(editing.price_blocks ?? []).map((block: { days?: string; from?: string; to?: string; pricePerKwh: number }, idx: number) => {
-                  const blocks = [...(editing.price_blocks ?? [])];
-                  const update = (patch: Partial<typeof block>) => { blocks[idx] = { ...block, ...patch }; setEditing({ ...editing, price_blocks: blocks }); };
-                  return (
-                    <div key={idx} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-1.5 items-center">
-                      <Input placeholder="ma-vr / weekend / dagelijks" className="h-7 bg-slate-800 border-slate-600" value={block.days ?? ''} onChange={(e) => update({ days: e.target.value })} />
-                      <Input type="time" className="h-7 w-24 bg-slate-800 border-slate-600" value={block.from ?? ''} onChange={(e) => update({ from: e.target.value })} />
-                      <Input type="time" className="h-7 w-24 bg-slate-800 border-slate-600" value={block.to ?? ''} onChange={(e) => update({ to: e.target.value })} />
-                      <Input type="number" step="0.01" min="0" placeholder={editing.price_currency ? `${editing.price_currency}/kWh` : "EUR/kWh"} className="h-7 w-20 bg-slate-800 border-slate-600" value={block.pricePerKwh} onChange={(e) => update({ pricePerKwh: Number(e.target.value) })} />
-                      <Button type="button" size="sm" variant="ghost" className="h-6 text-red-400" onClick={() => setEditing({ ...editing, price_blocks: blocks.filter((_, i) => i !== idx) })}>✕</Button>
-                    </div>
-                  );
+                {(editing.price_blocks ?? []).filter((b: any) => b.type !== "power").map((block: any) => {
+                  const all = [...(editing.price_blocks ?? [])]; const idx = all.indexOf(block);
+                  const update = (patch: any) => { all[idx] = { ...block, ...patch, type: "kwh" }; setEditing({ ...editing, price_blocks: all }); };
+                  return <div key={idx} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-1.5 items-center">
+                    <Input placeholder="ma-vr / weekend / dagelijks" className="h-7 bg-slate-800 border-slate-600" value={block.days ?? "dagelijks"} onChange={(e) => update({ days: e.target.value })} />
+                    <Input type="time" className="h-7 w-24 bg-slate-800 border-slate-600" value={block.from ?? "00:00"} onChange={(e) => update({ from: e.target.value })} />
+                    <Input type="time" className="h-7 w-24 bg-slate-800 border-slate-600" value={block.to ?? "23:59"} onChange={(e) => update({ to: e.target.value })} />
+                    <Input type="number" step="0.01" min="0" placeholder="EUR/kWh" className="h-7 w-20 bg-slate-800 border-slate-600" value={block.pricePerKwh ?? 0} onChange={(e) => update({ pricePerKwh: Number(e.target.value) })} />
+                    <Button type="button" size="sm" variant="ghost" className="h-6 text-red-400" onClick={() => setEditing({ ...editing, price_blocks: all.filter((_, i) => i !== idx) })}>✕</Button>
+                  </div>;
                 })}
+                <div className="border-t border-slate-700 pt-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div><Label className="text-sm font-semibold">⏱️ Prijzen per minuut op actueel laadvermogen</Label><p className="text-[11px] text-slate-400">De actieve prijs volgt het actuele laadvermogen van de auto, niet het maximum van de laadpaal.</p></div>
+                    <Button type="button" size="sm" variant="outline" className="h-7 shrink-0" onClick={() => setEditing({ ...editing, price_blocks: [...(editing.price_blocks ?? []), { type: "power", minKw: 0, maxKw: 60, pricePerMinute: 0.36 }] })}>+ Vermogensblok</Button>
+                  </div>
+                  {(editing.price_blocks ?? []).filter((b: any) => b.type === "power").map((block: any) => {
+                    const all = [...(editing.price_blocks ?? [])]; const idx = all.indexOf(block);
+                    const update = (patch: any) => { all[idx] = { ...block, ...patch, type: "power" }; setEditing({ ...editing, price_blocks: all }); };
+                    return <div key={idx} className="grid grid-cols-[1fr_auto_auto_auto] gap-1.5 items-center">
+                      <span className="text-slate-300">kW</span>
+                      <Input aria-label="Vanaf kW" type="number" min="0" step="1" className="h-7 w-20 bg-slate-800 border-slate-600" value={block.minKw ?? 0} onChange={(e) => update({ minKw: Math.max(0, Number(e.target.value)) })} />
+                      <Input aria-label="Tot kW (leeg = onbeperkt)" type="number" min="0" step="1" placeholder="Onbeperkt" className="h-7 w-24 bg-slate-800 border-slate-600" value={block.maxKw ?? ""} onChange={(e) => update({ maxKw: e.target.value === "" ? null : Math.max(0, Number(e.target.value)) })} />
+                      <div className="flex items-center gap-1"><Input aria-label="Prijs per minuut" type="number" min="0" step="0.01" className="h-7 w-20 bg-slate-800 border-slate-600" value={block.pricePerMinute ?? 0} onChange={(e) => update({ pricePerMinute: Math.max(0, Number(e.target.value)) })} /><span>€/min</span><Button type="button" size="sm" variant="ghost" className="h-6 text-red-400" onClick={() => setEditing({ ...editing, price_blocks: all.filter((_, i) => i !== idx) })}>✕</Button></div>
+                    </div>;
+                  })}
+                  <p className="text-[10px] text-slate-500">Voorbeeld: 0–60 kW, 60–90 kW en 90–125 kW. De ondergrens telt mee; de bovengrens niet.</p>
+                </div>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={!!editing.in_parking_garage} onCheckedChange={(c) => setEditing({ ...editing, in_parking_garage: !!c })} />
