@@ -77,6 +77,20 @@ export const constructionStepLabels: Record<ConstructionStep, string> = {
   opening: 'Opening',
 };
 
+export interface TrafficForecastSlot {
+  day: 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+  from: string;
+  to: string;
+  level: number;
+}
+
+export interface TrafficForecast {
+  source: 'regional-estimate' | 'admin';
+  confidence: 'low' | 'medium' | 'high';
+  note?: string;
+  slots: TrafficForecastSlot[];
+}
+
 export interface ConstructionInfo {
   plannedStalls?: number;
   version?: string;
@@ -90,6 +104,8 @@ export interface ConstructionInfo {
   notes?: string;
   /** Admin weet nog niets over aantal laders/snelheid — toon dan géén laadsnelheid. */
   dataUnknown?: boolean;
+  /** Opgeslagen in bestaand JSONB-veld construction zodat geen databasemigratie nodig is. */
+  trafficForecast?: TrafficForecast;
 }
 
 
