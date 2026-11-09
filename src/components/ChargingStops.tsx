@@ -128,7 +128,8 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
   const totalChargeMin = stops.reduce((s, x) => s + x.chargeDurationMin, 0);
   const stopCosts = stops.map((stop) => {
     const at = new Date(start.getTime() + (stop.etaMinFromStart ?? 0) * 60000);
-    const charge = chargingCost(stop, at);
+    const estimate = estimateChargingCost(stop, at, modelName, packKWh, carMaxKwOverride);
+    const charge = estimate?.currency === "EUR" ? estimate.amount : null;
     const parking = parkingCost(stop, at);
     const parkingKnown = !stop.charger.parkingFee || parking !== null;
     return { charge, parking, known: charge !== null && parkingKnown };
