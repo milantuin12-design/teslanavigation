@@ -1654,7 +1654,6 @@ function Index() {
           selectedRouteType={String(selectedRouteIndex)}
           focusCoord={focusCoord}
 
-          chargingStops={chargingStops}
           currentPosition={currentPosition}
           isNavigating={isNavigating}
           heading={currentHeading}
@@ -1662,6 +1661,7 @@ function Index() {
           waypoints={waypoints}
           routeChargersOnly={!!route && !showAllChargers && chargingStops.length > 0}
           favoriteChargerIds={favoriteChargerIds}
+          winterSportsMode={mapChargers.some((charger) => charger.winterSportsMode)}
         />
 
         {route && !isNavigating && (
