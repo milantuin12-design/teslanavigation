@@ -60,9 +60,9 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   if (/badhoevedorp/.test(identity)) return {
     label: "structureel zeer drukke locatie Badhoevedorp",
     levels: {
-      weekday: [62, 88, 94, 92, 78],
-      weekend: [58, 82, 92, 94, 82],
-      holiday: [65, 90, 96, 95, 84],
+      weekday: [82, 92, 97, 96, 88],
+      weekend: [78, 90, 97, 98, 90],
+      holiday: [85, 95, 99, 98, 92],
     },
   };
   if (/breukelen/.test(identity)) return {
