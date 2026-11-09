@@ -6,6 +6,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, getOpenStalls, formatStallAvailability, isChargerUsable, normalizeChargerConfigs, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
+import { TRAFFIC_PERIODS } from '@/lib/traffic-forecast';
 
 
 // Exchange rates are reference rates, cached in memory for 24 hours.
@@ -519,22 +520,26 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
               ${charger.pricePerKwhPeak != null ? row('Piek per kWh', eur(charger.pricePerKwhPeak)) : ''}
               ${charger.peakHours ? row('Piekuren', escapeHtml(charger.peakHours)) : ''}`;
           }
-          const forecast = charger.trafficForecast?.weekly ?? [];
-          if (forecast.length) {
-            const dayNames: Record<string,string> = { mon:"Ma", tue:"Di", wed:"Wo", thu:"Do", fri:"Vr", sat:"Za", sun:"Zo" };
-            const byDay = ["mon","tue","wed","thu","fri","sat","sun"];
-            const levelAt = (day: string, hour: number) => forecast.find((slot) => slot.day === day && slot.hour === hour)?.level;
-            const heat = (level?: number) => level == null ? "#e2e8f0" : level < 25 ? "#86efac" : level < 50 ? "#fde68a" : level < 75 ? "#fdba74" : "#fca5a5";
-            d += `<div style="font-weight:700;margin-top:8px;">📊 Gebruikelijke drukte</div><div style="font-size:10px;color:#64748b;">Gemiddelde drukte per uur (0–100%)</div><div style="display:grid;grid-template-columns:24px repeat(24,minmax(5px,1fr));gap:2px;margin-top:4px;">`;
-            d += Array.from({length:24},(_,h)=>`<span style="font-size:8px;text-align:center;color:#64748b;">${h%3===0?String(h).padStart(2,"0"):""}</span>`).join("");
-            for (const day of byDay) {
-              d += `<span style="font-size:9px;color:#475569;align-self:center;">${dayNames[day]}</span>`;
-              for (let hour=0;hour<24;hour++) {
-                const value = levelAt(day,hour);
-                d += `<span title="${dayNames[day]} ${hour}:00 · ${value == null ? "geen data" : value+"%"}" style="height:12px;border-radius:2px;background:${heat(value)};"></span>`;
+          const crowdForecast = charger.trafficForecast;
+          const crowdProfiles = [
+            { label: "Doordeweeks", slots: crowdForecast?.weekdaySlots },
+            { label: "Weekend", slots: crowdForecast?.weekendSlots },
+            { label: "Vakanties", slots: crowdForecast?.holidaySlots },
+          ].filter((profile) => Array.isArray(profile.slots) && profile.slots.length > 0);
+          if (crowdProfiles.length) {
+            const heat = (level: number) => level < 25 ? "#86efac" : level < 50 ? "#fde68a" : level < 75 ? "#fdba74" : "#fca5a5";
+            d += `<div style="font-weight:700;margin-top:8px;">📊 Verwachte drukte</div><div style="font-size:10px;color:#64748b;">Adminvoorspelling per dagtype en tijdsblok (0–100%)</div>`;
+            for (const profile of crowdProfiles) {
+              d += `<div style="display:grid;grid-template-columns:74px repeat(5,minmax(30px,1fr));gap:3px;align-items:center;margin-top:4px;"><strong style="font-size:10px;color:#475569;">${profile.label}</strong>`;
+              for (const period of TRAFFIC_PERIODS) {
+                const level = profile.slots?.find((slot) => slot.from === period.from)?.level;
+                d += `<span title="${profile.label} ${period.label}: ${level == null ? "geen data" : level + "%"}" style="text-align:center;padding:4px 1px;border-radius:4px;background:${level == null ? "#e2e8f0" : heat(level)};font-size:9px;color:#334155;">${level == null ? "—" : level + "%"}</span>`;
               }
+              d += `</div>`;
             }
-            d += `</div><div style="display:flex;justify-content:space-between;font-size:9px;color:#64748b;margin-top:3px;"><span>Rustig</span><span>Gemiddeld</span><span>Druk</span></div>`;
+            if (crowdForecast?.holidayPeriods?.length) {
+              d += `<div style="font-size:9px;color:#64748b;margin-top:4px;">Vakantieperiodes: ${crowdForecast.holidayPeriods.map((period) => escapeHtml(period.label)).join(" · ")}</div>`;
+            }
           }
           const openingHours = normalizeOpeningHours(charger.openingHours, charger.openingTime, charger.closingTime);
           const openingHoursHtml = openingHours.mode === '24_7' ? '' : `
