@@ -262,6 +262,25 @@ function Index() {
   const routeCosts = routeOptions.map((plan) => estimateRouteCost(plan, departureDate, selectedModel, packKWh, carMaxKwOverride));
   const pricedRoutes = routeCosts.map((cost, index) => ({ cost, index })).filter((item): item is { cost: number; index: number } => item.cost !== null);
   const cheapestRouteIndex = pricedRoutes.length ? pricedRoutes.reduce((best, item) => item.cost < best.cost ? item : best).index : -1;
+  const departureAdvice = useMemo(() => {
+    const plan = routeOptions[selectedRouteIndex];
+    if (!plan || plan.stops.length === 0) return null;
+    const offsets = [-120, -60, -30, 0, 30, 60, 90, 120, 180, 240];
+    const candidates = offsets
+      .map((offset) => {
+        const departure = new Date(departureDate.getTime() + offset * 60000);
+        if (departure.getTime() < Date.now() - 60000) return null;
+        const cost = estimateRouteCost(plan, departure, selectedModel, packKWh, carMaxKwOverride);
+        return cost === null ? null : { departure, cost, offset };
+      })
+      .filter((item): item is { departure: Date; cost: number; offset: number } => item !== null);
+    if (candidates.length < 2) return null;
+    const current = candidates.find((item) => item.offset === 0);
+    if (!current) return null;
+    const best = candidates.reduce((a, b) => b.cost < a.cost ? b : a);
+    const saving = current.cost - best.cost;
+    return saving >= 0.5 && best.offset !== 0 ? { ...best, saving } : null;
+  }, [routeOptions, selectedRouteIndex, departureDate, selectedModel, packKWh, carMaxKwOverride]);
   const [ownerPanelId, setOwnerPanelId] = useState<string | null>(null);
   const [focusCoord, setFocusCoord] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -1509,6 +1528,12 @@ function Index() {
             {filtersOpen && (
               <div className="glass-panel w-[min(340px,90vw)] max-h-[70vh] overflow-y-auto rounded-xl p-3">
                 <ChargerFilters filters={chargerFilters} onChange={setChargerFilters} chargers={superchargers} visibleCount={visibleChargers.length} />
+              </div>
+            )}
+            {departureAdvice && (
+              <div className="glass-panel rounded-xl border border-amber-400/20 px-3 py-2 text-[11px] text-amber-200">
+                💡 Tariefadvies: vertrek rond {departureAdvice.departure.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })} voor ongeveer €{departureAdvice.saving.toFixed(2)} lagere laadkosten.
+                <span className="ml-1 text-slate-400">Alleen op basis van de opgeslagen laadtarieven; verkeer en weer kunnen veranderen.</span>
               </div>
             )}
             {routeOptions.length > 0 && (
