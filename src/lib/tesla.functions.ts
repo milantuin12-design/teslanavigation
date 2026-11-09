@@ -250,8 +250,8 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
         .select("id,name,logo_url,description,website,contact,notes");
       let winterSportsMode = false;
       try {
-        const setting = await (supabaseAdmin as any).from("app_settings").select("value").eq("key", "winter_sports_mode").maybeSingle();
-        winterSportsMode = setting.data?.value === true;
+        const setting = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "winter_sports_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        winterSportsMode = setting.data?.details?.enabled === true;
       } catch { /* setting table may not yet be migrated in a hosted environment */ }
       return { rows, ownerRows: (ownerRows ?? []) as (OwnerRow & { id: string })[], winterSportsMode };
     };
@@ -449,9 +449,9 @@ async function assertAdmin(context: { supabase: unknown; userId: string }) {
 export const getWinterSportsMode = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await (supabaseAdmin as any).from("app_settings").select("value").eq("key", "winter_sports_mode").maybeSingle();
+    const { data, error } = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "winter_sports_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
     if (error) throw error;
-    return data?.value === true;
+    return data?.details?.enabled === true;
   } catch (error) {
     console.warn("[TeslaNavigation] Wintersportmodus-instelling niet beschikbaar:", error);
     return false;
@@ -464,7 +464,7 @@ export const setWinterSportsMode = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await (supabaseAdmin as any).from("app_settings").upsert({ key: "winter_sports_mode", value: data.enabled, updated_at: new Date().toISOString() }, { onConflict: "key" });
+    const { error } = await (supabaseAdmin as any).from("admin_audit_log").insert({ action: "winter_sports_mode", target_count: 0, details: { enabled: data.enabled } });
     if (error) throw new Error(error.message);
     return { enabled: data.enabled };
   });
