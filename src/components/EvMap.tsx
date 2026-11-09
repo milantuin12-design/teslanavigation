@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import { Supercharger, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
+import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, getOpenStalls, formatStallAvailability, isChargerUsable, normalizeChargerConfigs, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
 import { TRAFFIC_PERIODS, estimateFreeStalls, getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
 
@@ -29,6 +29,8 @@ interface EvMapProps {
   startCoord: { lat: number; lng: number } | null;
   destCoord: { lat: number; lng: number } | null;
   superchargers: Supercharger[];
+  chargingStops: ChargingStop[];
+  departure?: Date;
   route: RouteResult | null;
   routeVariants?: Partial<Record<string, RouteResult>>;
   selectedRouteType?: string;
@@ -175,7 +177,7 @@ function groupChargerConfigs(configs: ChargerConfig[]): string[] {
   });
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, chargingStops = [], departure, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -382,11 +384,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
         }
 
 
-        const currentCrowd = getTrafficForecastAt(charger.trafficForecast, new Date(), charger.province);
+        const routeStop = chargingStops.find((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
+        const forecastAt = routeStop?.etaMinFromStart != null ? new Date((departure ?? new Date()).getTime() + routeStop.etaMinFromStart * 60000) : new Date();
+        const currentCrowd = getTrafficForecastAt(charger.trafficForecast, forecastAt, charger.province);
         const totalForEstimate = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
-        const estimatedFree = currentCrowd ? Math.min(getOpenStalls(charger), estimateFreeStalls(totalForEstimate, currentCrowd.level) ?? totalForEstimate) : null;
+        const estimatedFree = currentCrowd ? Math.min(getOpenStalls(charger, forecastAt), estimateFreeStalls(totalForEstimate, currentCrowd.level) ?? totalForEstimate) : null;
         if (estimatedFree !== null) {
-          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${totalForEstimate} vrij</div><div style="font-size:10px;color:#64748b;">Inschatting op basis van verwachte drukte (${currentCrowd.level}%)</div>`;
+          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${totalForEstimate} vrij</div><div style="font-size:10px;color:#64748b;">Inschatting op basis van verwachte drukte (${currentCrowd.level}%)${routeStop ? ` · bij aankomst rond ${forecastAt.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : ''}</div>`;
         }
         if (winterSportsMode && isSnowRegion(charger)) {
           popup += `<div style="margin-top:8px;padding:8px;border-radius:7px;background:#e0f2fe;color:#075985;font-weight:700;">❄️ Let op! Waarschijnlijk erg druk bij deze Supercharger! In verband met sneeuw kan het zijn dat er laadplekken niet beschikbaar zijn. Houd hier rekening mee!</div>`;
@@ -626,7 +630,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
       marker.bindPopup(`<div style="font-family:system-ui;font-size:13px"><strong>${escapeHtml(waypoint.label || 'Tussenstop')}</strong><br/>${detail}</div>`);
       markersRef.current.addLayer(marker);
     });
-  }, [startCoord, destCoord, superchargers, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode]);
+  }, [startCoord, destCoord, superchargers, chargingStops, departure, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode]);
 
   // Draai de kaart tijdens navigatie wanneer rijrichting boven is ingeschakeld.
   useEffect(() => {
