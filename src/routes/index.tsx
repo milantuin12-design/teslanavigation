@@ -136,6 +136,8 @@ function Index() {
   const [selectedModel, setSelectedModel] = useState("Model 3 Long Range AWD");
   const [manualRangeKm, setManualRangeKm] = useState(400);
   const [manualSpeedKw, setManualSpeedKw] = useState(250);
+  const carMaxKwOverride = selectedModel === "Handmatig" ? manualSpeedKw : undefined;
+  const packKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
   const [batteryPercent, setBatteryPercent] = useState(80);
   const [targetArrivalPercent, setTargetArrivalPercent] = useState(10);
   const [chargeTargetPercent, setChargeTargetPercent] = useState(80);
@@ -349,8 +351,6 @@ function Index() {
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
   const modelRange = selectedModel === "Handmatig" ? manualRangeKm : teslaModels[selectedModel];
-  const carMaxKwOverride = selectedModel === "Handmatig" ? manualSpeedKw : undefined;
-  const packKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
   const ccsBlocked = needsCcsAdapter(selectedModel, modelYear) && !hasCcsAdapter;
   const [autoConsumptionKWh100State, setAutoConsumptionState] = useState<number | null>(null);
   // Bereik volgt uitsluitend uit verbruik (kWh/100 km), niet uit een vaste km-waarde.
