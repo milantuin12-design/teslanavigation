@@ -54,7 +54,8 @@ export function estimateChargingCost(
   const blocks = (charger.priceBlocks ?? []).filter((block) => block && typeof block === "object");
   const powerBlocks = blocks.filter((block) => block.type === "power" && typeof block.pricePerMinute === "number");
   const kwhBlocks = blocks.filter((block) => block.type !== "power" && typeof block.pricePerKwh === "number");
-  const currency = charger.priceCurrency || "EUR";
+  const rawCurrency = (charger.priceCurrency || "EUR").toUpperCase();
+  const currency = /^[A-Z]{3}$/.test(rawCurrency) ? rawCurrency : "EUR";
   const capacity = batteryCapacityKWh && batteryCapacityKWh > 0
     ? batteryCapacityKWh
     : (teslaBatteryKWh[modelName] ?? 79);
