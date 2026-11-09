@@ -2,7 +2,7 @@ import { Zap, BatteryCharging, MapPin, Gauge, Clock, Ban, Mountain, Thermometer,
 import type { ChargingStop, RouteResult } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
 import { getChargeCurvePoints, parseMaxSpeed, v2SpeedKw } from '@/lib/tesla-utils';
-import { getTrafficForecastAt, trafficLevelLabel } from '@/lib/traffic-forecast';
+import { estimateFreeStalls, getTrafficForecastAt, trafficLevelLabel } from '@/lib/traffic-forecast';
 import { estimateChargingCost } from '@/lib/charging-cost';
 
 interface ChargingStopsProps {
@@ -271,8 +271,8 @@ export default function ChargingStops({ stops, totalDistanceKm, onBatteryChange,
                 const forecast = getTrafficForecastAt(stop.charger.trafficForecast, eta, stop.charger.province);
                 if (!forecast) return null;
                 const color = forecast.level >= 70 ? "bg-red-500/15 text-red-300" : forecast.level <= 30 ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300";
-                return <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
-                  <span className={`rounded-md px-2 py-1 ${color}`}>{trafficLevelLabel(forecast.level)} · {forecast.level}%</span>
+                const total = stop.charger.totalStalls ?? stop.charger.chargerConfigs?.reduce((sum, config) => sum + config.count, 0) ?? 0;\n                const free = estimateFreeStalls(total, forecast.level);\n                return <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                  <span className={`rounded-md px-2 py-1 ${color}`}>{trafficLevelLabel(forecast.level)} · {forecast.level}%</span>\n                  {free !== null && <span className="rounded-md bg-sky-500/10 px-2 py-1 text-sky-300">Waarschijnlijk {free} van de {total} vrij</span>}
                   <span className="text-slate-400">{forecast.from}–{forecast.to} · {forecast.holiday ? `vakantie: ${forecast.holiday}` : forecast.category === "weekend" ? "weekend" : "doordeweeks"} · {forecast.confidence === "low" ? "lage zekerheid" : forecast.confidence === "high" ? "hoge zekerheid" : "gemiddelde zekerheid"}</span>
                 </div>;
               })()}
