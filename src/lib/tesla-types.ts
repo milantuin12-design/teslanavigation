@@ -265,6 +265,8 @@ export interface Supercharger {
   trafficForecast?: TrafficForecast;
   /** Global admin-controlled winter-sports warning mode. */
   winterSportsMode?: boolean;
+  /** Global admin switch; winter-sports mode also activates holiday crowd profiles. */
+  holidayPeriodMode?: boolean;
   siteAmenities?: string[];
   works?: WorksInfo;
   closure?: ClosureInfo;
