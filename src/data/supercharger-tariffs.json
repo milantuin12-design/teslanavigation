@@ -31148,6 +31148,19 @@
       "source": "https://kilowattindex.com/site/453335/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "heiterwang",
+        "alpen raststation"
+      ],
+      "label": "Heiterwang – Alpen Raststation",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.39,
+      "source": "https://kilowattindex.com/site/300615/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
