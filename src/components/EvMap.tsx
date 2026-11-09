@@ -388,10 +388,11 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
         const routeStop = chargingStops.find((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
         const forecastAt = routeStop?.etaMinFromStart != null ? new Date((departure ?? new Date()).getTime() + routeStop.etaMinFromStart * 60000) : new Date();
-        const currentCrowd = getTrafficForecastAt(charger.trafficForecast, forecastAt, charger.province);
+        const currentCrowd = getTrafficForecastAt(charger.trafficForecast, forecastAt, charger.province, charger.holidayPeriodMode === true || winterSportsMode);
         const totalForEstimate = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
         const estimatedFree = currentCrowd ? Math.min(getOpenStalls(charger, forecastAt), estimateFreeStalls(totalForEstimate, currentCrowd.level) ?? totalForEstimate) : null;
-        if (estimatedFree !== null) {
+        // Alleen operationele, bruikbare laders krijgen een inschatting van vrije plekken.
+        if (usable && estimatedFree !== null) {
           popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${totalForEstimate} vrij</div>`;
         }
         const routeCost = routeStop ? estimateChargingCost(routeStop, forecastAt, modelName, packKWh, carMaxKwOverride) : null;
