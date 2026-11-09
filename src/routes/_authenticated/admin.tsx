@@ -214,7 +214,7 @@ function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; on
               const [label, from, to, provinces] = line.split("|").map((part) => part.trim());
               if (!label || !/^\d{4}-\d{2}-\d{2}$/.test(from ?? "") || !/^\d{4}-\d{2}-\d{2}$/.test(to ?? "") || from > to) return null;
               return { label, from, to, provinces: provinces ? provinces.split(",").map((item) => item.trim()).filter(Boolean) : undefined };
-            }).filter((period): period is NonNullable<typeof period> => period !== null);
+            }).filter((period): period is { label: string; from: string; to: string; provinces?: string[] } => period !== null);
             onChange({ ...value, source: "admin", confidence: "medium", holidayPeriods });
           }}
           className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-2 py-2 text-[10px] text-white"
