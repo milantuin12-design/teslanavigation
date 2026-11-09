@@ -31135,6 +31135,19 @@
       "source": "https://kilowattindex.com/site/stantonsupercharger/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "eisenstadt",
+        "stop shop eisenstadt"
+      ],
+      "label": "Eisenstadt – Stop Shop",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.35,
+      "source": "https://kilowattindex.com/site/453335/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
