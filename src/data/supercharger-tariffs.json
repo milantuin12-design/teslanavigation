@@ -30843,6 +30843,61 @@
       "source": "https://www.kilowattindex.com/site/28532/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "niederndorf",
+        "thrainer tankstelle"
+      ],
+      "label": "Niederndorf – Thrainer Tankstelle",
+      "timezone": "Europe/Vienna",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "10:00",
+          "to": "19:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/262856/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "trappenhof",
+        "meggenhofen trappenhof"
+      ],
+      "label": "Trappenhof – Lounge",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/MeggenhofenTrappenhofSelfServeDemoDrive/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
+    },
+    {
+      "country": "Austria",
+      "match": [
+        "villach hotel seven",
+        "hotel seven villach"
+      ],
+      "label": "Villach – Hotel Seven",
+      "timezone": "Europe/Vienna",
+      "pricePerKwh": 0.37,
+      "source": "https://kilowattindex.com/site/villachostsupercharger/",
+      "sourceChecked": "2026-11-09",
+      "currency": "EUR"
     }
   ]
 }
