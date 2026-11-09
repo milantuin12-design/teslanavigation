@@ -110,7 +110,7 @@ function findProfileSlot(slots: TrafficForecastPeriodSlot[] | undefined, minutes
 }
 
 function normalizeProvince(value: string) {
-  const normalized = value.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim();
+  const normalized = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   const aliases: Record<string, string> = {
     vienna: "wien", "lower austria": "niederosterreich", "lower austria ": "niederosterreich",
     "upper austria": "oberosterreich", carinthia: "karnten", styria: "steiermark", tyrol: "tirol",
