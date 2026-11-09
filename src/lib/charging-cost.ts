@@ -98,7 +98,7 @@ export function estimateChargingCost(
     const segmentMinutes = (capacity * (next - pct) / 100 / powerKw) * 60;
     const at = new Date(arrival.getTime() + elapsedMinutes * 60000);
     const timePrice = activeKwhPrice(kwhBlocks, at);
-    const price = timePrice ?? charger.pricePerKwh;
+    const price = timePrice ?? (kwhBlocks.length > 0 ? null : charger.pricePerKwh);
     if (typeof price !== "number" || price < 0) return null;
     amount += (capacity * (next - pct) / 100) * price;
     elapsedMinutes += segmentMinutes;
