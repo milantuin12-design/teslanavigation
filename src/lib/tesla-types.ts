@@ -84,11 +84,33 @@ export interface TrafficForecastSlot {
   level: number;
 }
 
+export interface TrafficForecastPeriodSlot {
+  from: string;
+  to: string;
+  level: number;
+}
+
+export interface TrafficHolidayPeriod {
+  label: string;
+  from: string;
+  to: string;
+  provinces?: string[];
+}
+
 export interface TrafficForecast {
   source: 'regional-estimate' | 'admin';
   confidence: 'low' | 'medium' | 'high';
   note?: string;
-  slots: TrafficForecastSlot[];
+  /** Legacy day-by-day profile, kept for older saved forecasts. */
+  slots?: TrafficForecastSlot[];
+  /** Separate weekday profile (Monday-Friday). */
+  weekdaySlots?: TrafficForecastPeriodSlot[];
+  /** Separate weekend profile (Saturday-Sunday). */
+  weekendSlots?: TrafficForecastPeriodSlot[];
+  /** Separate profile used during configured school-holiday periods. */
+  holidaySlots?: TrafficForecastPeriodSlot[];
+  /** Austrian school-holiday periods; province-specific dates are supported. */
+  holidayPeriods?: TrafficHolidayPeriod[];
 }
 
 export interface ConstructionInfo {
