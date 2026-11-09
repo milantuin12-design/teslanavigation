@@ -384,7 +384,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, route, rou
 
         const currentCrowd = getTrafficForecastAt(charger.trafficForecast, new Date(), charger.province);
         const totalForEstimate = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
-        const estimatedFree = currentCrowd ? estimateFreeStalls(totalForEstimate, currentCrowd.level) : null;
+        const estimatedFree = currentCrowd ? Math.min(getOpenStalls(charger), estimateFreeStalls(totalForEstimate, currentCrowd.level) ?? totalForEstimate) : null;
         if (estimatedFree !== null) {
           popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${totalForEstimate} vrij</div><div style="font-size:10px;color:#64748b;">Inschatting op basis van verwachte drukte (${currentCrowd.level}%)</div>`;
         }
