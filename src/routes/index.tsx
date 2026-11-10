@@ -23,6 +23,7 @@ import { Bookmark, History, SlidersHorizontal, AlertTriangle, Loader2, Navigatio
 import ChargerFilters from "@/components/ChargerFilters";
 import ReportChargerDialog, { type ReportTarget } from "@/components/ReportChargerDialog";
 import OwnerPanel from "@/components/OwnerPanel";
+import ChargerCompareDialog from "@/components/ChargerCompareDialog";
 import SiteUpdatesPopup from "@/components/SiteUpdatesPopup";
 import SplashScreen from "@/components/SplashScreen";
 import {
@@ -186,6 +187,7 @@ function Index() {
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [countryPricesOpen, setCountryPricesOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user ? { id: data.user.id } : null));
@@ -1572,6 +1574,7 @@ function Index() {
                 <SlidersHorizontal className="size-4" aria-hidden="true" /><span className="hidden sm:inline">Filters</span>
               </Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCountryPricesOpen(true)}>Prijs per land</Button>
+              <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCompareOpen(true)}>Vergelijk locaties</Button>
               <LanguageSwitcher />
               <AccountMenu />
             </div>
@@ -1712,6 +1715,7 @@ function Index() {
           />
         )}
       </div>
+      <ChargerCompareDialog open={compareOpen} onOpenChange={setCompareOpen} chargers={superchargers} departure={departureDate} />
       <Dialog open={countryPricesOpen} onOpenChange={setCountryPricesOpen}>
         <DialogContent className="max-h-[80vh] overflow-y-auto bg-slate-900 border-slate-700 text-white">
           <DialogHeader><DialogTitle>Laadprijzen per land vergelijken</DialogTitle></DialogHeader>
