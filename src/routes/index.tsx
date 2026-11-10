@@ -1529,6 +1529,7 @@ function Index() {
           <div className={`border-t border-slate-700/50 overflow-y-auto ${route && !showRouteInputs ? "flex-1 min-h-0" : "max-h-[40vh]"}`}>
             <ChargingStops
               stops={chargingStops}
+              holidayMode={mapChargers.some((charger) => charger.holidayPeriodMode === true || charger.winterSportsMode === true)}
               totalDistanceKm={route?.totalDistanceKm ?? null}
               onBatteryChange={handleChargerBatteryChange}
               onRemoveCharger={handleRemoveCharger}
@@ -1669,7 +1670,7 @@ function Index() {
           waypoints={waypoints}
           routeChargersOnly={!!route && !showAllChargers && chargingStops.length > 0}
           favoriteChargerIds={favoriteChargerIds}
-          winterSportsMode={mapChargers.some((charger) => charger.winterSportsMode)}
+          winterSportsMode={mapChargers.some((charger) => charger.holidayPeriodMode === true || charger.winterSportsMode === true)}
         />
 
         {route && !isNavigating && (
