@@ -356,7 +356,7 @@ function isHolidayDate(forecast: TrafficForecast, at: Date, province?: string) {
   );
 }
 
-export function getTrafficForecastAt(forecast: TrafficForecast | undefined, at: Date, province?: string, forceHoliday = false) {
+export function getTrafficForecastAt(forecast: TrafficForecast | undefined, at: Date, province?: string, forceHoliday = false, forceWinterSports = false) {
   if (!forecast) return null;
   const minutes = at.getHours() * 60 + at.getMinutes();
   const configuredHoliday = isHolidayDate(forecast, at, province);
@@ -383,9 +383,10 @@ export function getTrafficForecastAt(forecast: TrafficForecast | undefined, at: 
     if (legacy) slot = legacy;
   }
   if (!slot) return null;
-  const level = Math.max(0, Math.min(100, slot.level));
+  const level = Math.max(0, Math.min(100, slot.level + (forceWinterSports ? 12 : 0)));
   return {
     level,
+    winterSports: forceWinterSports,
     from: slot.from,
     to: slot.to,
     confidence: forecast.confidence,
