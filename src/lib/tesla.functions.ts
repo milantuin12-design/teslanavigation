@@ -132,7 +132,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
     inParkingGarage: !!row.in_parking_garage,
     status,
     construction: row.construction ?? {},
-    trafficForecast: (() => { const forecast = row.construction?.trafficForecast ?? row.traffic_forecast ?? createRegionalTrafficForecast({ name: row.name, city: row.city ?? undefined, province: row.province ?? undefined, lat: row.lat, lng: row.lng }); return forecast?.source === "regional-estimate" ? { ...forecast, holidayPeriods: [] } : forecast; })(),
+    trafficForecast: (() => { const forecast = row.construction?.trafficForecast ?? row.traffic_forecast ?? createRegionalTrafficForecast({ id: row.id, name: row.name, city: row.city ?? undefined, province: row.province ?? undefined, country: row.country ?? undefined, totalStalls: getTotalStallsFromConfigs(chargerConfigs) ?? normalized.totalStalls, lat: row.lat, lng: row.lng }); return forecast?.source === "regional-estimate" ? { ...forecast, holidayPeriods: [] } : forecast; })(),
     siteAmenities: Array.isArray(row.construction?.siteAmenities) ? row.construction.siteAmenities.filter((item: unknown): item is string => typeof item === "string") : [],
     works: row.works ?? {},
     closure: row.closure ?? {},
