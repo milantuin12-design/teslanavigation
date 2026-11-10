@@ -544,13 +544,16 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
             { label: "Vakanties", slots: crowdForecast?.holidaySlots },
           ].filter((profile) => Array.isArray(profile.slots) && profile.slots.length > 0);
           if (crowdProfiles.length) {
-            const heat = (level: number) => level < 25 ? "#86efac" : level < 50 ? "#fde68a" : level < 75 ? "#fdba74" : "#fca5a5";
-            d += `<div style="font-weight:700;margin-top:8px;">📊 Verwachte drukte</div><div style="font-size:10px;color:#64748b;">Adminvoorspelling per dagtype en tijdsblok (0–100%)</div>`;
+            const totalStallsForForecast = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
+            d += `<div style="font-weight:700;margin-top:8px;">📊 Verwachte bezette laadplekken</div><div style="font-size:10px;color:#64748b;">Geschatte aantallen per tijdsblok; afgerond op hele laadplekken. Geen live bezettingsmeting.</div>`;
             for (const profile of crowdProfiles) {
-              d += `<div style="display:grid;grid-template-columns:74px repeat(5,minmax(30px,1fr));gap:3px;align-items:center;margin-top:4px;"><strong style="font-size:10px;color:#475569;">${profile.label}</strong>`;
+              d += `<div style="margin-top:6px;"><strong style="font-size:11px;color:#475569;">${profile.label}</strong>`;
               for (const period of TRAFFIC_PERIODS) {
                 const level = profile.slots?.find((slot) => slot.from === period.from)?.level;
-                d += `<span title="${profile.label} ${period.label}: ${level == null ? "geen data" : level + "%"}" style="text-align:center;padding:4px 1px;border-radius:4px;background:${level == null ? "#e2e8f0" : heat(level)};font-size:9px;color:#334155;">${level == null ? "—" : level + "%"}</span>`;
+                const occupied = level == null || totalStallsForForecast <= 0
+                  ? null
+                  : Math.max(0, Math.min(totalStallsForForecast, Math.round(totalStallsForForecast * level / 100)));
+                d += `<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 5px;margin-top:2px;border-radius:4px;background:#f1f5f9;font-size:11px;"><span>${period.from}–${period.to}</span><strong>${occupied == null ? "Geen betrouwbare inschatting" : `ongeveer ${occupied} van ${totalStallsForForecast} bezet`}</strong></div>`;
               }
               d += `</div>`;
             }
