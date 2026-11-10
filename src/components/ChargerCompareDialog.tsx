@@ -27,6 +27,24 @@ function crowd(charger: Supercharger, departure: Date): number | null {
   return typeof value === "number" ? value : null;
 }
 
+function quietestWindow(charger: Supercharger, start: Date): { at: Date; level: number } | null {
+  if (!charger.trafficForecast) return null;
+  let best: { at: Date; level: number } | null = null;
+  // Sample every 30 minutes over the next 24 hours using the station's local-time forecast.
+  for (let offset = 0; offset <= 24 * 60; offset += 30) {
+    const at = new Date(start.getTime() + offset * 60_000);
+    const level = getTrafficForecastAt(charger.trafficForecast, at, charger.province)?.level;
+    if (typeof level === "number" && (best === null || level < best.level)) best = { at, level };
+  }
+  return best;
+}
+
+function formatQuietest(charger: Supercharger, departure: Date): string {
+  const best = quietestWindow(charger, departure);
+  if (!best) return "Geen voorspelling beschikbaar";
+  return best.at.toLocaleString("nl-NL", { weekday: "short", hour: "2-digit", minute: "2-digit" }) + " · " + best.level + "% geschatte drukte";
+}
+
 function score(charger: Supercharger, departure: Date): number | null {
   const level = crowd(charger, departure);
   const stalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
@@ -80,6 +98,7 @@ export default function ChargerCompareDialog({ open, onOpenChange, chargers, dep
               <tr><td className="text-slate-400">Laadplekken</td>{selected.map((c) => <td key={c.id ?? c.name}>{getTotalStallsFromConfigs(c.chargerConfigs) ?? c.totalStalls ?? "Onbekend"}</td>)}</tr>
               <tr><td className="text-slate-400">Max. vermogen</td>{selected.map((c) => <td key={c.id ?? c.name}>{parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) || "Onbekend"} kW</td>)}</tr>
               <tr><td className="text-slate-400">Verwachte drukte</td>{selected.map((c) => <td key={c.id ?? c.name}>{crowd(c, departure) === null ? "Geen voorspelling" : crowd(c, departure) + "% bezetting (schatting)"}</td>)}</tr>
+              <tr><td className="text-slate-400">Rustigste moment komende 24 uur</td>{selected.map((c) => <td key={c.id ?? c.name}>{formatQuietest(c, departure)}</td>)}</tr>
               <tr><td className="text-slate-400">kWh-tarief (eerste blok)</td>{selected.map((c) => <td key={c.id ?? c.name}>{money(c)}</td>)}</tr>
               <tr><td className="text-slate-400">Parkeerkosten</td>{selected.map((c) => <td key={c.id ?? c.name}>{c.parkingFee ? "Mogelijk betaald" : "Geen bekende parkeerkosten"}</td>)}</tr>
               <tr><td className="text-slate-400">Aanhanger</td>{selected.map((c) => <td key={c.id ?? c.name}>{c.trailerFriendly ? "Geschikt volgens gegevens" : "Niet bevestigd"}</td>)}</tr>
