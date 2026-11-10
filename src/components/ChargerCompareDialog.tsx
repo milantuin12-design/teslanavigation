@@ -36,7 +36,7 @@ function score(charger: Supercharger, departure: Date): number | null {
   if (level !== null) parts.push(100 - level);
   if (stalls > 0) parts.push(Math.min(100, 35 + stalls * 2));
   if (speed > 0) parts.push(Math.min(100, speed / 2.5));
-  if (typeof price === "number" && price > 0) parts.push(Math.max(0, 100 - price * 150));
+  if ((charger.priceCurrency ?? "EUR").toUpperCase() === "EUR" && typeof price === "number" && price > 0) parts.push(Math.max(0, 100 - price * 150));
   if (getChargerStatus(charger) === "Beschikbaar" || getChargerStatus(charger) === "In bedrijf") parts.push(100);
   if (parts.length < 2) return null;
   return Math.round(parts.reduce((sum, value) => sum + value, 0) / parts.length);
@@ -80,7 +80,7 @@ export default function ChargerCompareDialog({ open, onOpenChange, chargers, dep
               <tr><td className="text-slate-400">Laadplekken</td>{selected.map((c) => <td key={c.id ?? c.name}>{getTotalStallsFromConfigs(c.chargerConfigs) ?? c.totalStalls ?? "Onbekend"}</td>)}</tr>
               <tr><td className="text-slate-400">Max. vermogen</td>{selected.map((c) => <td key={c.id ?? c.name}>{parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) || "Onbekend"} kW</td>)}</tr>
               <tr><td className="text-slate-400">Verwachte drukte</td>{selected.map((c) => <td key={c.id ?? c.name}>{crowd(c, departure) === null ? "Geen voorspelling" : crowd(c, departure) + "% bezetting (schatting)"}</td>)}</tr>
-              <tr><td className="text-slate-400">kWh-prijs</td>{selected.map((c) => <td key={c.id ?? c.name}>{money(c)}</td>)}</tr>
+              <tr><td className="text-slate-400">kWh-tarief (eerste blok)</td>{selected.map((c) => <td key={c.id ?? c.name}>{money(c)}</td>)}</tr>
               <tr><td className="text-slate-400">Parkeerkosten</td>{selected.map((c) => <td key={c.id ?? c.name}>{c.parkingFee ? "Mogelijk betaald" : "Geen bekende parkeerkosten"}</td>)}</tr>
               <tr><td className="text-slate-400">Aanhanger</td>{selected.map((c) => <td key={c.id ?? c.name}>{c.trailerFriendly ? "Geschikt volgens gegevens" : "Niet bevestigd"}</td>)}</tr>
               <tr><td className="text-slate-400">Voorzieningen</td>{selected.map((c) => <td key={c.id ?? c.name}>{c.siteAmenities?.length ? c.siteAmenities.join(", ") : "Niet geregistreerd"}</td>)}</tr>
