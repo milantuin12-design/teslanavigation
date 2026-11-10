@@ -73,12 +73,11 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
       holiday: [10, 22, 32, 28, 14],
     },
   };
-  // Düsseldorf Ando Campus: gebruiker meldt dat deze locatie structureel zeer druk is.
-  // De locatie heeft slechts 3 laadpunten. Dit is een expliciete locatieschatting,
-  // geen gepubliceerde historische uurmeting; daarom blijft de bron/vertrouwensscore indicatief.
-  // Belangrijk: Mercedesstraße is een andere Supercharger en mag niet onder deze override vallen.
-  if (/ando.?campus/.test(identity)) return {
-    label: "gebruikersmelding: structureel zeer druk Düsseldorf Ando Campus (3 laadpunten; indicatief profiel)",
+  // Düsseldorf Mercedesstraße (voorheen Ando Campus): dit is één en dezelfde locatie.
+  // De gebruiker bevestigt dat dit zijn/haar Supercharger is en dat deze structureel zeer druk is.
+  // Indicatieve locatieschatting; geen gemeten historische uurcurve.
+  if (/ando.?campus|mercedesstra[sß]e/.test(identity)) return {
+    label: "gebruikersmelding: Düsseldorf Mercedesstraße (voorheen Ando Campus), structureel zeer druk; 3 laadpunten",
     levels: {
       weekday: [33, 67, 100, 100, 67],
       weekend: [33, 67, 100, 100, 67],
