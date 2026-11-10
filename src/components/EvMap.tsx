@@ -389,7 +389,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
         const routeStop = chargingStops.find((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
         const forecastAt = routeStop?.etaMinFromStart != null ? new Date((departure ?? new Date()).getTime() + routeStop.etaMinFromStart * 60000) : new Date();
-        const currentCrowd = getTrafficForecastAt(charger.trafficForecast, forecastAt, charger.province, charger.holidayPeriodMode === true || holidayPeriodMode, winterSportsMode && isSnowRegion(charger));
+        const currentCrowd = getTrafficForecastAt(charger.trafficForecast, forecastAt, charger.province, holidayPeriodMode, winterSportsMode && isSnowRegion(charger));
         const totalForEstimate = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
         const estimatedFree = currentCrowd ? Math.min(getOpenStalls(charger, forecastAt), estimateFreeStalls(totalForEstimate, currentCrowd.level) ?? totalForEstimate) : null;
         const estimatedQueue = currentCrowd ? estimateQueueCars(totalForEstimate, currentCrowd.level) : 0;
