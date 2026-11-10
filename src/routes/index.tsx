@@ -420,6 +420,9 @@ function Index() {
       .on("postgres_changes", { event: "*", schema: "public", table: "admin_audit_log" }, () => {
         void refreshModes();
       })
+      .on("broadcast", { event: "modes-updated" }, () => {
+        void refreshModes();
+      })
       .subscribe();
     const poll = window.setInterval(() => { void refreshModes(); }, 10000);
     return () => {
