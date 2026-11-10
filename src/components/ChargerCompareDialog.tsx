@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Supercharger } from "@/lib/tesla-types";
-import { getChargerStatus, describeChargerStatus, getTotalStallsFromConfigs, parseMaxSpeed } from "@/lib/tesla-utils";
+import { getChargerStatus, getTotalStallsFromConfigs, parseMaxSpeed } from "@/lib/tesla-utils";
 import { getTrafficForecastAt } from "@/lib/traffic-forecast";
 
 interface Props {
@@ -76,7 +76,7 @@ export default function ChargerCompareDialog({ open, onOpenChange, chargers, dep
             <thead><tr><th className="p-2 text-slate-400">Eigenschap</th>{selected.map((charger) => <th key={charger.id ?? charger.name} className="p-2 align-top text-white">{charger.name}<button className="ml-2 text-red-300" onClick={() => toggle(charger.id ?? charger.name)} aria-label={"Verwijder " + charger.name}>×</button></th>)}</tr></thead>
             <tbody className="[&_td]:border-t [&_td]:border-slate-700 [&_td]:p-2">
               <tr><td className="text-slate-400">Indicatieve score</td>{selected.map((c) => <td key={c.id ?? c.name} className="font-semibold">{score(c, departure) === null ? "Onvoldoende gegevens" : score(c, departure) + "/100"}</td>)}</tr>
-              <tr><td className="text-slate-400">Status</td>{selected.map((c) => <td key={c.id ?? c.name}>{describeChargerStatus(getChargerStatus(c))}</td>)}</tr>
+              <tr><td className="text-slate-400">Status</td>{selected.map((c) => <td key={c.id ?? c.name}>{getChargerStatus(c)}</td>)}</tr>
               <tr><td className="text-slate-400">Laadplekken</td>{selected.map((c) => <td key={c.id ?? c.name}>{getTotalStallsFromConfigs(c.chargerConfigs) ?? c.totalStalls ?? "Onbekend"}</td>)}</tr>
               <tr><td className="text-slate-400">Max. vermogen</td>{selected.map((c) => <td key={c.id ?? c.name}>{parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) || "Onbekend"} kW</td>)}</tr>
               <tr><td className="text-slate-400">Verwachte drukte</td>{selected.map((c) => <td key={c.id ?? c.name}>{crowd(c, departure) === null ? "Geen voorspelling" : crowd(c, departure) + "% bezetting (schatting)"}</td>)}</tr>
