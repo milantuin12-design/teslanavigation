@@ -6,7 +6,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, getOpenStalls, formatStallAvailability, isChargerUsable, normalizeChargerConfigs, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
-import { estimateFreeStalls, getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
+import { estimateFreeStalls, estimateQueueCars, getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
 import { estimateChargingCost } from '@/lib/charging-cost';
 
 
@@ -52,6 +52,7 @@ interface EvMapProps {
   routeChargersOnly?: boolean;
   favoriteChargerIds?: string[];
   winterSportsMode?: boolean;
+  holidayPeriodMode?: boolean;
 }
 
 
@@ -178,7 +179,7 @@ function groupChargerConfigs(configs: ChargerConfig[]): string[] {
   });
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, chargingStops = [], departure, modelName = 'Model 3 Long Range AWD', packKWh, carMaxKwOverride, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, chargingStops = [], departure, modelName = 'Model 3 Long Range AWD', packKWh, carMaxKwOverride, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false, holidayPeriodMode = false }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -388,12 +389,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
         const routeStop = chargingStops.find((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
         const forecastAt = routeStop?.etaMinFromStart != null ? new Date((departure ?? new Date()).getTime() + routeStop.etaMinFromStart * 60000) : new Date();
-        const currentCrowd = getTrafficForecastAt(charger.trafficForecast, forecastAt, charger.province, charger.holidayPeriodMode === true || charger.winterSportsMode === true || winterSportsMode);
+        const currentCrowd = getTrafficForecastAt(charger.trafficForecast, forecastAt, charger.province, charger.holidayPeriodMode === true || holidayPeriodMode);
         const totalForEstimate = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
         const estimatedFree = currentCrowd ? Math.min(getOpenStalls(charger, forecastAt), estimateFreeStalls(totalForEstimate, currentCrowd.level) ?? totalForEstimate) : null;
+        const estimatedQueue = currentCrowd ? estimateQueueCars(totalForEstimate, currentCrowd.level) : 0;
         // Alleen operationele, bruikbare laders krijgen een inschatting van vrije plekken.
         if (usable && estimatedFree !== null) {
-          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${totalForEstimate} vrij</div>`;
+          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${totalForEstimate} vrij${estimatedQueue > 0 ? ` · mogelijk ${estimatedQueue} auto's in de wachtrij` : ''}</div>`;
         }
         const routeCost = routeStop ? estimateChargingCost(routeStop, forecastAt, modelName, packKWh, carMaxKwOverride) : null;
         if (routeCost) {
