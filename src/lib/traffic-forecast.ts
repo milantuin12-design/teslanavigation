@@ -18,7 +18,7 @@ function zoneFor(charger: Pick<Supercharger, "name" | "city" | "province" | "lat
   if (/autohof|rastst[aä]tte|aire de|area di servizio|service area|service station|autobahn|motorway|autoroute|autostrada|highway|tankstelle|tankstation/.test(text)) return "transit";
   if (/ski|alpen|alps|dolomit|brenner|tauern|arlberg|tirol|tyrol|salzburg|kitzb[uü]hel|zell am see|s[oö]lden|ischgl|st anton|lermoos|innsbruck|chamonix|val thorens|courchevel|les arcs|tignes|verbier|davos|zermatt|laax|st moritz|livigno|cortina|bormio|geilo|trysil|are|åre|kiruna|rovaniemi/.test(text)) return "ski";
   if (/ikea|shopping|mall|centre commercial|einkaufszentrum|outlet|retail park|carrefour|auchan|leclerc|kaufland|globus/.test(text)) return "retail";
-  if (/wien|vienna|graz|linz|salzburg|m[uü]nchen|munich|berlin|hamburg|frankfurt|d[uü]sseldorf|duesseldorf|k[oö]ln|cologne|dortmund|essen|leipzig|dresden|stuttgart|hannover|bremen|bonn|m[uü]nster|aachen|paris|lyon|marseille|lille|bordeaux|toulouse|nice|brussels|bruxelles|amsterdam|rotterdam|utrecht|eindhoven|antwerp|antwerpen|gent|ghent|zurich|z[uü]rich|geneva|gen[eè]ve|basel|bern|milan|milano|rome|roma|barcelona|madrid|valencia|seville|prague|praha|warsaw|warschau|istanbul|ankara|izmir|bursa|antalya|athens|budapest|bucharest|sofia|belgrade|zagreb|ljubljana|bratislava|copenhagen|stockholm|oslo|helsinki/.test(text)) return "urban";
+  if (/wien|vienna|graz|linz|salzburg|m[uü]nchen|munich|berlin|hamburg|frankfurt|d[uü]sseldorf|duesseldorf|k[oö]ln|cologne|dortmund|essen|leipzig|dresden|stuttgart|hannover|bremen|bonn|m[uü]nster|aachen|paris|lyon|marseille|lille|bordeaux|toulouse|nice|brussels|bruxelles|amsterdam|almere|rotterdam|utrecht|eindhoven|groningen|zwolle|arnhem|nijmegen|breda|tilburg|s.?hertogenbosch|den.?bosch|apeldoorn|enschede|maastricht|leeuwarden|dordrecht|amersfoort|haarlem|leiden|delft|venlo|roermond|antwerp|antwerpen|gent|ghent|brugge|bruge|liege|luik|charleroi|namur|mechelen|hasselt|zurich|z[uü]rich|geneva|gen[eè]ve|basel|bern|lausanne|lucerne|luzern|milan|milano|rome|roma|barcelona|madrid|valencia|seville|malaga|zaragoza|bilbao|alicante|murcia|palma|lisbon|lisboa|porto|braga|coimbra|prague|praha|brno|ostrava|warsaw|warschau|krakow|krak[oó]w|wroclaw|gdansk|poznan|lodz|istanbul|ankara|izmir|bursa|antalya|athens|thessaloniki|budapest|bucharest|sofia|belgrade|zagreb|ljubljana|bratislava|copenhagen|k[oø]benhavn|aarhus|odense|aalborg|esbjerg|kolding|vejle|randers|horsens|roskilde|helsing[oø]r|stockholm|g[oö]teborg|gothenburg|malm[oö]|uppsala|oslo|bergen|trondheim|stavanger|helsinki|tampere|turku|oulu|tallinn|riga|vilnius|reykjavik|dublin|cork|galway|london|birmingham|manchester|liverpool|leeds|bristol|glasgow|edinburgh|cardiff|newcastle|rome|roma/.test(text)) return "urban";
   return "other";
 }
 function levelFor(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weekend" | "holiday", period: number): number {
@@ -339,7 +339,9 @@ export function createRegionalTrafficForecast(charger: Supercharger, network: Ne
   const zone = zoneFor(charger);
   const override = siteOverride(charger);
   const networkFactor = regionalNetworkFactor(charger, network, zone);
-  const applyNetworkFactor = (slots: TrafficForecastPeriodSlot[]) => slots.map((slot) => ({
+  // Expliciete en gemeten locatieprofielen zijn al locatiespecifiek:
+  // laat die ongemoeid door de algemene netwerkdichtheidscorrectie.
+  const applyNetworkFactor = (slots: TrafficForecastPeriodSlot[]) => override ? slots : slots.map((slot) => ({
     ...slot,
     level: Math.max(0, Math.min(100, Math.round(slot.level * (1 + networkFactor)))),
   }));
