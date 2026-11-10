@@ -319,7 +319,7 @@ function Index() {
             stop.charger.trafficForecast,
             new Date(departure.getTime() + (stop.etaMinFromStart ?? 0) * 60000),
             stop.charger.province,
-            holidayPeriodMode || stop.charger.holidayPeriodMode === true,
+            holidayPeriodMode,
             winterSportsMode && isSnowRegion(stop.charger),
           )?.level)
           .filter((level): level is number => typeof level === "number");
@@ -414,6 +414,12 @@ function Index() {
       if (!mounted) return;
       setHolidayPeriodModeState(holiday === true);
       setWinterSportsModeState(winter === true);
+      // Werk de globale vlaggen ook bij in de geladen stations en routekaart.
+      setSuperchargers((current) => current.map((charger) => ({
+        ...charger,
+        holidayPeriodMode: holiday === true,
+        winterSportsMode: winter === true,
+      })));
     };
     void refreshModes();
     const channel = supabase
