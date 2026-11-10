@@ -73,15 +73,16 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
       holiday: [10, 22, 32, 28, 14],
     },
   };
-  // Düsseldorf Ando Campus: 3 stalls; Ladestau.de, 28 dagen.
-  // Gemiddeld 40,1% bezet, piek 75,3%. Er is geen betrouwbare uurverdeling gepubliceerd:
-  // daarom wordt het gemeten gemiddelde niet omgezet in een verzonnen dagcurve.
-  if (/ando.?campus|mercedesstra[sß]e/.test(identity)) return {
-    label: "gemeten drukke locatie Düsseldorf Ando Campus (3 laadpunten; gemiddeld 40,1%, piek 75,3%; geen uurcurve beschikbaar)",
+  // Düsseldorf Ando Campus: gebruiker meldt dat deze locatie structureel zeer druk is.
+  // De locatie heeft slechts 3 laadpunten. Dit is een expliciete locatieschatting,
+  // geen gepubliceerde historische uurmeting; daarom blijft de bron/vertrouwensscore indicatief.
+  // Belangrijk: Mercedesstraße is een andere Supercharger en mag niet onder deze override vallen.
+  if (/ando.?campus/.test(identity)) return {
+    label: "gebruikersmelding: structureel zeer druk Düsseldorf Ando Campus (3 laadpunten; indicatief profiel)",
     levels: {
-      weekday: [40, 40, 40, 40, 40],
-      weekend: [40, 40, 40, 40, 40],
-      holiday: [40, 40, 40, 40, 40],
+      weekday: [33, 67, 100, 100, 67],
+      weekend: [33, 67, 100, 100, 67],
+      holiday: [67, 100, 100, 100, 100],
     },
   };
   // Uurprofielen uit Ladespiegel, gebaseerd op gemeten laadpuntsessies van de afgelopen 7 dagen.
