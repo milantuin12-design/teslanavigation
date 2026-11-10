@@ -6,7 +6,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, getOpenStalls, formatStallAvailability, isChargerUsable, normalizeChargerConfigs, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
-import { TRAFFIC_PERIODS, estimateFreeStalls, getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
+import { estimateFreeStalls, getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
 import { estimateChargingCost } from '@/lib/charging-cost';
 
 
