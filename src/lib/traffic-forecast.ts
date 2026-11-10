@@ -18,7 +18,7 @@ function zoneFor(charger: Pick<Supercharger, "name" | "city" | "province" | "lat
   if (/autohof|rastst[aä]tte|aire de|area di servizio|service area|service station|autobahn|motorway|autoroute|autostrada|highway|tankstelle|tankstation/.test(text)) return "transit";
   if (/ski|alpen|alps|dolomit|brenner|tauern|arlberg|tirol|tyrol|salzburg|kitzb[uü]hel|zell am see|s[oö]lden|ischgl|st anton|lermoos|innsbruck|chamonix|val thorens|courchevel|les arcs|tignes|verbier|davos|zermatt|laax|st moritz|livigno|cortina|bormio|geilo|trysil|are|åre|kiruna|rovaniemi/.test(text)) return "ski";
   if (/ikea|shopping|mall|centre commercial|einkaufszentrum|outlet|retail park|carrefour|auchan|leclerc|kaufland|globus/.test(text)) return "retail";
-  if (/wien|vienna|graz|linz|salzburg|m[uü]nchen|munich|berlin|hamburg|frankfurt|paris|lyon|marseille|brussels|bruxelles|amsterdam|rotterdam|utrecht|antwerp|antwerpen|gent|ghent|zurich|z[uü]rich|geneva|gen[eè]ve|milan|milano|rome|roma|barcelona|madrid|prague|praha|warsaw|warschau/.test(text)) return "urban";
+  if (/wien|vienna|graz|linz|salzburg|m[uü]nchen|munich|berlin|hamburg|frankfurt|d[uü]sseldorf|duesseldorf|k[oö]ln|cologne|dortmund|essen|leipzig|dresden|stuttgart|hannover|bremen|bonn|m[uü]nster|aachen|paris|lyon|marseille|lille|bordeaux|toulouse|nice|brussels|bruxelles|amsterdam|rotterdam|utrecht|eindhoven|antwerp|antwerpen|gent|ghent|zurich|z[uü]rich|geneva|gen[eè]ve|basel|bern|milan|milano|rome|roma|barcelona|madrid|valencia|seville|prague|praha|warsaw|warschau|istanbul|ankara|izmir|bursa|antalya|athens|budapest|bucharest|sofia|belgrade|zagreb|ljubljana|bratislava|copenhagen|stockholm|oslo|helsinki/.test(text)) return "urban";
   return "other";
 }
 function levelFor(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weekend" | "holiday", period: number): number {
@@ -43,10 +43,12 @@ function levelFor(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weeke
       weekend: [8, 30, 72, 65, 20],
       holiday: [10, 42, 82, 75, 22],
     },
+    // Regionale locaties buiten grote steden, snelwegknooppunten en toeristische hotspots:
+    // bewust een lagere basisvraag; een onbekende locatie wordt niet automatisch druk.
     other: {
-      weekday: [8, 25, 30, 32, 15],
-      weekend: [10, 38, 58, 48, 18],
-      holiday: [12, 55, 72, 65, 22],
+      weekday: [2, 8, 14, 12, 5],
+      weekend: [2, 10, 17, 14, 5],
+      holiday: [3, 14, 22, 18, 7],
     },
   };
   return rows[zone][category][period];
