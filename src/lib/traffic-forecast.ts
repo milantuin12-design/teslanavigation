@@ -57,6 +57,18 @@ type TrafficCategory = "weekday" | "weekend" | "holiday";
 function siteOverride(charger: Supercharger): { label: string; levels: Record<TrafficCategory, number[]>; confidence?: "low" | "medium" | "high" } | null {
   const identity = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
   // Bekende uitzonderingen die niet uit de algemene regio-indeling af te leiden zijn.
+  // Trabzon (Pazarkapı): enige Tesla Supercharger in de regio.
+  // Geen Tesla-historische meetreeks gevonden: bewust een lage regionale
+  // vraaginschatting, mede doordat er meerdere andere publieke laadnetwerken zijn.
+  if (/trabzon|pazarkap[iı]/.test(identity)) return {
+    label: "lage regionale vraaginschatting Trabzon: enige Tesla-locatie in de regio; geen historische Tesla-bezettingsmeting",
+    confidence: "low",
+    levels: {
+      weekday: [1, 2, 4, 3, 1],
+      weekend: [1, 2, 5, 4, 1],
+      holiday: [2, 3, 7, 5, 2],
+    },
+  };
   if (/badhoevedorp/.test(identity)) return {
     label: "structureel zeer drukke locatie Badhoevedorp",
     levels: {
@@ -246,15 +258,9 @@ function siteDemandAdjustment(charger: Supercharger, zone: ReturnType<typeof zon
   if (/industrial|industriegebiet|business park/.test(identity)) adjustment -= 8;
   if (/rural|landelijk|dorp|village/.test(identity)) adjustment -= 8;
 
-  // Site-specifieke correcties voor alle Europese locaties op basis van de
-  // geregistreerde capaciteit en herkenbare locatiekenmerken. Dit is een
-  // schatting, geen historische of live bezettingsmeting.
-  const stalls = charger.totalStalls ?? 0;
-  if (stalls > 0 && stalls <= 4) adjustment += 12;
-  else if (stalls <= 8 && stalls > 0) adjustment += 7;
-  else if (stalls <= 12 && stalls > 0) adjustment += 3;
-  else if (stalls >= 32) adjustment -= 8;
-  else if (stalls >= 24) adjustment -= 5;
+  // Capaciteit is geen bewijs van vraag: 8 stalls maakt een locatie niet
+  // automatisch drukker dan een locatie met 40. De stall-count wordt daarom
+  // niet als druktecorrectie gebruikt, maar alleen voor de vrije-stalls-berekening.
 
   const country = (charger.country ?? "").toLowerCase().trim();
   if (/norway|norge|sweden|sverige|finland|suomi|iceland|island/.test(country) && zone === "ski") adjustment += 8;
@@ -299,7 +305,7 @@ export function createRegionalTrafficForecast(charger: Supercharger): TrafficFor
   const zone = zoneFor(charger);
   const override = siteOverride(charger);
   const corridor = override?.label ?? (zone === "transit" ? "snelweg- en doorgangsgebied" : zone === "ski" ? "wintersportgebied" : zone === "urban" ? "stedelijke regio" : zone === "retail" ? "winkelgebied" : "regionale locatie");
-  const basis = override ? "bekende locatie-informatie" : "locatietype, land, capaciteit en seizoenspatroon";
+  const basis = override ? "locatiespecifieke informatie" : "locatietype, ligging en seizoenspatroon";
   return {
     source: "regional-estimate",
     confidence: override?.confidence ?? "low",
