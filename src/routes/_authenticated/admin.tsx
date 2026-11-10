@@ -348,6 +348,7 @@ function AdminPage() {
     try {
       await saveWinterSportsMode({ data: { enabled } });
       setWinterSportsEnabled(enabled);
+      void supabase.channel("global-crowd-modes-live").send({ type: "broadcast", event: "modes-updated", payload: { mode: "winterSportsMode", enabled } });
       toast.success(enabled ? "Wintersportmodus ingeschakeld" : "Wintersportmodus uitgeschakeld");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Instelling opslaan mislukt");
@@ -359,6 +360,7 @@ function AdminPage() {
     try {
       await saveHolidayPeriodMode({ data: { enabled } });
       setHolidayPeriodEnabled(enabled);
+      void supabase.channel("global-crowd-modes-live").send({ type: "broadcast", event: "modes-updated", payload: { mode: "holidayPeriodMode", enabled } });
       toast.success(enabled ? "Vakantieperiode ingeschakeld" : "Vakantieperiode uitgeschakeld");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Vakantieperiode opslaan mislukt");
