@@ -30,7 +30,7 @@ function crowd(charger: Supercharger, departure: Date): number | null {
 function quietestWindow(charger: Supercharger, start: Date): { at: Date; level: number } | null {
   if (!charger.trafficForecast) return null;
   let best: { at: Date; level: number } | null = null;
-  // Sample every 30 minutes over the next 24 hours using the station's local-time forecast.
+  // Sample every 30 minutes over the next 24 hours using the device's time zone.
   for (let offset = 0; offset <= 24 * 60; offset += 30) {
     const at = new Date(start.getTime() + offset * 60_000);
     const level = getTrafficForecastAt(charger.trafficForecast, at, charger.province)?.level;
@@ -83,7 +83,7 @@ function exportComparisonCsv(chargers: Supercharger[], departure: Date) {
   document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export default function ChargerCompareDialog({ open, onOpenChange, chargers, departure }: Props) {
