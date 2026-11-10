@@ -537,30 +537,6 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
               ${charger.pricePerKwhPeak != null ? row('Piek per kWh', eur(charger.pricePerKwhPeak)) : ''}
               ${charger.peakHours ? row('Piekuren', escapeHtml(charger.peakHours)) : ''}`;
           }
-          const crowdForecast = charger.trafficForecast;
-          const crowdProfiles = [
-            { label: "Doordeweeks", slots: crowdForecast?.weekdaySlots },
-            { label: "Weekend", slots: crowdForecast?.weekendSlots },
-            { label: "Vakanties", slots: crowdForecast?.holidaySlots },
-          ].filter((profile) => Array.isArray(profile.slots) && profile.slots.length > 0);
-          if (crowdProfiles.length) {
-            const totalStallsForForecast = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
-            d += `<div style="font-weight:700;margin-top:8px;">📊 Verwachte bezette laadplekken</div><div style="font-size:10px;color:#64748b;">Geschatte aantallen per tijdsblok; afgerond op hele laadplekken. Geen live bezettingsmeting.</div>`;
-            for (const profile of crowdProfiles) {
-              d += `<div style="margin-top:6px;"><strong style="font-size:11px;color:#475569;">${profile.label}</strong>`;
-              for (const period of TRAFFIC_PERIODS) {
-                const level = profile.slots?.find((slot) => slot.from === period.from)?.level;
-                const occupied = level == null || totalStallsForForecast <= 0
-                  ? null
-                  : Math.max(0, Math.min(totalStallsForForecast, Math.round(totalStallsForForecast * level / 100)));
-                d += `<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 5px;margin-top:2px;border-radius:4px;background:#f1f5f9;font-size:11px;"><span>${period.from}–${period.to}</span><strong>${occupied == null ? "Geen betrouwbare inschatting" : `ongeveer ${occupied} van ${totalStallsForForecast} bezet`}</strong></div>`;
-              }
-              d += `</div>`;
-            }
-            if (crowdForecast?.holidayPeriods?.length) {
-              d += `<div style="font-size:9px;color:#64748b;margin-top:4px;">Vakantieperiodes: ${crowdForecast.holidayPeriods.map((period) => escapeHtml(period.label)).join(" · ")}</div>`;
-            }
-          }
           const openingHours = normalizeOpeningHours(charger.openingHours, charger.openingTime, charger.closingTime);
           const openingHoursHtml = openingHours.mode === '24_7' ? '' : `
             <div style="font-weight:700;margin-top:6px;">🕒 Openingstijden hele week</div>
