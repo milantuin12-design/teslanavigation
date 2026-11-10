@@ -453,7 +453,7 @@ function AdminPage() {
     const legacyParking: ParkingFeeBlock[] = [];
     if (c.parking_fee_amount != null && c.parking_fee_amount > 0) legacyParking.push({ label: "Vast starttarief", afterMinutes: 0, durationMinutes: 0, amount: c.parking_fee_amount, currency: "EUR" });
     if (c.parking_per_euro != null && c.parking_per_minutes != null) legacyParking.push({ label: c.parking_free_minutes ? "Daarna" : "Parkeertarief", afterMinutes: c.parking_free_minutes ?? 0, durationMinutes: c.parking_per_minutes, amount: c.parking_per_euro, currency: "EUR", repeat: true });
-    setEditing({ ...c, traffic_forecast: c.construction?.trafficForecast ?? c.traffic_forecast ?? createRegionalTrafficForecast({ name: c.name, city: c.city ?? undefined, province: c.province ?? undefined, lat: c.lat, lng: c.lng }), parking_blocks: c.parking_blocks?.length ? c.parking_blocks : legacyParking, charger_configs: configsForCharger(c), opening_hours: normalizeOpeningHours(c.opening_hours, c.opening_time, c.closing_time) });
+    setEditing({ ...c, traffic_forecast: (c.construction?.trafficForecast ?? c.traffic_forecast)?.source === "admin" ? (c.construction?.trafficForecast ?? c.traffic_forecast) : createRegionalTrafficForecast({ name: c.name, city: c.city ?? undefined, province: c.province ?? undefined, country: c.country ?? undefined, totalStalls: totalFromConfigs(c.charger_configs) ?? c.total_stalls ?? undefined, lat: c.lat, lng: c.lng }), parking_blocks: c.parking_blocks?.length ? c.parking_blocks : legacyParking, charger_configs: configsForCharger(c), opening_hours: normalizeOpeningHours(c.opening_hours, c.opening_time, c.closing_time) });
     setCoordsInput(`${c.lat},${c.lng}`);
   };
 
