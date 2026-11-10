@@ -52,7 +52,7 @@ import {
   fetchElevationProfile,
 } from "@/lib/tesla-utils";
 import { fetchTrafficRoutes } from "@/lib/traffic.functions";
-import { getTrafficForecastAt } from "@/lib/traffic-forecast";
+import { getTrafficForecastAt, isSnowRegion } from "@/lib/traffic-forecast";
 
 import { getHolidayPeriodMode, getWinterSportsMode, listSuperchargers } from "@/lib/tesla.functions";
 import { lookupThirdPartyCharger } from "@/lib/third-party";
@@ -320,6 +320,7 @@ function Index() {
             new Date(departure.getTime() + (stop.etaMinFromStart ?? 0) * 60000),
             stop.charger.province,
             holidayPeriodMode || stop.charger.holidayPeriodMode === true,
+            winterSportsMode && isSnowRegion(stop.charger),
           )?.level)
           .filter((level): level is number => typeof level === "number");
         const traffic = crowdLevels.length ? crowdLevels.reduce((sum, level) => sum + level, 0) / crowdLevels.length : null;
@@ -334,7 +335,7 @@ function Index() {
     const best = pool.reduce((a, b) => b.cost < a.cost ? b : a);
     const saving = current.cost - best.cost;
     return saving >= 0.5 && best.offset !== 0 ? { ...best, saving, currentTraffic: current.traffic } : null;
-  }, [routeOptions, selectedRouteIndex, departureDate, selectedModel, packKWh, carMaxKwOverride, holidayPeriodMode]);
+  }, [routeOptions, selectedRouteIndex, departureDate, selectedModel, packKWh, carMaxKwOverride, holidayPeriodMode, winterSportsMode]);
   const [ownerPanelId, setOwnerPanelId] = useState<string | null>(null);
   const [focusCoord, setFocusCoord] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -1571,6 +1572,7 @@ function Index() {
             <ChargingStops
               stops={chargingStops}
               holidayMode={holidayPeriodMode}
+              winterSportsMode={winterSportsMode}
               totalDistanceKm={route?.totalDistanceKm ?? null}
               onBatteryChange={handleChargerBatteryChange}
               onRemoveCharger={handleRemoveCharger}
