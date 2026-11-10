@@ -75,7 +75,7 @@ export default function ChargerCompareDialog({ open, onOpenChange, chargers, dep
       <DialogContent className="max-h-[88vh] overflow-y-auto bg-slate-900 border-slate-700 text-white sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Superchargers vergelijken</DialogTitle>
-          <DialogDescription className="text-slate-400">Selecteer maximaal drie locaties. Drukte is een voorspelling voor {departure.toLocaleString("nl-NL", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}; geen live bezettingsmeting.</DialogDescription>
+          <DialogDescription className="text-slate-400">Selecteer maximaal drie locaties. Drukte is een voorspelling voor {departure.toLocaleString("nl-NL", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}; geen live bezettingsmeting. Tijden gebruiken de tijdzone van je apparaat.</DialogDescription>
         </DialogHeader>
         <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek op Supercharger, plaats of land…" className="bg-slate-800 border-slate-700" />
         <div className="grid max-h-44 grid-cols-1 gap-1 overflow-y-auto rounded-lg border border-slate-700 p-2 sm:grid-cols-2">
@@ -98,7 +98,7 @@ export default function ChargerCompareDialog({ open, onOpenChange, chargers, dep
               <tr><td className="text-slate-400">Laadplekken</td>{selected.map((c) => <td key={c.id ?? c.name}>{getTotalStallsFromConfigs(c.chargerConfigs) ?? c.totalStalls ?? "Onbekend"}</td>)}</tr>
               <tr><td className="text-slate-400">Max. vermogen</td>{selected.map((c) => <td key={c.id ?? c.name}>{parseMaxSpeed(c.stallTypes, c.maxSpeedKw, c.chargerConfigs) || "Onbekend"} kW</td>)}</tr>
               <tr><td className="text-slate-400">Verwachte drukte</td>{selected.map((c) => <td key={c.id ?? c.name}>{crowd(c, departure) === null ? "Geen voorspelling" : crowd(c, departure) + "% bezetting (schatting)"}</td>)}</tr>
-              <tr><td className="text-slate-400">Rustigste moment komende 24 uur</td>{selected.map((c) => <td key={c.id ?? c.name}>{formatQuietest(c, departure)}</td>)}</tr>
+              <tr><td className="text-slate-400">Rustigste moment komende 24 uur (apparaat-tijd)</td>{selected.map((c) => <td key={c.id ?? c.name}>{formatQuietest(c, departure)}</td>)}</tr>
               <tr><td className="text-slate-400">kWh-tarief (eerste blok)</td>{selected.map((c) => <td key={c.id ?? c.name}>{money(c)}</td>)}</tr>
               <tr><td className="text-slate-400">Parkeerkosten</td>{selected.map((c) => <td key={c.id ?? c.name}>{c.parkingFee ? "Mogelijk betaald" : "Geen bekende parkeerkosten"}</td>)}</tr>
               <tr><td className="text-slate-400">Aanhanger</td>{selected.map((c) => <td key={c.id ?? c.name}>{c.trailerFriendly ? "Geschikt volgens gegevens" : "Niet bevestigd"}</td>)}</tr>
