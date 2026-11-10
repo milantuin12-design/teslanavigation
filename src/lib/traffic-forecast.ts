@@ -89,12 +89,12 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   const ladespiegelMeasured: Array<{ match: RegExp; name: string; levels: number[] }> = [
     { match: /erkrather.?str|duesseldorf.?erkrather/, name: "Düsseldorf Erkrather Straße", levels: [8, 20, 33, 30, 21] },
     { match: /ellwangen/, name: "Ellwangen (Jagst)", levels: [3, 8, 22, 22, 9] },
-    { match: /malsfeld|dr.?reimer/, name: "Malsfeld", levels: [3, 10, 30, 26, 16] },
-    { match: /oberheidstr|m[uü]lheim.?an.?der.?ruhr/, name: "Mülheim an der Ruhr", levels: [1, 14, 23, 30, 26] },
+    { match: /malsfeld/, name: "Malsfeld", levels: [3, 10, 30, 26, 16] },
+    { match: /oberheidstr/, name: "Mülheim an der Ruhr", levels: [1, 14, 23, 30, 26] },
     { match: /kappel.?grafenhausen/, name: "Kappel-Grafenhausen", levels: [4, 9, 26, 22, 18] },
-    { match: /reststrauch|m[oö]nchengladbach/, name: "Mönchengladbach Reststrauch", levels: [12, 28, 36, 36, 20] },
+    { match: /reststrauch/, name: "Mönchengladbach Reststrauch", levels: [12, 28, 36, 36, 20] },
     { match: /main.?taunus.?zentrum|sulzbach.?taunus/, name: "Sulzbach (Taunus)", levels: [6, 24, 37, 54, 18] },
-    { match: /prackenfelser|altdorf.?bei.?n[uü]rnberg/, name: "Altdorf", levels: [2, 14, 26, 29, 12] },
+    { match: /prackenfelser/, name: "Altdorf", levels: [2, 14, 26, 29, 12] },
   ];
   const ladespiegel = ladespiegelMeasured.find((item) => item.match.test(identity));
   if (ladespiegel) {
@@ -278,10 +278,16 @@ function makeProfile(charger: Supercharger, zone: ReturnType<typeof zoneFor>, ca
         : [0.7, 1.0, 1.0, 1.0, 0.75];
     return weights.map((weight) => Math.round(adjustment * weight));
   })();
+  // Gemeten weekprofielen bevatten niet noodzakelijk een schoolvakantie.
+  // Voeg alleen aan die meetprofielen een bescheiden, locatie-afhankelijke
+  // vakantiecorrectie toe; wintersportmodus activeert dit niet.
+  const measuredHolidayBoost = category === "holiday" && override?.confidence === "medium"
+    ? zone === "ski" || zone === "transit" ? 12 : zone === "retail" ? 8 : 4
+    : 0;
   return TRAFFIC_PERIODS.map((period, index) => ({
     from: period.from,
     to: period.to,
-    level: Math.max(0, Math.min(100, base[index] + adjustments[index])),
+    level: Math.max(0, Math.min(100, base[index] + adjustments[index] + measuredHolidayBoost)),
   }));
 }
 
