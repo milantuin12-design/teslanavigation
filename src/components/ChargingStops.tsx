@@ -2,12 +2,13 @@ import { Zap, BatteryCharging, MapPin, Gauge, Clock, Ban, Mountain, Thermometer,
 import type { ChargingStop, RouteResult } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
 import { getChargeCurvePoints, getOpenStalls, parseMaxSpeed, v2SpeedKw } from '@/lib/tesla-utils';
-import { estimateFreeStalls, estimateQueueCars, getTrafficForecastAt, trafficLevelLabel } from '@/lib/traffic-forecast';
+import { estimateFreeStalls, estimateQueueCars, getTrafficForecastAt, isSnowRegion, trafficLevelLabel } from '@/lib/traffic-forecast';
 import { estimateChargingCost } from '@/lib/charging-cost';
 
 interface ChargingStopsProps {
   stops: ChargingStop[];
   holidayMode?: boolean;
+  winterSportsMode?: boolean;
   totalDistanceKm: number | null;
   onBatteryChange?: (index: number, newBatteryAfter: number) => void;
   onRemoveCharger?: (index: number) => void;
@@ -148,7 +149,7 @@ function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo, tem
   );
 }
 
-export default function ChargingStops({ stops, holidayMode = false, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic, ccsBlocked, showTrailer, restMin = 0, modelName = 'Model 3 Long Range AWD', carMaxKwOverride, whatIf }: ChargingStopsProps) {
+export default function ChargingStops({ stops, holidayMode = false, winterSportsMode = false, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic, ccsBlocked, showTrailer, restMin = 0, modelName = 'Model 3 Long Range AWD', carMaxKwOverride, whatIf }: ChargingStopsProps) {
   const start = departure ?? new Date();
   const total = route?.totalDistanceKm ?? totalDistanceKm ?? 0;
   const k100 = consumptionKWh100 && consumptionKWh100 > 0 ? consumptionKWh100 : null;
@@ -282,7 +283,7 @@ export default function ChargingStops({ stops, holidayMode = false, totalDistanc
                 {typeof stop.energyChargedKWh === 'number' && <span className="text-emerald-300">+{stop.energyChargedKWh} kWh</span>}
               </div>
               {stop.charger.trafficForecast && eta && (() => {
-                const forecast = getTrafficForecastAt(stop.charger.trafficForecast, eta, stop.charger.province, holidayMode || stop.charger.holidayPeriodMode === true);
+                const forecast = getTrafficForecastAt(stop.charger.trafficForecast, eta, stop.charger.province, holidayMode || stop.charger.holidayPeriodMode === true, winterSportsMode && isSnowRegion(stop.charger));
                 if (!forecast) return null;
                 const color = forecast.level >= 70 ? "bg-red-500/15 text-red-300" : forecast.level <= 30 ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300";
                 const total = stop.charger.totalStalls ?? stop.charger.chargerConfigs?.reduce((sum, config) => sum + config.count, 0) ?? 0;
@@ -291,7 +292,7 @@ export default function ChargingStops({ stops, holidayMode = false, totalDistanc
                 return <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
                   <span className={`rounded-md px-2 py-1 ${color}`}>{trafficLevelLabel(forecast.level)} · {forecast.level}%</span>
                   <span className="rounded-md bg-sky-500/10 px-2 py-1 text-sky-300">{free !== null ? `Waarschijnlijk ${free} van de ${total} vrij${queue > 0 ? ` · mogelijk ${queue} auto’s in de wachtrij` : ""}` : "Geen capaciteitsgegevens"} </span>
-                  <span className="text-slate-400">{forecast.from}–{forecast.to} · {forecast.holiday ? `vakantie: ${forecast.holiday}` : forecast.category === "weekend" ? "weekend" : "doordeweeks"} · {forecast.source === "regional-estimate" ? "locatieschatting" : "beheerdersprofiel"} · {forecast.confidence === "low" ? "lage zekerheid" : forecast.confidence === "high" ? "hoge zekerheid" : "gemiddelde zekerheid"}</span>
+                  <span className="text-slate-400">{forecast.from}–{forecast.to} · {forecast.holiday ? `vakantie: ${forecast.holiday}` : forecast.category === "weekend" ? "weekend" : "doordeweeks"}{forecast.winterSports ? " · wintersportcorrectie" : ""} · {forecast.source === "regional-estimate" ? "locatieschatting" : "beheerdersprofiel"} · {forecast.confidence === "low" ? "lage zekerheid" : forecast.confidence === "high" ? "hoge zekerheid" : "gemiddelde zekerheid"}</span>
                 </div>;
               })()}
       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
