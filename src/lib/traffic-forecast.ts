@@ -114,13 +114,29 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   };
   // Bispingen: Ladespiegel, 7 dagen/993 laadsessies; gemiddeld 7% bezet.
   if (/bispingen|behringen/.test(identity)) return {
-    label: "gemeten rustige Tesla-locatie Bispingen (gemiddeld circa 7% bezet)",
+    label: "gemeten rustige Tesla-locatie Bispingen (gemiddeld circa 6% bezet)",
     levels: {
       weekday: [3, 5, 13, 14, 6],
       weekend: [3, 5, 13, 14, 6],
       holiday: [4, 7, 17, 18, 8],
     },
   };
+  // Gemeten gemiddelde bezetting over de laatste 7 dagen (Ladespiegel, 10 november 2026).
+  // Dit zijn etmaalgemiddelden; zonder gepubliceerde uurcurve wordt geen spitsverdeling verzonnen.
+  const measured7Day: Array<{ match: RegExp; name: string; level: number }> = [
+    { match: /^hilden$|hilden.?nordpark/, name: "Hilden Nordpark", level: 10 },
+    { match: /vaterstetten/, name: "Vaterstetten", level: 18 },
+    { match: /^lohne$|lohne.?von.?siemens/, name: "Lohne", level: 14 },
+    { match: /euref.?campus|berlin.?euref/, name: "Berlin EUREF-Campus", level: 32 },
+  ];
+  const measuredRecent = measured7Day.find((item) => item.match.test(identity));
+  if (measuredRecent) {
+    const profile = [measuredRecent.level, measuredRecent.level, measuredRecent.level, measuredRecent.level, measuredRecent.level];
+    return {
+      label: `gemeten 7-daags etmaalgemiddelde Ladespiegel voor ${measuredRecent.name} (circa ${measuredRecent.level}% bezet; geen uurcurve)`,
+      levels: { weekday: [...profile], weekend: [...profile], holiday: [...profile] },
+    };
+  }
   // Zuidbroek: 20 Tesla-stalls bij Van der Valk, direct bij A7/N33.
   // Geen Tesla-specifieke historische bezettingsreeks gevonden: dit is nadrukkelijk een schatting.
   if (/zuidbroek/.test(identity)) return {
