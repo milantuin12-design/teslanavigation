@@ -86,7 +86,9 @@ const LIFECYCLE: ChargerLifecycleStatus[] = ['operational', 'construction', 'wor
 
 type OwnerRow = { name: string; logo_url: string | null; description: string | null; website: string | null; contact: string | null; notes: string | null };
 
-function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
+type NetworkLocation = Pick<Supercharger, "id" | "lat" | "lng">;
+
+function rowToCharger(row: Row, owners?: Map<string, OwnerRow>, network: NetworkLocation[] = []): Supercharger {
   const normalized = normalizeStallData(row.total_stalls, row.stall_types);
   const chargerConfigs = normalizeChargerConfigs(row.charger_configs).length > 0
     ? normalizeChargerConfigs(row.charger_configs)
@@ -137,7 +139,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>): Supercharger {
         id: row.id, name: row.name, city: row.city ?? undefined, province: row.province ?? undefined,
         country: row.country ?? undefined, totalStalls: getTotalStallsFromConfigs(chargerConfigs) ?? normalized.totalStalls,
         lat: row.lat, lng: row.lng,
-      });
+      }, network);
       const stored = row.construction?.trafficForecast ?? row.traffic_forecast;
       // Automatisch gegenereerde profielen worden steeds vernieuwd met de nieuwste
       // stationspecifieke meetgegevens; handmatig door de beheerder ingestelde profielen blijven intact.
@@ -277,6 +279,7 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
       // Voor tarieven is de GitHub-dataset leidend zodra daarin een tarief staat:
       // zo worden oude cloudtarieven vervangen door de nieuwste Find Us-tarieven.
       const localById = new Map(localRows.map((row) => [row.id, row]));
+      const network: NetworkLocation[] = result.rows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
       return result.rows.map((row) => {
         const local = localById.get(row.id);
         const merged: Row = !local ? row : (() => {
@@ -306,7 +309,7 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
                     : null),
           };
         })();
-        return { ...rowToCharger(applyTariffOverride(merged), owners), winterSportsMode: result.winterSportsMode, holidayPeriodMode: result.holidayPeriodMode };
+        return { ...rowToCharger(applyTariffOverride(merged), owners, network), winterSportsMode: result.winterSportsMode, holidayPeriodMode: result.holidayPeriodMode };
       });
     } catch (error) {
       // De kaart blijft bruikbaar als Supabase tijdelijk onbereikbaar is.
@@ -315,7 +318,8 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
       if (!localRows.length) {
         throw new Error("Supabase is niet bereikbaar en de lokale Superchargerdataset is leeg.");
       }
-      return localRows.map((row) => rowToCharger(applyTariffOverride(row), owners));
+      const network: NetworkLocation[] = localRows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
+      return localRows.map((row) => rowToCharger(applyTariffOverride(row), owners, network));
     }
   }
 );
