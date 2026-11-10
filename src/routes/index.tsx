@@ -306,11 +306,7 @@ function Index() {
   const departureAdvice = useMemo(() => {
     const plan = routeOptions[selectedRouteIndex];
     if (!plan || plan.stops.length === 0) return null;
-    // Houd het vertrekuuradvies gelijk aan de drukteberekening op de kaart en bij laadstops.
-    // De globale vakantie-/wintersportmodus kan op de gebruikte laadstations zijn opgeslagen.
-    const holidayMode = plan.stops.some((stop) =>
-      stop.charger.holidayPeriodMode === true || stop.charger.winterSportsMode === true
-    );
+    // Gebruik uitsluitend de aparte globale vakantiemodus; wintersport is een losse instelling.
     const offsets = [-120, -60, -30, 0, 30, 60, 90, 120, 180, 240];
     const candidates = offsets
       .map((offset) => {
