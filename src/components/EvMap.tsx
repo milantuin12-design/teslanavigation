@@ -397,7 +397,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         if (usable && totalForEstimate > 0 && estimatedFree !== null) {
           popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${totalForEstimate} vrij${estimatedQueue > 0 ? ` · mogelijk ${estimatedQueue} auto's in de wachtrij` : ''}</div>`;
           const profileNote = charger.trafficForecast?.note;
-          if (profileNote) popup += `<div style="margin-top:3px;color:#64748b;font-size:11px;">${escapeHtml(profileNote.slice(0, 220))}</div>`;
+          if (profileNote) popup += `<div style="margin-top:3px;color:#64748b;font-size:11px;">${escapeHtml(profileNote.slice(0, 220))}${profileNote.includes("Ladespiegel") ? ' · <a href="https://ladespiegel.de/" target="_blank" rel="noopener noreferrer" style="color:#0284c7;text-decoration:underline;">Bron: Ladespiegel</a>' : ""}</div>`;
         }
         const routeCost = routeStop ? estimateChargingCost(routeStop, forecastAt, modelName, packKWh, carMaxKwOverride) : null;
         if (routeCost) {
