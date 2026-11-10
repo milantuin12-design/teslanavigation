@@ -74,15 +74,34 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
     },
   };
   // Düsseldorf Ando Campus: 3 stalls; Ladestau.de, 28 dagen.
-  // Gemiddeld 40,1% bezet, piek 75,3%; beperkte capaciteit maakt deze locatie extra kwetsbaar.
+  // Gemiddeld 40,1% bezet, piek 75,3%. Er is geen betrouwbare uurverdeling gepubliceerd:
+  // daarom wordt het gemeten gemiddelde niet omgezet in een verzonnen dagcurve.
   if (/ando.?campus|mercedesstra[sß]e/.test(identity)) return {
-    label: "gemeten drukke locatie Düsseldorf Ando Campus (3 laadpunten; gemiddeld 40,1%, piek 75,3%)",
+    label: "gemeten drukke locatie Düsseldorf Ando Campus (3 laadpunten; gemiddeld 40,1%, piek 75,3%; geen uurcurve beschikbaar)",
     levels: {
-      weekday: [10, 24, 35, 48, 22],
-      weekend: [10, 24, 35, 48, 22],
-      holiday: [12, 28, 40, 55, 26],
+      weekday: [40, 40, 40, 40, 40],
+      weekend: [40, 40, 40, 40, 40],
+      holiday: [40, 40, 40, 40, 40],
     },
   };
+  // Uurprofielen uit Ladespiegel, gebaseerd op gemeten laadpuntsessies van de afgelopen 7 dagen.
+  // De bron publiceert een weekgemiddelde per uur, niet aparte weekdag-/weekendcurves.
+  const measuredHourly: Array<{ match: RegExp; name: string; levels: number[] }> = [
+    { match: /nempitz/, name: "Nempitz", levels: [4, 22, 38, 36, 15] },
+    { match: /gensingen|kieselberg/, name: "Gensingen", levels: [0, 3, 12, 11, 4] },
+    { match: /schweitenkirchen|robert.?koch/, name: "Schweitenkirchen", levels: [2, 9, 21, 23, 12] },
+    { match: /helbingtwiete|wandsbek/, name: "Hamburg Helbingtwiete", levels: [42, 52, 56, 59, 51] },
+    { match: /motten|hauptstra[sß]e/, name: "Motten", levels: [0, 2, 7, 6, 2] },
+    { match: /an.?d.?passage|leipzig/, name: "Leipzig An der Passage", levels: [6, 21, 35, 43, 21] },
+  ];
+  const hourly = measuredHourly.find((item) => item.match.test(identity));
+  if (hourly) {
+    const profile = hourly.levels.map((level) => Math.max(0, Math.min(100, level)));
+    return {
+      label: `gemeten uurprofiel Ladespiegel voor ${hourly.name} (laatste 7 dagen)`,
+      levels: { weekday: [...profile], weekend: [...profile], holiday: [...profile] },
+    };
+  }
   // Externe bezettingsmetingen per specifieke Tesla-locatie (november 2026).
   // Norden: Ladespiegel, 7 dagen/96 laadsessies; gemiddeld 3% bezet.
   if (/norden/.test(identity)) return {
