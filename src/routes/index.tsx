@@ -304,6 +304,11 @@ function Index() {
   const departureAdvice = useMemo(() => {
     const plan = routeOptions[selectedRouteIndex];
     if (!plan || plan.stops.length === 0) return null;
+    // Houd het vertrekuuradvies gelijk aan de drukteberekening op de kaart en bij laadstops.
+    // De globale vakantie-/wintersportmodus kan op de gebruikte laadstations zijn opgeslagen.
+    const holidayMode = plan.stops.some((stop) =>
+      stop.charger.holidayPeriodMode === true || stop.charger.winterSportsMode === true
+    );
     const offsets = [-120, -60, -30, 0, 30, 60, 90, 120, 180, 240];
     const candidates = offsets
       .map((offset) => {
@@ -312,7 +317,12 @@ function Index() {
         const cost = estimateRouteCost(plan, departure, selectedModel, packKWh, carMaxKwOverride);
         if (cost === null) return null;
         const crowdLevels = plan.stops
-          .map((stop) => getTrafficForecastAt(stop.charger.trafficForecast, new Date(departure.getTime() + (stop.etaMinFromStart ?? 0) * 60000), stop.charger.province)?.level)
+          .map((stop) => getTrafficForecastAt(
+            stop.charger.trafficForecast,
+            new Date(departure.getTime() + (stop.etaMinFromStart ?? 0) * 60000),
+            stop.charger.province,
+            holidayMode || stop.charger.holidayPeriodMode === true || stop.charger.winterSportsMode === true,
+          )?.level)
           .filter((level): level is number => typeof level === "number");
         const traffic = crowdLevels.length ? crowdLevels.reduce((sum, level) => sum + level, 0) / crowdLevels.length : null;
         return { departure, cost, offset, traffic };
