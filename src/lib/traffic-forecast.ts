@@ -88,13 +88,13 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   // De 24 uurwaarden zijn samengevat in de vijf tijdsblokken die de planner gebruikt.
   const ladespiegelMeasured: Array<{ match: RegExp; name: string; levels: number[] }> = [
     { match: /erkrather.?str|duesseldorf.?erkrather/, name: "Düsseldorf Erkrather Straße", levels: [8, 20, 33, 30, 21] },
-    { match: /ellwangen|max.?eyth/, name: "Ellwangen (Jagst)", levels: [3, 8, 22, 22, 9] },
+    { match: /ellwangen/, name: "Ellwangen (Jagst)", levels: [3, 8, 22, 22, 9] },
     { match: /malsfeld|dr.?reimer/, name: "Malsfeld", levels: [3, 10, 30, 26, 16] },
     { match: /oberheidstr|m[uü]lheim.?an.?der.?ruhr/, name: "Mülheim an der Ruhr", levels: [1, 14, 23, 30, 26] },
-    { match: /kappel.?grafenhausen|hauptstra[sß]e/, name: "Kappel-Grafenhausen", levels: [4, 9, 26, 22, 18] },
+    { match: /kappel.?grafenhausen/, name: "Kappel-Grafenhausen", levels: [4, 9, 26, 22, 18] },
     { match: /reststrauch|m[oö]nchengladbach/, name: "Mönchengladbach Reststrauch", levels: [12, 28, 36, 36, 20] },
-    { match: /main.?taunus.?zentrum|sulzbach/, name: "Sulzbach (Taunus)", levels: [6, 24, 37, 54, 18] },
-    { match: /prackenfelser|altdorf/, name: "Altdorf", levels: [2, 14, 26, 29, 12] },
+    { match: /main.?taunus.?zentrum|sulzbach.?taunus/, name: "Sulzbach (Taunus)", levels: [6, 24, 37, 54, 18] },
+    { match: /prackenfelser|altdorf.?bei.?n[uü]rnberg/, name: "Altdorf", levels: [2, 14, 26, 29, 12] },
   ];
   const ladespiegel = ladespiegelMeasured.find((item) => item.match.test(identity));
   if (ladespiegel) {
