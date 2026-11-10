@@ -73,6 +73,16 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
       holiday: [10, 22, 32, 28, 14],
     },
   };
+  // Düsseldorf Ando Campus: 3 stalls; Ladestau.de, 28 dagen.
+  // Gemiddeld 40,1% bezet, piek 75,3%; beperkte capaciteit maakt deze locatie extra kwetsbaar.
+  if (/ando.?campus|mercedesstra[sß]e/.test(identity)) return {
+    label: "gemeten drukke locatie Düsseldorf Ando Campus (3 laadpunten; gemiddeld 40,1%, piek 75,3%)",
+    levels: {
+      weekday: [10, 24, 35, 48, 22],
+      weekend: [10, 24, 35, 48, 22],
+      holiday: [12, 28, 40, 55, 26],
+    },
+  };
   // Externe bezettingsmetingen per specifieke Tesla-locatie (november 2026).
   // Norden: Ladespiegel, 7 dagen/96 laadsessies; gemiddeld 3% bezet.
   if (/norden/.test(identity)) return {
