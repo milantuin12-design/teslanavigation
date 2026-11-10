@@ -86,6 +86,19 @@ type AdminTariff = {
   priceBlocks?: { from: string; to: string; pricePerKwh: number }[];
 };
 
+function broadcastCrowdModeUpdate(mode: "winterSportsMode" | "holidayPeriodMode", enabled: boolean) {
+  const channel = supabase.channel("global-crowd-modes-live");
+  channel.subscribe((status) => {
+    if (status === "SUBSCRIBED") {
+      void channel.send({
+        type: "broadcast",
+        event: "modes-updated",
+        payload: { mode, enabled },
+      }).finally(() => { void supabase.removeChannel(channel); });
+    }
+  });
+}
+
 function normalizeTariffMatch(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
@@ -348,7 +361,7 @@ function AdminPage() {
     try {
       await saveWinterSportsMode({ data: { enabled } });
       setWinterSportsEnabled(enabled);
-      void supabase.channel("global-crowd-modes-live").send({ type: "broadcast", event: "modes-updated", payload: { mode: "winterSportsMode", enabled } });
+      broadcastCrowdModeUpdate("winterSportsMode", enabled);
       toast.success(enabled ? "Wintersportmodus ingeschakeld" : "Wintersportmodus uitgeschakeld");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Instelling opslaan mislukt");
@@ -360,7 +373,7 @@ function AdminPage() {
     try {
       await saveHolidayPeriodMode({ data: { enabled } });
       setHolidayPeriodEnabled(enabled);
-      void supabase.channel("global-crowd-modes-live").send({ type: "broadcast", event: "modes-updated", payload: { mode: "holidayPeriodMode", enabled } });
+      broadcastCrowdModeUpdate("holidayPeriodMode", enabled);
       toast.success(enabled ? "Vakantieperiode ingeschakeld" : "Vakantieperiode uitgeschakeld");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Vakantieperiode opslaan mislukt");
