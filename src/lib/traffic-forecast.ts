@@ -95,6 +95,8 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
     { match: /reststrauch/, name: "Mönchengladbach Reststrauch", levels: [12, 28, 36, 36, 20] },
     { match: /main.?taunus.?zentrum|sulzbach.?taunus/, name: "Sulzbach (Taunus)", levels: [6, 24, 37, 54, 18] },
     { match: /prackenfelser/, name: "Altdorf", levels: [2, 14, 26, 29, 12] },
+    { match: /hattersheim|heddingheimer/, name: "Hattersheim am Main", levels: [12, 29, 30, 39, 20] },
+    { match: /beelitz|dr.?herrmann/, name: "Beelitz", levels: [4, 14, 33, 24, 13] },
   ];
   const ladespiegel = ladespiegelMeasured.find((item) => item.match.test(identity));
   if (ladespiegel) {
@@ -109,7 +111,7 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   // Uurprofielen uit Ladespiegel, gebaseerd op gemeten laadpuntsessies van de afgelopen 7 dagen.
   // De bron publiceert een weekgemiddelde per uur, niet aparte weekdag-/weekendcurves.
   const measuredHourly: Array<{ match: RegExp; name: string; levels: number[] }> = [
-    { match: /nempitz/, name: "Nempitz", levels: [4, 22, 38, 36, 15] },
+    { match: /nempitz/, name: "Nempitz", levels: [4, 22, 38, 36, 14] },
     { match: /gensingen|kieselberg/, name: "Gensingen", levels: [0, 3, 12, 11, 4] },
     { match: /schweitenkirchen|robert.?koch/, name: "Schweitenkirchen", levels: [2, 9, 21, 23, 12] },
     { match: /helbingtwiete|wandsbek/, name: "Hamburg Helbingtwiete", levels: [44, 52, 56, 61, 51] },
