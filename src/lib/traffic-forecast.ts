@@ -216,6 +216,7 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   // Eimeldingen en Lehre hebben gepubliceerde bezettingspercentages per uur over 7 dagen.
   if (/eimeldingen|im rebacker/.test(identity)) return {
     label: "gemeten uurprofiel Eimeldingen (piek circa 42% rond 20:00)",
+    confidence: "medium",
     levels: {
       weekday: [4, 20, 27, 30, 28],
       weekend: [4, 20, 27, 30, 28],
@@ -223,11 +224,12 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
     },
   };
   if (/lehre|loh(balken|balken)/.test(identity)) return {
-    label: "gemeten uurprofiel Lehre (piek circa 28% rond 15:00)",
+    label: "gemeten uurprofiel Lehre (7-daags Ladespiegel-profiel, samengevat per tijdsblok)",
+    confidence: "medium",
     levels: {
-      weekday: [2, 8, 18, 23, 15],
-      weekend: [2, 8, 18, 23, 15],
-      holiday: [3, 10, 21, 26, 17],
+      weekday: [1, 8, 19, 18, 12],
+      weekend: [1, 8, 19, 18, 12],
+      holiday: [5, 12, 23, 22, 16],
     },
   };
   return null;
