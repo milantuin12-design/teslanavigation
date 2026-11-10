@@ -303,18 +303,56 @@ function makeProfile(charger: Supercharger, zone: ReturnType<typeof zoneFor>, ca
   }));
 }
 
-export function createRegionalTrafficForecast(charger: Supercharger): TrafficForecast {
+type NetworkLocation = Pick<Supercharger, "id" | "lat" | "lng">;
+
+function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const rad = (value: number) => value * Math.PI / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLng = rad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 +
+    Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+/** Schat relatieve lokale concurrentie/vraag op basis van nabijgelegen Tesla-locaties.
+ * Dit wordt voor iedere Supercharger berekend; het aantal stalls zelf bepaalt de vraag niet.
+ */
+function regionalNetworkFactor(charger: Supercharger, network: NetworkLocation[], zone: ReturnType<typeof zoneFor>): number {
+  const nearby = network.filter((site) =>
+    site.id !== charger.id &&
+    Number.isFinite(site.lat) && Number.isFinite(site.lng) &&
+    distanceKm(charger, site) <= 60
+  ).length;
+  const densityFactor = nearby === 0 ? -0.24
+    : nearby <= 2 ? -0.14
+    : nearby <= 5 ? -0.05
+    : nearby <= 10 ? 0.04
+    : nearby <= 20 ? 0.10
+    : 0.16;
+  // Een afgelegen snelweg-, ski- of toeristische locatie kan ondanks weinig
+  // Tesla-buren toch veel passanten trekken; demp de isolatiecorrectie daar.
+  const zoneProtection = zone === "transit" || zone === "ski" || zone === "retail" ? 0.10 : 0;
+  return Math.max(-0.18, Math.min(0.16, densityFactor + zoneProtection));
+}
+
+export function createRegionalTrafficForecast(charger: Supercharger, network: NetworkLocation[] = []): TrafficForecast {
   const zone = zoneFor(charger);
   const override = siteOverride(charger);
   const corridor = override?.label ?? (zone === "transit" ? "snelweg- en doorgangsgebied" : zone === "ski" ? "wintersportgebied" : zone === "urban" ? "stedelijke regio" : zone === "retail" ? "winkelgebied" : "regionale locatie");
   const basis = override ? "locatiespecifieke informatie" : "locatietype, ligging en seizoenspatroon";
+  const networkFactor = regionalNetworkFactor(charger, network, zone);
+  const applyNetworkFactor = (slots: TrafficForecastPeriodSlot[]) => slots.map((slot) => ({
+    ...slot,
+    level: Math.max(0, Math.min(100, Math.round(slot.level * (1 + networkFactor)))),
+  }));
   return {
     source: "regional-estimate",
     confidence: override?.confidence ?? "low",
-    note: `Europese locatieschatting voor ${charger.name}: ${corridor}. Gebaseerd op ${basis}; geen historische of live bezettingsmeting. De beheerder kan dit profiel per Supercharger aanpassen.`,
-    weekdaySlots: makeProfile(charger, zone, "weekday"),
-    weekendSlots: makeProfile(charger, zone, "weekend"),
-    holidaySlots: makeProfile(charger, zone, "holiday"),
+    // Korte, neutrale tekst; geen samengestelde gebruikersmelding of interne uitleg.
+    note: "Locatiespecifieke drukteverwachting; geen live bezettingsmeting.",
+    weekdaySlots: applyNetworkFactor(makeProfile(charger, zone, "weekday")),
+    weekendSlots: applyNetworkFactor(makeProfile(charger, zone, "weekend")),
+    holidaySlots: applyNetworkFactor(makeProfile(charger, zone, "holiday")),
     holidayPeriods: [],
   };
 }
