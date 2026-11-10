@@ -365,7 +365,18 @@ export function trafficLevelLabel(level: number): string {
 /** Schat het aantal vrije laadplekken op basis van het ingestelde druktepercentage. */
 export function estimateFreeStalls(total: number | undefined, level: number): number | null {
   if (!total || total <= 0) return null;
-  return Math.max(0, Math.min(total, Math.round(total * (1 - Math.max(0, Math.min(100, level)) / 100))));
+  // Conservatief afronden: 0 vrije plekken is mogelijk, ook als de berekende
+  // restcapaciteit kleiner is dan één laadplek.
+  return Math.max(0, Math.min(total, Math.floor(total * (1 - Math.max(0, Math.min(100, level)) / 100))));
+}
+
+/**
+ * Indicatieve wachtrij bij vrijwel volledige bezetting. Dit is nadrukkelijk
+ * een modelmatige schatting, geen live geteld aantal wachtende auto's.
+ */
+export function estimateQueueCars(total: number | undefined, level: number): number {
+  if (!total || total <= 0 || level < 95) return 0;
+  return Math.min(4, Math.ceil((Math.max(0, Math.min(100, level)) - 90) / 5));
 }
 
 /** Herkent Alpen-, wintersport- en noordelijke sneeuwgebieden voor de admin-waarschuwing. */
