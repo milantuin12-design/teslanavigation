@@ -13,7 +13,7 @@ export const TRAFFIC_PERIODS = [
   { from: "20:00", to: "24:00", label: "20–24" },
 ] as const;
 
-function zoneFor(charger: Pick<Supercharger, "name" | "city" | "province" | "lat" | "lng">): "transit" | "ski" | "urban" | "retail" | "other" {
+function zoneFor(charger: Pick<Supercharger, "name" | "city" | "province" | "lat" | "lng" | "country">): "transit" | "ski" | "urban" | "retail" | "other" {
   const text = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
   if (/autohof|rastst[aä]tte|aire de|area di servizio|service area|service station|autobahn|motorway|autoroute|autostrada|highway|tankstelle|tankstation/.test(text)) return "transit";
   if (/ski|alpen|alps|dolomit|brenner|tauern|arlberg|tirol|tyrol|salzburg|kitzb[uü]hel|zell am see|s[oö]lden|ischgl|st anton|lermoos|innsbruck|chamonix|val thorens|courchevel|les arcs|tignes|verbier|davos|zermatt|laax|st moritz|livigno|cortina|bormio|geilo|trysil|are|åre|kiruna|rovaniemi/.test(text)) return "ski";
@@ -204,7 +204,7 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   return null;
 }
 
-function siteDemandAdjustment(charger: Supercharger): number {
+function siteDemandAdjustment(charger: Supercharger, zone: ReturnType<typeof zoneFor>, category: TrafficCategory): number {
   const identity = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
   let adjustment = 0;
   if (/airport|flughafen|a[eé]roport|schiphol|terminal/.test(identity)) adjustment += 18;
@@ -214,28 +214,59 @@ function siteDemandAdjustment(charger: Supercharger): number {
   if (/centrum|city centre|downtown|innenstadt/.test(identity)) adjustment += 7;
   if (/industrial|industriegebiet|business park/.test(identity)) adjustment -= 8;
   if (/rural|landelijk|dorp|village/.test(identity)) adjustment -= 8;
-  return Math.max(-15, Math.min(25, adjustment));
+
+  // Site-specifieke correcties voor alle Europese locaties op basis van de
+  // geregistreerde capaciteit en herkenbare locatiekenmerken. Dit is een
+  // schatting, geen historische of live bezettingsmeting.
+  const stalls = charger.totalStalls ?? 0;
+  if (stalls > 0 && stalls <= 4) adjustment += 12;
+  else if (stalls <= 8 && stalls > 0) adjustment += 7;
+  else if (stalls <= 12 && stalls > 0) adjustment += 3;
+  else if (stalls >= 32) adjustment -= 8;
+  else if (stalls >= 24) adjustment -= 5;
+
+  const country = (charger.country ?? "").toLowerCase().trim();
+  if (/norway|norge|sweden|sverige|finland|suomi|iceland|island/.test(country) && zone === "ski") adjustment += 8;
+  if (/austria|österreich|switzerland|schweiz|suisse|italy|italia|france|españa|spain/.test(country) && zone === "ski") adjustment += 6;
+  if (/netherlands|nederland|belgium|belgië|belgique|germany|deutschland/.test(country) && zone === "urban" && category === "weekday") adjustment += 4;
+
+  if (/beach|strand|plage|playa|costa|marina|camping|resort|seaside|feri(en)?|holiday park/.test(identity)) {
+    adjustment += category === "weekday" ? 4 : category === "weekend" ? 14 : 20;
+  }
+  if (/ferry|fähre|port|harbour|haven|terminal/.test(identity)) adjustment += category === "weekday" ? 5 : 9;
+
+  return Math.max(-22, Math.min(35, adjustment));
 }
 
 function makeProfile(charger: Supercharger, zone: ReturnType<typeof zoneFor>, category: TrafficCategory): TrafficForecastPeriodSlot[] {
   const override = siteOverride(charger);
-  const adjustment = siteDemandAdjustment(charger);
   const base = override?.levels[category] ?? TRAFFIC_PERIODS.map((_, index) => levelFor(zone, category, index));
+  const adjustments = override ? TRAFFIC_PERIODS.map(() => 0) : (() => {
+    const adjustment = siteDemandAdjustment(charger, zone, category);
+    // De capaciteit en ligging beïnvloeden niet elk dagdeel even sterk.
+    const weights = category === "weekday"
+      ? [0.55, 1.0, 0.9, 1.0, 0.6]
+      : category === "weekend"
+        ? [0.65, 0.9, 1.0, 0.95, 0.7]
+        : [0.7, 1.0, 1.0, 1.0, 0.75];
+    return weights.map((weight) => Math.round(adjustment * weight));
+  })();
   return TRAFFIC_PERIODS.map((period, index) => ({
     from: period.from,
     to: period.to,
-    level: Math.max(0, Math.min(100, base[index] + (override ? 0 : adjustment))),
+    level: Math.max(0, Math.min(100, base[index] + adjustments[index])),
   }));
 }
 
 export function createRegionalTrafficForecast(charger: Supercharger): TrafficForecast {
   const zone = zoneFor(charger);
   const override = siteOverride(charger);
-  const corridor = override?.label ?? (zone === "transit" ? "snelweg- en doorgangsgebied" : zone === "ski" ? "wintersportgebied" : zone === "urban" ? "stedelijke regio" : zone === "retail" ? "winkelgebied" : "regionaal gebied");
+  const corridor = override?.label ?? (zone === "transit" ? "snelweg- en doorgangsgebied" : zone === "ski" ? "wintersportgebied" : zone === "urban" ? "stedelijke regio" : zone === "retail" ? "winkelgebied" : "regionale locatie");
+  const basis = override ? "bekende locatie-informatie" : "locatietype, land, capaciteit en seizoenspatroon";
   return {
     source: "regional-estimate",
     confidence: "low",
-    note: `Indicatieve locatie-inschatting voor ${corridor}. De beheerder kan de drie tijdprofielen per Supercharger afzonderlijk aanpassen. Geen live bezettingsdata; drukte kan per dag afwijken.`,
+    note: `Europese locatieschatting voor ${charger.name}: ${corridor}. Gebaseerd op ${basis}; geen historische of live bezettingsmeting. De beheerder kan dit profiel per Supercharger aanpassen.`,
     weekdaySlots: makeProfile(charger, zone, "weekday"),
     weekendSlots: makeProfile(charger, zone, "weekend"),
     holidaySlots: makeProfile(charger, zone, "holiday"),
