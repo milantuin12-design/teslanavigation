@@ -336,20 +336,63 @@ function pointToSegmentDistance(
   return haversineDistance(pLat, pLng, closestLat, closestLng);
 }
 
+// Coarse route samples let us discard distant Superchargers before running
+// the expensive exact point-to-segment distance against every polyline segment.
+const routeSampleCache = new WeakMap<[number, number][], [number, number][]>();
+
+function getRouteSamples(routeCoords: [number, number][]): [number, number][] {
+  const cached = routeSampleCache.get(routeCoords);
+  if (cached) return cached;
+  const samples: [number, number][] = [];
+  let nextSampleAt = 0;
+  let travelled = 0;
+  if (routeCoords.length) samples.push(routeCoords[0]);
+  for (let i = 1; i < routeCoords.length; i++) {
+    const [aLng, aLat] = routeCoords[i - 1];
+    const [bLng, bLat] = routeCoords[i];
+    travelled += haversineDistance(aLat, aLng, bLat, bLng);
+    if (travelled >= nextSampleAt + 6) {
+      samples.push(routeCoords[i]);
+      nextSampleAt = travelled;
+    }
+  }
+  if (routeCoords.length > 1 && samples[samples.length - 1] !== routeCoords[routeCoords.length - 1]) {
+    samples.push(routeCoords[routeCoords.length - 1]);
+  }
+  routeSampleCache.set(routeCoords, samples);
+  return samples;
+}
+
 export function findChargersNearRoute(
   routeCoords: [number, number][],
   chargers: Supercharger[],
   maxDistanceKm: number = 5
 ): Supercharger[] {
-  return chargers.filter(charger => {
+  if (routeCoords.length < 2 || chargers.length === 0) return [];
+  const samples = getRouteSamples(routeCoords);
+  // Samples are at most 6 km apart, so every point on the route is within
+  // 3 km of a sample. The extra 0.1 km avoids floating-point edge exclusions.
+  const coarseLimit = maxDistanceKm + 3.1;
+  const nearby: Supercharger[] = [];
+  for (const charger of chargers) {
+    let coarseDistance = Infinity;
+    for (const [lng, lat] of samples) {
+      const distance = haversineDistance(charger.lat, charger.lng, lat, lng);
+      if (distance < coarseDistance) coarseDistance = distance;
+      if (coarseDistance <= coarseLimit) break;
+    }
+    if (coarseDistance > coarseLimit) continue;
+    // Preserve the original exact-distance test for every possible candidate.
     for (let i = 0; i < routeCoords.length - 1; i++) {
       const [aLng, aLat] = routeCoords[i];
       const [bLng, bLat] = routeCoords[i + 1];
-      const dist = pointToSegmentDistance(charger.lat, charger.lng, aLat, aLng, bLat, bLng);
-      if (dist <= maxDistanceKm) return true;
+      if (pointToSegmentDistance(charger.lat, charger.lng, aLat, aLng, bLat, bLng) <= maxDistanceKm) {
+        nearby.push(charger);
+        break;
+      }
     }
-    return false;
-  });
+  }
+  return nearby;
 }
 
 /** Is charger open at given local time (HH:MM). null times = 24/7. */
