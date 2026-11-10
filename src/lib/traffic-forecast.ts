@@ -220,7 +220,7 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
     levels: {
       weekday: [4, 20, 27, 30, 28],
       weekend: [4, 20, 27, 30, 28],
-      holiday: [5, 23, 31, 34, 31],
+      holiday: [4, 20, 27, 30, 28],
     },
   };
   if (/lehre|loh(balken|balken)/.test(identity)) return {
@@ -229,7 +229,7 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
     levels: {
       weekday: [1, 8, 19, 18, 12],
       weekend: [1, 8, 19, 18, 12],
-      holiday: [5, 12, 23, 22, 16],
+      holiday: [1, 8, 19, 18, 12],
     },
   };
   return null;
