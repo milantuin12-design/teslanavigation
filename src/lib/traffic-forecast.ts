@@ -54,7 +54,7 @@ function levelFor(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weeke
 
 type TrafficCategory = "weekday" | "weekend" | "holiday";
 
-function siteOverride(charger: Supercharger): { label: string; levels: Record<TrafficCategory, number[]> } | null {
+function siteOverride(charger: Supercharger): { label: string; levels: Record<TrafficCategory, number[]>; confidence?: "low" | "medium" | "high" } | null {
   const identity = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
   // Bekende uitzonderingen die niet uit de algemene regio-indeling af te leiden zijn.
   if (/badhoevedorp/.test(identity)) return {
@@ -84,14 +84,36 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
       holiday: [67, 100, 100, 100, 100],
     },
   };
+  // Gemeten Tesla-profielen uit Ladespiegel (7-daagse uurbezetting).
+  // De 24 uurwaarden zijn samengevat in de vijf tijdsblokken die de planner gebruikt.
+  const ladespiegelMeasured: Array<{ match: RegExp; name: string; levels: number[] }> = [
+    { match: /erkrather.?str|duesseldorf.?erkrather/, name: "Düsseldorf Erkrather Straße", levels: [8, 20, 33, 30, 21] },
+    { match: /ellwangen|max.?eyth/, name: "Ellwangen (Jagst)", levels: [3, 8, 22, 22, 9] },
+    { match: /malsfeld|dr.?reimer/, name: "Malsfeld", levels: [3, 10, 30, 26, 16] },
+    { match: /oberheidstr|m[uü]lheim.?an.?der.?ruhr/, name: "Mülheim an der Ruhr", levels: [1, 14, 23, 30, 26] },
+    { match: /kappel.?grafenhausen|hauptstra[sß]e/, name: "Kappel-Grafenhausen", levels: [4, 9, 26, 22, 18] },
+    { match: /reststrauch|m[oö]nchengladbach/, name: "Mönchengladbach Reststrauch", levels: [12, 28, 36, 36, 20] },
+    { match: /main.?taunus.?zentrum|sulzbach/, name: "Sulzbach (Taunus)", levels: [6, 24, 37, 54, 18] },
+    { match: /prackenfelser|altdorf/, name: "Altdorf", levels: [2, 14, 26, 29, 12] },
+  ];
+  const ladespiegel = ladespiegelMeasured.find((item) => item.match.test(identity));
+  if (ladespiegel) {
+    const profile = [...ladespiegel.levels];
+    return {
+      label: `gemeten uurprofiel Ladespiegel voor ${ladespiegel.name} (gemiddelde per tijdsblok uit 7 dagen)`,
+      confidence: "medium",
+      levels: { weekday: [...profile], weekend: [...profile], holiday: [...profile] },
+    };
+  }
+
   // Uurprofielen uit Ladespiegel, gebaseerd op gemeten laadpuntsessies van de afgelopen 7 dagen.
   // De bron publiceert een weekgemiddelde per uur, niet aparte weekdag-/weekendcurves.
   const measuredHourly: Array<{ match: RegExp; name: string; levels: number[] }> = [
     { match: /nempitz/, name: "Nempitz", levels: [4, 22, 38, 36, 15] },
     { match: /gensingen|kieselberg/, name: "Gensingen", levels: [0, 3, 12, 11, 4] },
     { match: /schweitenkirchen|robert.?koch/, name: "Schweitenkirchen", levels: [2, 9, 21, 23, 12] },
-    { match: /helbingtwiete|wandsbek/, name: "Hamburg Helbingtwiete", levels: [42, 52, 56, 59, 51] },
-    { match: /motten/, name: "Motten", levels: [0, 2, 7, 6, 2] },
+    { match: /helbingtwiete|wandsbek/, name: "Hamburg Helbingtwiete", levels: [44, 52, 56, 61, 51] },
+    { match: /motten/, name: "Motten", levels: [0, 2, 5, 7, 2] },
     { match: /an.?d.?passage/, name: "Leipzig An der Passage", levels: [6, 21, 35, 43, 21] },
   ];
   const hourly = measuredHourly.find((item) => item.match.test(identity));
@@ -99,6 +121,7 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
     const profile = hourly.levels.map((level) => Math.max(0, Math.min(100, level)));
     return {
       label: `gemeten uurprofiel Ladespiegel voor ${hourly.name} (laatste 7 dagen)`,
+      confidence: "medium",
       levels: { weekday: [...profile], weekend: [...profile], holiday: [...profile] },
     };
   }
@@ -106,6 +129,7 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   // Norden: Ladespiegel, 7 dagen/96 laadsessies; gemiddeld 3% bezet.
   if (/norden/.test(identity)) return {
     label: "gemeten zeer rustige Tesla-locatie Norden (gemiddeld circa 3% bezet)",
+    confidence: "medium",
     levels: {
       weekday: [1, 2, 8, 5, 1],
       weekend: [1, 2, 8, 5, 1],
@@ -115,6 +139,7 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   // Bispingen: Ladespiegel, 7 dagen/993 laadsessies; gemiddeld 7% bezet.
   if (/bispingen|behringen/.test(identity)) return {
     label: "gemeten rustige Tesla-locatie Bispingen (gemiddeld circa 6% bezet)",
+    confidence: "medium",
     levels: {
       weekday: [3, 5, 13, 14, 6],
       weekend: [3, 5, 13, 14, 6],
@@ -134,6 +159,7 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
     const profile = [measuredRecent.level, measuredRecent.level, measuredRecent.level, measuredRecent.level, measuredRecent.level];
     return {
       label: `gemeten 7-daags etmaalgemiddelde Ladespiegel voor ${measuredRecent.name} (circa ${measuredRecent.level}% bezet; geen uurcurve)`,
+      confidence: "medium",
       levels: { weekday: [...profile], weekend: [...profile], holiday: [...profile] },
     };
   }
@@ -177,6 +203,7 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
     const profile = [level, level, level, level, level];
     return {
       label: `gemeten 30-dagen-gemiddelde voor ${measured.name} (circa ${level}% bezet)`,
+      confidence: "medium",
       levels: {
         weekday: [...profile],
         weekend: [...profile],
@@ -265,7 +292,7 @@ export function createRegionalTrafficForecast(charger: Supercharger): TrafficFor
   const basis = override ? "bekende locatie-informatie" : "locatietype, land, capaciteit en seizoenspatroon";
   return {
     source: "regional-estimate",
-    confidence: "low",
+    confidence: override?.confidence ?? "low",
     note: `Europese locatieschatting voor ${charger.name}: ${corridor}. Gebaseerd op ${basis}; geen historische of live bezettingsmeting. De beheerder kan dit profiel per Supercharger aanpassen.`,
     weekdaySlots: makeProfile(charger, zone, "weekday"),
     weekendSlots: makeProfile(charger, zone, "weekend"),
