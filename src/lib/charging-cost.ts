@@ -37,6 +37,19 @@ function activeKwhPrice(blocks: PriceBlock[], at: Date): number | null {
   return null;
 }
 
+function activePowerTier(blocks: PriceBlock[], powerKw: number, at: Date): PriceBlock | null {
+  const minute = at.getHours() * 60 + at.getMinutes();
+  const active = blocks.filter((block) => {
+    if (!dayMatches(block.days, at)) return false;
+    const from = minuteOfDay(block.from, 0);
+    const to = minuteOfDay(block.to, 1440);
+    return from <= to ? minute >= from && minute < to : minute >= from || minute < to;
+  }).sort((a, b) => (a.minKw ?? 0) - (b.minKw ?? 0));
+  return active.find((block) =>
+    powerKw >= (block.minKw ?? 0) && (block.maxKw == null || powerKw < block.maxKw)
+  ) ?? active.filter((block) => (block.minKw ?? 0) <= powerKw).at(-1) ?? null;
+}
+
 /**
  * Estimate the total cost for the charging session using the Tesla SOC taper.
  * Power-based tariffs are charged per minute at the actual estimated charging
@@ -78,10 +91,8 @@ export function estimateChargingCost(
       const powerKw = Math.min(powerCap, estimatedChargePowerKw(modelName, midpoint, stationCap, carMaxKwOverride));
       if (!initialPowerKw) initialPowerKw = powerKw;
       const minutes = (capacity * (next - pct) / 100 / powerKw) * 60;
-      const sortedTiers = [...powerBlocks].sort((a, b) => (a.minKw ?? 0) - (b.minKw ?? 0));
-      const tier = sortedTiers.find((block) =>
-        powerKw >= (block.minKw ?? 0) && (block.maxKw == null || powerKw < block.maxKw)
-      ) ?? sortedTiers.filter((block) => (block.minKw ?? 0) <= powerKw).at(-1) ?? sortedTiers[0];
+      const chargingAt = new Date(arrival.getTime() + elapsedMinutes * 60000);
+      const tier = activePowerTier(powerBlocks, powerKw, chargingAt);
       if (!tier) return null;
       amount += minutes * (tier.pricePerMinute ?? 0);
       elapsedMinutes += minutes;
