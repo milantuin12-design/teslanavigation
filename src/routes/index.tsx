@@ -54,7 +54,7 @@ import {
 import { fetchTrafficRoutes } from "@/lib/traffic.functions";
 import { getTrafficForecastAt } from "@/lib/traffic-forecast";
 
-import { listSuperchargers } from "@/lib/tesla.functions";
+import { getHolidayPeriodMode, getWinterSportsMode, listSuperchargers } from "@/lib/tesla.functions";
 import { lookupThirdPartyCharger } from "@/lib/third-party";
 
 
@@ -195,6 +195,8 @@ function Index() {
     return () => sub.subscription.unsubscribe();
   }, []);
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
+  const [holidayPeriodMode, setHolidayPeriodModeState] = useState(false);
+  const [winterSportsMode, setWinterSportsModeState] = useState(false);
   const [isLoadingChargers, setIsLoadingChargers] = useState(true);
   const previousChargerSnapshotRef = useRef<Map<string, string>>(new Map());
   const chargerSnapshot = (items: Supercharger[]) => new Map(items.filter((item) => item.id).map((item) => [item.id!, JSON.stringify({ status: item.status, available: item.isAvailable, stalls: item.stallStates })]));
@@ -321,7 +323,7 @@ function Index() {
             stop.charger.trafficForecast,
             new Date(departure.getTime() + (stop.etaMinFromStart ?? 0) * 60000),
             stop.charger.province,
-            holidayMode || stop.charger.holidayPeriodMode === true || stop.charger.winterSportsMode === true,
+            holidayPeriodMode || stop.charger.holidayPeriodMode === true,
           )?.level)
           .filter((level): level is number => typeof level === "number");
         const traffic = crowdLevels.length ? crowdLevels.reduce((sum, level) => sum + level, 0) / crowdLevels.length : null;
@@ -336,7 +338,7 @@ function Index() {
     const best = pool.reduce((a, b) => b.cost < a.cost ? b : a);
     const saving = current.cost - best.cost;
     return saving >= 0.5 && best.offset !== 0 ? { ...best, saving, currentTraffic: current.traffic } : null;
-  }, [routeOptions, selectedRouteIndex, departureDate, selectedModel, packKWh, carMaxKwOverride]);
+  }, [routeOptions, selectedRouteIndex, departureDate, selectedModel, packKWh, carMaxKwOverride, holidayPeriodMode]);
   const [ownerPanelId, setOwnerPanelId] = useState<string | null>(null);
   const [focusCoord, setFocusCoord] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -372,6 +374,8 @@ function Index() {
   const elevationWeatherCacheRef = useRef<Map<string, ElevationWeather>>(new Map());
   const elevationWeatherPendingRef = useRef<Map<string, Promise<ElevationWeather>>>(new Map());
   const fetchTrafficRoutesFn = useServerFn(fetchTrafficRoutes);
+  const readHolidayPeriodMode = useServerFn(getHolidayPeriodMode);
+  const readWinterSportsMode = useServerFn(getWinterSportsMode);
 
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
@@ -400,6 +404,34 @@ function Index() {
       mounted = false;
     };
   }, []);
+
+  // Globale modi worden direct via Realtime bijgewerkt en elke 10 seconden
+  // opnieuw opgehaald als fallback. Gebruikers hoeven de pagina niet te herladen.
+  useEffect(() => {
+    let mounted = true;
+    const refreshModes = async () => {
+      const [holiday, winter] = await Promise.all([
+        readHolidayPeriodMode(),
+        readWinterSportsMode(),
+      ]);
+      if (!mounted) return;
+      setHolidayPeriodModeState(holiday === true);
+      setWinterSportsModeState(winter === true);
+    };
+    void refreshModes();
+    const channel = supabase
+      .channel("global-crowd-modes-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "admin_audit_log" }, () => {
+        void refreshModes();
+      })
+      .subscribe();
+    const poll = window.setInterval(() => { void refreshModes(); }, 10000);
+    return () => {
+      mounted = false;
+      window.clearInterval(poll);
+      supabase.removeChannel(channel);
+    };
+  }, [readHolidayPeriodMode, readWinterSportsMode]);
 
   // Live bijwerken zodra een admin een Supercharger aanpast
   useEffect(() => {
@@ -1539,7 +1571,7 @@ function Index() {
           <div className={`border-t border-slate-700/50 overflow-y-auto ${route && !showRouteInputs ? "flex-1 min-h-0" : "max-h-[40vh]"}`}>
             <ChargingStops
               stops={chargingStops}
-              holidayMode={mapChargers.some((charger) => charger.holidayPeriodMode === true || charger.winterSportsMode === true)}
+              holidayMode={holidayPeriodMode}
               totalDistanceKm={route?.totalDistanceKm ?? null}
               onBatteryChange={handleChargerBatteryChange}
               onRemoveCharger={handleRemoveCharger}
@@ -1680,7 +1712,8 @@ function Index() {
           waypoints={waypoints}
           routeChargersOnly={!!route && !showAllChargers && chargingStops.length > 0}
           favoriteChargerIds={favoriteChargerIds}
-          winterSportsMode={mapChargers.some((charger) => charger.holidayPeriodMode === true || charger.winterSportsMode === true)}
+          winterSportsMode={winterSportsMode}
+          holidayPeriodMode={holidayPeriodMode}
         />
 
         {route && !isNavigating && (
