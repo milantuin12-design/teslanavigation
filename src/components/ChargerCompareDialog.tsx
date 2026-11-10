@@ -49,7 +49,7 @@ export default function ChargerCompareDialog({ open, onOpenChange, chargers, dep
     .filter((charger) => charger.published !== false && (charger.name + " " + (charger.city ?? "") + " " + (charger.country ?? "")).toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name))
     .slice(0, 100), [chargers, query]);
-  const selected = selectedIds.map((id) => chargers.find((charger) => charger.id === id)).filter((charger): charger is Supercharger => !!charger);
+  const selected = selectedIds.map((id) => chargers.find((charger) => (charger.id ?? charger.name) === id)).filter((charger): charger is Supercharger => !!charger);
   const toggle = (id: string) => setSelectedIds((old) => old.includes(id) ? old.filter((value) => value !== id) : old.length >= 3 ? old : [...old, id]);
   const ranked = [...selected].sort((a, b) => (score(b, departure) ?? -1) - (score(a, departure) ?? -1));
   return (
