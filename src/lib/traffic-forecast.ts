@@ -338,8 +338,6 @@ function regionalNetworkFactor(charger: Supercharger, network: NetworkLocation[]
 export function createRegionalTrafficForecast(charger: Supercharger, network: NetworkLocation[] = []): TrafficForecast {
   const zone = zoneFor(charger);
   const override = siteOverride(charger);
-  const corridor = override?.label ?? (zone === "transit" ? "snelweg- en doorgangsgebied" : zone === "ski" ? "wintersportgebied" : zone === "urban" ? "stedelijke regio" : zone === "retail" ? "winkelgebied" : "regionale locatie");
-  const basis = override ? "locatiespecifieke informatie" : "locatietype, ligging en seizoenspatroon";
   const networkFactor = regionalNetworkFactor(charger, network, zone);
   const applyNetworkFactor = (slots: TrafficForecastPeriodSlot[]) => slots.map((slot) => ({
     ...slot,
