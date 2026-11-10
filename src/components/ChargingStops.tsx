@@ -283,7 +283,7 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 {typeof stop.energyChargedKWh === 'number' && <span className="text-emerald-300">+{stop.energyChargedKWh} kWh</span>}
               </div>
               {stop.charger.trafficForecast && eta && (() => {
-                const forecast = getTrafficForecastAt(stop.charger.trafficForecast, eta, stop.charger.province, holidayMode || stop.charger.holidayPeriodMode === true, winterSportsMode && isSnowRegion(stop.charger));
+                const forecast = getTrafficForecastAt(stop.charger.trafficForecast, eta, stop.charger.province, holidayMode, winterSportsMode && isSnowRegion(stop.charger));
                 if (!forecast) return null;
                 const color = forecast.level >= 70 ? "bg-red-500/15 text-red-300" : forecast.level <= 30 ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300";
                 const total = stop.charger.totalStalls ?? stop.charger.chargerConfigs?.reduce((sum, config) => sum + config.count, 0) ?? 0;
