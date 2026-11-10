@@ -60,6 +60,32 @@ function score(charger: Supercharger, departure: Date): number | null {
   return Math.round(parts.reduce((sum, value) => sum + value, 0) / parts.length);
 }
 
+function exportComparisonCsv(chargers: Supercharger[], departure: Date) {
+  const rows: string[][] = [
+    ["Eigenschap", ...chargers.map((charger) => charger.name)],
+    ["Land / plaats", ...chargers.map((charger) => [charger.city, charger.country].filter(Boolean).join(", "))],
+    ["Status", ...chargers.map((charger) => getChargerStatus(charger))],
+    ["Laadplekken", ...chargers.map((charger) => String(getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? "Onbekend"))],
+    ["Maximaal vermogen (kW)", ...chargers.map((charger) => String(parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs) || "Onbekend"))],
+    ["Verwachte drukte (%)", ...chargers.map((charger) => { const value = crowd(charger, departure); return value === null ? "Geen voorspelling" : String(value); })],
+    ["Rustigste moment komende 24 uur", ...chargers.map((charger) => formatQuietest(charger, departure))],
+    ["kWh-tarief (eerste blok)", ...chargers.map(money)],
+    ["Parkeerkosten bekend", ...chargers.map((charger) => charger.parkingFee ? "Ja / mogelijk betaald" : "Geen bekende parkeerkosten")],
+    ["Aanhanger", ...chargers.map((charger) => charger.trailerFriendly ? "Geschikt volgens gegevens" : "Niet bevestigd")],
+    ["Voorzieningen", ...chargers.map((charger) => charger.siteAmenities?.join(", ") || "Niet geregistreerd")],
+    ["Eigenaar", ...chargers.map((charger) => charger.ownerName || "Tesla / niet opgegeven")],
+  ];
+  const csv = "\uFEFF" + rows.map((row) => row.map((cell) => '"' + String(cell).replace(/"/g, '""') + '"').join(";")).join("\r\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "teslanavigation-supercharger-vergelijking.csv";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function ChargerCompareDialog({ open, onOpenChange, chargers, departure }: Props) {
   const [query, setQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -108,7 +134,7 @@ export default function ChargerCompareDialog({ open, onOpenChange, chargers, dep
           </table>
           {ranked[0] && score(ranked[0], departure) !== null && <p className="mt-3 rounded-lg bg-emerald-500/10 p-3 text-xs text-emerald-200">Beste indicatieve balans: <strong>{ranked[0].name}</strong>. De score combineert alleen beschikbare gegevens over drukte, prijs, capaciteit, vermogen en status; hij is geen historische betrouwbaarheidsscore.</p>}
         </div>}
-        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>Sluiten</Button></DialogFooter>
+        <DialogFooter>{selected.length >= 2 && <Button variant="outline" onClick={() => exportComparisonCsv(selected, departure)}>Exporteer vergelijking (CSV)</Button>}<Button variant="outline" onClick={() => onOpenChange(false)}>Sluiten</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
