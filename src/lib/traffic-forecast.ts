@@ -91,8 +91,8 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
     { match: /gensingen|kieselberg/, name: "Gensingen", levels: [0, 3, 12, 11, 4] },
     { match: /schweitenkirchen|robert.?koch/, name: "Schweitenkirchen", levels: [2, 9, 21, 23, 12] },
     { match: /helbingtwiete|wandsbek/, name: "Hamburg Helbingtwiete", levels: [42, 52, 56, 59, 51] },
-    { match: /motten|hauptstra[sß]e/, name: "Motten", levels: [0, 2, 7, 6, 2] },
-    { match: /an.?d.?passage|leipzig/, name: "Leipzig An der Passage", levels: [6, 21, 35, 43, 21] },
+    { match: /motten/, name: "Motten", levels: [0, 2, 7, 6, 2] },
+    { match: /an.?d.?passage/, name: "Leipzig An der Passage", levels: [6, 21, 35, 43, 21] },
   ];
   const hourly = measuredHourly.find((item) => item.match.test(identity));
   if (hourly) {
