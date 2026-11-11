@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateChargingStops } from './tesla-utils';
+import { calculateChargingStops, projectOntoRoute } from './tesla-utils';
 import type { RouteResult, Supercharger } from './tesla-types';
 
 // Rechte lijn langs de evenaar: 1 graad lengte ≈ 111,2 km.
@@ -62,5 +62,15 @@ describe('Model S/X zonder CCS-adapter', () => {
   it('toont de snelheid van de V2-laders bij een gemengde locatie', () => {
     const c = { name: 'Mix', lat: 0, lng: 0, chargerConfigs: [{ count: 3, version: 'V3', speedKw: 250 }, { count: 7, version: 'V2', speedKw: 150 }] } as Supercharger;
     expect(v2SpeedKw(c)).toBe(150);
+  });
+});
+
+
+describe('route geometry cache', () => {
+  it('projects a point onto the route at the correct cumulative distance', () => {
+    const route = line(200);
+    const projected = projectOntoRoute(0, 50 / KM_PER_DEG, route.coordinates);
+    expect(projected.km).toBeCloseTo(50, 0);
+    expect(projected.index).toBe(10);
   });
 });
