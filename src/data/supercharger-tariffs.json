@@ -31335,6 +31335,143 @@
       "source": "https://www.kilowattindex.com/site/30336/",
       "sourceChecked": "2026-11-11",
       "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "serravalle scrivia"
+      ],
+      "label": "Serravalle Scrivia – Designer Outlet Serravalle",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://kilowattindex.com/site/SerravalleScriviaq222/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "borca di cadore"
+      ],
+      "label": "Borca di Cadore – TH Cadore Hotel Antelao",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/site/borcadicadoresupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "forli",
+        "forlì"
+      ],
+      "label": "Forli – Centro Commerciale Punta di Ferro",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/forlisupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "foiano della chiana",
+        "foiana della chiana"
+      ],
+      "label": "Foiano della Chiana – Valdichiana Outlet Village",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://kilowattindex.com/site/foianodellachianasupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "fano",
+        "tag hotel"
+      ],
+      "label": "Fano – Tag Hotel",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/site/fanosupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "arezzo",
+        "a point arezzo park"
+      ],
+      "label": "Arezzo – A Point Arezzo Park Hotel",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.44,
+      "source": "https://www.kilowattindex.com/site/arezzosupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "porto sant'elpidio",
+        "porto sant elpidio"
+      ],
+      "label": "Porto Sant'Elpidio",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ],
+      "source": "https://kilowattindex.com/site/PortoSantElpidioSupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
     }
   ]
 }
