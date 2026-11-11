@@ -287,11 +287,15 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 if (!forecast) return null;
                 const color = forecast.level >= 70 ? "bg-red-500/15 text-red-300" : forecast.level <= 30 ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300";
                 const total = stop.charger.totalStalls ?? stop.charger.chargerConfigs?.reduce((sum, config) => sum + config.count, 0) ?? 0;
-                const free = total > 0 ? Math.min(getOpenStalls(stop.charger, eta ?? new Date()), estimateFreeStalls(total, forecast.level) ?? total) : null;
-                const queue = total > 0 ? estimateQueueCars(total, forecast.level) : 0;
+                // Bereken vrije plekken uitsluitend over de laadpunten die op aankomsttijd beschikbaar zijn.
+                // Voorbeeld: 16 totaal, 4 buiten gebruik = 12 beschikbaar; bij 40% drukte circa 7 vrij.
+                const available = total > 0 ? getOpenStalls(stop.charger, eta ?? new Date()) : 0;
+                const free = available > 0 ? estimateFreeStalls(available, forecast.level) : available === 0 && total > 0 ? 0 : null;
+                const queue = available > 0 ? estimateQueueCars(available, forecast.level) : 0;
+                const queueText = queue > 0 ? ` · mogelijk ${queue} ${queue === 1 ? "auto" : "auto’s"} in de wachtrij` : "";
                 return <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
                   <span className={`rounded-md px-2 py-1 ${color}`}>{trafficLevelLabel(forecast.level)} · {forecast.level}%</span>
-                  <span className="rounded-md bg-sky-500/10 px-2 py-1 text-sky-300">{free !== null ? `Waarschijnlijk ${free} van de ${total} vrij${free === 0 && queue > 0 ? ` · mogelijk ${queue} auto’s in de wachtrij` : ""}` : "Geen capaciteitsgegevens"} </span>
+                  <span className="rounded-md bg-sky-500/10 px-2 py-1 text-sky-300">{free !== null ? `Waarschijnlijk ${free} van de ${available} beschikbare vrij${free === 0 ? queueText : ""}` : "Geen capaciteitsgegevens"} </span>
                   <span className="text-slate-400">{forecast.from}–{forecast.to} · {forecast.holiday ? `vakantie: ${forecast.holiday}` : forecast.category === "weekend" ? "weekend" : "doordeweeks"}{forecast.winterSports ? " · wintersportcorrectie" : ""} · {forecast.source === "regional-estimate" ? "locatieschatting" : "beheerdersprofiel"} · {forecast.confidence === "low" ? "lage zekerheid" : forecast.confidence === "high" ? "hoge zekerheid" : "gemiddelde zekerheid"}</span>
                 </div>;
               })()}
