@@ -328,7 +328,7 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 )}
                 {costEstimate?.type === "kwh" && (
                   <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
-                    {localCurrency(costEstimate.amount, costEstimate.currency)}{costEstimate.currency.toUpperCase() === 'CHF' ? ` → ${euro(convertToEuro(costEstimate.amount, costEstimate.currency, chfToEur) ?? 0)}` : ''} totaal · kWh-tarief
+                    {localCurrency(costEstimate.amount, costEstimate.currency)}{costEstimate.currency.toUpperCase() === 'CHF' ? ` → ${euro(convertToEuro(costEstimate.amount, costEstimate.currency, chfToEur) ?? 0)}` : ''}
                   </span>
                 )}
                 {!costEstimate && activePrice !== null && (
