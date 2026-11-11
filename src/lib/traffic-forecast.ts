@@ -227,8 +227,7 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   const measured = measured30Day.find((item) => item.match.test(identity));
   if (measured) {
     const level = measured.level;
-    const profile = [level, level, level, level, level];
-    return {
+    const profile = [level, level, level, level, level];    return {
       label: `gemeten 30-dagen-gemiddelde voor ${measured.name} (circa ${level}% bezet)`,
       confidence: "medium",
       levels: {
@@ -470,8 +469,17 @@ export function estimateFreeStalls(total: number | undefined, level: number): nu
  * een modelmatige schatting, geen live geteld aantal wachtende auto's.
  */
 export function estimateQueueCars(total: number | undefined, level: number): number {
-  if (!total || total <= 0 || level < 95) return 0;
-  return Math.min(4, Math.ceil((Math.max(0, Math.min(100, level)) - 90) / 5));
+  if (!total || total <= 0) return 0;
+
+  const normalizedLevel = Math.max(0, Math.min(100, level));
+  const freeStalls = estimateFreeStalls(total, normalizedLevel);
+
+  // Een wachtrij kan uitsluitend bestaan wanneer ALLE bruikbare laadplekken bezet zijn.
+  // Dit voorkomt bijvoorbeeld de onmogelijke combinatie "1 beschikbaar" + "1 in wachtrij".
+  if (freeStalls === null || freeStalls > 0 || normalizedLevel < 95) return 0;
+
+  // Alleen bij volledige bezetting wordt een kleine, indicatieve wachtrij getoond.
+  return Math.min(4, Math.max(1, Math.ceil((normalizedLevel - 90) / 5)));
 }
 
 /** Herkent Alpen-, wintersport- en noordelijke sneeuwgebieden voor de admin-waarschuwing. */
