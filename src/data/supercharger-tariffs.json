@@ -31193,10 +31193,9 @@
     {
       "country": "Italy",
       "match": [
-        "brescia elnos",
-        "brescia"
+        "roncadelle"
       ],
-      "label": "Roncadelle – Elnos Shopping (Tesla-locatie Brescia)",
+      "label": "Roncadelle – Elnos Shopping",
       "timezone": "Europe/Rome",
       "priceBlocks": [
         {
@@ -31305,6 +31304,35 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.39,
       "source": "https://www.kilowattindex.com/site/carsolioricolasupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "brescia lounge",
+        "brescia via della volta"
+      ],
+      "label": "Brescia – Lounge",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30336/",
       "sourceChecked": "2026-11-11",
       "currency": "EUR"
     }
