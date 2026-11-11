@@ -33789,6 +33789,119 @@
       "source": "https://kilowattindex.com/site/orskogsupercharger/",
       "sourceChecked": "2026-11-11",
       "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "alvdal"
+      ],
+      "label": "Alvdal – Taverna Alvdal",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 4.2
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.2
+        }
+      ],
+      "source": "https://kilowattindex.com/site/1898/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "ringebu"
+      ],
+      "label": "Ringebu – Ringebu Kommune",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.1
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://kilowattindex.com/site/32997/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "hjerkinn"
+      ],
+      "label": "Hjerkinn – Basecamp Frich’s",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 4.2
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.2
+        }
+      ],
+      "source": "https://kilowattindex.com/site/328054/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "røros",
+        "roros"
+      ],
+      "label": "Røros – Extra",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.7
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.4
+        }
+      ],
+      "source": "https://kilowattindex.com/site/Rrossupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
     }
   ]
 }
