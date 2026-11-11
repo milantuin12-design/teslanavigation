@@ -31575,6 +31575,99 @@
       "source": "https://www.kilowattindex.com/site/29623/",
       "sourceChecked": "2026-11-11",
       "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "barberino di mugello"
+      ],
+      "label": "Barberino di Mugello – Designer Outlet",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/293954/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "florence - campi bisenzio",
+        "campi bisenzio"
+      ],
+      "label": "Campi Bisenzio – Centro Commerciale I Gigli",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/29911/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "parma"
+      ],
+      "label": "Parma – Euro Torri Shopping Center",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.47,
+      "source": "https://www.kilowattindex.com/site/33-AViaRoccoBormioliParma-PARMA43122-10a659/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "occhiobello"
+      ],
+      "label": "Occhiobello – UNA Hotel",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.45,
+      "source": "https://www.kilowattindex.com/site/occhiobellosupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "mantova"
+      ],
+      "label": "Bagnolo San Vito – Mantova Village",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.45,
+      "source": "https://www.kilowattindex.com/site/Mantova422/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
     }
   ]
 }
