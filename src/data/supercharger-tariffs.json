@@ -32397,9 +32397,15 @@
       "label": "Brindisi West – Colonne Shopping Center",
       "timezone": "Europe/Rome",
       "currency": "EUR",
-      "pricePerKwh": 0.43,
       "source": "https://www.kilowattindex.com/country/it/brindisi/",
-      "sourceChecked": "2026-11-11"
+      "sourceChecked": "2026-11-11",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     }
   ]
 }
