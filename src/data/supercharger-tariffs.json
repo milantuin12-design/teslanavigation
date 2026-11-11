@@ -6245,7 +6245,8 @@
     {
       "country": "Sweden",
       "match": [
-        "uddevalla max burgers"
+        "uddevalla max burgers",
+        "uddevalla - herrestads torp"
       ],
       "label": "Uddevalla – Max Burgers",
       "timezone": "Europe/Stockholm",
@@ -15270,7 +15271,8 @@
       "country": "Norway",
       "match": [
         "oydegard",
-        "øydegard"
+        "øydegard",
+        "aspøya"
       ],
       "label": "Øydegard – Aspøya Fjordsenter",
       "timezone": "Europe/Oslo",
@@ -32726,6 +32728,648 @@
       "source": "https://www.tesla.com/findus/location/supercharger/4008907",
       "sourceChecked": "2026-11-11",
       "currency": "EUR"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "køge"
+      ],
+      "label": "Køge – Circle K",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "source": "https://www.kilowattindex.com/site/kogesupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "DKK"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "kirke såby",
+        "kirke saaby"
+      ],
+      "label": "Kirke Såby – Circle K",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "source": "https://www.kilowattindex.com/site/kirkesabysupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "DKK"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "korsør",
+        "korsoer"
+      ],
+      "label": "Korsør – Supercharger",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "source": "https://www.kilowattindex.com/site/32532/",
+      "sourceChecked": "2026-11-11",
+      "currency": "DKK"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "hillerød",
+        "hillerod"
+      ],
+      "label": "Hillerød – Bauhaus",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "source": "https://www.kilowattindex.com/site/32744/",
+      "sourceChecked": "2026-11-11",
+      "currency": "DKK"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "rødovre",
+        "rodovre"
+      ],
+      "label": "Rødovre – Rødovre Centrum",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/326736/",
+      "sourceChecked": "2026-11-11",
+      "currency": "DKK"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "herning"
+      ],
+      "label": "Herning – Herning Centret",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "source": "https://www.kilowattindex.com/country/dk/",
+      "sourceChecked": "2026-11-11",
+      "currency": "DKK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "falkenberg"
+      ],
+      "label": "Falkenberg – Max Burgers",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 3.9
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/falkenbergsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "norrköping",
+        "norrkoping"
+      ],
+      "label": "Norrköping – Ingelsta Handelscentrum",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 3.2
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.2
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/norrkopingsesupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "oskarshamn"
+      ],
+      "label": "Oskarshamn – Burger King",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 3.9
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/333876/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "falköping",
+        "falkoping"
+      ],
+      "label": "Falköping – Max Burgers",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "04:00",
+          "to": "21:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/33346/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "varberg"
+      ],
+      "label": "Varberg – Rosegarden",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Varbergsesupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "vetlanda"
+      ],
+      "label": "Vetlanda – Vetlanda Vägkrogen",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://kilowattindex.com/site/vetlandasupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "mantorp"
+      ],
+      "label": "Mantorp – Depot Mantorp",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/303174/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "jönköping",
+        "jonkoping"
+      ],
+      "label": "Jönköping – Asecs Köpcentrum",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.5
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 2.9
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Jonkopingsesupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "växjö",
+        "vaxjo"
+      ],
+      "label": "Växjö – Grand Samarkand",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 3.3
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 4.1
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 3.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/301925/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "arboga"
+      ],
+      "label": "Arboga – Dinners",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 3.2
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.2
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/arbogasupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "mellbystrand"
+      ],
+      "label": "Mellbystrand – Mellby Center",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 3.9
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/mellbystrandsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "edsbruk"
+      ],
+      "label": "Edsbruk – Tindered Trädgård Café",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/edsbruksupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "alta"
+      ],
+      "label": "Alta – Extra",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.3
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 5.2
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 2.3
+        }
+      ],
+      "source": "https://kilowattindex.com/site/altasupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "bodø",
+        "bodo"
+      ],
+      "label": "Bodø – Hunstadsentret",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 1.9
+        },
+        {
+          "from": "10:00",
+          "to": "23:00",
+          "pricePerKwh": 5.2
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 1.9
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30504/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "blomsterdalen"
+      ],
+      "label": "Blomsterdalen – Blomsterdalen Senter",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.1
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 4.6
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 2.1
+        }
+      ],
+      "source": "https://kilowattindex.com/site/32594/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "fauske"
+      ],
+      "label": "Fauske – Sjøgata",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.7
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30523/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "gol"
+      ],
+      "label": "Gol – St1",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.7
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.4
+        }
+      ],
+      "source": "https://kilowattindex.com/site/golsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "brokelandsheia"
+      ],
+      "label": "Brokelandsheia – Sundebru Burger King",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "11:00",
+          "pricePerKwh": 4.1
+        },
+        {
+          "from": "11:00",
+          "to": "20:00",
+          "pricePerKwh": 4.9
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/brokelandsheiabrusupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "åfjord",
+        "afjord"
+      ],
+      "label": "Åfjord – Parken Kjøpesenter",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 4.2
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.2
+        }
+      ],
+      "source": "https://kilowattindex.com/site/afjordsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "aurland sognaporten"
+      ],
+      "label": "Aurland – Sognaporten",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.8
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/aurlandsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
     }
   ]
 }
