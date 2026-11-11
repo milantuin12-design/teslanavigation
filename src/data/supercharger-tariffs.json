@@ -6061,7 +6061,8 @@
       "country": "Denmark",
       "match": [
         "kgs. lyngby lyngby storcenter",
-        "kgs. lyngby"
+        "kgs. lyngby",
+        "lyngby"
       ],
       "label": "Kgs. Lyngby – Lyngby Storcenter",
       "timezone": "Europe/Copenhagen",
@@ -13511,7 +13512,8 @@
     {
       "country": "Denmark",
       "match": [
-        "svenstrup j"
+        "svenstrup j",
+        "svenstrup"
       ],
       "label": "Svenstrup J – Burger King",
       "timezone": "Europe/Copenhagen",
@@ -32922,34 +32924,6 @@
     {
       "country": "Sweden",
       "match": [
-        "varberg"
-      ],
-      "label": "Varberg – Rosegarden",
-      "timezone": "Europe/Stockholm",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "16:00",
-          "pricePerKwh": 3.8
-        },
-        {
-          "from": "16:00",
-          "to": "20:00",
-          "pricePerKwh": 4
-        },
-        {
-          "from": "20:00",
-          "to": "24:00",
-          "pricePerKwh": 3.8
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/Varbergsesupercharger/",
-      "sourceChecked": "2026-11-11",
-      "currency": "SEK"
-    },
-    {
-      "country": "Sweden",
-      "match": [
         "vetlanda"
       ],
       "label": "Vetlanda – Vetlanda Vägkrogen",
@@ -33261,62 +33235,6 @@
     {
       "country": "Norway",
       "match": [
-        "gol"
-      ],
-      "label": "Gol – St1",
-      "timezone": "Europe/Oslo",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "16:00",
-          "pricePerKwh": 4.4
-        },
-        {
-          "from": "16:00",
-          "to": "20:00",
-          "pricePerKwh": 4.7
-        },
-        {
-          "from": "20:00",
-          "to": "24:00",
-          "pricePerKwh": 4.4
-        }
-      ],
-      "source": "https://kilowattindex.com/site/golsupercharger/",
-      "sourceChecked": "2026-11-11",
-      "currency": "NOK"
-    },
-    {
-      "country": "Norway",
-      "match": [
-        "brokelandsheia"
-      ],
-      "label": "Brokelandsheia – Sundebru Burger King",
-      "timezone": "Europe/Oslo",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "11:00",
-          "pricePerKwh": 4.1
-        },
-        {
-          "from": "11:00",
-          "to": "20:00",
-          "pricePerKwh": 4.9
-        },
-        {
-          "from": "20:00",
-          "to": "24:00",
-          "pricePerKwh": 4.4
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/brokelandsheiabrusupercharger/",
-      "sourceChecked": "2026-11-11",
-      "currency": "NOK"
-    },
-    {
-      "country": "Norway",
-      "match": [
         "åfjord",
         "afjord"
       ],
@@ -33344,32 +33262,16 @@
       "currency": "NOK"
     },
     {
-      "country": "Norway",
+      "country": "Denmark",
       "match": [
-        "aurland sognaporten"
+        "slagelse"
       ],
-      "label": "Aurland – Sognaporten",
-      "timezone": "Europe/Oslo",
-      "priceBlocks": [
-        {
-          "from": "00:00",
-          "to": "16:00",
-          "pricePerKwh": 4.4
-        },
-        {
-          "from": "16:00",
-          "to": "20:00",
-          "pricePerKwh": 4.8
-        },
-        {
-          "from": "20:00",
-          "to": "24:00",
-          "pricePerKwh": 4.4
-        }
-      ],
-      "source": "https://www.kilowattindex.com/site/aurlandsupercharger/",
+      "label": "Slagelse – Circle K",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/slagelsesupercharger/",
       "sourceChecked": "2026-11-11",
-      "currency": "NOK"
+      "currency": "DKK"
     }
   ]
 }
