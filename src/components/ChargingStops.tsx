@@ -291,7 +291,7 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 const queue = total > 0 ? estimateQueueCars(total, forecast.level) : 0;
                 return <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
                   <span className={`rounded-md px-2 py-1 ${color}`}>{trafficLevelLabel(forecast.level)} · {forecast.level}%</span>
-                  <span className="rounded-md bg-sky-500/10 px-2 py-1 text-sky-300">{free !== null ? `Waarschijnlijk ${free} van de ${total} vrij${queue > 0 ? ` · mogelijk ${queue} auto’s in de wachtrij` : ""}` : "Geen capaciteitsgegevens"} </span>
+                  <span className="rounded-md bg-sky-500/10 px-2 py-1 text-sky-300">{free !== null ? `Waarschijnlijk ${free} van de ${total} vrij${free === 0 && queue > 0 ? ` · mogelijk ${queue} auto’s in de wachtrij` : ""}` : "Geen capaciteitsgegevens"} </span>
                   <span className="text-slate-400">{forecast.from}–{forecast.to} · {forecast.holiday ? `vakantie: ${forecast.holiday}` : forecast.category === "weekend" ? "weekend" : "doordeweeks"}{forecast.winterSports ? " · wintersportcorrectie" : ""} · {forecast.source === "regional-estimate" ? "locatieschatting" : "beheerdersprofiel"} · {forecast.confidence === "low" ? "lage zekerheid" : forecast.confidence === "high" ? "hoge zekerheid" : "gemiddelde zekerheid"}</span>
                 </div>;
               })()}
