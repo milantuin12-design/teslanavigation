@@ -34202,6 +34202,37 @@
       "source": "https://www.kilowattindex.com/site/30518/",
       "sourceChecked": "2026-11-11",
       "currency": "EUR"
+    },
+    {
+      "country": "Netherlands",
+      "match": [
+        "urmond"
+      ],
+      "label": "Urmond – Van der Valk Hotel",
+      "timezone": "Europe/Amsterdam",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "10:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "10:00",
+          "to": "20:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/urmondsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR",
+      "countryAliases": [
+        "The Netherlands"
+      ]
     }
   ]
 }
