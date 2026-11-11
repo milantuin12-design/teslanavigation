@@ -32460,9 +32460,16 @@
       "label": "Morano Calabro – Hotel Regina",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.43,
-      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/9/",
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/9/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -32472,9 +32479,16 @@
       "label": "Olbia – Centro Commerciale",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.4,
-      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/7/",
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/7/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.4
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -32525,9 +32539,16 @@
       "label": "Sarzana – Centro Luna",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.43,
-      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/14/",
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/14/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -32537,9 +32558,16 @@
       "label": "Vogogna – Centro Calzaturiero",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.43,
-      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/4/",
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/4/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
