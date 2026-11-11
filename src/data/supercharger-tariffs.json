@@ -32240,6 +32240,123 @@
       "source": "https://www.kilowattindex.com/site/30323/",
       "sourceChecked": "2026-11-11",
       "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "grosseto"
+      ],
+      "label": "Grosseto – Centro Commerciale Maremà",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/15/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "morano calabro"
+      ],
+      "label": "Morano Calabro – Hotel Regina",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/9/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "olbia"
+      ],
+      "label": "Olbia – Centro Commerciale",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.4,
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/7/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "oristano"
+      ],
+      "label": "Oristano – Via Dublino",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "08:00",
+          "to": "24:00",
+          "pricePerKwh": 0.47
+        }
+      ],
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/7/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "palermo"
+      ],
+      "label": "Palermo – Centro Commerciale Forum Palermo",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.42,
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/8/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "sarzana",
+        "sarzana la spezia"
+      ],
+      "label": "Sarzana – Centro Luna",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/14/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "vogogna"
+      ],
+      "label": "Vogogna – Centro Calzaturiero",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/4/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
     }
   ]
 }
