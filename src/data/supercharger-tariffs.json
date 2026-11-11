@@ -32357,6 +32357,34 @@
       "source": "https://www.kilowattindex.com/changes/day/2026-11-06/4/",
       "sourceChecked": "2026-11-11",
       "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "fabro"
+      ],
+      "label": "Fabro – Ristorante La Bettola del Buttero",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30296/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
     }
   ]
 }
