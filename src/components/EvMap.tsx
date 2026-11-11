@@ -391,11 +391,18 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         const forecastAt = routeStop?.etaMinFromStart != null ? new Date((departure ?? new Date()).getTime() + routeStop.etaMinFromStart * 60000) : new Date();
         const currentCrowd = getTrafficForecastAt(charger.trafficForecast, forecastAt, charger.province, holidayPeriodMode, winterSportsMode && isSnowRegion(charger));
         const totalForEstimate = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
-        const estimatedFree = currentCrowd ? Math.min(getOpenStalls(charger, forecastAt), estimateFreeStalls(totalForEstimate, currentCrowd.level) ?? totalForEstimate) : null;
-        const estimatedQueue = currentCrowd ? estimateQueueCars(totalForEstimate, currentCrowd.level) : 0;
+        // Eerst de werkelijk bruikbare capaciteit bepalen (werkzaamheden en defecte/afgesloten stalls).
+        // De drukte en wachtrij worden allebei op precies diezelfde capaciteit berekend.
+        const usableCapacity = getOpenStalls(charger, forecastAt);
+        const estimatedFree = currentCrowd && usableCapacity > 0
+          ? estimateFreeStalls(usableCapacity, currentCrowd.level)
+          : null;
+        const estimatedQueue = currentCrowd && usableCapacity > 0
+          ? estimateQueueCars(usableCapacity, currentCrowd.level)
+          : 0;
         // Alleen operationele, bruikbare laders krijgen een inschatting van vrije plekken.
-        if (usable && totalForEstimate > 0 && estimatedFree !== null) {
-          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${totalForEstimate} vrij${estimatedQueue > 0 ? ` · mogelijk ${estimatedQueue} auto's in de wachtrij` : ''}</div>`;
+        if (usable && totalForEstimate > 0 && usableCapacity > 0 && estimatedFree !== null) {
+          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${usableCapacity} bruikbare laadplekken vrij${estimatedQueue > 0 && estimatedFree === 0 ? ` · mogelijk ${estimatedQueue} auto's in de wachtrij` : ''}</div>`;
           const profileNote = charger.trafficForecast?.note;
           if (profileNote) popup += `<div style="margin-top:3px;color:#64748b;font-size:11px;">${escapeHtml(profileNote.slice(0, 220))}${profileNote.includes("Ladespiegel") ? ' · <a href="https://ladespiegel.de/" target="_blank" rel="noopener noreferrer" style="color:#0284c7;text-decoration:underline;">Bron: Ladespiegel</a>' : ""}</div>`;
         }
