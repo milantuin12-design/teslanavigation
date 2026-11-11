@@ -71,6 +71,17 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
       holiday: [2, 3, 7, 5, 2],
     },
   };
+  // Eemnes (Van der Valk, A1/A27-knooppunt): hogere passagevraag dan een
+  // doorsnee regionale locatie. Dit is een locatieschatting, geen gemeten Tesla-bezettingsreeks.
+  if (/eemnes|witte.?bergen/.test(identity)) return {
+    label: "locatieschatting Eemnes: A1/A27-knooppunt en Van der Valk, structureel meer doorgaand verkeer",
+    confidence: "low",
+    levels: {
+      weekday: [8, 32, 43, 48, 22],
+      weekend: [10, 42, 58, 54, 26],
+      holiday: [14, 52, 68, 64, 32],
+    },
+  };
   if (/badhoevedorp/.test(identity)) return {
     label: "structureel zeer drukke locatie Badhoevedorp",
     levels: {
