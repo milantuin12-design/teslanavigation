@@ -11143,7 +11143,8 @@
     {
       "country": "Italy",
       "match": [
-        "casalecchio"
+        "casalecchio",
+        "bologna"
       ],
       "label": "Casalecchio di Reno – Centro Meridiana",
       "timezone": "Europe/Rome",
@@ -31234,7 +31235,8 @@
       "country": "Italy",
       "match": [
         "pieve fissiraga",
-        "bennet"
+        "bennet",
+        "lodi"
       ],
       "label": "Pieve Fissiraga – Bennet",
       "timezone": "Europe/Rome",
@@ -31608,7 +31610,8 @@
       "country": "Italy",
       "match": [
         "florence - campi bisenzio",
-        "campi bisenzio"
+        "campi bisenzio",
+        "firenze"
       ],
       "label": "Campi Bisenzio – Centro Commerciale I Gigli",
       "timezone": "Europe/Rome",
@@ -32037,6 +32040,204 @@
         }
       ],
       "source": "https://www.kilowattindex.com/site/303485/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "san giuliano milanese"
+      ],
+      "label": "San Giuliano Milanese – Fashion City Outlet",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.36
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/303511/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "ronchi dei legionari"
+      ],
+      "label": "Ronchi dei Legionari – Nord Est Mall",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ],
+      "source": "https://kilowattindex.com/site/29915/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "teramo"
+      ],
+      "label": "Teramo – Centro Commerciale Gran Sasso",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.34
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/303024/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "varazze"
+      ],
+      "label": "Varazze – Marina di Varazze",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.44
+        }
+      ],
+      "source": "https://kilowattindex.com/site/varazzesupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "vado ligure"
+      ],
+      "label": "Vado Ligure – Vado Ligure",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.44
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/VadoLigureq222/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "roma - south west",
+        "hotel sheraton"
+      ],
+      "label": "Rome – Hotel Sheraton",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/romewestsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "napoli - west",
+        "centro commerciale azzurro"
+      ],
+      "label": "Napoli – Centro Commerciale Azzurro",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30323/",
       "sourceChecked": "2026-11-11",
       "currency": "EUR"
     }
