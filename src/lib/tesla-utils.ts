@@ -388,27 +388,66 @@ function getCachedChargersNearRoute(
   return result;
 }
 
+const ROUTE_SEGMENT_GRID_DEGREES = 0.2;
+type RouteSegmentGrid = Map<string, number[]>;
+const routeSegmentGridCache = new WeakMap<[number, number][], Map<number, RouteSegmentGrid>>();
+
+function getRouteSegmentGrid(
+  routeCoords: [number, number][],
+  maxDistanceKm: number,
+): RouteSegmentGrid {
+  let byRadius = routeSegmentGridCache.get(routeCoords);
+  if (!byRadius) {
+    byRadius = new Map();
+    routeSegmentGridCache.set(routeCoords, byRadius);
+  }
+  const cached = byRadius.get(maxDistanceKm);
+  if (cached) return cached;
+
+  const grid: RouteSegmentGrid = new Map();
+  const cell = ROUTE_SEGMENT_GRID_DEGREES;
+  const cellKey = (x: number, y: number) => `${x},${y}`;
+  for (let i = 0; i < routeCoords.length - 1; i++) {
+    const [aLng, aLat] = routeCoords[i];
+    const [bLng, bLat] = routeCoords[i + 1];
+    const midLat = (aLat + bLat) / 2;
+    const latPadding = maxDistanceKm / 111.32 + cell;
+    const lngPadding = maxDistanceKm / (111.32 * Math.max(0.15, Math.cos(midLat * Math.PI / 180))) + cell;
+    const minX = Math.floor((Math.min(aLng, bLng) - lngPadding) / cell);
+    const maxX = Math.floor((Math.max(aLng, bLng) + lngPadding) / cell);
+    const minY = Math.floor((Math.min(aLat, bLat) - latPadding) / cell);
+    const maxY = Math.floor((Math.max(aLat, bLat) + latPadding) / cell);
+    for (let x = minX; x <= maxX; x++) {
+      for (let y = minY; y <= maxY; y++) {
+        const key = cellKey(x, y);
+        const bucket = grid.get(key);
+        if (bucket) bucket.push(i);
+        else grid.set(key, [i]);
+      }
+    }
+  }
+  byRadius.set(maxDistanceKm, grid);
+  return grid;
+}
+
 export function findChargersNearRoute(
   routeCoords: [number, number][],
   chargers: Supercharger[],
   maxDistanceKm: number = 5
 ): Supercharger[] {
   if (routeCoords.length < 2 || chargers.length === 0) return [];
-  const samples = getRouteSamples(routeCoords);
-  // Samples are at most 6 km apart, so every point on the route is within
-  // 3 km of a sample. The extra 0.1 km avoids floating-point edge exclusions.
-  const coarseLimit = maxDistanceKm + 3.1;
+  // Bouw één ruimtelijke index van routesegmenten. In plaats van voor elke
+  // Supercharger alle routepunten te scannen, testen we alleen segmenten in
+  // dezelfde geografische gridcel. De exacte afstandscontrole blijft intact.
+  const grid = getRouteSegmentGrid(routeCoords, maxDistanceKm);
+  const cell = ROUTE_SEGMENT_GRID_DEGREES;
   const nearby: Supercharger[] = [];
   for (const charger of chargers) {
-    let coarseDistance = Infinity;
-    for (const [lng, lat] of samples) {
-      const distance = haversineDistance(charger.lat, charger.lng, lat, lng);
-      if (distance < coarseDistance) coarseDistance = distance;
-      if (coarseDistance <= coarseLimit) break;
-    }
-    if (coarseDistance > coarseLimit) continue;
-    // Preserve the original exact-distance test for every possible candidate.
-    for (let i = 0; i < routeCoords.length - 1; i++) {
+    const x = Math.floor(charger.lng / cell);
+    const y = Math.floor(charger.lat / cell);
+    const possibleSegments = grid.get(`${x},${y}`);
+    if (!possibleSegments) continue;
+    for (const i of possibleSegments) {
       const [aLng, aLat] = routeCoords[i];
       const [bLng, bLat] = routeCoords[i + 1];
       if (pointToSegmentDistance(charger.lat, charger.lng, aLat, aLng, bLat, bLng) <= maxDistanceKm) {
