@@ -7897,12 +7897,18 @@
       ],
       "label": "Zuidbroek – Van der Valk Hotel",
       "timezone": "Europe/Amsterdam",
-      "pricePerKwh": 0.36,
       "source": "https://www.kilowattindex.com/site/zuidbroeksupercharger/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-11",
       "currency": "EUR",
       "countryAliases": [
         "The Netherlands"
+      ],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
       ]
     },
     {
@@ -7912,12 +7918,18 @@
       ],
       "label": "Assen – Van der Valk Hotel",
       "timezone": "Europe/Amsterdam",
-      "pricePerKwh": 0.35,
       "source": "https://www.kilowattindex.com/site/assensupercharger/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-11",
       "currency": "EUR",
       "countryAliases": [
         "The Netherlands"
+      ],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.35
+        }
       ]
     },
     {
@@ -11014,9 +11026,15 @@
       "label": "Spier – Van der Valk Hotel Spier",
       "timezone": "Europe/Amsterdam",
       "currency": "EUR",
-      "pricePerKwh": 0.37,
       "source": "https://www.kilowattindex.com/site/28779/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-11",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.37
+        }
+      ]
     },
     {
       "country": "Estonia",
