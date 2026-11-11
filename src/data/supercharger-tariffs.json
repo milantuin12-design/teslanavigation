@@ -32526,9 +32526,16 @@
       "label": "Palermo – Centro Commerciale Forum Palermo",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.42,
-      "source": "https://www.kilowattindex.com/changes/day/2026-11-06/8/",
+      "source": "https://www.kilowattindex.com/country/it/palermo/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.42
+        }
+      ]
     },
     {
       "country": "Italy",
