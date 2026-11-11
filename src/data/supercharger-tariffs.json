@@ -33776,6 +33776,19 @@
       "source": "https://www.kilowattindex.com/site/nesiadalsupercharger/",
       "sourceChecked": "2026-11-11",
       "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "ørskog",
+        "orskog"
+      ],
+      "label": "Ørskog – Fjellstova",
+      "timezone": "Europe/Oslo",
+      "pricePerKwh": 4.4,
+      "source": "https://kilowattindex.com/site/orskogsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
     }
   ]
 }
