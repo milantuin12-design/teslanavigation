@@ -705,8 +705,8 @@ function AdminPage() {
   };
   const exportQualityReport = () => {
     const escapeCsv = (value: string) => `"${value.replaceAll('"', '""')}"`;
-    const csv = ["Locatie;Land;Probleem;Prioriteit", ...dataQualityIssues.map((issue) => [issue.name, issue.country, issue.issue, issue.severity].map(escapeCsv).join(";"))].join("\\n");
-    const url = URL.createObjectURL(new Blob(["\\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
+    const csv = ["Locatie;Land;Probleem;Prioriteit", ...dataQualityIssues.map((issue) => [issue.name, issue.country, issue.issue, issue.severity].map(escapeCsv).join(";"))].join("\n");
+    const url = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
     const link = document.createElement("a");
     link.href = url;
     link.download = `teslanavigation-datacontrole-${new Date().toISOString().slice(0, 10)}.csv`;
