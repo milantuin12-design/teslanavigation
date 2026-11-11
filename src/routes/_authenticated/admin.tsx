@@ -329,6 +329,7 @@ function AdminPage() {
   const [editing, setEditing] = useState<Partial<Charger> | null>(null);
   const [coordsInput, setCoordsInput] = useState("");
   const [loading, setLoading] = useState(true);
+  const [qualityOpen, setQualityOpen] = useState(false);
   const [owners, setOwners] = useState<Owner[]>([]);
   const [newOwnerName, setNewOwnerName] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -669,6 +670,49 @@ function AdminPage() {
   );
 
   const filtered = chargers.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()) || (c.country || "").toLowerCase().includes(search.toLowerCase()));
+
+  // Automatische kwaliteitscontrole: signaleert ontbrekende of onlogische data,
+  // maar wijzigt nooit automatisch bestaande Supercharger-gegevens.
+  const dataQualityIssues: { id: string; name: string; country: string; issue: string; severity: "high" | "medium" | "low" }[] = [];
+  const seenNames = new Map<string, string>();
+  const seenCoords = new Map<string, string>();
+  for (const charger of chargers) {
+    const addIssue = (issue: string, severity: "high" | "medium" | "low" = "medium") => {
+      dataQualityIssues.push({ id: charger.id, name: charger.name, country: charger.country || "Onbekend", issue, severity });
+    };
+    const identity = `${charger.name.trim().toLowerCase()}|${(charger.country || "").trim().toLowerCase()}`;
+    const priorName = seenNames.get(identity);
+    if (priorName) addIssue(`Mogelijke dubbele locatie (zelfde naam/land; ook bij ${priorName})`, "high");
+    else seenNames.set(identity, charger.name);
+    const coordKey = `${Number(charger.lat).toFixed(5)},${Number(charger.lng).toFixed(5)}`;
+    const priorCoord = seenCoords.get(coordKey);
+    if (priorCoord) addIssue(`Exact dezelfde coördinaten als ${priorCoord}; controleer of dit een duplicaat is`, "high");
+    else seenCoords.set(coordKey, charger.name);
+    if (!Number.isFinite(charger.lat) || !Number.isFinite(charger.lng) || Math.abs(charger.lat) > 90 || Math.abs(charger.lng) > 180) addIssue("Ongeldige GPS-coördinaten", "high");
+    if (!charger.country?.trim()) addIssue("Land ontbreekt", "high");
+    if (!charger.city?.trim() && !charger.province?.trim()) addIssue("Stad en regio ontbreken", "low");
+    const configs = configsForCharger(charger);
+    if (!configs.length || !totalFromConfigs(configs)) addIssue("Aantal laadpunten / laadconfiguratie ontbreekt", "medium");
+    if (!configs.length || !maxSpeedFromConfigs(configs)) addIssue("Maximaal laadvermogen ontbreekt", "medium");
+    if (charger.status === "operational" && !(charger.price_blocks?.length)) addIssue("Geen tijdsgebonden laadprijs ingevuld", "low");
+    if (charger.status === "operational" && !charger.traffic_forecast && !charger.construction?.trafficForecast) addIssue("Geen drukteprofiel opgeslagen", "low");
+    if (charger.status === "operational" && !charger.opening_hours && !charger.opening_time && !charger.closing_time) addIssue("Openingstijden niet expliciet gecontroleerd (24/7 wordt niet aangenomen als geverifieerd)", "low");
+  }
+  const qualityCounts = {
+    high: dataQualityIssues.filter((issue) => issue.severity === "high").length,
+    medium: dataQualityIssues.filter((issue) => issue.severity === "medium").length,
+    low: dataQualityIssues.filter((issue) => issue.severity === "low").length,
+  };
+  const exportQualityReport = () => {
+    const escapeCsv = (value: string) => `"${value.replaceAll('"', '""')}"`;
+    const csv = ["Locatie;Land;Probleem;Prioriteit", ...dataQualityIssues.map((issue) => [issue.name, issue.country, issue.issue, issue.severity].map(escapeCsv).join(";"))].join("\\n");
+    const url = URL.createObjectURL(new Blob(["\\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `teslanavigation-datacontrole-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
   const versionOpts = ["V2", "V3", "V4"];
 
   return (
@@ -747,6 +791,33 @@ function AdminPage() {
           </div>
         )}
         <Input placeholder="Zoek op naam of land…" value={search} onChange={(e) => setSearch(e.target.value)} className="bg-slate-800 border-slate-700 mb-4" />
+        <section className="mb-4 rounded-xl border border-cyan-700/50 bg-slate-800/60 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold text-cyan-200">Automatische datacontrole Europa</div>
+              <p className="mt-1 text-xs text-slate-400">Controleert dubbele locaties, GPS, laadconfiguraties, prijzen en ontbrekende locatiegegevens. Er wordt niets automatisch aangepast.</p>
+              <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                <span className="rounded-md bg-rose-500/15 px-2 py-1 text-rose-300">{qualityCounts.high} belangrijk</span>
+                <span className="rounded-md bg-amber-500/15 px-2 py-1 text-amber-300">{qualityCounts.medium} aandacht</span>
+                <span className="rounded-md bg-slate-700 px-2 py-1 text-slate-300">{qualityCounts.low} ontbrekend / controleren</span>
+                <span className="rounded-md bg-slate-700 px-2 py-1 text-slate-300">{dataQualityIssues.length} signalen · {chargers.length} locaties</span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" className="border-slate-600" onClick={exportQualityReport} disabled={!dataQualityIssues.length}>Exporteer controlelijst</Button>
+              <Button size="sm" variant="outline" className="border-slate-600" onClick={() => setQualityOpen((value) => !value)}>{qualityOpen ? "Verbergen" : "Bekijk problemen"}</Button>
+            </div>
+          </div>
+          {qualityOpen && <div className="mt-3 max-h-72 space-y-1 overflow-y-auto border-t border-slate-700 pt-3">
+            {dataQualityIssues.length === 0 ? <p className="text-xs text-emerald-300">Geen dataproblemen gevonden in de uitgevoerde controles.</p> : dataQualityIssues.slice(0, 250).map((issue, index) => (
+              <div key={issue.id + issue.issue + index} className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-slate-900/70 px-2 py-1.5 text-xs">
+                <div className="min-w-0"><span className="font-semibold text-white">{issue.name}</span><span className="ml-2 text-slate-500">{issue.country}</span><div className="mt-0.5 text-slate-300">{issue.issue}</div></div>
+                <span className={issue.severity === "high" ? "text-rose-300" : issue.severity === "medium" ? "text-amber-300" : "text-slate-400"}>{issue.severity === "high" ? "Belangrijk" : issue.severity === "medium" ? "Aandacht" : "Controleren"}</span>
+              </div>
+            ))}
+            {dataQualityIssues.length > 250 && <p className="pt-1 text-[11px] text-slate-500">De lijst toont de eerste 250 signalen. De CSV bevat alle {dataQualityIssues.length} signalen.</p>}
+          </div>}
+        </section>
         {loading ? <div>Laden…</div> : (
           <div className="rounded-lg border border-slate-700 overflow-hidden">
             <div className="max-h-[70vh] overflow-y-auto">
