@@ -306,11 +306,41 @@ function makeProfile(charger: Supercharger, zone: ReturnType<typeof zoneFor>, ca
   const measuredHolidayBoost = category === "holiday" && override?.confidence === "medium"
     ? zone === "ski" || zone === "transit" ? 12 : zone === "retail" ? 8 : 4
     : 0;
-  return TRAFFIC_PERIODS.map((period, index) => ({
-    from: period.from,
-    to: period.to,
-    level: Math.max(0, Math.min(100, base[index] + adjustments[index] + measuredHolidayBoost)),
-  }));
+  // Capaciteit maakt een wezenlijk verschil: dezelfde lokale vraag leidt bij 4 stalls
+  // tot een veel hogere bezettingsgraad dan bij 32 stalls. De generieke profielen zijn
+  // genormaliseerd op een locatie met circa 16 bruikbare stalls.
+  // Gemeten profielen (confidence medium/high) blijven ongewijzigd: die percentages
+  // zijn al echte bezettingspercentages van deze specifieke locatie.
+  const configuredTotal = charger.chargerConfigs?.reduce((sum, config) => sum + Math.max(0, Number(config.count) || 0), 0) || 0;
+  const total = configuredTotal || Math.max(0, Number(charger.totalStalls) || 0);
+  const worksOpen = charger.status === "works"
+    ? charger.works?.openConfigs?.reduce((sum, config) => sum + Math.max(0, Number(config.count) || 0), 0)
+    : undefined;
+  const worksClosed = charger.status === "works"
+    ? (charger.works?.closedConfigs?.reduce((sum, config) => sum + Math.max(0, Number(config.count) || 0), 0) ?? charger.works?.closedStalls ?? 0)
+    : 0;
+  const unavailableStalls = new Set(
+    (charger.stallStates ?? [])
+      .filter((stall) => stall.condition !== "available")
+      .map((stall) => stall.stall)
+  ).size;
+  const capacityBeforeIssues = worksOpen !== undefined && worksOpen > 0
+    ? Math.min(total || worksOpen, worksOpen)
+    : Math.max(0, total - worksClosed);
+  const usableCapacity = Math.max(0, capacityBeforeIssues - unavailableStalls);
+  const capacityMultiplier = total > 0 && usableCapacity > 0
+    ? 16 / usableCapacity
+    : 1;
+  const applyCapacity = override?.confidence !== "medium" && override?.confidence !== "high";
+  return TRAFFIC_PERIODS.map((period, index) => {
+    const rawLevel = base[index] + adjustments[index] + measuredHolidayBoost;
+    const capacityAdjusted = applyCapacity ? rawLevel * capacityMultiplier : rawLevel;
+    return {
+      from: period.from,
+      to: period.to,
+      level: Math.max(0, Math.min(100, Math.round(capacityAdjusted))),
+    };
+  });
 }
 
 type NetworkLocation = Pick<Supercharger, "id" | "lat" | "lng">;
