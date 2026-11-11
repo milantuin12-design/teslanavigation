@@ -33272,6 +33272,174 @@
       "source": "https://kilowattindex.com/site/slagelsesupercharger/",
       "sourceChecked": "2026-11-11",
       "currency": "DKK"
+    },
+    {
+      "country": "Denmark",
+      "match": [
+        "nyborg"
+      ],
+      "label": "Nyborg – Uno-x",
+      "timezone": "Europe/Copenhagen",
+      "pricePerKwh": 2.6,
+      "source": "https://kilowattindex.com/site/437108/",
+      "sourceChecked": "2026-11-11",
+      "currency": "DKK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "ulricehamn"
+      ],
+      "label": "Ulricehamn – Circle K",
+      "timezone": "Europe/Stockholm",
+      "pricePerKwh": 3.8,
+      "source": "https://www.kilowattindex.com/site/ulricehamnsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "skellefteå",
+        "skelleftea"
+      ],
+      "label": "Skellefteå – OKQ8",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 3.2
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.6
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/skellefteasupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "gränna",
+        "granna"
+      ],
+      "label": "Gränna – Restaurang Vätterleden",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/304977/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "lagan"
+      ],
+      "label": "Lagan – Toftaholm Herrgård",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/toftaholmsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "ödeshög",
+        "odeshog"
+      ],
+      "label": "Ödeshög – Dinners",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 3.8
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.1
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 3.8
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/33427/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
+    },
+    {
+      "country": "Sweden",
+      "match": [
+        "västerås",
+        "vasteras"
+      ],
+      "label": "Västerås – Hälla Shopping",
+      "timezone": "Europe/Stockholm",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.6
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 4.5
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 2.6
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/296729/",
+      "sourceChecked": "2026-11-11",
+      "currency": "SEK"
     }
   ]
 }
