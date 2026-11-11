@@ -11565,7 +11565,8 @@
     {
       "country": "Italy",
       "match": [
-        "amaro"
+        "amaro",
+        "valli di carnia"
       ],
       "label": "Amaro – Centro Commerciale",
       "timezone": "Europe/Rome",
@@ -32385,6 +32386,20 @@
       "source": "https://www.kilowattindex.com/site/30296/",
       "sourceChecked": "2026-11-11",
       "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "brindisi west",
+        "brindisi - west",
+        "colonne shopping center"
+      ],
+      "label": "Brindisi West – Colonne Shopping Center",
+      "timezone": "Europe/Rome",
+      "currency": "EUR",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/country/it/brindisi/",
+      "sourceChecked": "2026-11-11"
     }
   ]
 }
