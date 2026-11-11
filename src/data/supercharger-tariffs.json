@@ -4077,8 +4077,15 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.43,
       "source": "https://www.kilowattindex.com/site/437908/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -11520,7 +11527,14 @@
       "currency": "EUR",
       "pricePerKwh": 0.43,
       "source": "https://www.kilowattindex.com/site/33832/",
-      "sourceChecked": "2026-11-06"
+      "sourceChecked": "2026-11-11",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -18219,10 +18233,17 @@
       "currency": "EUR",
       "pricePerKwh": 0.47,
       "source": "https://www.kilowattindex.com/site/29163/",
-      "sourceChecked": "2026-11-06",
+      "sourceChecked": "2026-11-11",
       "match": [
         "mondovi",
         "mondovì"
+      ],
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.47
+        }
       ]
     },
     {
@@ -31424,9 +31445,16 @@
       "label": "Borca di Cadore – TH Cadore Hotel Antelao",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.43,
-      "source": "https://www.kilowattindex.com/site/borcadicadoresupercharger/",
+      "source": "https://kilowattindex.com/site/borcadicadoresupercharger/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31506,9 +31534,16 @@
       "label": "Arezzo – A Point Arezzo Park Hotel",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.44,
-      "source": "https://www.kilowattindex.com/site/arezzosupercharger/",
+      "source": "https://www.kilowattindex.com/site/perugiasouthsupercharger/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
