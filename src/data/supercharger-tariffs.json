@@ -31668,6 +31668,87 @@
       "source": "https://www.kilowattindex.com/site/Mantova422/",
       "sourceChecked": "2026-11-11",
       "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "livorno"
+      ],
+      "label": "Livorno – Centro Commerciale Fonti del Corallo",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.42
+        },
+        {
+          "from": "08:00",
+          "to": "23:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.42
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30295/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "forte dei marmi"
+      ],
+      "label": "Forte dei Marmi – UNA Hotel",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/fortedeimarmisupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "l'aquila",
+        "laquila"
+      ],
+      "label": "L'Aquila – L'Aquila Ovest",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.36,
+      "source": "https://kilowattindex.com/site/30293/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "tarquinia"
+      ],
+      "label": "Tarquinia – Hotel Brizi",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.4,
+      "source": "https://www.kilowattindex.com/site/tarquiniasupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
     }
   ]
 }
