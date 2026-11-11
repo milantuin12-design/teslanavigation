@@ -303,6 +303,23 @@ function Index() {
   const routeCosts = routeOptions.map((plan) => estimateRouteCost(plan, departureDate, selectedModel, packKWh, carMaxKwOverride));
   const pricedRoutes = routeCosts.map((cost, index) => ({ cost, index })).filter((item): item is { cost: number; index: number } => item.cost !== null);
   const cheapestRouteIndex = pricedRoutes.length ? pricedRoutes.reduce((best, item) => item.cost < best.cost ? item : best).index : -1;
+  // Vergelijk ook de verwachte drukte op de daadwerkelijke aankomsttijd bij elke laadstop.
+  // Routes zonder bruikbare druktegegevens krijgen geen kunstmatig gunstige score.
+  const routeCrowdLevels = routeOptions.map((plan) => {
+    const levels = plan.stops.map((stop) => {
+      if (!stop.charger.trafficForecast || typeof stop.etaMinFromStart !== "number") return null;
+      return getTrafficForecastAt(
+        stop.charger.trafficForecast,
+        new Date(departureDate.getTime() + stop.etaMinFromStart * 60000),
+        stop.charger.province,
+        holidayPeriodMode,
+        winterSportsMode && isSnowRegion(stop.charger),
+      )?.level ?? null;
+    }).filter((level): level is number => typeof level === "number");
+    return levels.length ? levels.reduce((sum, level) => sum + level, 0) / levels.length : null;
+  });
+  const crowdRankedRoutes = routeCrowdLevels.map((level, index) => ({ level, index })).filter((item): item is { level: number; index: number } => item.level !== null);
+  const quietestRouteIndex = crowdRankedRoutes.length ? crowdRankedRoutes.reduce((best, item) => item.level < best.level ? item : best).index : -1;
   const departureAdvice = useMemo(() => {
     const plan = routeOptions[selectedRouteIndex];
     if (!plan || plan.stops.length === 0) return null;
@@ -1650,6 +1667,7 @@ function Index() {
             {routeOptions.length > 0 && (
               <div className="glass-panel flex flex-wrap items-center gap-1.5 rounded-xl px-2 py-1.5">
                 {cheapestRouteIndex >= 0 && <button onClick={() => handleSelectRoute(cheapestRouteIndex)} className="rounded-lg bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-200 hover:bg-amber-500/25">Kies goedkoopste route</button>}
+                {quietestRouteIndex >= 0 && <button onClick={() => handleSelectRoute(quietestRouteIndex)} className="rounded-lg bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25">Kies rustigste route</button>}
                 {routeOptions.map((plan, i) => (
                   <button
                     key={i}
@@ -1660,6 +1678,8 @@ function Index() {
                     {i === fastestRouteIndex && <span className="ml-1 rounded bg-emerald-500/20 px-1 text-emerald-300">Snelst</span>}
                     {i === fewestStopsIndex && <span className="ml-1 rounded bg-blue-500/20 px-1 text-blue-300">Minste stops</span>}
                     {i === cheapestRouteIndex && <span className="ml-1 rounded bg-amber-500/20 px-1 text-amber-300">Goedkoopst · €{routeCosts[i]!.toFixed(2)}</span>}
+                    {i === quietestRouteIndex && routeCrowdLevels[i] !== null && <span className="ml-1 rounded bg-emerald-500/20 px-1 text-emerald-300">Rustigst · {Math.round(routeCrowdLevels[i]!)}% drukte</span>}
+                    {routeCrowdLevels[i] !== null && i !== quietestRouteIndex && <span className="ml-1 text-slate-400">± {Math.round(routeCrowdLevels[i]!)}% drukte</span>}
                     {routeCosts[i] !== null && i !== cheapestRouteIndex && <span className="ml-1 text-slate-400">± €{routeCosts[i]!.toFixed(2)}</span>}
                     {(plan.route.trafficDelayMin ?? 0) > 0 && (
                       <span className={plan.route.trafficDelayMin! >= 20 ? "text-red-400" : "text-amber-400"}>
