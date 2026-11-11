@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "checkedAt": "2026-11-09",
+  "checkedAt": "2026-11-11",
   "note": "Alleen Tesla-rijderstarieven. Tijdblokken zijn lokaal per station. Alleen exact gepubliceerde blokken of vaste tarieven; onbekende tarieven blijven leeg. Matcht alleen operationele locaties.",
   "tariffs": [
     {
@@ -31747,6 +31747,296 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.4,
       "source": "https://www.kilowattindex.com/site/tarquiniasupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "brennero"
+      ],
+      "label": "Brennero – Plessi Museum",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "04:00",
+          "to": "20:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/brennerosupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "catania"
+      ],
+      "label": "Gravina di Catania – Centro Commerciale Katané",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.41
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/cataniaitsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "ceprano"
+      ],
+      "label": "Ceprano – Hotel Villa Ida",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/site/cepranosupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "conegliano"
+      ],
+      "label": "Conegliano – Centro Commerciale Conè",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://kilowattindex.com/site/302007/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "eboli"
+      ],
+      "label": "Eboli – Le Bolle",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.49
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30347/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "castelnuovo del garda"
+      ],
+      "label": "Castelnuovo del Garda – Parc Hotel",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.38,
+      "source": "https://www.kilowattindex.com/site/450702/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "montenero di bisaccia"
+      ],
+      "label": "Montenero di Bisaccia – Centro Commerciale Costaverde",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ],
+      "source": "https://kilowattindex.com/site/montenerodibisacciasupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "fiume veneto"
+      ],
+      "label": "Fiume Veneto – Granfiume Gran Shopping",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.31
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.31
+        }
+      ],
+      "source": "https://kilowattindex.com/site/303406/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "magliano sabina"
+      ],
+      "label": "Magliano Sabina – La Pergola",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "04:00",
+          "to": "23:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://kilowattindex.com/site/maglianosabinasupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "mercato san severino"
+      ],
+      "label": "Mercato San Severino – San Severino Park Hotel",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.39
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/mercatosanseverinosupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "genova north",
+        "genova l'aquilone"
+      ],
+      "label": "Genova – Centro Commerciale L'Aquilone",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/site/genovanorthsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "palmi"
+      ],
+      "label": "Palmi – Grand Hotel Stella Maris",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://kilowattindex.com/site/palmisupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "lagonegro"
+      ],
+      "label": "Lagonegro – BHotel",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.44
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/303485/",
       "sourceChecked": "2026-11-11",
       "currency": "EUR"
     }
