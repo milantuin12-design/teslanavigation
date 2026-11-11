@@ -1638,11 +1638,13 @@ function Index() {
         {!isNavigating && (
           <>
           <div className="absolute top-16 left-3 z-[1000]"><Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowFavoritesOnly((v) => !v)}>{showFavoritesOnly ? "Alle Superchargers" : `Favorieten (${favoriteChargerIds.length})`}</Button></div>
-          <div className="absolute top-3 left-3 z-[1000]">
-            <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowDevelopmentChargers((v) => !v)}>
-              {showDevelopmentChargers ? "Verberg plannen & bouwlocaties" : "Alles tonen"}
-            </Button>
-          </div>
+          {!route && (
+            <div className="absolute top-3 left-3 z-[1000]">
+              <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowDevelopmentChargers((v) => !v)}>
+                {showDevelopmentChargers ? "Verberg plannen & bouwlocaties" : "Alles tonen"}
+              </Button>
+            </div>
+          )}
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setFiltersOpen((v) => !v)} title="Filters">
