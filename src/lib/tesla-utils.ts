@@ -366,30 +366,25 @@ function getRouteSamples(routeCoords: [number, number][]): [number, number][] {
 // Dezelfde route en Supercharger-dataset worden meerdere keren doorgerekend
 // (hoofdberekening, +5% en -5% batterij). Hergebruik daarom de geometrische
 // voorselectie in plaats van alle stations en routepunten opnieuw te scannen.
-const nearbyRouteChargerCache = new WeakMap<
-  [number, number][],
-  WeakMap<Supercharger[], Map<number, Supercharger[]>>
->();
+const nearbyRouteChargerCache = new WeakMap<[number, number][], Map<string, Supercharger[]>>();
 
 function getCachedChargersNearRoute(
   routeCoords: [number, number][],
   chargers: Supercharger[],
   maxDistanceKm: number,
 ): Supercharger[] {
-  let byDataset = nearbyRouteChargerCache.get(routeCoords);
-  if (!byDataset) {
-    byDataset = new WeakMap();
-    nearbyRouteChargerCache.set(routeCoords, byDataset);
+  let byFilter = nearbyRouteChargerCache.get(routeCoords);
+  if (!byFilter) {
+    byFilter = new Map();
+    nearbyRouteChargerCache.set(routeCoords, byFilter);
   }
-  let byDistance = byDataset.get(chargers);
-  if (!byDistance) {
-    byDistance = new Map();
-    byDataset.set(chargers, byDistance);
-  }
-  const cached = byDistance.get(maxDistanceKm);
+  // Dezelfde filters leveren dezelfde stationvolgorde op, ook al maakt
+  // Array.filter bij elke batterijscenario een nieuwe array.
+  const cacheKey = `${maxDistanceKm}|${chargers.map((charger) => charger.id ?? charger.name).join("\u001f")}`;
+  const cached = byFilter.get(cacheKey);
   if (cached) return cached;
   const result = findChargersNearRoute(routeCoords, chargers, maxDistanceKm);
-  byDistance.set(maxDistanceKm, result);
+  byFilter.set(cacheKey, result);
   return result;
 }
 
@@ -584,12 +579,9 @@ export function calculateChargingStops(
   if (excludeParkingGarage) filtered = filtered.filter(c => !c.inParkingGarage);
   if (avoidParkingFee) filtered = filtered.filter(c => !c.parkingFee);
 
-  // Cache eerst de geometrische kandidaten op de originele dataset. De
-  // batterij-what-if-berekeningen gebruiken dezelfde dataset maar andere
-  // filters; alleen de kleine filterstap hoeft dan opnieuw.
-  const nearbyCandidates = getCachedChargersNearRoute(route.coordinates, chargers, 20);
-  const eligibleChargers = new Set(filtered);
-  const nearChargers = nearbyCandidates.filter((charger) => eligibleChargers.has(charger));
+  // De batterij-what-if-berekeningen gebruiken dezelfde filters; hergebruik
+  // daarom de routekandidaten in plaats van alle routepunten opnieuw te scannen.
+  const nearChargers = getCachedChargersNearRoute(route.coordinates, filtered, 20);
   const routeDist = buildRouteDistanceIndex(route.coordinates);
   // Cache ook de projectie per route/station; +5%, -5% en eventuele retry
   // hoeven daardoor niet opnieuw ieder routepunt voor elk station te scannen.
