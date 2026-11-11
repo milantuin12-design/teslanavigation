@@ -138850,6 +138850,84 @@
         }
       ],
       "peak_hours": null
+    },
+    {
+      "id": "it-pieve-fissiraga-2026",
+      "name": "Pieve Fissiraga",
+      "lat": 45.276657,
+      "lng": 9.458644,
+      "total_stalls": 8,
+      "stall_types": "8x250kW",
+      "country": "Italy",
+      "province": "Lodi",
+      "city": "Pieve Fissiraga",
+      "max_speed_kw": 250,
+      "versions": [
+        "V4"
+      ],
+      "opening_time": null,
+      "closing_time": null,
+      "opening_hours": {
+        "days": {
+          "fri": {
+            "open": "00:00",
+            "close": "23:59",
+            "closed": false
+          },
+          "mon": {
+            "open": "00:00",
+            "close": "23:59",
+            "closed": false
+          },
+          "sat": {
+            "open": "00:00",
+            "close": "23:59",
+            "closed": false
+          },
+          "sun": {
+            "open": "00:00",
+            "close": "23:59",
+            "closed": false
+          },
+          "thu": {
+            "open": "00:00",
+            "close": "23:59",
+            "closed": false
+          },
+          "tue": {
+            "open": "00:00",
+            "close": "23:59",
+            "closed": false
+          },
+          "wed": {
+            "open": "00:00",
+            "close": "23:59",
+            "closed": false
+          }
+        },
+        "mode": "24_7"
+      },
+      "trailer_friendly": true,
+      "is_available": true,
+      "charger_configs": [
+        {
+          "count": 8,
+          "speedKw": 250,
+          "version": "V4"
+        }
+      ],
+      "parking_fee": false,
+      "in_parking_garage": false,
+      "status": "operational",
+      "construction": {},
+      "works": {},
+      "closure": {},
+      "owner_id": null,
+      "low_speed": false,
+      "published": true,
+      "notes": null,
+      "reopen_at": null,
+      "planned_upgrade": {}
     }
   ]
 }

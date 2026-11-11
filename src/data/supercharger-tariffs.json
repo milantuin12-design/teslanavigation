@@ -31161,6 +31161,152 @@
       "source": "https://kilowattindex.com/site/300615/",
       "sourceChecked": "2026-11-09",
       "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "affi"
+      ],
+      "label": "Affi – McDonald's",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.38
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.43
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/affisupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "brescia elnos",
+        "brescia"
+      ],
+      "label": "Roncadelle – Elnos Shopping (Tesla-locatie Brescia)",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.51
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/bresciasupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "piacenza"
+      ],
+      "label": "Piacenza – MH Hotel",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://kilowattindex.com/site/29909/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "pieve fissiraga",
+        "bennet"
+      ],
+      "label": "Pieve Fissiraga – Bennet",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.41
+        },
+        {
+          "from": "04:00",
+          "to": "24:00",
+          "pricePerKwh": 0.48
+        }
+      ],
+      "source": "https://kilowattindex.com/site/32505/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "rimini"
+      ],
+      "label": "Rimini – Centro Commerciale Le Befane",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.3
+        }
+      ],
+      "source": "https://kilowattindex.com/site/Rimini/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "san giovanni teatino"
+      ],
+      "label": "San Giovanni Teatino – Hotel Dragonara",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.43,
+      "source": "https://www.kilowattindex.com/site/sangiovanniteatinosupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "carsoli oricola",
+        "oricola"
+      ],
+      "label": "Oricola – La Nuova Fattoria Ristorante Hotel",
+      "timezone": "Europe/Rome",
+      "pricePerKwh": 0.39,
+      "source": "https://www.kilowattindex.com/site/carsolioricolasupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
     }
   ]
 }
