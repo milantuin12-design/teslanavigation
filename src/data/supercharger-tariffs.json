@@ -4054,7 +4054,7 @@
       ],
       "label": "Reggio Emilia – L'Ariosto Centro Commerciale",
       "timezone": "Europe/Rome",
-      "pricePerKwh": 0.45,
+      "pricePerKwh": 0.43,
       "source": "https://www.kilowattindex.com/site/437908/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
@@ -4095,7 +4095,7 @@
       ],
       "label": "Rovereto – Centro Commerciale Millenium Center",
       "timezone": "Europe/Rome",
-      "pricePerKwh": 0.45,
+      "pricePerKwh": 0.43,
       "source": "https://www.kilowattindex.com/site/32214/",
       "sourceChecked": "2026-11-06",
       "currency": "EUR"
