@@ -900,13 +900,21 @@ function findNextChargerDistance(
   return (nextChargerRouteKm - currentRouteKm) + minDetour;
 }
 
+// Route geometry is immutable after it is received from the router. Cache its
+// cumulative distance index so projecting dozens of chargers/waypoints onto the
+// same route does not rebuild the full distance array on every call.
+const routeDistanceIndexCache = new WeakMap<[number, number][], number[]>();
+
 function buildRouteDistanceIndex(routeCoords: [number, number][]): number[] {
+  const cached = routeDistanceIndexCache.get(routeCoords);
+  if (cached) return cached;
   const dists: number[] = [0];
   for (let i = 1; i < routeCoords.length; i++) {
     const [aLng, aLat] = routeCoords[i - 1];
     const [bLng, bLat] = routeCoords[i];
     dists.push(dists[i - 1] + haversineDistance(aLat, aLng, bLat, bLng));
   }
+  routeDistanceIndexCache.set(routeCoords, dists);
   return dists;
 }
 
