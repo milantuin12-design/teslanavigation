@@ -32623,6 +32623,37 @@
           "pricePerKwh": 0.43
         }
       ]
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "sondrio",
+        "forcola",
+        "la brace",
+        "sondrio - la brace"
+      ],
+      "label": "Forcola – La Brace",
+      "timezone": "Europe/Rome",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.33
+        },
+        {
+          "from": "04:00",
+          "to": "23:00",
+          "pricePerKwh": 0.45
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/sondrioitsupercharger/",
+      "sourceChecked": "2026-11-11"
     }
   ]
 }
