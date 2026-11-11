@@ -33595,6 +33595,187 @@
       "source": "https://www.kilowattindex.com/site/berkaknosupercharger/",
       "sourceChecked": "2026-11-11",
       "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "ålesund",
+        "alesund"
+      ],
+      "label": "Ålesund – Breivika",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 1.9
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 5.1
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 1.9
+        }
+      ],
+      "source": "https://kilowattindex.com/site/30147/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "volda"
+      ],
+      "label": "Volda – Europris",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 2.7
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 1.8
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 5.1
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 2.7
+        }
+      ],
+      "source": "https://kilowattindex.com/site/OrstaVoldaSupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "vestnes"
+      ],
+      "label": "Vestnes – Réal mat",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 2.1
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 3.2
+        },
+        {
+          "from": "10:00",
+          "to": "23:00",
+          "pricePerKwh": 4
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 2.1
+        }
+      ],
+      "source": "https://kilowattindex.com/site/400511/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "nordfjordeid"
+      ],
+      "label": "Nordfjordeid – Circle K",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "11:00",
+          "pricePerKwh": 3
+        },
+        {
+          "from": "11:00",
+          "to": "21:00",
+          "pricePerKwh": 3.9
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 3
+        }
+      ],
+      "source": "https://kilowattindex.com/site/nordfjordeidsuperchargerq122/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "stadlandet"
+      ],
+      "label": "Stadlandet – Stad Hotell",
+      "timezone": "Europe/Oslo",
+      "pricePerKwh": 3.2,
+      "source": "https://kilowattindex.com/site/464456/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "sandane"
+      ],
+      "label": "Sandane – Krånavegen",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "11:00",
+          "pricePerKwh": 3.7
+        },
+        {
+          "from": "11:00",
+          "to": "19:00",
+          "pricePerKwh": 4.7
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 3.9
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 3.7
+        }
+      ],
+      "source": "https://kilowattindex.com/site/sandanesupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "nes i ådal",
+        "nes i adal"
+      ],
+      "label": "Nes i Ådal – Valdresporten",
+      "timezone": "Europe/Oslo",
+      "pricePerKwh": 4.4,
+      "source": "https://www.kilowattindex.com/site/nesiadalsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
     }
   ]
 }
