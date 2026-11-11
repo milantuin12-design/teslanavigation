@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Zap, BatteryCharging, MapPin, Gauge, Clock, Ban, Mountain, Thermometer, Wind, CloudRain, Car, Flag, Route as RouteIcon } from 'lucide-react';
 import type { ChargingStop, RouteResult } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
@@ -109,6 +110,13 @@ function chargingCost(stop: ChargingStop, at?: Date): number | null {
 }
 
 const euro = (n: number) => `€ ${n.toFixed(2).replace('.', ',')}`;
+const CHF_TO_EUR_FALLBACK = 1 / 0.9234; // ECB-referentiekoers 11-11-2026; live koers wordt opgehaald.
+const convertToEuro = (amount: number, currency: string | undefined, chfToEur: number): number | null => {
+  const code = (currency || 'EUR').toUpperCase();
+  if (code === 'EUR') return amount;
+  if (code === 'CHF') return amount * chfToEur;
+  return null;
+};
 const localCurrency = (n: number, currency?: string) => new Intl.NumberFormat('nl-NL', { style: 'currency', currency: currency ?? 'EUR' }).format(n);
 const dur = (min: number) => (min >= 60 ? `${Math.floor(min / 60)}u${min % 60 ? ` ${min % 60}m` : ''}` : `${min}m`);
 const time = (d: Date) => d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
@@ -150,6 +158,18 @@ function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo, tem
 }
 
 export default function ChargingStops({ stops, holidayMode = false, winterSportsMode = false, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic, ccsBlocked, showTrailer, restMin = 0, modelName = 'Model 3 Long Range AWD', carMaxKwOverride, whatIf }: ChargingStopsProps) {
+  const [chfToEur, setChfToEur] = useState(CHF_TO_EUR_FALLBACK);
+  useEffect(() => {
+    let active = true;
+    fetch('https://api.frankfurter.app/latest?from=CHF&to=EUR')
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Wisselkoers niet beschikbaar')))
+      .then((data) => {
+        const rate = Number(data?.rates?.EUR);
+        if (active && Number.isFinite(rate) && rate > 0) setChfToEur(rate);
+      })
+      .catch(() => { /* Gebruik de laatst ingebouwde ECB-referentiekoers als fallback. */ });
+    return () => { active = false; };
+  }, []);
   const start = departure ?? new Date();
   const total = route?.totalDistanceKm ?? totalDistanceKm ?? 0;
   const k100 = consumptionKWh100 && consumptionKWh100 > 0 ? consumptionKWh100 : null;
@@ -160,10 +180,11 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
   const stopCosts = stops.map((stop) => {
     const at = new Date(start.getTime() + (stop.etaMinFromStart ?? 0) * 60000);
     const estimate = estimateChargingCost(stop, at, modelName, packKWh, carMaxKwOverride);
-    const charge = estimate?.currency === "EUR" ? estimate.amount : null;
+    const chargeCurrency = estimate?.currency ?? stop.charger.priceCurrency ?? 'EUR';
+    const charge = estimate ? convertToEuro(estimate.amount, chargeCurrency, chfToEur) : null;
     const parking = parkingCost(stop, at);
     const parkingKnown = !stop.charger.parkingFee || parking !== null;
-    return { charge, parking, known: charge !== null && parkingKnown };
+    return { charge, parking, known: charge !== null && parkingKnown, originalCharge: estimate?.amount ?? null, chargeCurrency };
   });
   const allCostsKnown = stops.length > 0 && stopCosts.every((cost) => cost.known);
   const knownStopCosts = stopCosts.map((cost, index) => ({ ...cost, index, total: cost.charge !== null && (!stops[index].charger.parkingFee || cost.parking !== null) ? cost.charge + (cost.parking ?? 0) : null })).filter((cost): cost is typeof cost & { total: number } => cost.total !== null);
@@ -302,12 +323,12 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
                 {costEstimate?.type === "minute" && (
                   <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
-                    {localCurrency(costEstimate.amount, costEstimate.currency)} · per minuut ({Math.round(costEstimate.initialPowerKw ?? 0)} kW start)
+                    {localCurrency(costEstimate.amount, costEstimate.currency)}{costEstimate.currency.toUpperCase() === 'CHF' ? ` → ${euro(convertToEuro(costEstimate.amount, costEstimate.currency, chfToEur) ?? 0)}` : ''} · per minuut ({Math.round(costEstimate.initialPowerKw ?? 0)} kW start)
                   </span>
                 )}
                 {costEstimate?.type === "kwh" && (
                   <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
-                    {localCurrency(costEstimate.amount, costEstimate.currency)} totaal · kWh-tarief
+                    {localCurrency(costEstimate.amount, costEstimate.currency)}{costEstimate.currency.toUpperCase() === 'CHF' ? ` → ${euro(convertToEuro(costEstimate.amount, costEstimate.currency, chfToEur) ?? 0)}` : ''} totaal · kWh-tarief
                   </span>
                 )}
                 {!costEstimate && activePrice !== null && (
