@@ -10110,9 +10110,30 @@
       ],
       "label": "Brugge – Weinebrugge",
       "timezone": "Europe/Brussels",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/nl_be/findus/list/superchargers/Belgium",
-      "sourceChecked": "2026-11-06",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.23
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.58
+        },
+        {
+          "from": "12:00",
+          "to": "20:00",
+          "pricePerKwh": 0.63
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/bruggesupercharger/",
+      "sourceChecked": "2026-11-11",
       "currency": "EUR"
     },
     {
@@ -20807,9 +20828,25 @@
       ],
       "label": "Besançon – Essai à distance",
       "timezone": "Europe/Paris",
-      "priceBlocks": [],
-      "source": "https://www.tesla.com/findus/list/superchargers/France",
-      "sourceChecked": "2026-11-06",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 0.37
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/besanconfrsupercharger/",
+      "sourceChecked": "2026-11-11",
       "currency": "EUR"
     },
     {
