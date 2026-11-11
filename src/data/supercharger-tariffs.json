@@ -11572,9 +11572,16 @@
       "label": "Avio – Falconeri Outlet",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.41,
-      "source": "https://www.kilowattindex.com/site/32213/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/13/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31675,7 +31682,14 @@
       "pricePerKwh": 0.43,
       "source": "https://www.kilowattindex.com/site/29623/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31762,9 +31776,16 @@
       "label": "Occhiobello – UNA Hotel",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.45,
-      "source": "https://www.kilowattindex.com/site/occhiobellosupercharger/",
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/15/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -32010,9 +32031,16 @@
       "label": "Castelnuovo del Garda – Parc Hotel",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.38,
-      "source": "https://www.kilowattindex.com/site/450702/",
+      "source": "https://www.kilowattindex.com/site/437908/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.38
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -32140,9 +32168,16 @@
       "label": "Genova – Centro Commerciale L'Aquilone",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.43,
-      "source": "https://www.kilowattindex.com/site/genovanorthsupercharger/",
+      "source": "https://kilowattindex.com/site/genovanorthsupercharger/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -32154,7 +32189,14 @@
       "pricePerKwh": 0.43,
       "source": "https://kilowattindex.com/site/palmisupercharger/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
