@@ -34034,6 +34034,90 @@
       "source": "https://kilowattindex.com/site/oppdalsuperchargerq122/",
       "sourceChecked": "2026-11-11",
       "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "aurland"
+      ],
+      "label": "Aurland – Sognaporten",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.8
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/aurlandsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "bamble"
+      ],
+      "label": "Bamble – Circle K Stathelle",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.5
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/bamblesupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "arendal"
+      ],
+      "label": "Arendal – Stoa",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2
+        },
+        {
+          "from": "09:00",
+          "to": "21:00",
+          "pricePerKwh": 5.3
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 2
+        }
+      ],
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/7/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
     }
   ]
 }
