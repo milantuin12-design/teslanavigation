@@ -363,6 +363,36 @@ function getRouteSamples(routeCoords: [number, number][]): [number, number][] {
   return samples;
 }
 
+// Dezelfde route en Supercharger-dataset worden meerdere keren doorgerekend
+// (hoofdberekening, +5% en -5% batterij). Hergebruik daarom de geometrische
+// voorselectie in plaats van alle stations en routepunten opnieuw te scannen.
+const nearbyRouteChargerCache = new WeakMap<
+  [number, number][],
+  WeakMap<Supercharger[], Map<number, Supercharger[]>>
+>();
+
+function getCachedChargersNearRoute(
+  routeCoords: [number, number][],
+  chargers: Supercharger[],
+  maxDistanceKm: number,
+): Supercharger[] {
+  let byDataset = nearbyRouteChargerCache.get(routeCoords);
+  if (!byDataset) {
+    byDataset = new WeakMap();
+    nearbyRouteChargerCache.set(routeCoords, byDataset);
+  }
+  let byDistance = byDataset.get(chargers);
+  if (!byDistance) {
+    byDistance = new Map();
+    byDataset.set(chargers, byDistance);
+  }
+  const cached = byDistance.get(maxDistanceKm);
+  if (cached) return cached;
+  const result = findChargersNearRoute(routeCoords, chargers, maxDistanceKm);
+  byDistance.set(maxDistanceKm, result);
+  return result;
+}
+
 export function findChargersNearRoute(
   routeCoords: [number, number][],
   chargers: Supercharger[],
@@ -554,13 +584,32 @@ export function calculateChargingStops(
   if (excludeParkingGarage) filtered = filtered.filter(c => !c.inParkingGarage);
   if (avoidParkingFee) filtered = filtered.filter(c => !c.parkingFee);
 
-  const nearChargers = findChargersNearRoute(route.coordinates, filtered, 20);
+  // Cache eerst de geometrische kandidaten op de originele dataset. De
+  // batterij-what-if-berekeningen gebruiken dezelfde dataset maar andere
+  // filters; alleen de kleine filterstap hoeft dan opnieuw.
+  const nearbyCandidates = getCachedChargersNearRoute(route.coordinates, chargers, 20);
+  const eligibleChargers = new Set(filtered);
+  const nearChargers = nearbyCandidates.filter((charger) => eligibleChargers.has(charger));
   const routeDist = buildRouteDistanceIndex(route.coordinates);
-  // Positie langs de route één keer berekenen (scheelt veel rekentijd).
+  // Cache ook de projectie per route/station; +5%, -5% en eventuele retry
+  // hoeven daardoor niet opnieuw ieder routepunt voor elk station te scannen.
+  let positionCache = routeChargerPositionCache.get(route.coordinates);
+  if (!positionCache) {
+    positionCache = new WeakMap();
+    routeChargerPositionCache.set(route.coordinates, positionCache);
+  }
   const posMap = new Map<Supercharger, { km: number; detour: number }>();
   for (const c of nearChargers) {
-    const idx = findNearestCoordIndex(route.coordinates, [c.lng, c.lat]);
-    posMap.set(c, { km: routeDist[idx], detour: haversineDistance(route.coordinates[idx][1], route.coordinates[idx][0], c.lat, c.lng) });
+    let position = positionCache.get(c);
+    if (!position) {
+      const idx = findNearestCoordIndex(route.coordinates, [c.lng, c.lat]);
+      position = {
+        km: routeDist[idx],
+        detour: haversineDistance(route.coordinates[idx][1], route.coordinates[idx][0], c.lat, c.lng),
+      };
+      positionCache.set(c, position);
+    }
+    posMap.set(c, position);
   }
   const safeMultiplier = Math.min(1.6, Math.max(0.75, consumptionMultiplier || 1));
   const packKWh = usableBatteryKWh || batteryCapacityKWhOverride || teslaBatteryKWh[modelName] || 79;
@@ -903,6 +952,10 @@ function findNextChargerDistance(
 // Route geometry is immutable after it is received from the router. Cache its
 // cumulative distance index so projecting dozens of chargers/waypoints onto the
 // same route does not rebuild the full distance array on every call.
+const routeChargerPositionCache = new WeakMap<
+  [number, number][],
+  WeakMap<Supercharger, { km: number; detour: number }>
+>();
 const routeDistanceIndexCache = new WeakMap<[number, number][], number[]>();
 
 function buildRouteDistanceIndex(routeCoords: [number, number][]): number[] {
