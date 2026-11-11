@@ -33440,6 +33440,161 @@
       "source": "https://www.kilowattindex.com/site/296729/",
       "sourceChecked": "2026-11-11",
       "currency": "SEK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "molde"
+      ],
+      "label": "Molde – Tesla Center",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 5.3
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 2
+        }
+      ],
+      "source": "https://kilowattindex.com/site/Moldenosupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "dombås",
+        "dombas"
+      ],
+      "label": "Dombås – Dombås Senter",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.7
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/dombassupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "karasjok"
+      ],
+      "label": "Karasjok – Circle K",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 2.7
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 5.2
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 2.7
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/karasjoksupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "fåvang",
+        "favang"
+      ],
+      "label": "Fåvang – Extra Fåvang",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 4.4
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 4.7
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 4.4
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/Favangnosupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "etne"
+      ],
+      "label": "Etne – Etne Senter",
+      "timezone": "Europe/Oslo",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "11:00",
+          "pricePerKwh": 2.1
+        },
+        {
+          "from": "11:00",
+          "to": "22:00",
+          "pricePerKwh": 5.2
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 2.1
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/460707/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
+    },
+    {
+      "country": "Norway",
+      "match": [
+        "berkåk",
+        "berkak"
+      ],
+      "label": "Berkåk – Berkåk Veikro",
+      "timezone": "Europe/Oslo",
+      "pricePerKwh": 4.4,
+      "source": "https://www.kilowattindex.com/site/berkaknosupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "NOK"
     }
   ]
 }
