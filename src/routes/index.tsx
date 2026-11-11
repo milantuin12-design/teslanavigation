@@ -772,7 +772,12 @@ function Index() {
       }
     };
 
-    const results = (await Promise.all(urls.map(parse))).flat();
+    // Gebruik één router als standaard. De tweede publieke router is alleen
+    // een fallback wanneer de eerste geen bruikbare route oplevert. Twee
+    // publieke routeproviders parallel aanroepen verdubbelt de wachttijd niet,
+    // maar wel het netwerkverkeer en de belasting.
+    const primary = await parse(urls[0]);
+    const results = primary.length > 0 ? primary : await parse(urls[1]);
     // Uniek op afstand zodat we echt andere wegen tonen.
     const unique: { route: RouteResult; steps: RouteStep[] }[] = [];
     for (const candidate of results) {
@@ -1047,7 +1052,9 @@ function Index() {
       corridorRoutePromises.push(fetchRouteAlternatives(startPoint, endPoint, centerVia));
 
       const bearings = [0, 45, 90, 135, 180, 225, 270, 315];
-      const offsetFactors = [0.45, 0.8];
+      // Eén goed gekozen ring van alternatieve snap-punten is meestal genoeg.
+      // Twee ringen verdubbelden het aantal routerverzoeken zonder evenredige winst.
+      const offsetFactors = [0.65];
       for (let corridorIndex = 0; corridorIndex < corridors.length; corridorIndex++) {
         const corridor = corridors[corridorIndex];
         for (const factor of offsetFactors) {
@@ -1112,9 +1119,10 @@ function Index() {
     }
     setCalculationProgress(48);
 
-    // Beperk het volledig doorrekenen tot de drie snelste basisroutes.
-    // Elke variant vraagt ook hoogte-, weer-, laadstop- en route-instructiedata op.
-    const candidates = [...bases].sort((a, b) => a.route.totalTimeMin - b.route.totalTimeMin).slice(0, 3);
+    // Beperk het volledig doorrekenen tot maximaal twee basisroutes.
+    // De routeprovider levert al alternatieven; elke extra variant veroorzaakt
+    // opnieuw laadstopberekeningen én een routeaanvraag met laadstops.
+    const candidates = [...bases].sort((a, b) => a.route.totalTimeMin - b.route.totalTimeMin).slice(0, 2);
     let completed = 0;
     const plans = (await Promise.all(candidates.map(async (base) => {
       const plan = await buildPlan(base, fromCoord, toCoord, fromBattery, extraWaypoints);
