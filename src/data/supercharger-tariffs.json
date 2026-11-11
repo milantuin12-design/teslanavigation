@@ -4018,8 +4018,15 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.44,
       "source": "https://kilowattindex.com/site/addanordsupercharger/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -4029,9 +4036,16 @@
       "label": "Caravaggio – Area di Servizio Adda Sud",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.43,
-      "source": "https://kilowattindex.com/site/addasudsupercharger/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
+      "source": "https://www.kilowattindex.com/site/addasudsupercharger/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -4043,8 +4057,15 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.44,
       "source": "https://kilowattindex.com/site/dornosupercharger/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -4097,8 +4118,15 @@
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.43,
       "source": "https://www.kilowattindex.com/site/32214/",
-      "sourceChecked": "2026-11-06",
-      "currency": "EUR"
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Spain",
@@ -31230,7 +31258,14 @@
       "pricePerKwh": 0.43,
       "source": "https://kilowattindex.com/site/29909/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31293,9 +31328,16 @@
       "label": "San Giovanni Teatino – Hotel Dragonara",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.43,
-      "source": "https://www.kilowattindex.com/site/sangiovanniteatinosupercharger/",
+      "source": "https://kilowattindex.com/site/sangiovanniteatinosupercharger/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31306,9 +31348,16 @@
       "label": "Oricola – La Nuova Fattoria Ristorante Hotel",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.39,
-      "source": "https://www.kilowattindex.com/site/carsolioricolasupercharger/",
+      "source": "https://kilowattindex.com/site/carsolioricolasupercharger/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.39
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31417,9 +31466,16 @@
       "label": "Foiano della Chiana – Valdichiana Outlet Village",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.43,
-      "source": "https://kilowattindex.com/site/foianodellachianasupercharger/",
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/22/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31430,9 +31486,16 @@
       "label": "Fano – Tag Hotel",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.43,
-      "source": "https://www.kilowattindex.com/site/fanosupercharger/",
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/12/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31645,9 +31708,16 @@
       "label": "Parma – Euro Torri Shopping Center",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.47,
-      "source": "https://www.kilowattindex.com/site/33-AViaRoccoBormioliParma-PARMA43122-10a659/",
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/9/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.45
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31669,9 +31739,16 @@
       "label": "Bagnolo San Vito – Mantova Village",
       "timezone": "Europe/Rome",
       "pricePerKwh": 0.45,
-      "source": "https://www.kilowattindex.com/site/Mantova422/",
+      "source": "https://kilowattindex.com/changes/day/2026-11-06/17/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31740,7 +31817,14 @@
       "pricePerKwh": 0.36,
       "source": "https://kilowattindex.com/site/30293/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.36
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31752,7 +31836,14 @@
       "pricePerKwh": 0.4,
       "source": "https://www.kilowattindex.com/site/tarquiniasupercharger/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.4
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31820,7 +31911,14 @@
       "pricePerKwh": 0.43,
       "source": "https://www.kilowattindex.com/site/cepranosupercharger/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
@@ -31832,7 +31930,14 @@
       "pricePerKwh": 0.43,
       "source": "https://kilowattindex.com/site/302007/",
       "sourceChecked": "2026-11-11",
-      "currency": "EUR"
+      "currency": "EUR",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "24:00",
+          "pricePerKwh": 0.43
+        }
+      ]
     },
     {
       "country": "Italy",
