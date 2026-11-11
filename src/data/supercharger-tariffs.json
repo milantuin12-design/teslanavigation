@@ -34136,6 +34136,35 @@
       "source": "https://kilowattindex.com/changes/day/2026-11-06/7/",
       "sourceChecked": "2026-11-11",
       "currency": "NOK"
+    },
+    {
+      "country": "Italy",
+      "match": [
+        "potenza albergo la primula",
+        "albergo la primula"
+      ],
+      "label": "Potenza – Albergo La Primula",
+      "timezone": "Europe/Rome",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "16:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "16:00",
+          "to": "20:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.44
+        }
+      ],
+      "source": "https://www.kilowattindex.com/site/30518/",
+      "sourceChecked": "2026-11-11",
+      "currency": "EUR"
     }
   ]
 }
