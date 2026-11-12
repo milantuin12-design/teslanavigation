@@ -197,7 +197,7 @@ function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; on
   const update = (key: "weekdaySlots" | "weekendSlots" | "holidaySlots", index: number, level: number) => {
     const current = TRAFFIC_PERIODS.map((period, i): TrafficForecastPeriodSlot => {
       const existing = value[key]?.[i];
-      if (existing) return existing;
+      if (existing?.from === period.from && existing?.to === period.to) return existing;
       // Oude opgeslagen profielen met vijf brede dagdelen worden veilig uitgebreid naar 24 uur.
       const legacy = value[key]?.find((slot) => {
         const [fh] = slot.from.split(":").map(Number);
