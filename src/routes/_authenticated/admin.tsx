@@ -1152,12 +1152,12 @@ function AdminPage() {
                 Gepubliceerd (uit = concept, alleen zichtbaar voor admin)
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <Checkbox checked={!!editing.trailer_friendly} onCheckedChange={(c) => setEditing({ ...editing, trailer_friendly: !!c })} />
+                <Checkbox checked={!!editing.trailer_friendly} onCheckedChange={(c) => setEditing({ ...editing, trailer_friendly: !!c, construction: { ...(editing.construction ?? {}), trailerFriendlyStalls: c ? Math.max(1, editing.construction?.trailerFriendlyStalls ?? 0) : 0 } })} />
                 <Truck className="w-4 h-4" /> Aanhangervriendelijk (doorrijbaar met aanhanger)
               </label>
               <div className="ml-6 max-w-xs space-y-1">
                 <Label htmlFor="trailer-friendly-stalls">Aantal aanhangervriendelijke plekken</Label>
-                <Input id="trailer-friendly-stalls" type="number" min="0" max="100" step="1" value={editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0)} onChange={(e) => setEditing({ ...editing, trailer_friendly: Number(e.target.value) > 0 || !!editing.trailer_friendly, construction: { ...(editing.construction ?? {}), trailerFriendlyStalls: Math.max(0, Math.min(100, Math.floor(Number(e.target.value) || 0))) } })} className="bg-slate-800 border-slate-700" />
+                <Input id="trailer-friendly-stalls" type="number" min="0" max="100" step="1" value={editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0)} onChange={(e) => setEditing({ ...editing, trailer_friendly: Number(e.target.value) > 0, construction: { ...(editing.construction ?? {}), trailerFriendlyStalls: Math.max(0, Math.min(100, Math.floor(Number(e.target.value) || 0))) } })} className="bg-slate-800 border-slate-700" />
                 <p className="text-xs text-slate-500">Vul 0 in als er geen plekken zijn. Bij de oude aan/uit-instelling telt dit als 1 plek.</p>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
