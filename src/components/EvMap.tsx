@@ -394,7 +394,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         // Eerst de werkelijk bruikbare capaciteit bepalen (werkzaamheden en defecte/afgesloten stalls).
         const usableCapacity = getOpenStalls(charger, forecastAt);
         const trailerCapacity = Math.max(0, Math.floor(charger.trailerFriendlyStalls ?? (charger.trailerFriendly ? 1 : 0)));
-        const trailerStallsPerSpace = Math.max(1, Math.min(8, Math.floor(charger.construction?.trailerStallsPerSpace ?? 2)));
+        const trailerStallsPerSpace = Math.max(1, Math.min(8, Math.floor(charger.construction?.trailerStallsPerSpace ?? 1)));
         const estimatedTrailerFree = trailerCapacity === 1
           ? (currentCrowd && currentCrowd.level < 50 ? 1 : 0)
           : currentCrowd && trailerCapacity > 1
@@ -420,7 +420,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         if (usable && trailerCapacity > 0 && currentCrowd) {
           const trailerText = trailerCapacity === 1
             ? (estimatedTrailerFree === 1 ? "Waarschijnlijk vrij" : "Waarschijnlijk bezet")
-            : `${estimatedTrailerFree} van de ${trailerCapacity} waarschijnlijk vrij`;
+            : `Waarschijnlijk ${estimatedTrailerFree} van de ${trailerCapacity} vrij`;
           popup += `<div style="margin-top:2px;color:#0f766e;font-size:11px;">🚙 Aanhangervriendelijk: ${trailerText}</div>`;
         }
         const routeCost = routeStop ? estimateChargingCost(routeStop, forecastAt, modelName, packKWh, carMaxKwOverride) : null;
