@@ -412,16 +412,20 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
               ? currentCrowd.level + weekendTrailerBoost
               : currentCrowd.level)
           : null;
-        const estimatedTrailerFree = trailerCrowdLevel !== null && trailerCapacity > 0
+        const estimatedTrailerFreeRaw = trailerCrowdLevel !== null && trailerCapacity > 0
           ? trailerCapacity === 1
             ? (trailerCrowdLevel < 50 ? 1 : 0)
             : estimateFreeStalls(trailerCapacity, trailerCrowdLevel) ?? 0
           : null;
-        // Aanhangervriendelijke laadplekken zijn onderdeel van het totale aantal stalls.
-        // Tel ze dus gewoon mee in de normale beschikbaarheidsvoorspelling; nooit capaciteit aftrekken.
+        // Aanhangerplekken zijn gewone laadplekken: als alle laadplekken bezet zijn,
+        // kan er ook geen aanhangerplek vrij zijn. Het aantal vrije aanhangerplekken
+        // kan bovendien nooit hoger zijn dan het totaal aantal vrije laadplekken.
         const estimatedFree = currentCrowd && usableCapacity > 0
           ? estimateFreeStalls(usableCapacity, currentCrowd.level)
           : null;
+        const estimatedTrailerFree = estimatedTrailerFreeRaw !== null && estimatedFree !== null
+          ? Math.min(estimatedTrailerFreeRaw, estimatedFree)
+          : estimatedTrailerFreeRaw;
         const estimatedQueue = currentCrowd && usableCapacity > 0
           ? estimateQueueCars(usableCapacity, currentCrowd.level)
           : 0;
