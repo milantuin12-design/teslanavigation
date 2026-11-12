@@ -5,13 +5,35 @@ export const TRAFFIC_DAYS = [
   { key: "thu", label: "Do" }, { key: "fri", label: "Vr" }, { key: "sat", label: "Za" }, { key: "sun", label: "Zo" },
 ] as const;
 
-export const TRAFFIC_PERIODS = [
-  { from: "00:00", to: "06:00", label: "00–06" },
-  { from: "06:00", to: "10:00", label: "06–10" },
-  { from: "10:00", to: "16:00", label: "10–16" },
-  { from: "16:00", to: "20:00", label: "16–20" },
-  { from: "20:00", to: "24:00", label: "20–24" },
+const TRAFFIC_BASE_PERIODS = [
+  { from: "00:00", to: "06:00" },
+  { from: "06:00", to: "10:00" },
+  { from: "10:00", to: "16:00" },
+  { from: "16:00", to: "20:00" },
+  { from: "20:00", to: "24:00" },
 ] as const;
+
+// De bestaande locatieprofielen zijn ankerwaarden voor vijf dagdelen.
+// We interpoleren ze naar 24 uurswaarden; dit zijn uurinschattingen, geen live metingen.
+export const TRAFFIC_PERIODS = Array.from({ length: 24 }, (_, hour) => ({
+  from: `${String(hour).padStart(2, "0")}:00`,
+  to: `${String(hour + 1).padStart(2, "0")}:00`,
+  label: `${String(hour).padStart(2, "0")}–${String(hour + 1).padStart(2, "0")}`,
+}));
+
+function interpolateHourly(anchors: number[], hour: number): number {
+  const centers = [3, 8, 13, 18, 22];
+  if (hour <= centers[0]) return anchors[0] ?? 0;
+  if (hour >= centers[4]) return anchors[4] ?? 0;
+  const right = centers.findIndex((center) => center >= hour);
+  const left = right - 1;
+  const ratio = (hour - centers[left]) / (centers[right] - centers[left]);
+  return Math.round((anchors[left] ?? 0) + ((anchors[right] ?? 0) - (anchors[left] ?? 0)) * ratio);
+}
+
+function basePeriodIndex(hour: number): number {
+  return hour < 6 ? 0 : hour < 10 ? 1 : hour < 16 ? 2 : hour < 20 ? 3 : 4;
+}
 
 function zoneFor(charger: Pick<Supercharger, "name" | "city" | "province" | "lat" | "lng" | "country">): "transit" | "ski" | "urban" | "retail" | "other" {
   const text = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
@@ -289,8 +311,8 @@ function siteDemandAdjustment(charger: Supercharger, zone: ReturnType<typeof zon
 
 function makeProfile(charger: Supercharger, zone: ReturnType<typeof zoneFor>, category: TrafficCategory): TrafficForecastPeriodSlot[] {
   const override = siteOverride(charger);
-  const base = override?.levels[category] ?? TRAFFIC_PERIODS.map((_, index) => levelFor(zone, category, index));
-  const adjustments = override ? TRAFFIC_PERIODS.map(() => 0) : (() => {
+  const base = override?.levels[category] ?? TRAFFIC_BASE_PERIODS.map((_, index) => levelFor(zone, category, index));
+  const adjustments = override ? TRAFFIC_BASE_PERIODS.map(() => 0) : (() => {
     const adjustment = siteDemandAdjustment(charger, zone, category);
     // De capaciteit en ligging beïnvloeden niet elk dagdeel even sterk.
     const weights = category === "weekday"
@@ -332,8 +354,8 @@ function makeProfile(charger: Supercharger, zone: ReturnType<typeof zoneFor>, ca
     ? 16 / usableCapacity
     : 1;
   const applyCapacity = override?.confidence !== "medium" && override?.confidence !== "high";
-  return TRAFFIC_PERIODS.map((period, index) => {
-    const rawLevel = base[index] + adjustments[index] + measuredHolidayBoost;
+  return TRAFFIC_PERIODS.map((period, hour) => {
+    const rawLevel = interpolateHourly(base, hour) + interpolateHourly(adjustments, hour) + measuredHolidayBoost;
     const capacityAdjusted = applyCapacity ? rawLevel * capacityMultiplier : rawLevel;
     return {
       from: period.from,
