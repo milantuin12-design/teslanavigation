@@ -130,7 +130,7 @@ export interface ConstructionInfo {
   trafficForecast?: TrafficForecast;
   /** Number of parking/charging bays that can be used with a trailer. Stored in existing construction JSONB. */
   trailerFriendlyStalls?: number;
-  /** Number of charger stalls blocked by one occupied trailer-friendly bay; defaults to 2. */
+  /** Number of charger stalls blocked by one occupied trailer-friendly bay; defaults to 1. */
   trailerStallsPerSpace?: number;
   /** On-site amenities manually verified by the admin. */
   siteAmenities?: string[];
