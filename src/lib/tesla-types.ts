@@ -128,6 +128,8 @@ export interface ConstructionInfo {
   dataUnknown?: boolean;
   /** Opgeslagen in bestaand JSONB-veld construction zodat geen databasemigratie nodig is. */
   trafficForecast?: TrafficForecast;
+  /** Number of parking/charging bays that can be used with a trailer. Stored in existing construction JSONB. */
+  trailerFriendlyStalls?: number;
   /** On-site amenities manually verified by the admin. */
   siteAmenities?: string[];
 }
@@ -234,6 +236,8 @@ export interface Supercharger {
   openingTime?: string | null; // "HH:MM"
   closingTime?: string | null;
   trailerFriendly?: boolean;
+  /** Number of spaces that can physically accommodate a trailer. */
+  trailerFriendlyStalls?: number;
   /** Ondersteunde laadstekkers (alleen 'Type 2' en 'CCS' worden gebruikt). */
   connectors?: string[];
   isAvailable?: boolean;
