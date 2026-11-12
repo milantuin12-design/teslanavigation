@@ -195,7 +195,17 @@ function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; on
     { key: "holidaySlots", label: "Vakanties", description: "Algemene schoolvakanties, feestdagen en vakantieperiodes" },
   ];
   const update = (key: "weekdaySlots" | "weekendSlots" | "holidaySlots", index: number, level: number) => {
-    const current = value[key] ?? TRAFFIC_PERIODS.map((period): TrafficForecastPeriodSlot => ({ from: period.from, to: period.to, level: 25 }));
+    const current = TRAFFIC_PERIODS.map((period, i): TrafficForecastPeriodSlot => {
+      const existing = value[key]?.[i];
+      if (existing) return existing;
+      // Oude opgeslagen profielen met vijf brede dagdelen worden veilig uitgebreid naar 24 uur.
+      const legacy = value[key]?.find((slot) => {
+        const [fh] = slot.from.split(":").map(Number);
+        const [th] = slot.to.split(":").map(Number);
+        return i >= fh && i < (slot.to === "24:00" ? 24 : th);
+      });
+      return { from: period.from, to: period.to, level: legacy?.level ?? 25 };
+    });
     onChange({ ...value, source: "admin", confidence: "medium", [key]: current.map((slot, i) => i === index ? { ...slot, level: Math.max(0, Math.min(100, level)) } : slot) });
   };
   return (
