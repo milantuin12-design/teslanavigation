@@ -437,6 +437,17 @@ export function createEmptyTrafficForecast(): TrafficForecast {
   };
 }
 
+function expandToHourly(slots: TrafficForecastPeriodSlot[]): TrafficForecastPeriodSlot[] {
+  if (slots.length >= 24) return slots;
+  const ordered = [...slots].sort((a, b) => a.from.localeCompare(b.from));
+  const anchors = ordered.map((slot) => slot.level);
+  return TRAFFIC_PERIODS.map((period, hour) => ({
+    from: period.from,
+    to: period.to,
+    level: interpolateHourly(anchors, hour),
+  }));
+}
+
 function findProfileSlot(slots: TrafficForecastPeriodSlot[] | undefined, minutes: number) {
   return slots?.find((item) => {
     const [fh, fm] = item.from.split(":").map(Number);
@@ -475,19 +486,15 @@ export function getTrafficForecastAt(forecast: TrafficForecast | undefined, at: 
     : weekend
       ? forecast.weekendSlots
       : forecast.weekdaySlots;
-  let slot = findProfileSlot(profile, minutes);
+  const hourlyProfile = profile && profile.length < 24 ? expandToHourly(profile) : profile;\n  let slot = findProfileSlot(hourlyProfile, minutes);
 
   // Backward compatibility with older day-specific forecasts.
   if (!slot && forecast.slots?.length) {
     const dayKey = (["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const)[at.getDay()];
-    const legacy = forecast.slots.find((item: TrafficForecastSlot) => {
-      if (item.day !== dayKey) return false;
-      const [fh, fm] = item.from.split(":").map(Number);
-      const [th, tm] = item.to.split(":").map(Number);
-      const from = fh * 60 + fm;
-      const to = item.to === "24:00" ? 1440 : th * 60 + tm;
-      return minutes >= from && minutes < to;
-    });
+    const legacyDay = forecast.slots.filter((item: TrafficForecastSlot) => item.day === dayKey);
+    const legacySlots = legacyDay.map((item) => ({ from: item.from, to: item.to, level: item.level }));
+    const expandedLegacy = legacySlots.length > 0 && legacySlots.length < 24 ? expandToHourly(legacySlots) : legacySlots;
+    const legacy = findProfileSlot(expandedLegacy, minutes);
     if (legacy) slot = legacy;
   }
   if (!slot) return null;
