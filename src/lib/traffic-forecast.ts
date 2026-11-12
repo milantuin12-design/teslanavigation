@@ -527,7 +527,8 @@ export function getTrafficForecastAt(forecast: TrafficForecast | undefined, at: 
     : weekend
       ? forecast.weekendSlots
       : forecast.weekdaySlots;
-  const hourlyProfile = profile && profile.length < 24 ? expandToHourly(profile) : profile;\n  let slot = findProfileSlot(hourlyProfile, minutes);
+  const hourlyProfile = profile && profile.length < 24 ? expandToHourly(profile) : profile;
+  let slot = findProfileSlot(hourlyProfile, minutes);
 
   // Backward compatibility with older day-specific forecasts.
   if (!slot && forecast.slots?.length) {
