@@ -119,6 +119,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>, network: Network
     openingTime: row.opening_time,
     closingTime: row.closing_time,
     trailerFriendly: !!row.trailer_friendly,
+    trailerFriendlyStalls: Math.max(0, Math.floor(Number(row.construction?.trailerFriendlyStalls) || 0)),
     isAvailable: row.is_available !== false,
     parkingFee: !!row.parking_fee,
     parkingFeeAmount: row.parking_fee_amount ?? null,
