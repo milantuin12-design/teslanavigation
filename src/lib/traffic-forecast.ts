@@ -46,9 +46,9 @@ function zoneFor(charger: Pick<Supercharger, "name" | "city" | "province" | "lat
 function levelFor(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weekend" | "holiday", period: number): number {
   const rows: Record<typeof zone, Record<typeof category, number[]>> = {
     urban: {
-      weekday: [10, 72, 42, 78, 18],
-      weekend: [10, 28, 52, 42, 18],
-      holiday: [12, 45, 66, 72, 22],
+      weekday: [5, 20, 28, 30, 12],
+      weekend: [5, 18, 30, 26, 12],
+      holiday: [7, 25, 38, 34, 15],
     },
     transit: {
       weekday: [10, 38, 48, 42, 18],
@@ -81,6 +81,47 @@ type TrafficCategory = "weekday" | "weekend" | "holiday";
 function siteOverride(charger: Supercharger): { label: string; levels: Record<TrafficCategory, number[]>; confidence?: "low" | "medium" | "high" } | null {
   const identity = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
   // Bekende uitzonderingen die niet uit de algemene regio-indeling af te leiden zijn.
+  // Locatiespecifieke correcties op basis van gebruikersfeedback en beschikbare bezettingsinformatie.
+  // Maastricht: 24 stalls; gebruiker meldt dat deze locatie duidelijk rustiger is dan het generieke stadsprofiel.
+  if (/maastricht/.test(identity)) return {
+    label: "rustige locatieschatting Maastricht; 24 laadpunten, geen historische uurreeks",
+    confidence: "low",
+    levels: {
+      weekday: [2, 8, 14, 12, 5],
+      weekend: [2, 10, 16, 14, 5],
+      holiday: [3, 13, 20, 17, 7],
+    },
+  };
+  // Aachen: 8 stalls; gemeten 7-daags gemiddelde circa 23%, met een korte ochtendpiek.
+  if (/aachen|gut.?d[aä]mme/.test(identity)) return {
+    label: "gemeten locatieprofiel Aachen: circa 23% gemiddelde bezetting over 7 dagen; 8 laadpunten",
+    confidence: "medium",
+    levels: {
+      weekday: [12, 29, 27, 39, 26],
+      weekend: [12, 25, 30, 32, 22],
+      holiday: [14, 30, 35, 38, 25],
+    },
+  };
+  // Hasselt: gebruiker meldt een lagere vraag dan het algemene stadsprofiel.
+  if (/hasselt/.test(identity)) return {
+    label: "rustige locatieschatting Hasselt; lager dan gemiddeld stedelijk gebruik",
+    confidence: "low",
+    levels: {
+      weekday: [2, 9, 15, 14, 5],
+      weekend: [2, 11, 18, 16, 6],
+      holiday: [3, 14, 22, 19, 8],
+    },
+  };
+  // Kaunas: gebruiker meldt duidelijk hogere drukte dan de andere genoemde steden.
+  if (/kaunas/.test(identity)) return {
+    label: "verhoogde locatieschatting Kaunas op basis van gebruikersfeedback; nog geen historische uurmeting",
+    confidence: "low",
+    levels: {
+      weekday: [10, 42, 58, 62, 32],
+      weekend: [12, 48, 68, 70, 38],
+      holiday: [15, 58, 78, 80, 45],
+    },
+  };
   // Trabzon (Pazarkapı): enige Tesla Supercharger in de regio.
   // Geen Tesla-historische meetreeks gevonden: bewust een lage regionale
   // vraaginschatting, mede doordat er meerdere andere publieke laadnetwerken zijn.
