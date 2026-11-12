@@ -202,7 +202,7 @@ function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; on
     <div className="rounded-lg border border-cyan-700/50 bg-slate-900/70 p-3 space-y-3">
       <div>
         <div className="text-sm font-semibold text-cyan-200">Druktevoorspelling</div>
-        <p className="text-[11px] text-slate-400">Vul per tijdsblok 0–100% verwachte drukte in. De drie profielen worden apart gebruikt in de routeplanner.</p>
+        <p className="text-[11px] text-slate-400">Vul per uur 0–100% verwachte drukte in. De drie uurprofielen worden apart gebruikt in de routeplanner; vrije laadplekken worden automatisch uit de bruikbare capaciteit berekend.</p>
       </div>
       {groups.map((group) => (
         <div key={group.key} className="space-y-2">
@@ -210,7 +210,7 @@ function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; on
             <div className="text-xs font-semibold text-white">{group.label}</div>
             <div className="text-[10px] text-slate-500">{group.description}</div>
           </div>
-          <div className="grid grid-cols-5 gap-1.5">
+          <div className="grid grid-cols-6 gap-1.5">
             {TRAFFIC_PERIODS.map((period, index) => {
               const slot = value[group.key]?.[index];
               return (
