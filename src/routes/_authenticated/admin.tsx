@@ -527,7 +527,7 @@ function AdminPage() {
         ...(editing.construction || {}),
         trafficForecast: editing.traffic_forecast || createEmptyTrafficForecast(),
         trailerFriendlyStalls: Math.max(0, Math.min(100, Math.floor(Number(editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0)) || 0))),
-        trailerStallsPerSpace: Math.max(1, Math.min(8, Math.floor(Number(editing.construction?.trailerStallsPerSpace ?? 1) || 2))),
+        trailerStallsPerSpace: Math.max(1, Math.min(8, Math.floor(Number(editing.construction?.trailerStallsPerSpace ?? 1) || 1))),
       } as unknown as Json,
       works: (editing.works || {}) as Json,
       closure: (editing.closure || {}) as Json,
@@ -1161,7 +1161,7 @@ function AdminPage() {
                 <Input id="trailer-friendly-stalls" type="number" min="0" max="100" step="1" value={editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0)} onChange={(e) => setEditing({ ...editing, trailer_friendly: Number(e.target.value) > 0, construction: { ...(editing.construction ?? {}), trailerFriendlyStalls: Math.max(0, Math.min(100, Math.floor(Number(e.target.value) || 0))) } })} className="bg-slate-800 border-slate-700" />
                 <p className="text-xs text-slate-500">Vul 0 in als er geen plekken zijn. Bij de oude aan/uit-instelling telt dit als 1 plek.</p>
                 <Label htmlFor="trailer-stalls-per-space" className="mt-2 block">Laders die één bezette aanhangerplek inneemt</Label>
-                <Input id="trailer-stalls-per-space" type="number" min="1" max="8" step="1" value={editing.construction?.trailerStallsPerSpace ?? 2} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction ?? {}), trailerStallsPerSpace: Math.max(1, Math.min(8, Math.floor(Number(e.target.value) || 1))) } })} className="bg-slate-800 border-slate-700" />
+                <Input id="trailer-stalls-per-space" type="number" min="1" max="8" step="1" value={editing.construction?.trailerStallsPerSpace ?? 1} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction ?? {}), trailerStallsPerSpace: Math.max(1, Math.min(8, Math.floor(Number(e.target.value) || 1))) } })} className="bg-slate-800 border-slate-700" />
                 <p className="text-xs text-slate-500">Standaard 1. Iedere bezette aanhangerplek telt als één bezette lader.</p>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
