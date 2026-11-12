@@ -402,7 +402,16 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
           : 0;
         // Alleen operationele, bruikbare laders krijgen een inschatting van vrije plekken.
         if (usable && totalForEstimate > 0 && usableCapacity > 0 && estimatedFree !== null) {
-          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${usableCapacity} laadplekken vrij${estimatedQueue > 0 && estimatedFree === 0 ? ` · mogelijk ${estimatedQueue} auto's in de wachtrij` : ''}</div>`;
+          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${usableCapacity} laadplekken vrij</div>`;
+          const hourlyCells = Array.from({ length: 24 }, (_, hour) => {
+            const at = new Date(forecastAt);
+            at.setHours(hour, 0, 0, 0);
+            const hourForecast = getTrafficForecastAt(charger.trafficForecast, at, charger.province, holidayPeriodMode, winterSportsMode && isSnowRegion(charger));
+            const capacity = getOpenStalls(charger, at);
+            const free = hourForecast && capacity > 0 ? estimateFreeStalls(capacity, hourForecast.level) : null;
+            return `<div style="padding:4px 2px;border-radius:5px;background:#f1f5f9;text-align:center;"><div style="font-size:9px;color:#64748b;">${String(hour).padStart(2, '0')}u</div><div style="font-weight:700;color:#0369a1;">${free === null ? '–' : free}</div></div>`;
+          }).join('');
+          popup += `<div style="margin-top:7px;font-size:11px;color:#475569;font-weight:700;">Verwacht vrije laadplekken per uur</div><div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;margin-top:4px;">${hourlyCells}</div>`;
           const profileNote = charger.trafficForecast?.note;
           if (profileNote) popup += `<div style="margin-top:3px;color:#64748b;font-size:11px;">${escapeHtml(profileNote.slice(0, 220))}${profileNote.includes("Ladespiegel") ? ' · <a href="https://ladespiegel.de/" target="_blank" rel="noopener noreferrer" style="color:#0284c7;text-decoration:underline;">Bron: Ladespiegel</a>' : ""}</div>`;
         }
