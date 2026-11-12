@@ -526,6 +526,7 @@ function AdminPage() {
       construction: {
         ...(editing.construction || {}),
         trafficForecast: editing.traffic_forecast || createEmptyTrafficForecast(),
+        trailerFriendlyStalls: Math.max(0, Math.min(100, Math.floor(Number(editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0)) || 0))),
       } as unknown as Json,
       works: (editing.works || {}) as Json,
       closure: (editing.closure || {}) as Json,
@@ -1154,6 +1155,11 @@ function AdminPage() {
                 <Checkbox checked={!!editing.trailer_friendly} onCheckedChange={(c) => setEditing({ ...editing, trailer_friendly: !!c })} />
                 <Truck className="w-4 h-4" /> Aanhangervriendelijk (doorrijbaar met aanhanger)
               </label>
+              <div className="ml-6 max-w-xs space-y-1">
+                <Label htmlFor="trailer-friendly-stalls">Aantal aanhangervriendelijke plekken</Label>
+                <Input id="trailer-friendly-stalls" type="number" min="0" max="100" step="1" value={editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0)} onChange={(e) => setEditing({ ...editing, trailer_friendly: Number(e.target.value) > 0 || !!editing.trailer_friendly, construction: { ...(editing.construction ?? {}), trailerFriendlyStalls: Math.max(0, Math.min(100, Math.floor(Number(e.target.value) || 0))) } })} className="bg-slate-800 border-slate-700" />
+                <p className="text-xs text-slate-500">Vul 0 in als er geen plekken zijn. Bij de oude aan/uit-instelling telt dit als 1 plek.</p>
+              </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={!!editing.parking_fee} onCheckedChange={(c) => setEditing({ ...editing, parking_fee: !!c })} />
                 💶 Parkeergeld verplicht
