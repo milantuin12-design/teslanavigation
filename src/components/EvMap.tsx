@@ -411,6 +411,16 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
             ? (estimatedTrailerFree === 1 ? "Waarschijnlijk vrij" : "Waarschijnlijk bezet")
             : `${estimatedTrailerFree} van de ${trailerCapacity} waarschijnlijk vrij`;
           popup += `<div style="margin-top:5px;color:#0f766e;font-weight:700;">🚙 Aanhangerplek: ${trailerText}</div>`;
+          const trailerHourlyCells = Array.from({ length: 24 }, (_, hour) => {
+            const at = new Date(forecastAt);
+            at.setHours(hour, 0, 0, 0);
+            const forecast = getTrafficForecastAt(charger.trafficForecast, at, charger.province, holidayPeriodMode, winterSportsMode && isSnowRegion(charger));
+            const free = !forecast ? null : trailerCapacity === 1
+              ? (forecast.level < 50 ? 1 : 0)
+              : estimateFreeStalls(trailerCapacity, forecast.level);
+            return `<div style="padding:4px 2px;border-radius:5px;background:#ecfdf5;text-align:center;"><div style="font-size:9px;color:#64748b;">${String(hour).padStart(2, '0')}u</div><div style="font-weight:700;color:#0f766e;">${free === null ? '–' : free}</div></div>`;
+          }).join('');
+          popup += `<div style="margin-top:6px;font-size:11px;color:#475569;font-weight:700;">Verwacht vrije aanhangerplekken per uur</div><div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;margin-top:4px;">${trailerHourlyCells}</div>`;
         }
         // Alleen operationele, bruikbare laders krijgen een inschatting van vrije plekken.
         if (usable && totalForEstimate > 0 && usableCapacity > 0 && estimatedFree !== null) {
