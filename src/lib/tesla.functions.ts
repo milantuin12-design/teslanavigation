@@ -425,6 +425,8 @@ const chargerInput = z.object({
     steps: z.array(z.string().max(40)).optional(),
     configs: z.array(z.object({ count: z.number().int().min(1).max(500), version: z.string().min(1).max(10), speedKw: z.number().int().min(1).max(1000) })).optional(),
     notes: z.string().max(500).optional(),
+    trailerFriendlyStalls: z.number().int().min(0).max(100).optional(),
+    trailerStallsPerSpace: z.number().int().min(1).max(8).optional(),
   }).default({}),
   works: z.object({
     closedStalls: z.number().int().min(0).max(500).optional(),
