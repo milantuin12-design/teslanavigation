@@ -394,28 +394,22 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         // Eerst de werkelijk bruikbare capaciteit bepalen (werkzaamheden en defecte/afgesloten stalls).
         const usableCapacity = getOpenStalls(charger, forecastAt);
         const trailerCapacity = Math.max(0, Math.floor(charger.trailerFriendlyStalls ?? (charger.trailerFriendly ? 1 : 0)));
-        const trailerStallsPerSpace = Math.max(1, Math.min(8, Math.floor(charger.construction?.trailerStallsPerSpace ?? 1)));
         const estimatedTrailerFree = trailerCapacity === 1
           ? (currentCrowd && currentCrowd.level < 50 ? 1 : 0)
           : currentCrowd && trailerCapacity > 1
             ? estimateFreeStalls(trailerCapacity, currentCrowd.level) ?? 0
             : null;
-        // Een bezette aanhangerplek blokkeert standaard twee fysieke laadplekken.
-        // Trek die gegarandeerd bezette capaciteit eerst af; voorspel de overige laders daarna normaal.
-        const occupiedTrailerSpaces = estimatedTrailerFree !== null
-          ? Math.max(0, trailerCapacity - estimatedTrailerFree)
-          : 0;
-        const trailerOccupiedStalls = Math.min(usableCapacity, occupiedTrailerSpaces * trailerStallsPerSpace);
-        const regularCapacity = Math.max(0, usableCapacity - trailerOccupiedStalls);
-        const estimatedFree = currentCrowd && regularCapacity > 0
-          ? estimateFreeStalls(regularCapacity, currentCrowd.level)
+        // Aanhangervriendelijke laadplekken zijn onderdeel van het totale aantal stalls.
+        // Tel ze dus gewoon mee in de normale beschikbaarheidsvoorspelling; nooit capaciteit aftrekken.
+        const estimatedFree = currentCrowd && usableCapacity > 0
+          ? estimateFreeStalls(usableCapacity, currentCrowd.level)
           : null;
-        const estimatedQueue = currentCrowd && regularCapacity > 0
-          ? estimateQueueCars(regularCapacity, currentCrowd.level)
+        const estimatedQueue = currentCrowd && usableCapacity > 0
+          ? estimateQueueCars(usableCapacity, currentCrowd.level)
           : 0;
         // Toon alleen de inschatting voor het huidige moment of de aankomst; geen uurschema.
         if (usable && totalForEstimate > 0 && usableCapacity > 0 && estimatedFree !== null) {
-          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${regularCapacity} ${routeStop ? "beschikbaar bij aankomst" : "laadplekken vrij"}</div>`;
+          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${usableCapacity} ${routeStop ? "beschikbaar bij aankomst" : "laadplekken vrij"}</div>`;
         }
         if (usable && trailerCapacity > 0 && currentCrowd) {
           const trailerText = trailerCapacity === 1
