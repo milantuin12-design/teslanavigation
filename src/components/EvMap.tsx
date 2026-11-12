@@ -424,7 +424,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         }
         // Alleen operationele, bruikbare laders krijgen een inschatting van vrije plekken.
         if (usable && totalForEstimate > 0 && usableCapacity > 0 && estimatedFree !== null) {
-          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${usableCapacity} laadplekken vrij</div>`;
+          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${usableCapacity} ${routeStop ? "beschikbaar bij aankomst" : "laadplekken vrij"}</div>`;
           const hourlyCells = Array.from({ length: 24 }, (_, hour) => {
             const at = new Date(forecastAt);
             at.setHours(hour, 0, 0, 0);
