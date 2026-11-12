@@ -394,7 +394,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         // Eerst de werkelijk bruikbare capaciteit bepalen (werkzaamheden en defecte/afgesloten stalls).
         const usableCapacity = getOpenStalls(charger, forecastAt);
         const trailerCapacity = Math.max(0, Math.floor(charger.trailerFriendlyStalls ?? (charger.trailerFriendly ? 1 : 0)));
-        const trailerStallsPerSpace = Math.max(1, Math.min(8, Math.floor(charger.trailerStallsPerSpace ?? 2)));
+        const trailerStallsPerSpace = Math.max(1, Math.min(8, Math.floor(charger.construction?.trailerStallsPerSpace ?? 2)));
         const estimatedTrailerFree = trailerCapacity === 1
           ? (currentCrowd && currentCrowd.level < 50 ? 1 : 0)
           : currentCrowd && trailerCapacity > 1
