@@ -400,6 +400,18 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         const estimatedQueue = currentCrowd && usableCapacity > 0
           ? estimateQueueCars(usableCapacity, currentCrowd.level)
           : 0;
+        const trailerCapacity = Math.max(0, Math.floor(charger.trailerFriendlyStalls ?? (charger.trailerFriendly ? 1 : 0)));
+        const estimatedTrailerFree = trailerCapacity === 1
+          ? (currentCrowd && currentCrowd.level < 50 ? 1 : 0)
+          : currentCrowd && trailerCapacity > 1
+            ? estimateFreeStalls(trailerCapacity, currentCrowd.level) ?? 0
+            : null;
+        if (usable && trailerCapacity > 0 && currentCrowd) {
+          const trailerText = trailerCapacity === 1
+            ? (estimatedTrailerFree === 1 ? "Waarschijnlijk vrij" : "Waarschijnlijk bezet")
+            : `${estimatedTrailerFree} van de ${trailerCapacity} waarschijnlijk vrij`;
+          popup += `<div style="margin-top:5px;color:#0f766e;font-weight:700;">🚙 Aanhangerplek: ${trailerText}</div>`;
+        }
         // Alleen operationele, bruikbare laders krijgen een inschatting van vrije plekken.
         if (usable && totalForEstimate > 0 && usableCapacity > 0 && estimatedFree !== null) {
           popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${usableCapacity} laadplekken vrij</div>`;
