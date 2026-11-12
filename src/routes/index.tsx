@@ -198,6 +198,7 @@ function Index() {
   const [holidayPeriodMode, setHolidayPeriodModeState] = useState(false);
   const [winterSportsMode, setWinterSportsModeState] = useState(false);
   const [isLoadingChargers, setIsLoadingChargers] = useState(true);
+  const [chargerLoadError, setChargerLoadError] = useState<string | null>(null);
   const previousChargerSnapshotRef = useRef<Map<string, string>>(new Map());
   const chargerSnapshot = (items: Supercharger[]) => new Map(items.filter((item) => item.id).map((item) => [item.id!, JSON.stringify({ status: item.status, available: item.isAvailable, stalls: item.stallStates })]));
   const [favoriteChargerIds, setFavoriteChargerIds] = useState<string[]>([]);
@@ -408,9 +409,16 @@ function Index() {
     let mounted = true;
     listSuperchargers()
       .then((data) => {
-        if (mounted) { previousChargerSnapshotRef.current = chargerSnapshot(data); setSuperchargers(data); }
+        if (mounted) {
+          previousChargerSnapshotRef.current = chargerSnapshot(data);
+          setSuperchargers(data);
+          setChargerLoadError(data.length ? null : "Er zijn geen Superchargers ontvangen.");
+        }
       })
-      .catch(() => {})
+      .catch((error) => {
+        console.error("[TeslaNavigation] Superchargers laden mislukt:", error);
+        if (mounted) setChargerLoadError(error instanceof Error ? error.message : "Superchargers konden niet worden geladen.");
+      })
       .finally(() => {
         if (mounted) setIsLoadingChargers(false);
       });
@@ -1643,6 +1651,30 @@ function Index() {
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowDevelopmentChargers((v) => !v)}>
                 {showDevelopmentChargers ? "Verberg plannen & bouwlocaties" : "Alles tonen"}
               </Button>
+            </div>
+          )}
+          {chargerLoadError && (
+            <div role="alert" className="absolute top-20 left-3 z-[1100] max-w-[min(420px,calc(100vw-24px))] rounded-lg border border-red-500/40 bg-slate-950/95 px-3 py-2 text-xs text-red-200 shadow-xl">
+              Superchargers laden mislukt: {chargerLoadError}
+              <button
+                type="button"
+                className="ml-2 underline underline-offset-2"
+                onClick={() => {
+                  setChargerLoadError(null);
+                  setIsLoadingChargers(true);
+                  listSuperchargers()
+                    .then((data) => {
+                      previousChargerSnapshotRef.current = chargerSnapshot(data);
+                      setSuperchargers(data);
+                      setChargerLoadError(data.length ? null : "Er zijn geen Superchargers ontvangen.");
+                    })
+                    .catch((error) => {
+                      console.error("[TeslaNavigation] Superchargers opnieuw laden mislukt:", error);
+                      setChargerLoadError(error instanceof Error ? error.message : "Superchargers konden niet worden geladen.");
+                    })
+                    .finally(() => setIsLoadingChargers(false));
+                }}
+              >Opnieuw proberen</button>
             </div>
           )}
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
