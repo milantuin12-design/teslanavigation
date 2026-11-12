@@ -37,10 +37,10 @@ function basePeriodIndex(hour: number): number {
 
 function zoneFor(charger: Pick<Supercharger, "name" | "city" | "province" | "lat" | "lng" | "country">): "transit" | "ski" | "urban" | "retail" | "other" {
   const text = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
-  if (/autohof|rastst[aä]tte|aire de|area di servizio|service area|service station|autobahn|motorway|autoroute|autostrada|highway|tankstelle|tankstation/.test(text)) return "transit";
-  if (/ski|alpen|alps|dolomit|brenner|tauern|arlberg|tirol|tyrol|salzburg|kitzb[uü]hel|zell am see|s[oö]lden|ischgl|st anton|lermoos|innsbruck|chamonix|val thorens|courchevel|les arcs|tignes|verbier|davos|zermatt|laax|st moritz|livigno|cortina|bormio|geilo|trysil|are|åre|kiruna|rovaniemi/.test(text)) return "ski";
-  if (/ikea|shopping|mall|centre commercial|einkaufszentrum|outlet|retail park|carrefour|auchan|leclerc|kaufland|globus/.test(text)) return "retail";
-  if (/wien|vienna|graz|linz|salzburg|m[uü]nchen|munich|berlin|hamburg|frankfurt|d[uü]sseldorf|duesseldorf|k[oö]ln|cologne|dortmund|essen|leipzig|dresden|stuttgart|hannover|bremen|bonn|m[uü]nster|aachen|paris|lyon|marseille|lille|bordeaux|toulouse|nice|brussels|bruxelles|amsterdam|almere|rotterdam|utrecht|eindhoven|groningen|zwolle|arnhem|nijmegen|breda|tilburg|s.?hertogenbosch|den.?bosch|apeldoorn|enschede|maastricht|leeuwarden|dordrecht|amersfoort|haarlem|leiden|delft|venlo|roermond|antwerp|antwerpen|gent|ghent|brugge|bruge|liege|luik|charleroi|namur|mechelen|hasselt|zurich|z[uü]rich|geneva|gen[eè]ve|basel|bern|lausanne|lucerne|luzern|milan|milano|rome|roma|barcelona|madrid|valencia|seville|malaga|zaragoza|bilbao|alicante|murcia|palma|lisbon|lisboa|porto|braga|coimbra|prague|praha|brno|ostrava|warsaw|warschau|krakow|krak[oó]w|wroclaw|gdansk|poznan|lodz|istanbul|ankara|izmir|bursa|antalya|athens|thessaloniki|budapest|bucharest|sofia|belgrade|zagreb|ljubljana|bratislava|copenhagen|k[oø]benhavn|aarhus|odense|aalborg|esbjerg|kolding|vejle|randers|horsens|roskilde|helsing[oø]r|stockholm|g[oö]teborg|gothenburg|malm[oö]|uppsala|oslo|bergen|trondheim|stavanger|helsinki|tampere|turku|oulu|tallinn|riga|vilnius|reykjavik|dublin|cork|galway|london|birmingham|manchester|liverpool|leeds|bristol|glasgow|edinburgh|cardiff|newcastle|rome|roma/.test(text)) return "urban";
+  if (/(?:^|[^a-z0-9])(?:autohof|rastst[aä]tte|rastplatz|rasthof|aire d[u’']|aire de|area di servizio|service area|motorway services|service station|autobahn|motorway|autoroute|autostrada|highway|tankstelle|tankstation|autogrill|service plaza)(?:$|[^a-z0-9])/.test(text)) return "transit";
+  if (/(?:^|[^a-z0-9])(?:ski|alpen|alps|dolomit|brenner|tauern|arlberg|tirol|tyrol|salzburg|kitzb[uü]hel|zell am see|s[oö]lden|ischgl|st anton|lermoos|innsbruck|chamonix|val thorens|courchevel|les arcs|tignes|verbier|davos|zermatt|laax|st moritz|livigno|cortina|bormio|geilo|trysil|are|åre|kiruna|rovaniemi)(?:$|[^a-z0-9])/.test(text)) return "ski";
+  if (/(?:^|[^a-z0-9])(?:ikea|lidl|aldi|carrefour|auchan|leclerc|e[.]?leclerc|kaufland|globus|intermarch[eé]|grand frais|decathlon|shopping|mall|centre commercial|einkaufszentrum|outlet|retail park|retail centre|shopping centre|shopping center|supermarket)(?:$|[^a-z0-9])/.test(text)) return "retail";
+  if (/(?:^|[^a-z0-9])(?:wien|vienna|graz|linz|salzburg|m[uü]nchen|munich|berlin|hamburg|frankfurt|d[uü]sseldorf|duesseldorf|k[oö]ln|cologne|dortmund|essen|leipzig|dresden|stuttgart|hannover|bremen|bonn|m[uü]nster|aachen|paris|lyon|marseille|lille|bordeaux|toulouse|nice|brussels|bruxelles|amsterdam|almere|rotterdam|utrecht|eindhoven|groningen|zwolle|arnhem|nijmegen|breda|tilburg|s.?hertogenbosch|den.?bosch|apeldoorn|enschede|maastricht|leeuwarden|dordrecht|amersfoort|haarlem|leiden|delft|venlo|roermond|antwerp|antwerpen|gent|ghent|brugge|bruge|liege|luik|charleroi|namur|mechelen|hasselt|zurich|z[uü]rich|geneva|gen[eè]ve|basel|bern|lausanne|lucerne|luzern|milan|milano|rome|roma|barcelona|madrid|valencia|seville|malaga|zaragoza|bilbao|alicante|murcia|palma|lisbon|lisboa|porto|braga|coimbra|prague|praha|brno|ostrava|warsaw|warschau|krakow|krak[oó]w|wroclaw|gdansk|poznan|lodz|istanbul|ankara|izmir|bursa|antalya|athens|thessaloniki|budapest|bucharest|sofia|belgrade|zagreb|ljubljana|bratislava|copenhagen|k[oø]benhavn|aarhus|odense|aalborg|esbjerg|kolding|vejle|randers|horsens|roskilde|helsing[oø]r|stockholm|g[oö]teborg|gothenburg|malm[oö]|uppsala|oslo|bergen|trondheim|stavanger|helsinki|tampere|turku|oulu|tallinn|riga|vilnius|reykjavik|dublin|cork|galway|london|birmingham|manchester|liverpool|leeds|bristol|glasgow|edinburgh|cardiff|newcastle|rome|roma)(?:$|[^a-z0-9])/.test(text)) return "urban";
   return "other";
 }
 function levelFor(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weekend" | "holiday", period: number): number {
@@ -326,8 +326,8 @@ function siteDemandAdjustment(charger: Supercharger, zone: ReturnType<typeof zon
   const identity = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
   let adjustment = 0;
   if (/airport|flughafen|a[eé]roport|schiphol|terminal/.test(identity)) adjustment += 18;
-  if (/knooppunt|junction|interchange|border|grens|tunnel|pass/.test(identity)) adjustment += 10;
-  if (/outlet|shopping|mall|einkaufszentrum|retail park|ikea|carrefour|auchan|leclerc|kaufland|globus/.test(identity)) adjustment += 10;
+  if (/knooppunt|junction|interchange|border|grens|tunnel|pass|service plaza|motorway services|rastplatz|rasthof|autogrill/.test(identity)) adjustment += 10;
+  if (/outlet|shopping|mall|einkaufszentrum|retail park|ikea|lidl|aldi|carrefour|auchan|leclerc|kaufland|globus|intermarch[eé]|grand frais|decathlon|supermarket/.test(identity)) adjustment += 10;
   if (/autohof|rastst[aä]tte|aire de|service area|autobahn|motorway|autoroute|tankstelle|tankstation/.test(identity)) adjustment += 7;
   if (/centrum|city centre|downtown|innenstadt/.test(identity)) adjustment += 7;
   if (/industrial|industriegebiet|business park/.test(identity)) adjustment -= 8;
@@ -426,12 +426,12 @@ function regionalNetworkFactor(charger: Supercharger, network: NetworkLocation[]
     Number.isFinite(site.lat) && Number.isFinite(site.lng) &&
     distanceKm(charger, site) <= 60
   ).length;
-  const densityFactor = nearby === 0 ? -0.24
-    : nearby <= 2 ? -0.14
-    : nearby <= 5 ? -0.05
-    : nearby <= 10 ? 0.04
-    : nearby <= 20 ? 0.10
-    : 0.16;
+  const densityFactor = nearby === 0 ? 0.10
+    : nearby <= 2 ? 0.06
+    : nearby <= 5 ? 0.02
+    : nearby <= 10 ? 0
+    : nearby <= 20 ? -0.04
+    : -0.08;
   // Een afgelegen snelweg-, ski- of toeristische locatie kan ondanks weinig
   // Tesla-buren toch veel passanten trekken; demp de isolatiecorrectie daar.
   const zoneProtection = zone === "transit" || zone === "ski" || zone === "retail" ? 0.10 : 0;
