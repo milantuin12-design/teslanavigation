@@ -314,10 +314,28 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 const free = available > 0 ? estimateFreeStalls(available, forecast.level) : available === 0 && total > 0 ? 0 : null;
                 const queue = available > 0 ? estimateQueueCars(available, forecast.level) : 0;
                 const queueText = queue > 0 ? ` · mogelijk ${queue} ${queue === 1 ? "auto" : "auto’s"} in de wachtrij` : "";
-                return <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
-                  <span className={`rounded-md px-2 py-1 ${color}`}>{trafficLevelLabel(forecast.level)} · {forecast.level}%</span>
-                  <span className="rounded-md bg-sky-500/10 px-2 py-1 text-sky-300">{free !== null ? (available > 0 ? `Waarschijnlijk ${free} van de ${available} beschikbaar${free === 0 ? queueText : ""}` : "Geen laadpunten beschikbaar") : "Geen capaciteitsgegevens"} </span>
-                  <span className="text-slate-400">{forecast.from}–{forecast.to} · {forecast.holiday ? `vakantie: ${forecast.holiday}` : forecast.category === "weekend" ? "weekend" : "doordeweeks"}{forecast.winterSports ? " · wintersportcorrectie" : ""} · {forecast.source === "regional-estimate" ? "locatieschatting" : "beheerdersprofiel"} · {forecast.confidence === "low" ? "lage zekerheid" : forecast.confidence === "high" ? "hoge zekerheid" : "gemiddelde zekerheid"}</span>
+                const hourly = Array.from({ length: 24 }, (_, hour) => {
+                  const at = new Date(eta);
+                  at.setHours(hour, 0, 0, 0);
+                  const hourForecast = getTrafficForecastAt(stop.charger.trafficForecast, at, stop.charger.province, holidayMode, winterSportsMode && isSnowRegion(stop.charger));
+                  const capacity = getOpenStalls(stop.charger, at);
+                  return { hour, free: hourForecast && capacity > 0 ? estimateFreeStalls(capacity, hourForecast.level) : null };
+                });
+                return <div className="mt-2 space-y-2 text-[11px]">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`rounded-md px-2 py-1 ${color}`}>{trafficLevelLabel(forecast.level)} · {forecast.level}%</span>
+                    <span className="rounded-md bg-sky-500/10 px-2 py-1 text-sky-300">{free !== null ? (available > 0 ? `Waarschijnlijk ${free} van de ${available} beschikbaar${free === 0 ? queueText : ""}` : "Geen laadpunten beschikbaar") : "Geen capaciteitsgegevens"}</span>
+                    <span className="text-slate-400">{forecast.holiday ? `vakantie: ${forecast.holiday}` : forecast.category === "weekend" ? "weekend" : "doordeweeks"}{forecast.winterSports ? " · wintersportcorrectie" : ""} · {forecast.source === "regional-estimate" ? "locatieschatting" : "beheerdersprofiel"} · {forecast.confidence === "low" ? "lage zekerheid" : forecast.confidence === "high" ? "hoge zekerheid" : "gemiddelde zekerheid"}</span>
+                  </div>
+                  <div className="rounded-md bg-slate-900/60 p-2">
+                    <div className="mb-1 text-[10px] font-semibold text-slate-300">Verwacht vrije laadplekken per uur</div>
+                    <div className="grid grid-cols-6 gap-1">
+                      {hourly.map(({ hour, free }) => <div key={hour} className="rounded bg-slate-800/80 px-1 py-1 text-center">
+                        <div className="text-[9px] text-slate-500">{String(hour).padStart(2, "0")}u</div>
+                        <div className="font-semibold text-sky-300">{free === null ? "–" : free}</div>
+                      </div>)}
+                    </div>
+                  </div>
                 </div>;
               })()}
       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
