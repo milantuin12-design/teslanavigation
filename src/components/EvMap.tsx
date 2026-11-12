@@ -323,8 +323,10 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
     const map = mapRef.current;
     if (!map) return;
 
-    markersRef.current.clearLayers();
-    clusterRef.current?.clearLayers();
+    // Bouw eerst de nieuwe markers op en vervang daarna pas de zichtbare lagen.
+    // Zo verdwijnt de bestaande kaart niet tijdelijk tijdens een gegevensupdate.
+    const nextChargerMarkers: L.Marker[] = [];
+    const nextStandaloneMarkers: L.Marker[] = [];
     if (routeChargersOnly) clusterRef.current?.remove();
     else clusterRef.current?.addTo(map);
 
@@ -394,11 +396,27 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         // Eerst de werkelijk bruikbare capaciteit bepalen (werkzaamheden en defecte/afgesloten stalls).
         const usableCapacity = getOpenStalls(charger, forecastAt);
         const trailerCapacity = Math.max(0, Math.floor(charger.trailerFriendlyStalls ?? (charger.trailerFriendly ? 1 : 0)));
-        const estimatedTrailerFree = trailerCapacity === 1
-          ? (currentCrowd && currentCrowd.level < 50 ? 1 : 0)
-          : currentCrowd && trailerCapacity > 1
-            ? estimateFreeStalls(trailerCapacity, currentCrowd.level) ?? 0
-            : null;
+        // Aanhangerplekken raken tijdens vakanties vooral overdag snel bezet.
+        // Gebruik het admin-aantal plekken, met een aparte vakantiecurve voor aanhangers.
+        const trailerHour = forecastAt.getHours();
+        const holidayTrailerFloor = trailerHour < 6 ? 15
+          : trailerHour < 10 ? 65
+          : trailerHour < 16 ? 88
+          : trailerHour < 20 ? 78
+          : 42;
+        const weekendTrailerBoost = trailerHour >= 6 && trailerHour < 20 ? 15 : 3;
+        const trailerCrowdLevel = currentCrowd
+          ? Math.min(100, currentCrowd.category === "holiday"
+            ? Math.max(currentCrowd.level, holidayTrailerFloor)
+            : currentCrowd.category === "weekend"
+              ? currentCrowd.level + weekendTrailerBoost
+              : currentCrowd.level)
+          : null;
+        const estimatedTrailerFree = trailerCrowdLevel !== null && trailerCapacity > 0
+          ? trailerCapacity === 1
+            ? (trailerCrowdLevel < 50 ? 1 : 0)
+            : estimateFreeStalls(trailerCapacity, trailerCrowdLevel) ?? 0
+          : null;
         // Aanhangervriendelijke laadplekken zijn onderdeel van het totale aantal stalls.
         // Tel ze dus gewoon mee in de normale beschikbaarheidsvoorspelling; nooit capaciteit aftrekken.
         const estimatedFree = currentCrowd && usableCapacity > 0
@@ -619,17 +637,16 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
             L.popup({ maxWidth: 360 }).setLatLng([charger.lat, charger.lng]).setContent(fallback).openOn(map);
           }
         });
-        const targetLayer = routeChargersOnly ? markersRef.current : (clusterRef.current ?? markersRef.current);
-        targetLayer.addLayer(marker);
+        nextChargerMarkers.push(marker);
       } catch { /* skip bad charger */ }
     });
 
 
     if (startCoord) {
-      markersRef.current.addLayer(L.marker([startCoord.lat, startCoord.lng], { icon: startIcon }));
+      nextStandaloneMarkers.push(L.marker([startCoord.lat, startCoord.lng], { icon: startIcon }));
     }
     if (destCoord) {
-      markersRef.current.addLayer(L.marker([destCoord.lat, destCoord.lng], { icon: destIcon }));
+      nextStandaloneMarkers.push(L.marker([destCoord.lat, destCoord.lng], { icon: destIcon }));
     }
     waypoints.forEach((waypoint) => {
       const marker = L.marker([waypoint.lat, waypoint.lng], { icon: waypointIcon });
@@ -637,9 +654,19 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         ? `Route binnen de ingestelde straal`
         : waypoint.charge ? `Tussenstop · opladen tot ${waypoint.chargeTo}%` : 'Tussenstop';
       marker.bindPopup(`<div style="font-family:system-ui;font-size:13px"><strong>${escapeHtml(waypoint.label || 'Tussenstop')}</strong><br/>${detail}</div>`);
-      markersRef.current.addLayer(marker);
+      nextStandaloneMarkers.push(marker);
     });
-  }, [startCoord, destCoord, superchargers, chargingStops, departure, modelName, packKWh, carMaxKwOverride, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode]);
+
+    // Pas de kaartlagen atomair toe nadat de nieuwe markercollectie klaar is.
+    markersRef.current.clearLayers();
+    clusterRef.current?.clearLayers();
+    if (routeChargersOnly) {
+      nextChargerMarkers.forEach((marker) => markersRef.current.addLayer(marker));
+    } else {
+      nextChargerMarkers.forEach((marker) => clusterRef.current?.addLayer(marker));
+    }
+    nextStandaloneMarkers.forEach((marker) => markersRef.current.addLayer(marker));
+  }, [startCoord, destCoord, superchargers, chargingStops, departure, modelName, packKWh, carMaxKwOverride, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode, holidayPeriodMode]);
 
   // Draai de kaart tijdens navigatie wanneer rijrichting boven is ingeschakeld.
   useEffect(() => {
