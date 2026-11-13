@@ -29,6 +29,17 @@ function describeAuthError(err: unknown): string {
   return typeof err === "string" ? err : "Onbekende fout bij het verbinden met de inlogserver.";
 }
 
+function withAuthTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => reject(new Error(
+        label + " reageert niet binnen 15 seconden. De Supabase/Lovable-authserver is mogelijk niet bereikbaar of gepauzeerd."
+      )), 15000);
+    }),
+  ]);
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -57,16 +68,16 @@ function AuthPage() {
     setAuthError("");
     try {
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        const { error } = await withAuthTimeout(supabase.auth.signInWithPassword({ email: email.trim(), password }), "De inlogserver");
         if (error) throw error;
         toast.success("Ingelogd");
         await navigate({ to: "/" });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { error } = await withAuthTimeout(supabase.auth.signUp({
           email: email.trim(),
           password,
           options: { emailRedirectTo: window.location.origin },
-        });
+        }), "De registratieserver");
         if (error) throw error;
         toast.success("Account aangemaakt — check je mail voor verificatie");
       }
@@ -113,8 +124,9 @@ function AuthPage() {
             <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="bg-slate-700 border-slate-600" />
           </div>
           <Button type="submit" disabled={busy} className="w-full bg-red-600 hover:bg-red-700">
-            {mode === "login" ? "Inloggen" : "Account aanmaken"}
+            {busy ? "Verbinden met de inlogserver…" : mode === "login" ? "Inloggen" : "Account aanmaken"}
           </Button>
+          {busy && <p role="status" aria-live="polite" className="text-center text-xs text-slate-300">Als de database niet reageert, verschijnt hier binnen 15 seconden een foutmelding.</p>}
         </form>
         {authError && (
           <div role="alert" className="mt-4 rounded-lg border border-red-500/50 bg-red-950/50 p-3 text-sm text-red-200 break-words">
