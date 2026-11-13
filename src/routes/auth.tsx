@@ -18,31 +18,52 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+function describeAuthError(err: unknown): string {
+  if (err && typeof err === "object") {
+    const value = err as { message?: unknown; code?: unknown; status?: unknown; name?: unknown };
+    const message = typeof value.message === "string" ? value.message : "Onbekende fout";
+    const code = typeof value.code === "string" ? value.code : null;
+    const status = typeof value.status === "number" ? value.status : null;
+    return [message, code ? `Code: ${code}` : null, status ? `HTTP: ${status}` : null].filter(Boolean).join(" · ");
+  }
+  return typeof err === "string" ? err : "Onbekende fout bij het verbinden met de inlogserver.";
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/" });
-    });
+    let active = true;
+    void (async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error) throw error;
+        if (active && data.user) await navigate({ to: "/" });
+      } catch (err) {
+        if (active) setAuthError(`Verbindingscontrole mislukt: ${describeAuthError(err)}`);
+      }
+    })();
+    return () => { active = false; };
   }, [navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    setAuthError("");
     try {
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) throw error;
         toast.success("Ingelogd");
-        navigate({ to: "/" });
+        await navigate({ to: "/" });
       } else {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
           options: { emailRedirectTo: window.location.origin },
         });
@@ -50,7 +71,9 @@ function AuthPage() {
         toast.success("Account aangemaakt — check je mail voor verificatie");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Er ging iets mis");
+      const message = describeAuthError(err);
+      setAuthError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -58,15 +81,19 @@ function AuthPage() {
 
   const onGoogle = async () => {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) {
-      toast.error(result.error instanceof Error ? result.error.message : "Google login mislukt");
+    setAuthError("");
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+      if (result.error) throw result.error;
+      if (result.redirected) return;
+      toast.success("Ingelogd met Google");
+      await navigate({ to: "/" });
+    } catch (err) {
+      const message = describeAuthError(err);
+      setAuthError(message);
+      toast.error(message);
       setBusy(false);
-      return;
     }
-    if (result.redirected) return;
-    toast.success("Ingelogd met Google");
-    navigate({ to: "/" });
   };
 
   return (
@@ -89,6 +116,13 @@ function AuthPage() {
             {mode === "login" ? "Inloggen" : "Account aanmaken"}
           </Button>
         </form>
+        {authError && (
+          <div role="alert" className="mt-4 rounded-lg border border-red-500/50 bg-red-950/50 p-3 text-sm text-red-200 break-words">
+            <strong>Inloggen mislukt</strong>
+            <p className="mt-1">{authError}</p>
+            <p className="mt-2 text-xs text-red-200/80">Deze foutmelding bevat geen wachtwoord of toegangstoken. Stuur de volledige melding door om de oorzaak gericht te kunnen oplossen.</p>
+          </div>
+        )}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-600" /></div>
           <div className="relative flex justify-center text-xs uppercase"><span className="bg-slate-800 px-2 text-slate-400">of</span></div>
@@ -98,7 +132,7 @@ function AuthPage() {
         </Button>
         <p className="text-center mt-6 text-sm text-slate-400">
           {mode === "login" ? "Nog geen account?" : "Al een account?"}{" "}
-          <button className="text-red-400 hover:text-red-300" onClick={() => setMode(mode === "login" ? "register" : "login")}>
+          <button type="button" className="text-red-400 hover:text-red-300" onClick={() => { setAuthError(""); setMode(mode === "login" ? "register" : "login"); }}>
             {mode === "login" ? "Registreren" : "Inloggen"}
           </button>
         </p>
