@@ -12,8 +12,12 @@ export function AccountMenu() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null));
+    // Supabase emits INITIAL_SESSION after the listener is attached. Use this
+    // single ordered source of truth so a late getUser() response cannot
+    // overwrite a newer SIGNED_IN event with a stale null user.
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
     return () => sub.subscription.unsubscribe();
   }, []);
 
