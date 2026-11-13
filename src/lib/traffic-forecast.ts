@@ -417,15 +417,45 @@ function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: numb
   return 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
-/** Schat relatieve lokale concurrentie/vraag op basis van nabijgelegen Tesla-locaties.
- * Dit wordt voor iedere Supercharger berekend; het aantal stalls zelf bepaalt de vraag niet.
- */
+// Eén ruimtelijke index per netwerkarray voorkomt dat voor iedere locatie alle
+// duizenden andere Superchargers opnieuw worden doorgerekend (O(n²)).
+const networkSpatialIndexes = new WeakMap<NetworkLocation[], Map<string, NetworkLocation[]>>();
+const NETWORK_CELL_DEGREES = 0.5;
+
+function getNetworkSpatialIndex(network: NetworkLocation[]): Map<string, NetworkLocation[]> {
+  const cached = networkSpatialIndexes.get(network);
+  if (cached) return cached;
+  const index = new Map<string, NetworkLocation[]>();
+  for (const site of network) {
+    if (!Number.isFinite(site.lat) || !Number.isFinite(site.lng)) continue;
+    const key = `${Math.floor(site.lat / NETWORK_CELL_DEGREES)}:${Math.floor(site.lng / NETWORK_CELL_DEGREES)}`;
+    const bucket = index.get(key);
+    if (bucket) bucket.push(site);
+    else index.set(key, [site]);
+  }
+  networkSpatialIndexes.set(network, index);
+  return index;
+}
+
+/** Schat relatieve lokale concurrentie/vraag met alleen geografisch nabije locaties. */
 function regionalNetworkFactor(charger: Supercharger, network: NetworkLocation[], zone: ReturnType<typeof zoneFor>): number {
-  const nearby = network.filter((site) =>
-    site.id !== charger.id &&
-    Number.isFinite(site.lat) && Number.isFinite(site.lng) &&
-    distanceKm(charger, site) <= 60
-  ).length;
+  const index = getNetworkSpatialIndex(network);
+  const latRadius = 60 / 110.6;
+  const lonRadius = 60 / (111.32 * Math.max(0.2, Math.cos(charger.lat * Math.PI / 180)));
+  const minLat = Math.floor((charger.lat - latRadius) / NETWORK_CELL_DEGREES);
+  const maxLat = Math.floor((charger.lat + latRadius) / NETWORK_CELL_DEGREES);
+  const minLng = Math.floor((charger.lng - lonRadius) / NETWORK_CELL_DEGREES);
+  const maxLng = Math.floor((charger.lng + lonRadius) / NETWORK_CELL_DEGREES);
+  let nearby = 0;
+  for (let latCell = minLat; latCell <= maxLat; latCell++) {
+    for (let lngCell = minLng; lngCell <= maxLng; lngCell++) {
+      const bucket = index.get(`${latCell}:${lngCell}`);
+      if (!bucket) continue;
+      for (const site of bucket) {
+        if (site.id !== charger.id && distanceKm(charger, site) <= 60) nearby++;
+      }
+    }
+  }
   const densityFactor = nearby === 0 ? 0.10
     : nearby <= 2 ? 0.06
     : nearby <= 5 ? 0.02
