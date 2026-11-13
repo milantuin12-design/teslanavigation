@@ -190,8 +190,12 @@ function Index() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user ? { id: data.user.id } : null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setCurrentUser(s?.user ? { id: s.user.id } : null));
+    // INITIAL_SESSION supplies the persisted session; subsequent auth events
+    // update it in order. Avoid a parallel getUser() request racing SIGNED_IN
+    // and incorrectly resetting the UI to "logged out".
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user ? { id: session.user.id } : null);
+    });
     return () => sub.subscription.unsubscribe();
   }, []);
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
