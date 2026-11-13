@@ -8,9 +8,12 @@ export default function SplashScreen({ show }: { show: boolean }) {
   useEffect(() => {
     if (show) {
       setVisible(true);
-      return;
+      // Laat het startscherm niet de hele app blokkeren wanneer een databron traag is.
+      // De Superchargers blijven ondertussen op de achtergrond laden.
+      const timer = setTimeout(() => setVisible(false), 2600);
+      return () => clearTimeout(timer);
     }
-    const timer = setTimeout(() => setVisible(false), 650);
+    const timer = setTimeout(() => setVisible(false), 450);
     return () => clearTimeout(timer);
   }, [show]);
 
