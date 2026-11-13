@@ -54,7 +54,7 @@ import {
 import { fetchTrafficRoutes } from "@/lib/traffic.functions";
 import { getTrafficForecastAt, isSnowRegion } from "@/lib/traffic-forecast";
 
-import { getHolidayPeriodMode, getWinterSportsMode, listSuperchargers } from "@/lib/tesla.functions";
+import { loadBundledSuperchargers } from "@/lib/local-superchargers";
 import { lookupThirdPartyCharger } from "@/lib/third-party";
 
 
@@ -389,9 +389,6 @@ function Index() {
   const elevationWeatherCacheRef = useRef<Map<string, ElevationWeather>>(new Map());
   const elevationWeatherPendingRef = useRef<Map<string, Promise<ElevationWeather>>>(new Map());
   const fetchTrafficRoutesFn = useServerFn(fetchTrafficRoutes);
-  const readHolidayPeriodMode = useServerFn(getHolidayPeriodMode);
-  const readWinterSportsMode = useServerFn(getWinterSportsMode);
-
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
   const modelRange = selectedModel === "Handmatig" ? manualRangeKm : teslaModels[selectedModel];
@@ -405,104 +402,25 @@ function Index() {
   const availableRange = fullEnergyRangeKm * batteryPercent / 100;
 
 
+  // De kaart gebruikt de dataset die met de website is meegeleverd.
+  // Dit pad draait volledig in de browser en heeft geen Lovable Cloud-credits nodig.
   useEffect(() => {
     let mounted = true;
-    listSuperchargers()
+    loadBundledSuperchargers()
       .then((data) => {
-        if (mounted) {
-          previousChargerSnapshotRef.current = chargerSnapshot(data);
-          setSuperchargers(data);
-          setChargerLoadError(data.length ? null : "Er zijn geen Superchargers ontvangen.");
-        }
+        if (!mounted) return;
+        previousChargerSnapshotRef.current = chargerSnapshot(data);
+        setSuperchargers(data);
+        setChargerLoadError(data.length ? null : "De ingebouwde Superchargerdata bevat geen locaties.");
       })
       .catch((error) => {
-        console.error("[TeslaNavigation] Superchargers laden mislukt:", error);
-        if (mounted) setChargerLoadError(error instanceof Error ? error.message : "Superchargers konden niet worden geladen.");
+        console.error("[TeslaNavigation] Lokale Superchargerdata laden mislukt:", error);
+        if (mounted) setChargerLoadError(error instanceof Error ? error.message : "De ingebouwde Superchargerdata kon niet worden geladen.");
       })
       .finally(() => {
         if (mounted) setIsLoadingChargers(false);
       });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // Globale modi worden direct via Realtime bijgewerkt en elke 10 seconden
-  // opnieuw opgehaald als fallback. Gebruikers hoeven de pagina niet te herladen.
-  useEffect(() => {
-    let mounted = true;
-    const refreshModes = async () => {
-      const [holiday, winter] = await Promise.all([
-        readHolidayPeriodMode(),
-        readWinterSportsMode(),
-      ]);
-      if (!mounted) return;
-      setHolidayPeriodModeState(holiday === true);
-      setWinterSportsModeState(winter === true);
-      // Werk de globale vlaggen ook bij in de geladen stations en routekaart.
-      setSuperchargers((current) => current.map((charger) => ({
-        ...charger,
-        holidayPeriodMode: holiday === true,
-        winterSportsMode: winter === true,
-      })));
-    };
-    void refreshModes();
-    const channel = supabase
-      .channel("global-crowd-modes-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "admin_audit_log" }, () => {
-        void refreshModes();
-      })
-      .on("broadcast", { event: "modes-updated" }, () => {
-        void refreshModes();
-      })
-      .subscribe();
-    const poll = window.setInterval(() => { void refreshModes(); }, 10000);
-    return () => {
-      mounted = false;
-      window.clearInterval(poll);
-      supabase.removeChannel(channel);
-    };
-  }, [readHolidayPeriodMode, readWinterSportsMode]);
-
-  // Live bijwerken zodra een admin een Supercharger aanpast
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const channel = supabase
-      .channel("superchargers-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "superchargers" }, () => {
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(() => {
-          listSuperchargers()
-            .then((data) => {
-              const previous = previousChargerSnapshotRef.current;
-              if (previous.size > 0) {
-                for (const charger of data) {
-                  if (!charger.id) continue;
-                  const before = previous.get(charger.id);
-                  const after = JSON.stringify({ status: charger.status, available: charger.isAvailable, stalls: charger.stallStates });
-                  if (before && before !== after) {
-                    const was = JSON.parse(before) as { status?: string; available?: boolean };
-                    if (was.status !== charger.status || was.available !== charger.isAvailable) {
-                      toast.warning(`${charger.name}: status gewijzigd`, { description: `${was.status ?? "Onbekend"} → ${charger.status ?? "Onbekend"}` });
-                    } else {
-                      toast.info(`${charger.name}: laadplekken bijgewerkt`, { description: "Het aantal beschikbare laadplekken is gewijzigd." });
-                    }
-                  }
-                }
-              }
-              previousChargerSnapshotRef.current = chargerSnapshot(data);
-              setSuperchargers(data);
-              setLastAvailabilityUpdate(new Date().toISOString());
-              setChargerRevision((revision) => revision + 1);
-            })
-            .catch(() => {});
-        }, 800);
-      })
-      .subscribe();
-    return () => {
-      if (timer) clearTimeout(timer);
-      supabase.removeChannel(channel);
-    };
+    return () => { mounted = false; };
   }, []);
 
 
