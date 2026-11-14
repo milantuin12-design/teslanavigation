@@ -70,6 +70,11 @@ function AuthPage() {
       if (mode === "login") {
         const { error } = await withAuthTimeout(supabase.auth.signInWithPassword({ email: email.trim(), password }), "De inlogserver");
         if (error) throw error;
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+        if (!sessionData.session?.user) {
+          throw new Error("Inloggen is gelukt bij de server, maar de sessie is niet opgeslagen in deze browser. Controleer de browseropslag en de Lovable-authconfiguratie.");
+        }
         toast.success("Ingelogd");
         await navigate({ to: "/" });
       } else {
