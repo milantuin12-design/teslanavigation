@@ -125,12 +125,23 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   useEffect(() => {
+    let refreshTimer: number | undefined;
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
-        router.invalidate();
+        // Never trigger route loading (which may call Supabase again) inside
+        // onAuthStateChange. Supabase holds an internal auth lock while the
+        // callback runs; defer invalidation until after that callback returns.
+        if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
+        refreshTimer = window.setTimeout(() => {
+          refreshTimer = undefined;
+          void router.invalidate();
+        }, 0);
       }
     });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
+      sub.subscription.unsubscribe();
+    };
   }, [router]);
 
   return (
