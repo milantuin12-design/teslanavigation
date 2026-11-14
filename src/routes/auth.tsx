@@ -52,9 +52,13 @@ function AuthPage() {
     let active = true;
     void (async () => {
       try {
-        const { data, error } = await supabase.auth.getUser();
+        // The auth page only needs to know whether this browser already has a
+        // persisted session. Avoid a network getUser() call here: when Lovable
+        // Cloud is slow or unavailable it can fail even though the local session
+        // is valid, and it can race with the post-login navigation.
+        const { data, error } = await supabase.auth.getSession();
         if (error) throw error;
-        if (active && data.user) await navigate({ to: "/" });
+        if (active && data.session?.user) await navigate({ to: "/" });
       } catch (err) {
         if (active) setAuthError(`Verbindingscontrole mislukt: ${describeAuthError(err)}`);
       }
