@@ -59,6 +59,7 @@ const existingBySourceRef = new Map(
 const used = new Set();
 const matches = [];
 const additions = [];
+let statusUpdates = 0;
 const existing = dataset.chargers;
 
 for (const site of source.sites) {
@@ -94,6 +95,7 @@ for (const site of source.sites) {
     match.source_ref = sourceRef;
     match.source_updated_at = source.exportedAt;
     if (match.data_source !== "manual") {
+      const previousStatus = match.status;
       let nextStatus = statusMap[site.status] ?? match.status;
       const override = manualStatusOverrides.get(normalize(match.name));
       if (override) nextStatus = override;
@@ -102,6 +104,7 @@ for (const site of source.sites) {
         nextStatus = match.status;
       }
       match.status = nextStatus;
+      if (match.status !== previousStatus) statusUpdates += 1;
 
       if (Number(site.stallCount) > 0 && !["planned", "permit", "voting"].includes(nextStatus)) {
         match.total_stalls = Number(site.stallCount);
@@ -203,7 +206,7 @@ console.log(JSON.stringify({
   matchedExisting: matches.length,
   newSites: additions.length,
   skippedNewPermanentClosures: source.sites.filter((site) => site.status === "CLOSED_PERM").length,
-  statusUpdates: matches.filter((item) => item.sourceStatus !== item.status).length,
+  statusUpdates,
   additionsByStatus: counts,
   preservedOverrides: ["Spier", "Lermoos"],
 }, null, 2));
