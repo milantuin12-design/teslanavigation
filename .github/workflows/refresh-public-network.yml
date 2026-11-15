@@ -35,6 +35,11 @@ jobs:
           NODE
       - name: Merge public updates into TeslaNavigation dataset
         run: node scripts/sync-supercharger-network.mjs
+      - name: Verify application build
+        run: |
+          npm install --no-audit --no-fund
+          npm test
+          npm run build
       - name: Commit refreshed network data
         run: |
           git config user.name "github-actions[bot]"
