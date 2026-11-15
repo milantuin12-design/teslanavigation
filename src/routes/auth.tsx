@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { claimAdmin, getCurrentUser, signIn, signUp } from "@/lib/auth.functions";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,12 +29,12 @@ function AuthPage() {
   useEffect(() => {
     let active = true;
     void getCurrentUser().then((user) => {
-      if (active && user) void navigate({ to: "/" });
+      if (active && user) window.location.assign("/");
     }).catch(() => {
       if (active) setAuthError("De Cloudflare-inlogserver is nog niet beschikbaar. Probeer het later opnieuw.");
     });
     return () => { active = false; };
-  }, [navigate]);
+  }, []);
 
   const onClaimAdmin = async () => {
     setBusy(true);
@@ -43,7 +42,7 @@ function AuthPage() {
     try {
       await claimAdmin({ data: { token: adminToken } });
       toast.success("Beheerdersrechten geactiveerd");
-      await navigate({ to: "/" });
+      window.location.assign("/");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Beheerder activeren mislukt.";
       setAuthError(message);
