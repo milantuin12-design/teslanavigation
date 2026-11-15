@@ -24,43 +24,7 @@ export const translateTexts = createServerFn({ method: "POST" })
     } catch {
       /* database niet bereikbaar: ga door met AI */
     }
-    const missing = texts.filter((t) => !(t in out));
-    if (missing.length === 0) return out;
-    const apiKey = process.env["LOVABLE_API_KEY"];
-    if (!apiKey) return out;
-    try {
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          response_format: { type: "json_object" },
-          messages: [
-            {
-              role: "system",
-              content: `You translate UI texts of an EV/Tesla route planner app from Dutch to the language with ISO code "${data.lang}". Keep numbers, units (kW, km, %), brand names (Tesla, Supercharger, TeslaNavigation) and emoji unchanged. Reply ONLY with a JSON object mapping each original string to its translation.`,
-            },
-            { role: "user", content: JSON.stringify(missing) },
-          ],
-        }),
-      });
-      if (!res.ok) return out;
-      const json = await res.json();
-      const parsed = JSON.parse(json.choices?.[0]?.message?.content ?? "{}") as Record<string, unknown>;
-      const toSave: { lang_code: string; key: string; value: string }[] = [];
-      for (const src of missing) {
-        const v = parsed[src];
-        if (typeof v === "string" && v.trim()) {
-          out[src] = v;
-          toSave.push({ lang_code: data.lang, key: src, value: v });
-        }
-      }
-      if (admin && toSave.length) {
-        void admin.from("translations").upsert(toSave, { onConflict: "lang_code,key", ignoreDuplicates: true }).then(() => {}, () => {});
-      }
-    } catch {
-      /* AI niet beschikbaar: Nederlands blijft staan */
-    }
+    // Geen Lovable AI-gateway meer: ontbrekende vertalingen blijven Nederlands.
     return out;
   });
 
