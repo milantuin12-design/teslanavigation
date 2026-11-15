@@ -1,7 +1,7 @@
 name: Refresh public European Supercharger data # validates app build and sync status mapping
 on:
   push:
-    branches: [cloudflare-migratie]
+    branches: [main]
     paths:
       - ".github/workflows/refresh-public-network.yml"
   schedule:
@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: cloudflare-migratie
+          ref: main
       - name: Download current supercharge.info network data
         run: |
           node <<'NODE'
@@ -47,4 +47,4 @@ jobs:
           git add src/data/supercharge-info-europe.json src/data/superchargers.json
           git diff --cached --quiet && exit 0
           git commit -m "Refresh public European Supercharger network data"
-          git push origin cloudflare-migratie
+          git push origin main
