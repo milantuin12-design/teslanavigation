@@ -479,3 +479,46 @@ export const adminSetUserBlocked = createServerFn({ method: "POST" })
     await logAction(context, "user_block", 1, { id: data.id, blocked: data.blocked });
     return { ok: true };
   });
+
+export const adminListLanguages = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+  await assertAdmin(context);
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin.from("languages").select("code,name,native_name,enabled,is_default,rtl,sort_order").order("sort_order").order("name");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+});
+export const adminListTranslations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ code: z.string().min(2).max(5) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin.from("translations").select("id,lang_code,key,value").eq("lang_code",data.code).order("key");
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+export const adminToggleLanguage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ code: z.string().min(2).max(5), enabled: z.boolean() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("languages").update({ enabled: data.enabled }).eq("code",data.code);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+export const adminSaveTranslation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().optional(), lang_code: z.string().min(2).max(5), key: z.string().min(1).max(300), value: z.string().max(2000) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.id) {
+      const { error } = await supabaseAdmin.from("translations").update({ value: data.value }).eq("id",data.id);
+      if (error) throw new Error(error.message);
+      return { id: data.id };
+    }
+    const { data: row, error } = await supabaseAdmin.from("translations").insert({ lang_code: data.lang_code, key: data.key, value: data.value }).select("id").single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
