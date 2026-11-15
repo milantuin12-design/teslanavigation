@@ -1,4 +1,5 @@
 import { getD1, jsonColumn } from "./d1.server";
+import tariffDataset from "@/data/supercharger-tariffs.json";
 
 const JSON_FIELDS = new Set(["construction","works","closure","versions","opening_hours","charger_configs","planned_upgrade","stall_states","voting","photos","price_blocks","parking_blocks","traffic_forecast"]);
 const BOOL_FIELDS = new Set(["trailer_friendly","is_available","parking_fee","in_parking_garage","low_speed","published","hidden"]);
@@ -11,6 +12,36 @@ const CHARGER_FIELDS = [
   "price_blocks","parking_fee_amount","parking_free_minutes","parking_per_minutes","parking_per_euro","parking_blocks","traffic_forecast"
 ];
 
+function normalizeMatch(value: string) {
+  return value.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function getBundledPrice(row: Record<string, unknown>) {
+  if (row.status !== "operational") return null;
+  const tariffs = (tariffDataset as unknown as { tariffs: Array<{
+    country: string; countryAliases?: string[]; match: string[];
+    currency?: string; pricePerKwh?: number;
+    priceBlocks?: Array<{from:string;to:string;pricePerKwh:number}>;
+  }> }).tariffs ?? [];
+  const country = normalizeMatch(String(row.country ?? ""));
+  const name = normalizeMatch([row.name,row.city,row.province].filter(Boolean).join(" "));
+  const tariff = tariffs.find((item) =>
+    [item.country, ...(item.countryAliases ?? [])].some((value) => normalizeMatch(value) === country) &&
+    item.match.some((term) => {
+      const normalized = normalizeMatch(term);
+      return name === normalized || name.includes(normalized);
+    })
+  );
+  if (!tariff) return null;
+  const blocks = tariff.priceBlocks?.length
+    ? tariff.priceBlocks
+    : typeof tariff.pricePerKwh === "number"
+      ? [{ from: "00:00", to: "24:00", pricePerKwh: tariff.pricePerKwh }]
+      : [];
+  if (!blocks.length) return null;
+  return { currency: tariff.currency ?? "EUR", blocks };
+}
+
 function valueFor(key: string, value: unknown): unknown {
   if (value === undefined) return null;
   if (JSON_FIELDS.has(key)) return jsonColumn(value);
@@ -22,9 +53,22 @@ function valueFor(key: string, value: unknown): unknown {
 export async function ensureBundledD1Seed() {
   const db = getD1();
   const count = await db.prepare("SELECT COUNT(*) AS count FROM superchargers").first<{count:number}>();
-  if ((count?.count ?? 0) > 0) return { seeded: false, count: count?.count ?? 0 };
-
   const { localChargerDataset } = await import("./local-chargers.server");
+  if ((count?.count ?? 0) > 0) {
+    // Keep live admin edits intact, but refresh missing tariffs from the latest
+    // checked-in time-block file every time the bundled baseline is checked.
+    const tariffs = localChargerDataset.chargers as unknown as Record<string, unknown>[];
+    const updates = tariffs.flatMap((row) => {
+      const price = getBundledPrice(row);
+      return price ? [db.prepare(`UPDATE superchargers
+        SET price_currency = ?, price_blocks = ?, price_per_kwh = NULL,
+            price_per_kwh_peak = NULL, peak_hours = NULL
+        WHERE id = ? AND (price_blocks IS NULL OR price_blocks = '' OR price_blocks = '[]')`)
+        .bind(price.currency, JSON.stringify(price.blocks), row.id)] : [];
+    });
+    for (let i = 0; i < updates.length; i += 50) await db.batch(updates.slice(i, i + 50));
+    return { seeded: false, count: count?.count ?? 0, tariffsRefreshed: updates.length };
+  }
   const owners = localChargerDataset.owners ?? [];
   const chargers = localChargerDataset.chargers as unknown as Record<string, unknown>[];
   const { FALLBACK_LANGUAGES } = await import("./i18n");
