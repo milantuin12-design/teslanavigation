@@ -1,4 +1,4 @@
-name: Refresh public European Supercharger data
+name: Refresh public European Supercharger data # also validates the D1 seed/build
 on:
   push:
     branches: [cloudflare-migratie]
