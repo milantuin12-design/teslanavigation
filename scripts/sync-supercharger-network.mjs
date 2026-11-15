@@ -10,7 +10,7 @@ const statusMap = {
   EXPANDING: "works",
   CONSTRUCTION: "construction",
   PERMIT: "permit",
-  PLAN: "planned",
+  PLAN: "plan",
   VOTING: "voting",
   CLOSED_TEMP: "temp_closed",
   CLOSED_PERM: "long_closed",
@@ -100,7 +100,7 @@ for (const site of source.sites) {
       const override = manualStatusOverrides.get(normalize(match.name));
       if (override) nextStatus = override;
       // A public PLAN/PERMIT marker must not turn a currently operating site into a closed site.
-      if (match.status === "operational" && ["planned", "permit"].includes(nextStatus)) {
+      if (match.status === "operational" && ["plan", "permit"].includes(nextStatus)) {
         nextStatus = match.status;
       }
       match.status = nextStatus;
