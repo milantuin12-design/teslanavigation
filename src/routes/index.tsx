@@ -11,14 +11,13 @@ import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher } from "@/components/LanguageProvider";
-import { supabase } from "@/integrations/supabase/client";
+import { getMySavedRoute, saveMyRoute } from "@/lib/account.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
 
 const hasSupabaseBrowserConfig = Boolean(
   import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
 );
-import { withTimeout, cacheSavedRouteRow, getCachedSavedRouteRow, saveLocalRoute, type LocalRoute } from "@/lib/local-store";
-import type { Database } from "@/integrations/supabase/types";
+import { cacheSavedRouteRow, getCachedSavedRouteRow, saveLocalRoute, type LocalRoute } from "@/lib/local-store";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -443,13 +442,16 @@ function Index() {
     const loadId = params.get("load");
     if (!loadId) return;
     (async () => {
-      type SavedRow = Database["public"]["Tables"]["saved_routes"]["Row"];
-      // Lokaal eerst: direct inladen, ook als de cloud stilstaat.
+      type SavedRow = {
+        id: string; start_lat: number; start_lng: number; end_lat: number; end_lng: number;
+        model_name: string; battery_percent: number; trailer_mode: boolean; trailer_reduction: number;
+        weather_mode: string; time_mode: string; payload: unknown;
+      };
+      // Lokaal eerst: direct inladen, ook als de database niet bereikbaar is.
       let data: SavedRow | null = getCachedSavedRouteRow<SavedRow>(loadId);
       if (!data) {
         try {
-          const res = await withTimeout(supabase.from("saved_routes").select("*").eq("id", loadId).maybeSingle(), 1500);
-          data = (res.data as SavedRow | null) ?? null;
+          data = await getMySavedRoute({ data: { id: loadId } }) as SavedRow | null;
           if (data) cacheSavedRouteRow(data as unknown as { id: string } & Record<string, unknown>);
         } catch { data = null; }
       }
@@ -1781,7 +1783,6 @@ function Index() {
               if (!currentUser || !startCoord || !destCoord || !route) return;
               const row = {
                 id: crypto.randomUUID(),
-                user_id: currentUser.id,
                 name: saveName || "Naamloze route",
                 start_lat: startCoord.lat, start_lng: startCoord.lng,
                 end_lat: destCoord.lat, end_lng: destCoord.lng,
@@ -1806,10 +1807,10 @@ function Index() {
               saveLocalRoute({ id: row.id, name: row.name, createdAt: new Date().toISOString() } as LocalRoute);
               let cloudOk = false;
               try {
-                const { error } = await withTimeout(supabase.from("saved_routes").insert(row), 2000);
-                cloudOk = !error;
+                await saveMyRoute({ data: row });
+                cloudOk = true;
               } catch { cloudOk = false; }
-              toast.success(cloudOk ? "Route opgeslagen" : "Route lokaal opgeslagen (cloud niet bereikbaar)");
+              toast.success(cloudOk ? "Route opgeslagen in Cloudflare D1" : "Route lokaal opgeslagen (Cloudflare D1 niet bereikbaar)");
               setSaveOpen(false); setSaveName("");
             }}>Opslaan</Button>
           </DialogFooter>
