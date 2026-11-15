@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { getCurrentUser, signOut } from "@/lib/auth.functions";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -9,7 +9,6 @@ type AccountUser = { id: string; email: string; display_name: string | null; is_
 
 export function AccountMenu() {
   const [user, setUser] = useState<AccountUser | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     let active = true;
@@ -37,19 +36,19 @@ export function AccountMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 text-white">
-        <DropdownMenuItem onClick={() => navigate({ to: "/mijn-routes" })}>
+        <DropdownMenuItem onClick={() => window.location.assign("/mijn-routes")}>
           <BookmarkCheck className="w-4 h-4 mr-2" /> Mijn routes
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate({ to: "/mijn-meldingen" })}>
+        <DropdownMenuItem onClick={() => window.location.assign("/mijn-meldingen")}>
           <MessageSquare className="w-4 h-4 mr-2" /> Mijn meldingen
         </DropdownMenuItem>
         {user.is_admin && (
-          <DropdownMenuItem onClick={() => navigate({ to: "/admin" })}>
+          <DropdownMenuItem onClick={() => window.location.assign("/admin")}>
             <Shield className="w-4 h-4 mr-2" /> Admin
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator className="bg-slate-700" />
-        <DropdownMenuItem onClick={async () => { await signOut(); setUser(null); navigate({ to: "/" }); }}>
+        <DropdownMenuItem onClick={async () => { await signOut(); window.location.assign("/"); }}>
           <LogOut className="w-4 h-4 mr-2" /> Uitloggen
         </DropdownMenuItem>
       </DropdownMenuContent>
