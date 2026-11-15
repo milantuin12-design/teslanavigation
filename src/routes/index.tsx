@@ -12,6 +12,7 @@ import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher } from "@/components/LanguageProvider";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from "@/lib/auth.functions";
 
 const hasSupabaseBrowserConfig = Boolean(
   import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -194,14 +195,11 @@ function Index() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
   useEffect(() => {
-    if (!hasSupabaseBrowserConfig) return;
-    // INITIAL_SESSION supplies the persisted session; subsequent auth events
-    // update it in order. Avoid a parallel getUser() request racing SIGNED_IN
-    // and incorrectly resetting the UI to "logged out".
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setCurrentUser(session?.user ? { id: session.user.id } : null);
-    });
-    return () => sub.subscription.unsubscribe();
+    let active = true;
+    void getCurrentUser().then((user) => {
+      if (active) setCurrentUser(user ? { id: user.id } : null);
+    }).catch(() => { if (active) setCurrentUser(null); });
+    return () => { active = false; };
   }, []);
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
   const [holidayPeriodMode, setHolidayPeriodModeState] = useState(false);
