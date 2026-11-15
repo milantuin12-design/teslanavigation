@@ -351,6 +351,7 @@ export const importSuperchargers = createServerFn({ method: "POST" })
         for (const [key, value] of Object.entries(raw)) {
           if (allowed.has(key) && value !== undefined) row[key] = value;
         }
+        if (!row.id) row.id = crypto.randomUUID();
         return row;
       })
       .filter((row) => typeof row.name === "string" && typeof row.lat === "number" && typeof row.lng === "number");
