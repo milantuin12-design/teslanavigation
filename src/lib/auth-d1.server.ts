@@ -1,0 +1,107 @@
+import { getCookie, setCookie, deleteCookie } from "@tanstack/react-start/server";
+import { getD1 } from "./d1.server";
+
+const COOKIE = "__Host-tn-session";
+const SESSION_SECONDS = 60 * 60 * 24 * 14;
+const ITERATIONS = 310_000;
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+function base64ToBytes(value: string): Uint8Array {
+  return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
+}
+function randomToken(bytes = 32): string {
+  const data = new Uint8Array(bytes);
+  crypto.getRandomValues(data);
+  return bytesToBase64(data).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+async function sha256(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return bytesToBase64(new Uint8Array(digest));
+}
+async function passwordHash(password: string, salt = crypto.getRandomValues(new Uint8Array(16))): Promise<string> {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: ITERATIONS }, key, 256);
+  return `pbkdf2-sha256$${ITERATIONS}$${bytesToBase64(salt)}$${bytesToBase64(new Uint8Array(bits))}`;
+}
+async function verifyPassword(password: string, stored: string): Promise<boolean> {
+  const [algorithm, rounds, saltText, expectedText] = stored.split("$");
+  if (algorithm !== "pbkdf2-sha256" || Number(rounds) !== ITERATIONS || !saltText || !expectedText) return false;
+  const actual = await passwordHash(password, base64ToBytes(saltText));
+  const actualBytes = base64ToBytes(actual.split("$")[3]);
+  const expectedBytes = base64ToBytes(expectedText);
+  if (actualBytes.length !== expectedBytes.length) return false;
+  let diff = 0;
+  for (let i = 0; i < actualBytes.length; i++) diff |= actualBytes[i] ^ expectedBytes[i];
+  return diff === 0;
+}
+function setSessionCookie(token: string) {
+  setCookie(COOKIE, token, { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: SESSION_SECONDS });
+}
+function clearSessionCookie() {
+  deleteCookie(COOKIE, { httpOnly: true, secure: true, sameSite: "lax", path: "/" });
+}
+
+export type D1User = { id: string; email: string; display_name: string | null; is_admin: boolean };
+
+export async function getCurrentD1User(): Promise<D1User | null> {
+  const token = getCookie(COOKIE);
+  if (!token) return null;
+  const db = getD1();
+  const tokenHash = await sha256(token);
+  const row = await db.prepare(`
+    SELECT u.id, u.email, u.display_name,
+      EXISTS(SELECT 1 FROM user_roles r WHERE r.user_id = u.id AND r.role = 'admin') AS is_admin
+    FROM sessions s JOIN users u ON u.id = s.user_id
+    WHERE s.token_hash = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.blocked = 0
+  `).bind(tokenHash).first<{id:string;email:string;display_name:string|null;is_admin:number}>();
+  if (!row) return null;
+  return { ...row, is_admin: row.is_admin === 1 };
+}
+
+export async function registerD1User(emailInput: string, password: string) {
+  const email = emailInput.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Vul een geldig e-mailadres in.");
+  if (password.length < 10 || password.length > 200) throw new Error("Gebruik een wachtwoord van minimaal 10 tekens.");
+  const db = getD1();
+  const existing = await db.prepare("SELECT id FROM users WHERE email = ?").bind(email).first();
+  if (existing) throw new Error("Er bestaat al een account met dit e-mailadres.");
+  const id = crypto.randomUUID();
+  const hash = await passwordHash(password);
+  await db.prepare("INSERT INTO users (id,email,password_hash,email_verified) VALUES (?,?,?,1)").bind(id,email,hash).run();
+  await createSession(id);
+  return { id, email, is_admin: false };
+}
+
+export async function loginD1User(emailInput: string, password: string) {
+  const email = emailInput.trim().toLowerCase();
+  const db = getD1();
+  const row = await db.prepare("SELECT id,email,password_hash,blocked FROM users WHERE email = ?").bind(email).first<{id:string;email:string;password_hash:string;blocked:number}>();
+  if (!row || row.blocked || !(await verifyPassword(password, row.password_hash))) {
+    throw new Error("E-mailadres of wachtwoord is onjuist.");
+  }
+  await createSession(row.id);
+  return { id: row.id, email: row.email };
+}
+
+async function createSession(userId: string) {
+  const db = getD1();
+  const token = randomToken();
+  const tokenHash = await sha256(token);
+  const expiresAt = new Date(Date.now() + SESSION_SECONDS * 1000).toISOString();
+  await db.prepare("INSERT INTO sessions (id,user_id,token_hash,expires_at) VALUES (?,?,?,?)")
+    .bind(crypto.randomUUID(), userId, tokenHash, expiresAt).run();
+  setSessionCookie(token);
+}
+
+export async function logoutD1User() {
+  const token = getCookie(COOKIE);
+  if (token) {
+    const db = getD1();
+    await db.prepare("DELETE FROM sessions WHERE token_hash = ?").bind(await sha256(token)).run();
+  }
+  clearSessionCookie();
+}
