@@ -35,7 +35,7 @@ type NetworkSite = Pick<Supercharger, "id" | "lat" | "lng">;
 const lifecycle: ChargerLifecycleStatus[] = ["operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed", "unknown"];
 
 function normalizeTariffMatch(value: string) {
-  return value.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 function withBundledTariff(row: LocalRow, tariffs: any[]): LocalRow {
@@ -50,8 +50,13 @@ function withBundledTariff(row: LocalRow, tariffs: any[]): LocalRow {
     })
   );
   if (!match) return row;
-  return { ...row, price_currency: match.currency ?? "EUR", price_per_kwh: match.pricePerKwh ?? null,
-    price_per_kwh_peak: null, peak_hours: null, price_blocks: match.priceBlocks?.length ? match.priceBlocks : null };
+  const priceBlocks = match.priceBlocks?.length
+    ? match.priceBlocks
+    : typeof match.pricePerKwh === "number"
+      ? [{ from: "00:00", to: "24:00", pricePerKwh: match.pricePerKwh }]
+      : null;
+  return { ...row, price_currency: match.currency ?? "EUR", price_per_kwh: null,
+    price_per_kwh_peak: null, peak_hours: null, price_blocks: priceBlocks };
 }
 
 function toSupercharger(row: LocalRow, owners: Map<string, Owner>, network: NetworkSite[]): Supercharger {
