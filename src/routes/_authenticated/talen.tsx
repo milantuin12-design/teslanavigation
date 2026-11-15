@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminListLanguages, adminListTranslations, adminToggleLanguage, adminSaveTranslation } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -43,38 +43,32 @@ function LanguagesPage() {
   const [loading, setLoading] = useState(true);
 
   const loadLanguages = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("languages")
-      .select("code,name,native_name,enabled,is_default,rtl,sort_order")
-      .order("sort_order")
-      .order("name");
-    if (error) toast.error(error.message);
-    else setLanguages((data as Language[]) || []);
+    try {
+      const data = await adminListLanguages();
+      setLanguages(data as Language[]);
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Talen laden mislukt"); }
     setLoading(false);
   }, []);
 
   const loadTranslations = useCallback(async (code: string) => {
-    const { data, error } = await supabase
-      .from("translations")
-      .select("id,lang_code,key,value")
-      .eq("lang_code", code)
-      .order("key");
-    if (error) toast.error(error.message);
-    else setTranslations((data as Translation[]) || []);
+    try {
+      const data = await adminListTranslations({ data: { code } });
+      setTranslations(data as Translation[]);
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Vertalingen laden mislukt"); }
   }, []);
 
   useEffect(() => { loadLanguages(); }, [loadLanguages]);
   useEffect(() => { loadTranslations(selected); }, [selected, loadTranslations]);
 
   const toggleEnabled = async (lang: Language) => {
-    const { error } = await supabase.from("languages").update({ enabled: !lang.enabled }).eq("code", lang.code);
-    if (error) { toast.error(error.message); return; }
+    try { await adminToggleLanguage({ data: { code: lang.code, enabled: !lang.enabled } }); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Taal aanpassen mislukt"); return; }
     setLanguages((list) => list.map((l) => (l.code === lang.code ? { ...l, enabled: !l.enabled } : l)));
   };
 
   const saveTranslation = async (row: Translation, value: string) => {
-    const { error } = await supabase.from("translations").update({ value }).eq("id", row.id);
-    if (error) { toast.error(error.message); return; }
+    try { await adminSaveTranslation({ data: { id: row.id, lang_code: row.lang_code, key: row.key, value } }); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Vertaling opslaan mislukt"); return; }
     toast.success("Vertaling opgeslagen");
   };
 
@@ -82,8 +76,8 @@ function LanguagesPage() {
     const key = newKey.trim();
     const value = newValue.trim();
     if (!key || !value) return;
-    const { error } = await supabase.from("translations").insert({ lang_code: selected, key, value });
-    if (error) { toast.error(error.message); return; }
+    try { await adminSaveTranslation({ data: { lang_code: selected, key, value } }); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Vertaling toevoegen mislukt"); return; }
     setNewKey("");
     setNewValue("");
     loadTranslations(selected);
