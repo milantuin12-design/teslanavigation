@@ -84,6 +84,14 @@ export async function ensureBundledD1Seed() {
 
   const statements = chargers.map((charger) => {
     const row = Object.fromEntries(CHARGER_FIELDS.filter((field) => field in charger).map((field) => [field, valueFor(field, charger[field])]));
+    const bundledPrice = getBundledPrice(charger);
+    if (bundledPrice && (!Array.isArray(charger.price_blocks) || charger.price_blocks.length === 0)) {
+      row.price_currency = bundledPrice.currency;
+      row.price_blocks = JSON.stringify(bundledPrice.blocks);
+      row.price_per_kwh = null;
+      row.price_per_kwh_peak = null;
+      row.peak_hours = null;
+    }
     if (!row.id || !row.name || typeof row.lat !== "number" || typeof row.lng !== "number") return null;
     const fields = Object.keys(row);
     return db.prepare(`INSERT INTO superchargers (${fields.join(",")}) VALUES (${fields.map(()=>"?").join(",")}) ON CONFLICT(id) DO NOTHING`)
