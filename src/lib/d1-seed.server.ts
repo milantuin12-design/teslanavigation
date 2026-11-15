@@ -98,7 +98,7 @@ export async function ensureBundledD1Seed() {
       const fields = Object.keys(row);
       const insert = db.prepare(`INSERT INTO superchargers (${fields.join(",")}) VALUES (${fields.map(()=>"?").join(",")}) ON CONFLICT(id) DO NOTHING`)
         .bind(...fields.map((field) => row[field]));
-      const updateValues = baseFields.map((field) => field === "versions" ? valueFor(field, charger[field]) : charger[field] ?? null);
+      const updateValues = baseFields.map((field) => valueFor(field, charger[field]));
       const update = db.prepare(`UPDATE superchargers SET ${baseFields.map((field) => `${field} = ?`).join(",")}, data_source = 'automatic' WHERE id = ? AND (data_source IS NULL OR data_source = 'automatic')`)
         .bind(...updateValues, charger.id);
       return [insert, update];
