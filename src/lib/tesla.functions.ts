@@ -230,6 +230,14 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
     const owners = new Map<string, OwnerRow>();
     for (const o of localChargerDataset.owners ?? []) owners.set(o.id, o);
 
+    // Zonder legacy cloud-credentials mag de publieke kaart niet wachten op of
+    // afhankelijk zijn van Lovable/Supabase. De volledige basisdataset en
+    // tijdsgebonden tarieven zitten al in de repository.
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const network: NetworkLocation[] = localRows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
+      return localRows.map((row) => rowToCharger(applyTariffOverride(row), owners, network));
+    }
+
     // Haal de actuele clouddata volledig op. Een korte timeout kan in Preview
     // onterecht oude ingebouwde data tonen terwijl de database wel bereikbaar is.
     const cloud = async () => {
