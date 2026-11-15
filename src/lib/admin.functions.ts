@@ -452,3 +452,30 @@ export const adminCreateOwner = createServerFn({ method: "POST" })
     await logAction(context, "owner_create", 1, { name: data.name });
     return row;
   });
+
+export const adminListUsers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: users, error } = await supabaseAdmin.from("users")
+      .select("id,email,display_name,blocked,last_active_at,route_count,created_at")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    const { data: roleRows, error: roleError } = await supabaseAdmin.from("user_roles").select("user_id,role");
+    if (roleError) throw new Error(roleError.message);
+    return { users: users ?? [], roles: roleRows ?? [] };
+  });
+
+export const adminSetUserBlocked = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120), blocked: z.boolean() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    if (data.id === context.userId && data.blocked) throw new Error("Je kunt je eigen account niet blokkeren.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("users").update({ blocked: data.blocked }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await logAction(context, "user_block", 1, { id: data.id, blocked: data.blocked });
+    return { ok: true };
+  });
