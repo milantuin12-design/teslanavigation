@@ -12,6 +12,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { supabase } from "@/integrations/supabase/client";
 
+// Public pages must remain usable when the legacy Lovable/Supabase auth service is unavailable.
+const hasSupabaseBrowserConfig = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+);
+
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -125,6 +130,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   useEffect(() => {
+    if (!hasSupabaseBrowserConfig) return;
     let refreshTimer: number | undefined;
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
