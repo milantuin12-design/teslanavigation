@@ -20,7 +20,7 @@ jobs:
       - name: Export public live Supercharger rows from Supabase
         env:
           SUPABASE_URL: https://tzuylkuhldgpopdhqlre.supabase.co
-          SUPABASE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dXlsa3VobGRncG9wZGhxbHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MTEwNzQsImV4cCI6MjA5NTk4NzA3NH0.levbmEBGtw4sg0Frq5bbkNQPndOWIYRPFMHxB0V4crY"
         run: |
           node <<'NODE'
           const fs = require('node:fs');
