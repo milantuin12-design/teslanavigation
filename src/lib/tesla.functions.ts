@@ -211,10 +211,14 @@ function applyTariffOverride(row: Row): Row {
   return {
     ...row,
     price_currency: match.currency ?? 'EUR',
-    price_per_kwh: match.pricePerKwh ?? null,
+    price_per_kwh: null,
     price_per_kwh_peak: null,
     peak_hours: null,
-    price_blocks: match.priceBlocks?.length ? match.priceBlocks : null,
+    price_blocks: match.priceBlocks?.length
+      ? match.priceBlocks
+      : typeof match.pricePerKwh === "number"
+        ? [{ from: "00:00", to: "24:00", pricePerKwh: match.pricePerKwh }]
+        : null,
   };
 }
 
@@ -227,6 +231,14 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
   async (): Promise<Supercharger[]> => {
     const { localChargerDataset } = await import("./local-chargers.server");
     const localRows = localChargerDataset.chargers as unknown as Row[];
+    // Refresh missing D1 time-block prices from the latest checked-in tariff file.
+    // This does not overwrite any manually saved price_blocks.
+    try {
+      const { ensureBundledD1Seed } = await import("./d1-seed.server");
+      await ensureBundledD1Seed();
+    } catch (error) {
+      console.warn("[TeslaNavigation] D1 baseline/tariff refresh skipped:", error);
+    }
     const owners = new Map<string, OwnerRow>();
     for (const o of localChargerDataset.owners ?? []) owners.set(o.id, o);
 
