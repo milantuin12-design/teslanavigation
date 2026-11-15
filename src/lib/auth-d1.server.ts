@@ -91,7 +91,7 @@ async function createSession(userId: string) {
   const db = getD1();
   const token = randomToken();
   const tokenHash = await sha256(token);
-  const expiresAt = new Date(Date.now() + SESSION_SECONDS * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + SESSION_SECONDS * 1000).toISOString().slice(0, 19).replace("T", " ");
   await db.prepare("INSERT INTO sessions (id,user_id,token_hash,expires_at) VALUES (?,?,?,?)")
     .bind(crypto.randomUUID(), userId, tokenHash, expiresAt).run();
   setSessionCookie(token);
