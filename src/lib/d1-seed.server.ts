@@ -27,6 +27,11 @@ export async function ensureBundledD1Seed() {
   const { localChargerDataset } = await import("./local-chargers.server");
   const owners = localChargerDataset.owners ?? [];
   const chargers = localChargerDataset.chargers as unknown as Record<string, unknown>[];
+  const { FALLBACK_LANGUAGES } = await import("./i18n");
+  for (const [index, language] of FALLBACK_LANGUAGES.entries()) {
+    await db.prepare("INSERT INTO languages (code,name,native_name,enabled,is_default,rtl,sort_order) VALUES (?,?,?,?,?,?,?) ON CONFLICT(code) DO NOTHING")
+      .bind(language.code, language.name, language.nativeName, 1, language.isDefault ? 1 : 0, language.rtl ? 1 : 0, language.sortOrder || index + 1).run();
+  }
   for (const owner of owners) {
     const fields = ["id","name","logo_url","description","website","contact","notes"];
     const vals = fields.map((field) => (owner as unknown as Record<string, unknown>)[field] ?? null);
