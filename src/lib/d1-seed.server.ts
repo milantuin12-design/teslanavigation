@@ -60,7 +60,7 @@ export async function ensureBundledD1Seed() {
   const owners = localChargerDataset.owners ?? [];
   const chargers = localChargerDataset.chargers as unknown as Record<string, unknown>[];
   const { FALLBACK_LANGUAGES } = await import("./i18n");
-  const datasetVersion = "2026-11-11";
+  const datasetVersion = String((localChargerDataset as unknown as { exportedAt?: string }).exportedAt ?? "unknown");
   const tariffVersion = String((tariffDataset as unknown as { checkedAt?: string }).checkedAt ?? "unknown");
 
   for (const [index, language] of FALLBACK_LANGUAGES.entries()) {
@@ -82,7 +82,7 @@ export async function ensureBundledD1Seed() {
   let inserted = 0;
   let refreshed = 0;
   if (datasetState?.value !== datasetVersion) {
-    const baseFields = ["name","lat","lng","total_stalls","stall_types","country","province","city","max_speed_kw","versions"];
+    const baseFields = ["name","lat","lng","total_stalls","stall_types","country","province","city","max_speed_kw","versions","status","construction","works","closure","opening_time","closing_time","opening_hours","is_available","charger_configs","parking_fee","in_parking_garage","low_speed","reopen_at","planned_upgrade"];
     const statements = chargers.flatMap((charger) => {
       if (!charger.id || !charger.name || typeof charger.lat !== "number" || typeof charger.lng !== "number") return [];
       const row = Object.fromEntries(CHARGER_FIELDS.filter((field) => field in charger).map((field) => [field, valueFor(field, charger[field])]));
