@@ -381,6 +381,8 @@ export const adminListSuperchargers = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ from: z.number().int().min(0).max(100000).default(0) }).parse(input ?? {}))
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
+    const { ensureBundledD1Seed } = await import("./d1-seed.server");
+    await ensureBundledD1Seed();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const columns = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,traffic_forecast,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks";
     const { data: rows, error } = await supabaseAdmin.from("superchargers").select(columns).order("name").range(data.from, data.from + 999);
