@@ -59,7 +59,9 @@ De Wrangler-configuratie verwacht de Nitro Cloudflare Worker-output in `.output/
 - Beheerdersrechten en adminbewaking aan de serverkant: D1.
 - Superchargerbeheer, eigenaren, bulkbewerkingen, rapporten, voertuigen, talen, vertalingen, wijzigingshistorie en gebruikersbeheer: D1.
 - Opgeslagen routes, gedeelde routes en meldingen/gesprekken: D1.
-- Eerste vulling van de D1-Superchargerlijst uit de meegeleverde Europese JSON-dataset. Dit gebeurt alleen als de D1-tabel nog leeg is.
+- Eerste vulling van de D1-Superchargerlijst uit de meegeleverde Europese JSON-dataset.
+- Veilige versie-update van de ingebouwde basisdata: nieuwe locaties worden toegevoegd en basisgegevens van automatisch beheerde locaties worden ververst; handmatige status-, openingstijden-, notitie-, foto-, parkeer- en prijsblokwijzigingen blijven behouden.
+- De actuele kWh-tarieven uit het bestand dat op 11 november 2026 is gecontroleerd worden als tijdsblokken toegevoegd waar nog geen handmatige tijdsblokken bestaan. Vaste tarieven worden als één blok van 00:00–24:00 opgeslagen.
 - Als D1 nog niet beschikbaar is, blijft de publieke kaart terugvallen op de meegeleverde dataset.
 
 ## Belangrijk over bestaande live gegevens
