@@ -58,11 +58,11 @@ function AuthPage() {
       if (mode === "login") {
         await signIn({ data: { email: email.trim(), password } });
         toast.success("Ingelogd");
-        await navigate({ to: "/" });
+        window.location.assign("/");
       } else {
         await signUp({ data: { email: email.trim(), password } });
         toast.success("Account aangemaakt en ingelogd");
-        await navigate({ to: "/" });
+        window.location.assign("/");
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Inloggen is mislukt.";
