@@ -364,3 +364,91 @@ export const updateReportStatus = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/* ---------------- Cloudflare D1 admin API ---------------- */
+
+const adminRawColumns = new Set([
+  "id","name","lat","lng","country","province","city","total_stalls","stall_types","max_speed_kw","versions",
+  "opening_time","closing_time","opening_hours","trailer_friendly","is_available","charger_configs","parking_fee",
+  "parking_fee_amount","parking_free_minutes","parking_per_minutes","parking_per_euro","parking_blocks","price_currency",
+  "price_per_kwh","price_per_kwh_peak","peak_hours","in_parking_garage","status","construction","traffic_forecast",
+  "works","closure","owner_id","owner_name","low_speed","published","reopen_at","planned_upgrade","stall_states",
+  "data_source","hidden","photos","permanently_closed_at","price_blocks","occupied_stalls","last_updated","updated_at",
+]);
+
+export const adminListSuperchargers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ from: z.number().int().min(0).max(100000).default(0) }).parse(input ?? {}))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const columns = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,traffic_forecast,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks";
+    const { data: rows, error } = await supabaseAdmin.from("superchargers").select(columns).order("name").range(data.from, data.from + 999);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const adminRawUpsertCharger = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.record(z.unknown()).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const row = Object.fromEntries(Object.entries(data).filter(([key, value]) => adminRawColumns.has(key) && value !== undefined));
+    if (!row.id) row.id = crypto.randomUUID();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("superchargers").upsert(row, { onConflict: "id" });
+    if (error) throw new Error(error.message);
+    await logAction(context, "supercharger_upsert", 1, { id: row.id, name: row.name });
+    return { id: row.id };
+  });
+
+export const adminDeleteCharger = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("superchargers").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await logAction(context, "supercharger_delete", 1, { id: data.id });
+    return { ok: true };
+  });
+
+export const adminBulkRawUpdate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({
+    ids: z.array(z.string().min(1).max(120)).min(1).max(5000),
+    changes: z.record(z.unknown()),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const changes = Object.fromEntries(Object.entries(data.changes).filter(([key, value]) => adminRawColumns.has(key) && value !== undefined));
+    if (!Object.keys(changes).length) return { updated: 0 };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("superchargers").update(changes).in("id", data.ids);
+    if (error) throw new Error(error.message);
+    await logAction(context, "supercharger_bulk_update", data.ids.length, { fields: Object.keys(changes) });
+    return { updated: data.ids.length };
+  });
+
+export const adminListOwners = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.from("charger_owners").select("id,name").order("name");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const adminCreateOwner = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ name: z.string().trim().min(1).max(120) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin.from("charger_owners").insert({ name: data.name }).select("id,name").single();
+    if (error) throw new Error(error.message);
+    await logAction(context, "owner_create", 1, { name: data.name });
+    return row;
+  });
