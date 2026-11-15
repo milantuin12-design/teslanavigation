@@ -13,7 +13,7 @@ const CHARGER_FIELDS = [
 ];
 
 function normalizeMatch(value: string) {
-  return value.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 function getBundledPrice(row: Record<string, unknown>) {
