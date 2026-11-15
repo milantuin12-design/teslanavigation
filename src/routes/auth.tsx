@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { getCurrentUser, signIn, signUp } from "@/lib/auth.functions";
+import { claimAdmin, getCurrentUser, signIn, signUp } from "@/lib/auth.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,8 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [adminSetup, setAdminSetup] = useState(false);
+  const [adminToken, setAdminToken] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -34,6 +36,20 @@ function AuthPage() {
     });
     return () => { active = false; };
   }, [navigate]);
+
+  const onClaimAdmin = async () => {
+    setBusy(true);
+    setAuthError("");
+    try {
+      await claimAdmin({ data: { token: adminToken } });
+      toast.success("Beheerdersrechten geactiveerd");
+      await navigate({ to: "/" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Beheerder activeren mislukt.";
+      setAuthError(message);
+      toast.error(message);
+    } finally { setBusy(false); }
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,6 +101,20 @@ function AuthPage() {
             <p className="mt-1">{authError}</p>
           </div>
         )}
+        <div className="mt-5 border-t border-slate-700 pt-4">
+          <button type="button" className="text-xs text-slate-500 hover:text-slate-300" onClick={() => { setAdminSetup(!adminSetup); setAuthError(""); }}>
+            {adminSetup ? "Beheerder activeren sluiten" : "Eerste beheerder activeren"}
+          </button>
+          {adminSetup && (
+            <div className="mt-3 space-y-2">
+              <Label htmlFor="admin-token">Eenmalige Cloudflare-beheerderscode</Label>
+              <Input id="admin-token" type="password" autoComplete="off" value={adminToken} onChange={(e) => setAdminToken(e.target.value)} className="bg-slate-700 border-slate-600" />
+              <Button type="button" onClick={onClaimAdmin} disabled={busy || adminToken.length < 32} className="w-full bg-blue-600 hover:bg-blue-700">
+                Beheerdersrechten activeren
+              </Button>
+            </div>
+          )}
+        </div>
         <p className="text-center mt-6 text-sm text-slate-400">
           {mode === "login" ? "Nog geen account?" : "Al een account?"}{" "}
           <button type="button" className="text-red-400 hover:text-red-300" onClick={() => { setAuthError(""); setMode(mode === "login" ? "register" : "login"); }}>
