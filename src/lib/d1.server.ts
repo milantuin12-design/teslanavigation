@@ -16,11 +16,15 @@ export interface D1Database {
   batch<T = unknown>(statements: D1Statement[]): Promise<D1Result<T>[]>;
 }
 
-export function getD1(): D1Database {
+export function getCloudflareEnv(): Record<string, unknown> {
   const request = getRequest() as Request & {
-    runtime?: { cloudflare?: { env?: { DB?: D1Database } } };
+    runtime?: { cloudflare?: { env?: Record<string, unknown> } };
   };
-  const db = request.runtime?.cloudflare?.env?.DB;
+  return request.runtime?.cloudflare?.env ?? {};
+}
+
+export function getD1(): D1Database {
+  const db = getCloudflareEnv().DB as D1Database | undefined;
   if (!db) {
     throw new Error("Cloudflare D1 is niet beschikbaar. Publiceer de Worker met de DB-binding uit wrangler.toml.");
   }
