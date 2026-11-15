@@ -35,7 +35,7 @@ type NetworkSite = Pick<Supercharger, "id" | "lat" | "lng">;
 const lifecycle: ChargerLifecycleStatus[] = ["operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed", "unknown"];
 
 function normalizeTariffMatch(value: string) {
-  return value.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 function withBundledTariff(row: LocalRow, tariffs: any[]): LocalRow {
