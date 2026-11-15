@@ -258,6 +258,7 @@ export const bulkUpdateSuperchargers = createServerFn({ method: "POST" })
     if (Object.keys(payload).length === 0 && !c.expectedOpenMonth && !c.plannedUpgradeLabel) {
       return { updated: 0 };
     }
+    if (Object.keys(payload).length > 0) payload["data_source"] = "manual";
 
     const sb = context.supabase as unknown as {
       from: (t: string) => {
