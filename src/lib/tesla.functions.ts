@@ -233,10 +233,8 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
     // Zonder legacy cloud-credentials mag de publieke kaart niet wachten op of
     // afhankelijk zijn van Lovable/Supabase. De volledige basisdataset en
     // tijdsgebonden tarieven zitten al in de repository.
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      const network: NetworkLocation[] = localRows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
-      return localRows.map((row) => rowToCharger(applyTariffOverride(row), owners, network));
-    }
+    // Haal de actuele beheerdersdata uit Cloudflare D1 op; bij een lege of
+    // nog niet aangemaakte database valt de kaart veilig terug op de ingebouwde dataset.
 
     // Haal de actuele clouddata volledig op. Een korte timeout kan in Preview
     // onterecht oude ingebouwde data tonen terwijl de database wel bereikbaar is.
