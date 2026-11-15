@@ -6,12 +6,17 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { User as UserIcon, LogOut, Shield, BookmarkCheck, LogIn, MessageSquare } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
+const hasSupabaseBrowserConfig = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+);
+
 export function AccountMenu() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!hasSupabaseBrowserConfig) return;
     // Supabase emits INITIAL_SESSION after the listener is attached. Use this
     // single ordered source of truth so a late getUser() response cannot
     // overwrite a newer SIGNED_IN event with a stale null user.
@@ -22,7 +27,9 @@ export function AccountMenu() {
   }, []);
 
   useEffect(() => {
-    if (!user) { setIsAdmin(false); return; }
+    if (!hasSupabaseBrowserConfig) return null;
+
+  if (!user) { setIsAdmin(false); return; }
     supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
   }, [user]);
 
