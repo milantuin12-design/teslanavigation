@@ -57,12 +57,12 @@ jobs:
             fs.mkdirSync('src/data', { recursive: true });
             fs.writeFileSync('src/data/superchargers-live-export.json', JSON.stringify(output, null, 2) + '\n');
             console.log(`Exported ${rows.length} live Supercharger rows.`);
-          })().catch(error => { console.error(error); process.exit(1); });
+          })().catch(error => { console.error(error); fs.writeFileSync('src/data/live-export-status.json', JSON.stringify({ checkedAt: new Date().toISOString(), error: String(error) }, null, 2)); });
           NODE
       - name: Commit export to migration branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data/superchargers-live-export.json
+          git add src/data/superchargers-live-export.json src/data/live-export-status.json
           git commit -m "Export latest live Supercharger database snapshot" || exit 0
           git push origin cloudflare-migratie
