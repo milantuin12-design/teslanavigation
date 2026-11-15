@@ -110,20 +110,19 @@ export async function ensureBundledD1Seed() {
   }
 
   const tariffState = await meta("bundled_tariff_version");
-  let tariffsRefreshed = 0;
-  if (tariffState?.value !== tariffVersion) {
-    const updates = chargers.flatMap((row) => {
-      const price = getBundledPrice(row);
-      return price ? [db.prepare(`UPDATE superchargers
-        SET price_currency = ?, price_blocks = ?, price_per_kwh = NULL,
-            price_per_kwh_peak = NULL, peak_hours = NULL
-        WHERE id = ? AND (price_blocks IS NULL OR price_blocks = '' OR price_blocks = '[]')`)
-        .bind(price.currency, JSON.stringify(price.blocks), row.id)] : [];
-    });
-    for (let i = 0; i < updates.length; i += 50) await db.batch(updates.slice(i, i + 50));
-    tariffsRefreshed = updates.length;
-    await setMeta("bundled_tariff_version", tariffVersion);
-  }
+  // Recheck missing prices on every data refresh, not only when the tariff file changes.
+  // This also prices newly opened Superchargers without overwriting saved/manual prices.
+  const tariffUpdates = chargers.flatMap((row) => {
+    const price = getBundledPrice(row);
+    return price ? [db.prepare(`UPDATE superchargers
+      SET price_currency = ?, price_blocks = ?, price_per_kwh = NULL,
+          price_per_kwh_peak = NULL, peak_hours = NULL
+      WHERE id = ? AND (price_blocks IS NULL OR price_blocks = '' OR price_blocks = '[]')`)
+      .bind(price.currency, JSON.stringify(price.blocks), row.id)] : [];
+  });
+  for (let i = 0; i < tariffUpdates.length; i += 50) await db.batch(tariffUpdates.slice(i, i + 50));
+  const tariffsRefreshed = tariffUpdates.length;
+  if (tariffState?.value !== tariffVersion) await setMeta("bundled_tariff_version", tariffVersion);
 
   const count = await db.prepare("SELECT COUNT(*) AS count FROM superchargers").first<{count:number}>();
   return { seeded: inserted > 0 && (count?.count ?? 0) === inserted, count: count?.count ?? 0, refreshed, tariffsRefreshed };
