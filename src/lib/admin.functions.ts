@@ -425,8 +425,10 @@ export const adminBulkRawUpdate = createServerFn({ method: "POST" })
     const changes = Object.fromEntries(Object.entries(data.changes).filter(([key, value]) => adminRawColumns.has(key) && value !== undefined));
     if (!Object.keys(changes).length) return { updated: 0 };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("superchargers").update(changes).in("id", data.ids);
-    if (error) throw new Error(error.message);
+    for (let i = 0; i < data.ids.length; i += 300) {
+      const { error } = await supabaseAdmin.from("superchargers").update(changes).in("id", data.ids.slice(i, i + 300));
+      if (error) throw new Error(error.message);
+    }
     await logAction(context, "supercharger_bulk_update", data.ids.length, { fields: Object.keys(changes) });
     return { updated: data.ids.length };
   });
