@@ -8,5 +8,13 @@ workers_dev = true
 directory = ".output/public"
 binding = "ASSETS"
 
+# Cloudflare provisions this D1 database when the Worker is first deployed.
+# The SQL migrations are stored in ./migrations and must be applied before
+# enabling the D1-backed admin API.
+[[d1_databases]]
+binding = "DB"
+database_name = "teslanavigation"
+migrations_dir = "migrations"
+
 [observability]
 enabled = true
