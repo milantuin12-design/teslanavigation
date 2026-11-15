@@ -43,21 +43,24 @@ type OwnerRow = {
 };
 
 export const listOwners = createServerFn({ method: "GET" }).handler(async (): Promise<ChargerOwner[]> => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
-    .from("charger_owners")
-    .select("id,name,logo_url,description,website,contact,notes")
-    .order("name");
-  if (error) throw new Error(error.message);
-  return ((data ?? []) as OwnerRow[]).map((row) => ({
-    id: row.id,
-    name: row.name,
-    logoUrl: row.logo_url,
-    description: row.description,
-    website: row.website,
-    contact: row.contact,
-    notes: row.notes,
-  }));
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("charger_owners")
+      .select("id,name,logo_url,description,website,contact,notes")
+      .order("name");
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as OwnerRow[]).map((row) => ({
+      id: row.id, name: row.name, logoUrl: row.logo_url, description: row.description,
+      website: row.website, contact: row.contact, notes: row.notes,
+    }));
+  } catch {
+    const { localChargerDataset } = await import("./local-chargers.server");
+    return (localChargerDataset.owners ?? []).map((row) => ({
+      id: row.id, name: row.name, logoUrl: row.logo_url, description: row.description,
+      website: row.website, contact: row.contact, notes: row.notes,
+    }));
+  }
 });
 
 const ownerInput = z.object({
@@ -123,22 +126,19 @@ type UpdateRow = {
 };
 
 export const listSiteUpdates = createServerFn({ method: "GET" }).handler(async (): Promise<SiteUpdate[]> => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
-    .from("site_updates")
-    .select("id,title,body,image_url,importance,published_at,visible")
-    .order("published_at", { ascending: false })
-    .limit(50);
-  if (error) throw new Error(error.message);
-  return ((data ?? []) as UpdateRow[]).map((row) => ({
-    id: row.id,
-    title: row.title,
-    body: row.body,
-    imageUrl: row.image_url,
-    importance: row.importance,
-    publishedAt: row.published_at,
-    visible: row.visible,
-  }));
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("site_updates")
+      .select("id,title,body,image_url,importance,published_at,visible")
+      .order("published_at", { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as UpdateRow[]).map((row) => ({
+      id: row.id, title: row.title, body: row.body, imageUrl: row.image_url,
+      importance: row.importance, publishedAt: row.published_at, visible: row.visible,
+    }));
+  } catch { return []; }
 });
 
 const updateInput = z.object({
