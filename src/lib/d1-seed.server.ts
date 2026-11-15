@@ -49,29 +49,20 @@ function valueFor(key: string, value: unknown): unknown {
   return value;
 }
 
-/** Seeds the bundled European Supercharger baseline once; live D1 edits always win afterwards. */
+/**
+ * Refreshes the bundled baseline when its checked-in version changes.
+ * Static site facts are synced only for automatic/bundled rows. Manual admin
+ * edits, statuses, opening hours, photos, notes, closures and saved tariffs remain intact.
+ */
 export async function ensureBundledD1Seed() {
   const db = getD1();
-  const count = await db.prepare("SELECT COUNT(*) AS count FROM superchargers").first<{count:number}>();
   const { localChargerDataset } = await import("./local-chargers.server");
-  if ((count?.count ?? 0) > 0) {
-    // Keep live admin edits intact, but refresh missing tariffs from the latest
-    // checked-in time-block file every time the bundled baseline is checked.
-    const tariffs = localChargerDataset.chargers as unknown as Record<string, unknown>[];
-    const updates = tariffs.flatMap((row) => {
-      const price = getBundledPrice(row);
-      return price ? [db.prepare(`UPDATE superchargers
-        SET price_currency = ?, price_blocks = ?, price_per_kwh = NULL,
-            price_per_kwh_peak = NULL, peak_hours = NULL
-        WHERE id = ? AND (price_blocks IS NULL OR price_blocks = '' OR price_blocks = '[]')`)
-        .bind(price.currency, JSON.stringify(price.blocks), row.id)] : [];
-    });
-    for (let i = 0; i < updates.length; i += 50) await db.batch(updates.slice(i, i + 50));
-    return { seeded: false, count: count?.count ?? 0, tariffsRefreshed: updates.length };
-  }
   const owners = localChargerDataset.owners ?? [];
   const chargers = localChargerDataset.chargers as unknown as Record<string, unknown>[];
   const { FALLBACK_LANGUAGES } = await import("./i18n");
+  const datasetVersion = "2026-11-11";
+  const tariffVersion = String((tariffDataset as unknown as { checkedAt?: string }).checkedAt ?? "unknown");
+
   for (const [index, language] of FALLBACK_LANGUAGES.entries()) {
     await db.prepare("INSERT INTO languages (code,name,native_name,enabled,is_default,rtl,sort_order) VALUES (?,?,?,?,?,?,?) ON CONFLICT(code) DO NOTHING")
       .bind(language.code, language.name, language.nativeName, 1, language.isDefault ? 1 : 0, language.rtl ? 1 : 0, language.sortOrder || index + 1).run();
@@ -82,24 +73,58 @@ export async function ensureBundledD1Seed() {
     await db.prepare(`INSERT INTO charger_owners (${fields.join(",")}) VALUES (${fields.map(()=>"?").join(",")}) ON CONFLICT(id) DO NOTHING`).bind(...vals).run();
   }
 
-  const statements = chargers.map((charger) => {
-    const row = Object.fromEntries(CHARGER_FIELDS.filter((field) => field in charger).map((field) => [field, valueFor(field, charger[field])]));
-    const bundledPrice = getBundledPrice(charger);
-    if (bundledPrice && (!Array.isArray(charger.price_blocks) || charger.price_blocks.length === 0)) {
-      row.price_currency = bundledPrice.currency;
-      row.price_blocks = JSON.stringify(bundledPrice.blocks);
-      row.price_per_kwh = null;
-      row.price_per_kwh_peak = null;
-      row.peak_hours = null;
-    }
-    if (!row.id || !row.name || typeof row.lat !== "number" || typeof row.lng !== "number") return null;
-    const fields = Object.keys(row);
-    return db.prepare(`INSERT INTO superchargers (${fields.join(",")}) VALUES (${fields.map(()=>"?").join(",")}) ON CONFLICT(id) DO NOTHING`)
-      .bind(...fields.map((field) => row[field]));
-  }).filter((statement): statement is NonNullable<typeof statement> => statement !== null);
+  const meta = async (key: string) => db.prepare("SELECT value FROM app_meta WHERE key = ?").bind(key).first<{value:string}>();
+  const setMeta = async (key: string, value: string) => db.prepare(
+    "INSERT INTO app_meta (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=datetime('now')"
+  ).bind(key,value).run();
 
-  for (let i = 0; i < statements.length; i += 25) {
-    await db.batch(statements.slice(i, i + 25));
+  const datasetState = await meta("bundled_dataset_version");
+  let inserted = 0;
+  let refreshed = 0;
+  if (datasetState?.value !== datasetVersion) {
+    const baseFields = ["name","lat","lng","total_stalls","stall_types","country","province","city","max_speed_kw","versions"];
+    const statements = chargers.flatMap((charger) => {
+      if (!charger.id || !charger.name || typeof charger.lat !== "number" || typeof charger.lng !== "number") return [];
+      const row = Object.fromEntries(CHARGER_FIELDS.filter((field) => field in charger).map((field) => [field, valueFor(field, charger[field])]));
+      const bundledPrice = getBundledPrice(charger);
+      row.data_source = row.data_source ?? "automatic";
+      if (bundledPrice && (!Array.isArray(charger.price_blocks) || charger.price_blocks.length === 0)) {
+        row.price_currency = bundledPrice.currency;
+        row.price_blocks = JSON.stringify(bundledPrice.blocks);
+        row.price_per_kwh = null;
+        row.price_per_kwh_peak = null;
+        row.peak_hours = null;
+      }
+      const fields = Object.keys(row);
+      const insert = db.prepare(`INSERT INTO superchargers (${fields.join(",")}) VALUES (${fields.map(()=>"?").join(",")}) ON CONFLICT(id) DO NOTHING`)
+        .bind(...fields.map((field) => row[field]));
+      const updateValues = baseFields.map((field) => field === "versions" ? valueFor(field, charger[field]) : charger[field] ?? null);
+      const update = db.prepare(`UPDATE superchargers SET ${baseFields.map((field) => `${field} = ?`).join(",")}, data_source = 'automatic' WHERE id = ? AND (data_source IS NULL OR data_source = 'automatic')`)
+        .bind(...updateValues, charger.id);
+      return [insert, update];
+    });
+    for (let i = 0; i < statements.length; i += 50) await db.batch(statements.slice(i, i + 50));
+    inserted = chargers.length;
+    refreshed = statements.length / 2;
+    await setMeta("bundled_dataset_version", datasetVersion);
   }
-  return { seeded: true, count: statements.length };
+
+  const tariffState = await meta("bundled_tariff_version");
+  let tariffsRefreshed = 0;
+  if (tariffState?.value !== tariffVersion) {
+    const updates = chargers.flatMap((row) => {
+      const price = getBundledPrice(row);
+      return price ? [db.prepare(`UPDATE superchargers
+        SET price_currency = ?, price_blocks = ?, price_per_kwh = NULL,
+            price_per_kwh_peak = NULL, peak_hours = NULL
+        WHERE id = ? AND (price_blocks IS NULL OR price_blocks = '' OR price_blocks = '[]')`)
+        .bind(price.currency, JSON.stringify(price.blocks), row.id)] : [];
+    });
+    for (let i = 0; i < updates.length; i += 50) await db.batch(updates.slice(i, i + 50));
+    tariffsRefreshed = updates.length;
+    await setMeta("bundled_tariff_version", tariffVersion);
+  }
+
+  const count = await db.prepare("SELECT COUNT(*) AS count FROM superchargers").first<{count:number}>();
+  return { seeded: inserted > 0 && (count?.count ?? 0) === inserted, count: count?.count ?? 0, refreshed, tariffsRefreshed };
 }
