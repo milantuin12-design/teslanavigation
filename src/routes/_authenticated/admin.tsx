@@ -2,10 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { importSuperchargers, getWinterSportsMode, setWinterSportsMode, getHolidayPeriodMode, setHolidayPeriodMode } from "@/lib/tesla.functions";
+import { adminListSuperchargers, adminRawUpsertCharger, adminDeleteCharger, adminBulkRawUpdate, adminListOwners, adminCreateOwner } from "@/lib/admin.functions";
+import { getCurrentUser } from "@/lib/auth.functions";
 import localDataset from "@/data/superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
 import { queueAdminChange, getPendingAdminChanges, clearPendingAdminChanges } from "@/lib/local-store";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,18 +87,6 @@ type AdminTariff = {
   priceBlocks?: { from: string; to: string; pricePerKwh: number }[];
 };
 
-function broadcastCrowdModeUpdate(mode: "winterSportsMode" | "holidayPeriodMode", enabled: boolean) {
-  const channel = supabase.channel("global-crowd-modes-live");
-  channel.subscribe((status) => {
-    if (status === "SUBSCRIBED") {
-      void channel.send({
-        type: "broadcast",
-        event: "modes-updated",
-        payload: { mode, enabled },
-      }).finally(() => { void supabase.removeChannel(channel); });
-    }
-  });
-}
 
 function normalizeTariffMatch(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -358,21 +347,26 @@ function AdminPage() {
   const [winterSportsSaving, setWinterSportsSaving] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
-      const { data } = await supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
-      setIsAdmin(!!data);
-      if (data) { try { setWinterSportsEnabled(await readWinterSportsMode()); setHolidayPeriodEnabled(await readHolidayPeriodMode()); } catch { setWinterSportsEnabled(false); setHolidayPeriodEnabled(false); } }
-    })();
-  }, [readWinterSportsMode]);
+    let active = true;
+    void getCurrentUser().then(async (user) => {
+      if (!active) return;
+      const admin = !!user?.is_admin;
+      setIsAdmin(admin);
+      if (admin) {
+        try {
+          const [winter, holiday] = await Promise.all([readWinterSportsMode(), readHolidayPeriodMode()]);
+          if (active) { setWinterSportsEnabled(winter); setHolidayPeriodEnabled(holiday); }
+        } catch { if (active) { setWinterSportsEnabled(false); setHolidayPeriodEnabled(false); } }
+      }
+    }).catch(() => { if (active) setIsAdmin(false); });
+    return () => { active = false; };
+  }, [readWinterSportsMode, readHolidayPeriodMode]);
 
   const toggleWinterSports = async (enabled: boolean) => {
     setWinterSportsSaving(true);
     try {
       await saveWinterSportsMode({ data: { enabled } });
       setWinterSportsEnabled(enabled);
-      broadcastCrowdModeUpdate("winterSportsMode", enabled);
       toast.success(enabled ? "Wintersportmodus ingeschakeld" : "Wintersportmodus uitgeschakeld");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Instelling opslaan mislukt");
@@ -384,7 +378,6 @@ function AdminPage() {
     try {
       await saveHolidayPeriodMode({ data: { enabled } });
       setHolidayPeriodEnabled(enabled);
-      broadcastCrowdModeUpdate("holidayPeriodMode", enabled);
       toast.success(enabled ? "Vakantieperiode ingeschakeld" : "Vakantieperiode uitgeschakeld");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Vakantieperiode opslaan mislukt");
@@ -393,85 +386,46 @@ function AdminPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    // Eerst eventuele wijzigingen versturen die in de wachtrij stonden (cloud was weg).
     const pending = getPendingAdminChanges();
     if (pending.length > 0) {
       let failed = false;
       for (const change of pending) {
         try {
           if (change.type === "delete" && change.id) {
-            const { error } = await supabase.from("superchargers").delete().eq("id", change.id);
-            if (error) failed = true;
+            await adminDeleteCharger({ data: { id: change.id } });
           } else if (change.type === "upsert" && change.payload) {
-            const { error } = await supabase.from("superchargers").upsert(stripLegacyTrafficColumn(change.payload as Record<string, unknown>) as never);
-            if (error) failed = true;
+            await adminRawUpsertCharger({ data: stripLegacyTrafficColumn(change.payload as Record<string, unknown>) });
           }
-        } catch { failed = true; }
-        if (failed) break;
+        } catch { failed = true; break; }
       }
       if (!failed) {
         clearPendingAdminChanges();
-        toast.success("Wachtrij met wijzigingen verstuurd naar de cloud");
+        toast.success("Wachtrij met wijzigingen verwerkt in Cloudflare D1");
       }
     }
+
     const rows: Charger[] = [];
-    let parkingBlocksColumnMissing = false;
-    for (let from = 0; ; from += 1000) {
-      const columnsWithCurrency = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,traffic_forecast,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks";
-      const columnsWithoutCurrency = columnsWithCurrency.replace("price_currency,", "");
-      const columnsWithoutParkingBlocks = columnsWithCurrency.replace("parking_blocks,", "");
-      const columnsWithoutBoth = columnsWithCurrency.replace("parking_blocks,", "").replace("price_currency,", "");
-      const columnsWithoutTraffic = columnsWithCurrency.replace("traffic_forecast,", "");
-      const columnsWithoutTrafficAndParking = columnsWithoutTraffic.replace("parking_blocks,", "");
-      let parkingBlocksMissing = false;
-      let result = await supabase.from("superchargers")
-        .select(columnsWithCurrency)
-        .order("name").range(from, from + 999);
-
-      // Oudere databases kunnen de druktevoorspellingskolom nog missen.
-      if (result.error && /traffic_forecast|column .* does not exist|schema cache/i.test(result.error.message)) {
-        result = await supabase.from("superchargers").select(columnsWithoutTraffic).order("name").range(from, from + 999);
+    try {
+      for (let from = 0; ; from += 1000) {
+        const pageRows = await adminListSuperchargers({ data: { from } }) as Charger[];
+        rows.push(...pageRows.map((row) => addAdminTariff(row)));
+        if (pageRows.length < 1000) break;
       }
-
-      // Oudere databases kunnen de nieuwe parkeerblokkenkolom nog missen.
-      if (result.error && /parking_blocks|column .* does not exist|schema cache/i.test(result.error.message)) {
-        parkingBlocksMissing = true;
-        parkingBlocksColumnMissing = true;
-        result = await supabase.from("superchargers").select(columnsWithoutTrafficAndParking).order("name").range(from, from + 999);
+      const ownerRows = await adminListOwners();
+      setOwners(ownerRows as Owner[]);
+    } catch (error) {
+      console.error("[TeslaNavigation] D1-adminlijst niet bereikbaar; toon lokale dataset:", error);
+      const localRows = (localDataset as { chargers?: Charger[] }).chargers ?? [];
+      if (rows.length === 0 && localRows.length > 0) {
+        rows.push(...localRows.map((row) => addAdminTariff(row)));
+        toast.warning("Cloudflare D1 is nog niet beschikbaar — lokale Superchargerlijst getoond. Wijzigingen kunnen nog niet worden opgeslagen.");
+      } else {
+        toast.error("Superchargers konden niet uit Cloudflare D1 worden geladen: " + (error instanceof Error ? error.message : String(error)));
       }
-      if (result.error && /price_currency|column .* does not exist|schema cache/i.test(result.error.message)) {
-        result = await supabase.from("superchargers")
-          .select(parkingBlocksMissing ? columnsWithoutBoth : columnsWithoutCurrency)
-          .order("name").range(from, from + 999);
-      }
-
-      if (result.error) {
-        console.error("[TeslaNavigation] Admin-cloudlijst niet bereikbaar; toon lokale dataset:", result.error.message);
-        const localRows = (localDataset as { chargers?: Charger[] }).chargers ?? [];
-        if (rows.length === 0 && localRows.length > 0) {
-          rows.push(...localRows);
-          toast.warning("Cloud tijdelijk niet bereikbaar — lokale Superchargerlijst getoond. Wijzigingen worden pas opgeslagen zodra de cloud weer werkt.");
-        } else if (rows.length === 0) {
-          toast.error("Superchargers konden niet uit de cloud of lokale dataset worden geladen: " + result.error.message);
-        }
-        break;
-      }
-      const pageRows = (result.data || []).map((row) => addAdminTariff({
-        ...row,
-        price_currency: (row as typeof row & { price_currency?: string | null }).price_currency || "EUR",
-      } as Charger));
-      rows.push(...pageRows);
-      if (!result.data || result.data.length < 1000) break;
     }
     setChargers(rows);
-    if (parkingBlocksColumnMissing) {
-      toast.warning("Nieuwe parkeertarieven zijn nog niet beschikbaar in de database. De migratie parking_blocks moet eerst worden uitgevoerd; bestaande gegevens blijven behouden.");
-    }
-    const { data: ownerRows } = await supabase.from("charger_owners").select("id,name").order("name");
-    setOwners((ownerRows as Owner[] | null) ?? []);
     setLoading(false);
   }, []);
-
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
   const openNew = () => { setEditing({ ...emptyCharger, opening_hours: defaultOpeningHours(), traffic_forecast: createEmptyTrafficForecast() }); setCoordsInput(""); };
@@ -544,15 +498,8 @@ function AdminPage() {
       photos: (editing.photos || []).map((u) => u.trim()).filter(Boolean),
     };
     try {
-      if (editing.id) {
-        const { error } = await supabase.from("superchargers").update(stripLegacyTrafficColumn(payload as Record<string, unknown>) as never).eq("id", editing.id);
-        if (error) throw new Error(error.message);
-        toast.success("Bijgewerkt");
-      } else {
-        const { error } = await supabase.from("superchargers").insert(stripLegacyTrafficColumn(payload as Record<string, unknown>) as never);
-        if (error) throw new Error(error.message);
-        toast.success("Toegevoegd");
-      }
+      await adminRawUpsertCharger({ data: stripLegacyTrafficColumn({ ...(editing.id ? { id: editing.id } : {}), ...payload } as Record<string, unknown>) });
+      toast.success(editing.id ? "Bijgewerkt" : "Toegevoegd");
     } catch (error) {
       // Bewaar de wijziging lokaal, maar toon ook de echte databasefout zodat schema-
       // of validatiefouten niet onterecht als alleen een cloudstoring worden gemeld.
@@ -561,7 +508,7 @@ function AdminPage() {
       // Een ontbrekende JSONB-kolom kan niet met een lokale wachtrij worden opgelost.
       // Laat het formulier open zodat de gebruiker geen ingevoerde tarieven verliest.
       if (/parking_blocks/i.test(message) && /(column|schema cache|does not exist|could not find)/i.test(message)) {
-        toast.error("Parkeertarieven niet opgeslagen: de database mist parking_blocks. Voer de Supabase-migratie 20261108113000_add_parking_fee_blocks.sql uit en probeer opnieuw.");
+        toast.error("Parkeertarieven niet opgeslagen: controleer of de D1-migratie parking_blocks is toegepast. Je ingevoerde gegevens blijven in het formulier staan.");
         return;
       }
       queueAdminChange({ type: "upsert", id: editing.id, payload: stripLegacyTrafficColumn(editing.id ? { id: editing.id, ...payload } : payload) });
@@ -576,8 +523,7 @@ function AdminPage() {
   const remove = async (id: string) => {
     if (!confirm("Weet je zeker dat je deze supercharger wilt verwijderen?")) return;
     try {
-      const { error } = await supabase.from("superchargers").delete().eq("id", id);
-      if (error) throw new Error(error.message);
+      await adminDeleteCharger({ data: { id } });
       toast.success("Verwijderd");
     } catch {
       queueAdminChange({ type: "delete", id });
@@ -604,8 +550,8 @@ function AdminPage() {
     const drafts = chargers.filter((c) => c.published === false);
     if (drafts.length === 0) { toast.info("Geen concepten om te publiceren"); return; }
     if (!confirm(`${drafts.length} concepten publiceren?`)) return;
-    const { error } = await supabase.from("superchargers").update({ published: true }).eq("published", false);
-    if (error) { toast.error(error.message); return; }
+    try { await adminBulkRawUpdate({ data: { ids: drafts.map((draft) => draft.id), changes: { published: true } } }); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Publiceren mislukt"); return; }
     toast.success(`${drafts.length} concepten gepubliceerd`);
     load();
   };
@@ -644,8 +590,10 @@ function AdminPage() {
     if (!trimmed) return null;
     const existing = owners.find((o) => o.name.toLowerCase() === trimmed.toLowerCase());
     if (existing) return existing.id;
-    const { data, error } = await supabase.from("charger_owners").insert({ name: trimmed }).select("id,name").single();
-    if (error || !data) { toast.error(error?.message || "Eigenaar aanmaken mislukt"); return null; }
+    let data: { id: string; name: string } | null = null;
+    try { data = await adminCreateOwner({ data: { name: trimmed } }) as { id: string; name: string }; }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Eigenaar aanmaken mislukt"); return null; }
+    if (!data) return null;
     setOwners((prev) => [...prev, data as Owner].sort((a, b) => a.name.localeCompare(b.name)));
     return data.id;
   };
@@ -653,8 +601,8 @@ function AdminPage() {
   const bulkUpdate = async (changes: Record<string, unknown>) => {
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
-    const { error } = await supabase.from("superchargers").update(changes as never).in("id", ids);
-    if (error) { toast.error(error.message); return; }
+    try { await adminBulkRawUpdate({ data: { ids, changes } }); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Bijwerken mislukt"); return; }
     toast.success(`${ids.length} Superchargers bijgewerkt`);
     setSelectedIds(new Set());
     setBulkOpen(false);
