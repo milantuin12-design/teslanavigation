@@ -12,6 +12,10 @@ import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher } from "@/components/LanguageProvider";
 import { supabase } from "@/integrations/supabase/client";
+
+const hasSupabaseBrowserConfig = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+);
 import { withTimeout, cacheSavedRouteRow, getCachedSavedRouteRow, saveLocalRoute, type LocalRoute } from "@/lib/local-store";
 import type { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
@@ -190,6 +194,7 @@ function Index() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
   useEffect(() => {
+    if (!hasSupabaseBrowserConfig) return;
     // INITIAL_SESSION supplies the persisted session; subsequent auth events
     // update it in order. Avoid a parallel getUser() request racing SIGNED_IN
     // and incorrectly resetting the UI to "logged out".
