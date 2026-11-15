@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS charger_owners (
 );
 
 CREATE TABLE IF NOT EXISTS superchargers (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
   name TEXT NOT NULL,
   lat REAL NOT NULL,
   lng REAL NOT NULL,
