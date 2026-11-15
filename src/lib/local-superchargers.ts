@@ -50,8 +50,13 @@ function withBundledTariff(row: LocalRow, tariffs: any[]): LocalRow {
     })
   );
   if (!match) return row;
-  return { ...row, price_currency: match.currency ?? "EUR", price_per_kwh: match.pricePerKwh ?? null,
-    price_per_kwh_peak: null, peak_hours: null, price_blocks: match.priceBlocks?.length ? match.priceBlocks : null };
+  const blocks = match.priceBlocks?.length
+    ? match.priceBlocks
+    : typeof match.pricePerKwh === "number"
+      ? [{ from: "00:00", to: "24:00", pricePerKwh: match.pricePerKwh }]
+      : null;
+  return { ...row, price_currency: match.currency ?? "EUR", price_per_kwh: null,
+    price_per_kwh_peak: null, peak_hours: null, price_blocks: blocks };
 }
 
 function toSupercharger(row: LocalRow, owners: Map<string, Owner>, network: NetworkSite[]): Supercharger {
