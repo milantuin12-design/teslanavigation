@@ -362,6 +362,7 @@ export const importSuperchargers = createServerFn({ method: "POST" })
           if (allowed.has(key) && value !== undefined) row[key] = value;
         }
         if (!row.id) row.id = crypto.randomUUID();
+        if (!row.data_source) row.data_source = "manual";
         return row;
       })
       .filter((row) => typeof row.name === "string" && typeof row.lat === "number" && typeof row.lng === "number");
@@ -580,7 +581,7 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       reopen_at: data.reopenAt || null,
       planned_upgrade: data.plannedUpgrade as Json,
       ...(data.stallStates ? { stall_states: data.stallStates as unknown as Json } : {}),
-      ...(data.dataSource ? { data_source: data.dataSource } : {}),
+      data_source: data.dataSource ?? "manual",
       ...(data.hidden !== undefined ? { hidden: data.hidden } : {}),
       ...(data.photos ? { photos: data.photos } : {}),
       ...(data.voting ? { voting: data.voting as Json } : {}),
