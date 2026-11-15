@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS sessions_expiry_idx ON sessions(expires_at);
 
 CREATE TABLE IF NOT EXISTS charger_owners (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
   name TEXT NOT NULL UNIQUE,
   logo_url TEXT,
   description TEXT,
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS report_messages (
 );
 CREATE INDEX IF NOT EXISTS report_messages_report_idx ON report_messages(report_id, created_at);
 CREATE TABLE IF NOT EXISTS charger_changes (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
   charger_id TEXT,
   charger_name TEXT NOT NULL DEFAULT '',
   action TEXT NOT NULL DEFAULT 'update',
@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS charger_changes (
 );
 CREATE INDEX IF NOT EXISTS charger_changes_created_idx ON charger_changes(created_at DESC);
 CREATE TABLE IF NOT EXISTS admin_audit_log (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
   user_id TEXT,
   action TEXT NOT NULL,
   target_count INTEGER NOT NULL DEFAULT 0,
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS admin_audit_log (
 );
 
 CREATE TABLE IF NOT EXISTS site_updates (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
   title TEXT NOT NULL,
   body TEXT,
   image_url TEXT,
@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS site_updates (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS vehicle_models (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
   brand TEXT NOT NULL DEFAULT 'Tesla',
   model TEXT NOT NULL,
   trim TEXT,
@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS languages (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS translations (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
   lang_code TEXT NOT NULL REFERENCES languages(code) ON DELETE CASCADE,
   key TEXT NOT NULL,
   value TEXT NOT NULL,
