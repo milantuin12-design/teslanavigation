@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { listMySavedRoutes, shareMyRoute, getRouteDestination, deleteMyRoute } from "@/lib/account.functions";
 import { Button } from "@/components/ui/button";
 import { Trash2, Route as RouteIcon, Share2, Car } from "lucide-react";
 import { toast } from "sonner";
@@ -33,11 +33,12 @@ function MyRoutesPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("saved_routes")
-      .select("id,name,start_address,end_address,model_name,route_type,total_distance_km,total_time_min,created_at,payload")
-      .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    else setRoutes((data as SavedRoute[]) || []);
+    try {
+      const data = await listMySavedRoutes();
+      setRoutes(data as SavedRoute[]);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Routes laden mislukt");
+    }
     setLoading(false);
   }, []);
 
@@ -79,11 +80,7 @@ function MyRoutesPage() {
 
   const share = async (id: string) => {
     try {
-      const { data: row } = await supabase.from("saved_routes").select("share_token").eq("id", id).maybeSingle();
-      let token = row?.share_token as string | null | undefined;
-      if (!token) token = crypto.randomUUID().replace(/-/g, "");
-      const { error } = await supabase.from("saved_routes").update({ share_token: token, shared: true }).eq("id", id);
-      if (error) throw error;
+      const { token } = await shareMyRoute({ data: { id } });
       const link = `${window.location.origin}/gedeeld/${token}`;
       if (navigator.share) await navigator.share({ title: "TeslaNavigation route", url: link }).catch(() => {});
       else { await navigator.clipboard.writeText(link); toast.success("Link gekopieerd"); }
@@ -94,7 +91,7 @@ function MyRoutesPage() {
 
   const sendToTesla = async (id: string) => {
     try {
-      const { data: r } = await supabase.from("saved_routes").select("end_lat,end_lng,end_address").eq("id", id).maybeSingle();
+      const r = await getRouteDestination({ data: { id } });
       if (!r) throw new Error("Route niet gevonden");
       // Geen officiële directe koppeling: deel de bestemming met de Tesla-app via het deelmenu.
       const url = `https://www.google.com/maps/dir/?api=1&destination=${r.end_lat},${r.end_lng}`;
@@ -112,8 +109,8 @@ function MyRoutesPage() {
 
   const remove = async (id: string) => {
     if (!confirm("Route verwijderen?")) return;
-    const { error } = await supabase.from("saved_routes").delete().eq("id", id);
-    if (error) { toast.error(error.message); return; }
+    try { await deleteMyRoute({ data: { id } }); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Route verwijderen mislukt"); return; }
     setRoutes((r) => r.filter((x) => x.id !== id));
   };
 
