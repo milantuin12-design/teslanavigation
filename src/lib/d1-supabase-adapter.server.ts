@@ -23,7 +23,7 @@ function decode(row: Record<string, unknown>) {
   return out;
 }
 
-type Filter = { column: string; op: "=" | "!=" | "IS"; value: unknown };
+type Filter = { column: string; op: "=" | "!=" | "IS" | ">=" | "<="; value: unknown };
 class Query {
   private action: "select" | "insert" | "update" | "delete" | "upsert" = "select";
   private columns = "*";
@@ -44,6 +44,8 @@ class Query {
   upsert(values: Record<string, unknown> | Record<string, unknown>[], options?: { onConflict?: string }) { this.action = "upsert"; this.values = Array.isArray(values) ? values : [values]; this.conflict = options?.onConflict || "id"; return this; }
   eq(column: string, value: unknown) { this.filters.push({ column, op: "=", value }); return this; }
   neq(column: string, value: unknown) { this.filters.push({ column, op: "!=", value }); return this; }
+  gte(column: string, value: unknown) { this.filters.push({ column, op: ">=", value }); return this; }
+  lte(column: string, value: unknown) { this.filters.push({ column, op: "<=", value }); return this; }
   is(column: string, value: unknown) { this.filters.push({ column, op: "IS", value }); return this; }
   in(column: string, values: unknown[]) { this.filters.push({ column, op: "=", value: { __in: values } }); return this; }
   order(column: string, options?: { ascending?: boolean }) { this.orders.push({ column, ascending: options?.ascending !== false }); return this; }
