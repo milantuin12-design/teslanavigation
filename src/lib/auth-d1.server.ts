@@ -105,3 +105,26 @@ export async function logoutD1User() {
   }
   clearSessionCookie();
 }
+
+/** One-time bootstrap: only works while no administrator exists and the secret is set in Cloudflare. */
+export async function claimInitialD1Admin(token: string) {
+  const env = (await import("./d1.server")).getCloudflareEnv();
+  const configured = env.ADMIN_BOOTSTRAP_TOKEN;
+  if (typeof configured !== "string" || configured.length < 32) {
+    throw new Error("De eenmalige beheerderscode is nog niet ingesteld in Cloudflare.");
+  }
+  const user = await getCurrentD1User();
+  if (!user) throw new Error("Log eerst in met je account.");
+  const db = getD1();
+  const admin = await db.prepare("SELECT id FROM user_roles WHERE role = 'admin' LIMIT 1").first();
+  if (admin) throw new Error("De eerste beheerder is al ingesteld.");
+  const a = new TextEncoder().encode(token);
+  const b = new TextEncoder().encode(configured);
+  if (a.length !== b.length) throw new Error("De beheerderscode is onjuist.");
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) mismatch |= a[i] ^ b[i];
+  if (mismatch !== 0) throw new Error("De beheerderscode is onjuist.");
+  await db.prepare("INSERT INTO user_roles (id,user_id,role) VALUES (?,?, 'admin')")
+    .bind(crypto.randomUUID(), user.id).run();
+  return { ok: true };
+}
