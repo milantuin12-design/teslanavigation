@@ -239,8 +239,6 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
     // Haal de actuele clouddata volledig op. Een korte timeout kan in Preview
     // onterecht oude ingebouwde data tonen terwijl de database wel bereikbaar is.
     const cloud = async () => {
-      const { ensureBundledD1Seed } = await import("./d1-seed.server");
-      await ensureBundledD1Seed();
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const pageSize = 1000;
       const rows: Row[] = [];
