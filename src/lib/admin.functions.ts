@@ -522,3 +522,37 @@ export const adminSaveTranslation = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return row;
   });
+
+export const adminListChargerChanges = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ limit: z.number().int().min(1).max(300), from: z.string().optional(), to: z.string().optional() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let query = supabaseAdmin.from("charger_changes").select("id,charger_id,charger_name,action,changed_fields,created_at").order("created_at", { ascending: false }).limit(data.limit * 3);
+    if (data.from) query = query.gte("created_at", data.from);
+    if (data.to) query = query.lte("created_at", data.to);
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+    return (rows ?? []).filter((row: any) => row.action !== "update" || !!row.changed_fields?.status).slice(0, data.limit);
+  });
+export const adminUpdateChargerChange = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120), charger_name: z.string().max(200), changed_fields: z.record(z.unknown()) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("charger_changes").update({ charger_name: data.charger_name, changed_fields: data.changed_fields }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+export const adminDeleteChargerChange = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("charger_changes").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
