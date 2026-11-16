@@ -1,4 +1,4 @@
-import { getRequest } from "@tanstack/react-start/server";
+import { env } from "cloudflare:workers";
 
 export interface D1Result<T = Record<string, unknown>> {
   results: T[];
@@ -16,17 +16,19 @@ export interface D1Database {
   batch<T = unknown>(statements: D1Statement[]): Promise<D1Result<T>[]>;
 }
 
+/**
+ * Cloudflare injects Worker bindings through the cloudflare:workers module.
+ * Do not read them from TanStack's Request object: internal server-function
+ * requests do not reliably preserve custom Request properties.
+ */
 export function getCloudflareEnv(): Record<string, unknown> {
-  const request = getRequest() as Request & {
-    runtime?: { cloudflare?: { env?: Record<string, unknown> } };
-  };
-  return request.runtime?.cloudflare?.env ?? {};
+  return env as unknown as Record<string, unknown>;
 }
 
 export function getD1(): D1Database {
   const db = getCloudflareEnv().DB as D1Database | undefined;
   if (!db) {
-    throw new Error("Cloudflare D1 is niet beschikbaar. Publiceer de Worker met de DB-binding uit wrangler.toml.");
+    throw new Error("Cloudflare D1-binding ontbreekt. Controleer DB in wrangler.toml en publiceer de Worker opnieuw.");
   }
   return db;
 }
