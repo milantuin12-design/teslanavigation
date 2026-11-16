@@ -69,7 +69,7 @@ De Wrangler-configuratie verwacht de Nitro Cloudflare Worker-output in `.output/
 
 ## Belangrijk over bestaande live gegevens
 
-De oude live Supabase-database is niet automatisch gekopieerd. De GitHub-repository bevat de meegeleverde basisdataset en tariefbestanden; handmatige wijzigingen die alleen in de oude live database stonden, moeten nog als back-up worden geïmporteerd. De admin-importfunctie voegt gegevens toe of werkt ze bij en verwijdert geen bestaande locaties.
+De oude live Supabase-database is niet automatisch gekopieerd. De D1-database wordt bij de eerste start gevuld met de meegeleverde openbare Europese basisdataset en tariefbestanden, maar bevat nog niet de bestaande gebruikers, opgeslagen routes, meldingen, privéfoto's of handmatige wijzigingen die alleen in de oude live database stonden. Die gegevens moeten eerst uit Supabase worden geëxporteerd en daarna gecontroleerd worden geïmporteerd. De admin-importfunctie voegt gegevens toe of werkt ze bij en verwijdert geen bestaande locaties.
 
 De oude Supabase Storage-bucket met geüploade meldingsfoto's is ook niet overgezet. Nieuwe rapporten kunnen absolute afbeeldingslinks bewaren; oude private bucketpaden worden niet meer ondertekend.
 
