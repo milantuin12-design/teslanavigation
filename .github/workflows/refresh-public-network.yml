@@ -4,6 +4,7 @@ on:
     branches: [cloudflare-migratie]
     paths:
       - ".github/workflows/refresh-public-network.yml"
+      - "scripts/sync-supercharger-network.mjs"
   schedule:
     - cron: "17 4 * * *"
   workflow_dispatch:
