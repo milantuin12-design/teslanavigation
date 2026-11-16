@@ -40,8 +40,28 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      // Expose the Cloudflare bindings on the same Request object used by
+      // TanStack Start server functions. The D1 adapter reads this from
+      // getRequest().runtime.cloudflare.env. Without this bridge the Worker
+      // receives env in fetch(), but application server functions can see an
+      // empty environment and every login/session query fails.
+      const workerRequest = request as Request & {
+        runtime?: { cloudflare?: { env?: unknown; ctx?: unknown } };
+      };
+      const previousRuntime = workerRequest.runtime ?? {};
+      Object.defineProperty(workerRequest, "runtime", {
+        configurable: true,
+        value: {
+          ...previousRuntime,
+          cloudflare: {
+            ...(previousRuntime.cloudflare ?? {}),
+            env,
+            ctx,
+          },
+        },
+      });
       const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
+      const response = await handler.fetch(workerRequest, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
       console.error(error);
