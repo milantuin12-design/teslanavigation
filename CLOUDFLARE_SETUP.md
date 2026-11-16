@@ -4,31 +4,7 @@ Deze branch bevat de Cloudflare-migratie. De bestaande `main`-branch en de gepub
 
 ## Eenmalige Cloudflare-inrichting
 
-De D1-database is al aangemaakt in jouw Cloudflare-account. Het database-ID staat al in `wrangler.toml`. De tabellen van migraties 0001 en 0002 zijn ook al handmatig aangemaakt; de deployworkflow gebruikt `IF NOT EXISTS`, zodat deze bestaande tabellen behouden blijven.
-
-
-De D1-database kan niet vanuit GitHub worden aangemaakt: daarvoor is toegang tot het Cloudflare-account nodig. Maak hem eenmalig aan:
-
-```bash
-npx wrangler login
-npx wrangler d1 create teslanavigation
-```
-
-Cloudflare geeft een `database_id` terug. Zet die waarde in `wrangler.toml` bij de binding:
-
-```toml
-[[d1_databases]]
-binding = "DB"
-database_name = "teslanavigation"
-database_id = "PLAK-HIER-DE-ECHTE-DATABASE-ID"
-migrations_dir = "migrations"
-```
-
-Voer daarna het schema uit:
-
-```bash
-npx wrangler d1 migrations apply teslanavigation --remote
-```
+De D1-database `teslanavigation` is al aangemaakt in jouw Cloudflare-account. Het bestaande database-ID staat al in `wrangler.toml`. Maak **geen tweede database** aan en wijzig het ID niet. De tabellen van migraties 0001 en 0002 zijn al handmatig aangemaakt; de SQL gebruikt `IF NOT EXISTS` zodat bestaande tabellen behouden blijven. De GitHub Actions-deployworkflow voert de migraties nogmaals veilig uit met Wrangler.
 
 ## Eerste beheerder veilig activeren
 
