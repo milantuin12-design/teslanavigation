@@ -16,7 +16,7 @@ const statusMap = {
   CLOSED_PERM: "long_closed",
 };
 const manualStatusOverrides = new Map([
-  ["spier", "construction"],
+  ["spier", "operational"],
   ["lermoos", "temp_closed"],
 ]);
 
