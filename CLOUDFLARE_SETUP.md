@@ -4,6 +4,9 @@ Deze branch bevat de Cloudflare-migratie. De bestaande `main`-branch en de gepub
 
 ## Eenmalige Cloudflare-inrichting
 
+De D1-database is al aangemaakt in jouw Cloudflare-account. Het database-ID staat al in `wrangler.toml`. De tabellen van migraties 0001 en 0002 zijn ook al handmatig aangemaakt; de deployworkflow gebruikt `IF NOT EXISTS`, zodat deze bestaande tabellen behouden blijven.
+
+
 De D1-database kan niet vanuit GitHub worden aangemaakt: daarvoor is toegang tot het Cloudflare-account nodig. Maak hem eenmalig aan:
 
 ```bash
@@ -29,27 +32,27 @@ npx wrangler d1 migrations apply teslanavigation --remote
 
 ## Eerste beheerder veilig activeren
 
-Maak een willekeurige geheime code van minimaal 32 tekens en stel die als Cloudflare Worker secret in:
+1. Publiceer eerst de Worker via de GitHub Actions-deployworkflow hieronder.
+2. Open in Cloudflare **Workers & Pages → teslanavigation → Settings → Variables and Secrets**.
+3. Voeg `ADMIN_BOOTSTRAP_TOKEN` toe als **Secret**. Gebruik een willekeurige code van minimaal 32 tekens en bewaar deze tijdelijk.
+4. Open de nieuwe `workers.dev`-URL met `/auth`, maak een account aan met jouw e-mailadres en een nieuw wachtwoord van minimaal 10 tekens.
+5. Kies **Eerste beheerder activeren** en voer de geheime code in. Dit werkt alleen zolang er nog geen beheerder bestaat.
+6. Verwijder daarna `ADMIN_BOOTSTRAP_TOKEN` uit de Worker-secrets. De beheerder blijft bestaan.
 
-```bash
-npx wrangler secret put ADMIN_BOOTSTRAP_TOKEN
-```
+De bestaande Supabase-accounts en wachtwoordhashes zijn nog niet overgezet. Je moet daarom op de nieuwe app opnieuw registreren; je oude wachtwoord wordt niet herkend zolang de accountdata niet is geïmporteerd.
 
-Publiceer de Worker en open de nieuwe Worker-URL. Maak via `/auth` een account aan. Open daarna opnieuw `/auth`, kies **Eerste beheerder activeren** en voer de geheime code in. Alleen zolang er nog geen beheerder bestaat, accepteert de server deze code.
+## Deploy via GitHub Actions (zonder Lovable-credits)
 
-Verwijder de tijdelijke secret direct na succesvolle activatie:
+1. Open [GitHub Actions Secrets](https://github.com/milantuin12-design/teslanavigation/settings/secrets/actions).
+2. Voeg deze twee **Repository secrets** toe:
+   - `CLOUDFLARE_API_TOKEN`: Cloudflare API-token met rechten om Workers Scripts te bewerken en D1-databases te beheren.
+   - `CLOUDFLARE_ACCOUNT_ID`: jouw Cloudflare Account ID.
+3. Open [GitHub Actions](https://github.com/milantuin12-design/teslanavigation/actions).
+4. Kies **Deploy TeslaNavigation to Cloudflare** → **Run workflow** → branch `cloudflare-migratie`.
+5. Wacht tot installatie, tests, productiebuild, D1-migraties en Worker-deploy allemaal groen zijn.
 
-```bash
-npx wrangler secret delete ADMIN_BOOTSTRAP_TOKEN
-```
+De workflow zet de bootstrapcode niet als GitHub-secret. Die voeg je pas na de deploy rechtstreeks als Worker-secret toe via de stappen hierboven.
 
-## Build en deploy
-
-```bash
-npm install
-npm run build
-npx wrangler deploy
-```
 
 De Wrangler-configuratie verwacht de Nitro Cloudflare Worker-output in `.output/server/index.mjs` en statische bestanden in `.output/public`.
 
