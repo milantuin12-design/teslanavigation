@@ -16,7 +16,7 @@ const statusMap = {
   CLOSED_PERM: "long_closed",
 };
 const manualStatusOverrides = new Map([
-  ["spier", "construction"],
+  ["spier", "operational"],
   ["lermoos", "temp_closed"],
 ]);
 
@@ -99,14 +99,10 @@ for (const site of source.sites) {
       let nextStatus = statusMap[site.status] ?? match.status;
       const override = manualStatusOverrides.get(normalize(match.name));
       if (override) nextStatus = override;
-      // A public PLAN/PERMIT marker must not turn a currently operating site into a closed site.
-      if (match.status === "operational" && ["plan", "permit"].includes(nextStatus)) {
-        nextStatus = match.status;
-      }
       match.status = nextStatus;
       if (match.status !== previousStatus) statusUpdates += 1;
 
-      if (Number(site.stallCount) > 0 && !["planned", "permit", "voting"].includes(nextStatus)) {
+      if (Number(site.stallCount) > 0 && !["plan", "permit", "voting"].includes(nextStatus)) {
         match.total_stalls = Number(site.stallCount);
       }
       if (Number(site.powerKilowatt) > 0) match.max_speed_kw = Number(site.powerKilowatt);
