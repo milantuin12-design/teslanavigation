@@ -114,6 +114,32 @@ export async function logoutD1User() {
   clearSessionCookie();
 }
 
+
+/** Reset an existing account using the private bootstrap secret during initial setup. */
+export async function resetD1Password(emailInput: string, password: string, token: string) {
+  const env = (await import("./d1.server")).getCloudflareEnv();
+  const configured = env.ADMIN_BOOTSTRAP_TOKEN;
+  if (typeof configured !== "string" || configured.length < 32) {
+    throw new Error("Wachtwoordherstel is niet beschikbaar: de tijdelijke Cloudflare-code ontbreekt.");
+  }
+  const a = new TextEncoder().encode(token);
+  const b = new TextEncoder().encode(configured);
+  if (a.length !== b.length) throw new Error("De Cloudflare-code is onjuist.");
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) mismatch |= a[i] ^ b[i];
+  if (mismatch !== 0) throw new Error("De Cloudflare-code is onjuist.");
+  const email = emailInput.trim().toLowerCase();
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) throw new Error("Vul een geldig e-mailadres in.");
+  if (password.length < 10 || password.length > 200) throw new Error("Gebruik minimaal 10 tekens voor je nieuwe wachtwoord.");
+  const db = getD1();
+  const user = await db.prepare("SELECT id FROM users WHERE email = ? AND blocked = 0").bind(email).first<{id:string}>();
+  if (!user) throw new Error("Er is geen actief account met dit e-mailadres gevonden.");
+  const hash = await passwordHash(password);
+  await db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").bind(hash, user.id).run();
+  await db.prepare("DELETE FROM sessions WHERE user_id = ?").bind(user.id).run();
+  return { ok: true };
+}
+
 /** One-time bootstrap: only works while no administrator exists and the secret is set in Cloudflare. */
 export async function claimInitialD1Admin(token: string) {
   const env = (await import("./d1.server")).getCloudflareEnv();
