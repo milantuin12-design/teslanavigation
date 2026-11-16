@@ -5,6 +5,15 @@ on:
     paths:
       - ".github/workflows/refresh-public-network.yml"
       - "scripts/sync-supercharger-network.mjs"
+      - "src/server.ts"
+      - "src/lib/d1.server.ts"
+      - "src/lib/auth-d1.server.ts"
+      - "src/lib/auth.functions.ts"
+      - "src/integrations/supabase/auth-middleware.ts"
+      - "src/lib/d1-supabase-adapter.server.ts"
+      - "migrations/**"
+      - "package.json"
+      - "package-lock.json"
   schedule:
     - cron: "17 4 * * *"
   workflow_dispatch:
