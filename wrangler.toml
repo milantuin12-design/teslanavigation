@@ -8,11 +8,10 @@ workers_dev = true
 directory = ".output/public"
 binding = "ASSETS"
 
-# Create the D1 database with `npx wrangler d1 create teslanavigation`, then
-# paste its database_id below before deploying. Apply ./migrations first.
 [[d1_databases]]
 binding = "DB"
 database_name = "teslanavigation"
+database_id = "daca6f75-cb36-41cb-a288-9cf8fba57bf9"
 migrations_dir = "migrations"
 
 [observability]
