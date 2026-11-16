@@ -129,7 +129,7 @@ export async function resetD1Password(emailInput: string, password: string, toke
   for (let i = 0; i < a.length; i++) mismatch |= a[i] ^ b[i];
   if (mismatch !== 0) throw new Error("De Cloudflare-code is onjuist.");
   const email = emailInput.trim().toLowerCase();
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) throw new Error("Vul een geldig e-mailadres in.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Vul een geldig e-mailadres in.");
   if (password.length < 10 || password.length > 200) throw new Error("Gebruik minimaal 10 tekens voor je nieuwe wachtwoord.");
   const db = getD1();
   const user = await db.prepare("SELECT id FROM users WHERE email = ? AND blocked = 0").bind(email).first<{id:string}>();
