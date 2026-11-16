@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { claimAdmin, getCurrentUser, signIn, signUp } from "@/lib/auth.functions";
+import { claimAdmin, getCurrentUser, signIn, signUp, resetPassword } from "@/lib/auth.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,9 @@ function AuthPage() {
   const [authError, setAuthError] = useState("");
   const [adminSetup, setAdminSetup] = useState(false);
   const [adminToken, setAdminToken] = useState("");
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
+  const [recoveryToken, setRecoveryToken] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -45,6 +48,24 @@ function AuthPage() {
       window.location.assign("/");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Beheerder activeren mislukt.";
+      setAuthError(message);
+      toast.error(message);
+    } finally { setBusy(false); }
+  };
+
+
+  const onResetPassword = async () => {
+    setBusy(true);
+    setAuthError("");
+    try {
+      await resetPassword({ data: { email: email.trim(), password: newPassword, token: recoveryToken } });
+      toast.success("Wachtwoord gewijzigd. Je kunt nu inloggen.");
+      setRecoveryOpen(false);
+      setPassword("");
+      setNewPassword("");
+      setRecoveryToken("");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Wachtwoord herstellen mislukt.";
       setAuthError(message);
       toast.error(message);
     } finally { setBusy(false); }
@@ -100,6 +121,24 @@ function AuthPage() {
             <p className="mt-1">{authError}</p>
           </div>
         )}
+
+        <div className="mt-3">
+          <button type="button" className="text-sm text-red-400 hover:text-red-300" onClick={() => { setRecoveryOpen(!recoveryOpen); setAuthError(""); }}>
+            {recoveryOpen ? "Wachtwoordherstel sluiten" : "Wachtwoord vergeten?"}
+          </button>
+          {recoveryOpen && (
+            <div className="mt-3 space-y-2 rounded-lg border border-slate-600 p-3">
+              <p className="text-xs text-slate-300">Vul hierboven het e-mailadres van je account in. Gebruik hieronder de tijdelijke Cloudflare-beheerderscode die je zelf hebt ingesteld.</p>
+              <Label htmlFor="recovery-token">Cloudflare-code</Label>
+              <Input id="recovery-token" type="password" autoComplete="off" value={recoveryToken} onChange={(e) => setRecoveryToken(e.target.value)} className="bg-slate-700 border-slate-600" />
+              <Label htmlFor="new-password">Nieuw wachtwoord (minimaal 10 tekens)</Label>
+              <Input id="new-password" type="password" autoComplete="new-password" minLength={10} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="bg-slate-700 border-slate-600" />
+              <Button type="button" onClick={onResetPassword} disabled={busy || !email.trim() || recoveryToken.length < 32 || newPassword.length < 10} className="w-full bg-blue-600 hover:bg-blue-700">
+                Nieuw wachtwoord instellen
+              </Button>
+            </div>
+          )}
+        </div>
         <div className="mt-5 border-t border-slate-700 pt-4">
           <button type="button" className="text-xs text-slate-500 hover:text-slate-300" onClick={() => { setAdminSetup(!adminSetup); setAuthError(""); }}>
             {adminSetup ? "Beheerder activeren sluiten" : "Eerste beheerder activeren"}
