@@ -3,7 +3,7 @@ import { getD1 } from "./d1.server";
 
 const COOKIE = "__Host-tn-session";
 const SESSION_SECONDS = 60 * 60 * 24 * 14;
-const ITERATIONS = 310_000;
+const ITERATIONS = 100_000; // Cloudflare Workers WebCrypto supports at most 100,000 PBKDF2 iterations.
 
 function bytesToBase64(bytes: Uint8Array): string {
   let binary = "";
@@ -22,15 +22,23 @@ async function sha256(value: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return bytesToBase64(new Uint8Array(digest));
 }
-async function passwordHash(password: string, salt = crypto.getRandomValues(new Uint8Array(16))): Promise<string> {
+async function passwordHash(
+  password: string,
+  salt = crypto.getRandomValues(new Uint8Array(16)),
+  iterations = ITERATIONS,
+): Promise<string> {
+  if (!Number.isInteger(iterations) || iterations < 1 || iterations > ITERATIONS) {
+    throw new Error("Ongeldige PBKDF2-instelling voor Cloudflare Workers.");
+  }
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: ITERATIONS }, key, 256);
-  return `pbkdf2-sha256$${ITERATIONS}$${bytesToBase64(salt)}$${bytesToBase64(new Uint8Array(bits))}`;
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations }, key, 256);
+  return `pbkdf2-sha256${iterations}${bytesToBase64(salt)}${bytesToBase64(new Uint8Array(bits))}`;
 }
 async function verifyPassword(password: string, stored: string): Promise<boolean> {
   const [algorithm, rounds, saltText, expectedText] = stored.split("$");
-  if (algorithm !== "pbkdf2-sha256" || Number(rounds) !== ITERATIONS || !saltText || !expectedText) return false;
-  const actual = await passwordHash(password, base64ToBytes(saltText));
+  const iterations = Number(rounds);
+  if (algorithm !== "pbkdf2-sha256" || !Number.isInteger(iterations) || iterations < 1 || iterations > ITERATIONS || !saltText || !expectedText) return false;
+  const actual = await passwordHash(password, base64ToBytes(saltText), iterations);
   const actualBytes = base64ToBytes(actual.split("$")[3]);
   const expectedBytes = base64ToBytes(expectedText);
   if (actualBytes.length !== expectedBytes.length) return false;
