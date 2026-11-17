@@ -1113,6 +1113,11 @@ function AdminPage() {
                 <Input id="trailer-stalls-per-space" type="number" min="1" max="8" step="1" value={editing.construction?.trailerStallsPerSpace ?? 1} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction ?? {}), trailerStallsPerSpace: Math.max(1, Math.min(8, Math.floor(Number(e.target.value) || 1))) } })} className="bg-slate-800 border-slate-700" />
                 <p className="text-xs text-slate-500">Standaard 1. Iedere bezette aanhangerplek telt als één bezette lader.</p>
               </div>
+              <label className="flex items-center gap-2 cursor-pointer rounded-lg border border-sky-500/20 bg-sky-500/5 p-2">
+                <Checkbox checked={!!editing.construction?.wheelchairAccessible} onCheckedChange={(checked) => setEditing({ ...editing, construction: { ...(editing.construction ?? {}), wheelchairAccessible: !!checked } })} />
+                ♿ Invalidenplek aanwezig
+              </label>
+              <p className="ml-7 text-[11px] text-slate-500">Vink dit alleen aan als er bij deze Supercharger een officiële invalidenparkeerplek aanwezig is. Het rolstoelicoon verschijnt op de kaart.</p>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={!!editing.parking_fee} onCheckedChange={(c) => setEditing({ ...editing, parking_fee: !!c })} />
                 💶 Parkeergeld verplicht
