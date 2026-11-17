@@ -57,13 +57,13 @@ function valueFor(key: string, value: unknown): unknown {
 export async function ensureBundledD1Seed() {
   const db = getD1();
   const { localChargerDataset } = await import("./local-chargers.server");
-  const owners = localChargerDataset.owners ?? [];
-  const chargers = localChargerDataset.chargers as unknown as Record<string, unknown>[];
+  const owners = Array.isArray(localChargerDataset.owners) ? localChargerDataset.owners : [];
+  const chargers = Array.isArray(localChargerDataset.chargers) ? localChargerDataset.chargers as unknown as Record<string, unknown>[] : [];
   const { FALLBACK_LANGUAGES } = await import("./i18n");
   const datasetVersion = String((localChargerDataset as unknown as { exportedAt?: string }).exportedAt ?? "unknown");
   const tariffVersion = String((tariffDataset as unknown as { checkedAt?: string }).checkedAt ?? "unknown");
 
-  for (const [index, language] of FALLBACK_LANGUAGES.entries()) {
+  for (const [index, language] of (Array.isArray(FALLBACK_LANGUAGES) ? FALLBACK_LANGUAGES : []).entries()) {
     await db.prepare("INSERT INTO languages (code,name,native_name,enabled,is_default,rtl,sort_order) VALUES (?,?,?,?,?,?,?) ON CONFLICT(code) DO NOTHING")
       .bind(language.code, language.name, language.nativeName, 1, language.isDefault ? 1 : 0, language.rtl ? 1 : 0, language.sortOrder || index + 1).run();
   }
@@ -110,16 +110,18 @@ export async function ensureBundledD1Seed() {
   }
 
   const tariffState = await meta("bundled_tariff_version");
-  // Recheck missing prices on every data refresh, not only when the tariff file changes.
-  // This also prices newly opened Superchargers without overwriting saved/manual prices.
-  const tariffUpdates = chargers.flatMap((row) => {
+  // Only run the tariff backfill when the bundled charger or tariff data changes.
+  // Running thousands of UPDATE statements on every admin page request made the
+  // admin screen slow and could exhaust a request before the list was returned.
+  const tariffNeedsRefresh = datasetState?.value !== datasetVersion || tariffState?.value !== tariffVersion;
+  const tariffUpdates = tariffNeedsRefresh ? chargers.flatMap((row) => {
     const price = getBundledPrice(row);
-    return price ? [db.prepare(`UPDATE superchargers
+    return price && row.id ? [db.prepare(`UPDATE superchargers
       SET price_currency = ?, price_blocks = ?, price_per_kwh = NULL,
           price_per_kwh_peak = NULL, peak_hours = NULL
       WHERE id = ? AND (price_blocks IS NULL OR price_blocks = '' OR price_blocks = '[]')`)
       .bind(price.currency, JSON.stringify(price.blocks), row.id)] : [];
-  });
+  }) : [];
   for (let i = 0; i < tariffUpdates.length; i += 50) await db.batch(tariffUpdates.slice(i, i + 50));
   const tariffsRefreshed = tariffUpdates.length;
   if (tariffState?.value !== tariffVersion) await setMeta("bundled_tariff_version", tariffVersion);
