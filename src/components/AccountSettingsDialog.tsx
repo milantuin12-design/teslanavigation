@@ -28,7 +28,7 @@ const defaults: Settings = {
     vehicle_model: "",
     vehicle_year: null,
     consumption_kwh100: null,
-    notifications: { favorite_status: true, price_changes: false, new_locations: false },
+    notifications: { favorite_status: true, price_changes: true, new_locations: false },
     map: { show_development_chargers: false, remember_filters: true },
   },
 };
