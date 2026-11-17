@@ -535,6 +535,12 @@ export interface CalcChargingOptions {
   preferNearestCharger?: boolean;
   /** Laders met parkeerkosten overslaan. */
   avoidParkingFee?: boolean;
+  /** Maximaal totale extra afstand door omrijden (km); 0 = geen limiet. */
+  maxDetourKm?: number;
+  /** Maximale afstand van één laadtraject (km); 0 = geen limiet. */
+  maxDistanceBetweenStopsKm?: number;
+  /** Extra standaardpauze per laadstop (minuten). */
+  defaultChargePauseMin?: number;
 
 }
 
@@ -585,6 +591,9 @@ export function calculateChargingStops(
     excludeIds = [],
     preferNearestCharger = false,
     avoidParkingFee = false,
+    maxDetourKm = 0,
+    maxDistanceBetweenStopsKm = 0,
+    defaultChargePauseMin = 0,
   } = opts;
   const pendingForced = [...forcedStops].sort((a, b) => a.routeKm - b.routeKm);
   const excluded = new Set(excludeIds);
@@ -698,7 +707,7 @@ export function calculateChargingStops(
           ? (v2SpeedKw(nextForced.charger) ?? parseMaxSpeed(nextForced.charger.stallTypes, nextForced.charger.maxSpeedKw, nextForced.charger.chargerConfigs))
           : parseMaxSpeed(nextForced.charger.stallTypes, nextForced.charger.maxSpeedKw, nextForced.charger.chargerConfigs);
         const chargingLimitKw = Math.min(nextForced.kw, stationMaxKw);
-        const dur = calculateChargeDuration(before, after, kWhNow, chargingLimitKw, modelName, carMaxKwOverride);
+        const dur = calculateChargeDuration(before, after, kWhNow, chargingLimitKw, modelName, carMaxKwOverride) + defaultChargePauseMin;
         stops.push({
           charger: nextForced.charger,
           batteryBefore: before,
@@ -745,6 +754,8 @@ export function calculateChargingStops(
       if (nextForced && chargerRouteKm >= nextForced.routeKm) continue;
       const travelKm = (chargerRouteKm - currentPositionKm) + distFromRoute;
       if (travelKm > usableRange) continue;
+      if (maxDetourKm > 0 && distFromRoute * 2 > maxDetourKm) continue;
+      if (maxDistanceBetweenStopsKm > 0 && travelKm > maxDistanceBetweenStopsKm) continue;
 
       const travelMin = travelKm / kmPerMin;
       const estArrival = new Date(departureTime.getTime() + (elapsedMin + travelMin) * 60000);
@@ -912,7 +923,7 @@ export function calculateChargingStops(
       chargerSpeedKw,
       modelName,
       carMaxKwOverride
-    );
+    ) + defaultChargePauseMin;
 
 
     const batteryBeforeRounded = Math.round(Math.max(minSafetyPercent, best.batteryAtCharger));
