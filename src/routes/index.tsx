@@ -192,14 +192,23 @@ function Index() {
   const [saveName, setSaveName] = useState("");
   const [countryPricesOpen, setCountryPricesOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; display_name: string | null; gender?: string | null } | null>(null);
   useEffect(() => {
     let active = true;
     void getCurrentUser().then((user) => {
-      if (active) setCurrentUser(user ? { id: user.id } : null);
+      if (active) setCurrentUser(user ? { id: user.id, display_name: user.display_name ?? null, gender: user.gender ?? null } : null);
     }).catch(() => { if (active) setCurrentUser(null); });
     return () => { active = false; };
   }, []);
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const name = (event as CustomEvent<{ display_name: string | null }>).detail?.display_name ?? null;
+      setCurrentUser((old) => old ? { ...old, display_name: name } : old);
+    };
+    window.addEventListener("tn-profile-updated", handler);
+    return () => window.removeEventListener("tn-profile-updated", handler);
+  }, []);
+
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
   const [holidayPeriodMode, setHolidayPeriodModeState] = useState(false);
   const [winterSportsMode, setWinterSportsModeState] = useState(false);
@@ -1612,6 +1621,11 @@ function Index() {
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCountryPricesOpen(true)}>Prijs per land</Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCompareOpen(true)}>Vergelijk locaties</Button>
               <LanguageSwitcher />
+              {currentUser?.display_name?.trim() && (
+                <span className="hidden lg:inline text-xs text-slate-300 whitespace-nowrap">
+                  {currentUser.gender === "male" ? "Welkom terug, meneer " : currentUser.gender === "female" ? "Welkom terug, mevrouw " : "Welkom terug, "}{currentUser.display_name}!
+                </span>
+              )}
               <AccountMenu />
             </div>
             {filtersOpen && (
