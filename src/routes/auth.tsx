@@ -23,6 +23,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [currentUser, setCurrentUser] = useState<{ id: string; email: string; display_name: string | null; is_admin: boolean } | null>(null);
   const [adminSetup, setAdminSetup] = useState(false);
   const [adminToken, setAdminToken] = useState("");
   const [recoveryOpen, setRecoveryOpen] = useState(false);
@@ -32,7 +33,14 @@ function AuthPage() {
   useEffect(() => {
     let active = true;
     void getCurrentUser().then((user) => {
-      if (active && user) window.location.assign("/");
+      if (!active || !user) return;
+      setCurrentUser(user);
+      if (user.is_admin) {
+        window.location.assign("/");
+      } else {
+        // A signed-in normal user must stay here to claim the first admin role.
+        setAdminSetup(true);
+      }
     }).catch(() => {
       if (active) setAuthError("De Cloudflare-inlogserver is nog niet beschikbaar. Probeer het later opnieuw.");
     });
@@ -101,7 +109,12 @@ function AuthPage() {
           <h1 className="text-2xl font-bold">{mode === "login" ? "Inloggen" : "Registreren"}</h1>
           <Link to="/" className="text-sm text-slate-400 hover:text-white">← Terug</Link>
         </div>
-        <form onSubmit={onSubmit} className="space-y-4">
+        {currentUser && !currentUser.is_admin && (
+          <div className="mb-4 rounded-lg border border-blue-500/40 bg-blue-950/40 p-3 text-sm text-blue-100">
+            Je bent ingelogd als <strong>{currentUser.email}</strong>. Activeer hieronder de eerste beheerdersrechten voor dit account.
+          </div>
+        )}
+        {!currentUser && <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <Label htmlFor="email">E-mail</Label>
             <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="bg-slate-700 border-slate-600" />
@@ -114,7 +127,7 @@ function AuthPage() {
             {busy ? "Bezig…" : mode === "login" ? "Inloggen" : "Account aanmaken"}
           </Button>
           {mode === "register" && <p className="text-xs text-slate-400">Gebruik minimaal 10 tekens voor je wachtwoord.</p>}
-        </form>
+        </form>}
         {authError && (
           <div role="alert" className="mt-4 rounded-lg border border-red-500/50 bg-red-950/50 p-3 text-sm text-red-200 break-words">
             <strong>Inloggen mislukt</strong>
@@ -139,7 +152,7 @@ function AuthPage() {
             </div>
           )}
         </div>
-        <div className="mt-5 border-t border-slate-700 pt-4">
+        {!currentUser && <div className="mt-5 border-t border-slate-700 pt-4">
           <button type="button" className="text-xs text-slate-500 hover:text-slate-300" onClick={() => { setAdminSetup(!adminSetup); setAuthError(""); }}>
             {adminSetup ? "Beheerder activeren sluiten" : "Eerste beheerder activeren"}
           </button>
@@ -152,13 +165,13 @@ function AuthPage() {
               </Button>
             </div>
           )}
-        </div>
-        <p className="text-center mt-6 text-sm text-slate-400">
+        </div>}
+        {!currentUser && <p className="text-center mt-6 text-sm text-slate-400">
           {mode === "login" ? "Nog geen account?" : "Al een account?"}{" "}
           <button type="button" className="text-red-400 hover:text-red-300" onClick={() => { setAuthError(""); setMode(mode === "login" ? "register" : "login"); }}>
             {mode === "login" ? "Registreren" : "Inloggen"}
           </button>
-        </p>
+        </p>}
       </div>
     </div>
   );
