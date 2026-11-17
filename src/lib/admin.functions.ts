@@ -368,121 +368,170 @@ export const updateReportStatus = createServerFn({ method: "POST" })
 
 /* ---------------- Cloudflare D1 admin API ---------------- */
 
+import { getD1 } from "./d1.server";
+import { getCurrentD1User } from "./auth-d1.server";
+
+async function requireD1Admin() {
+  const user = await getCurrentD1User();
+  if (!user) throw new Error("Je bent niet ingelogd. Log opnieuw in.");
+  if (!user.is_admin) throw new Error("Je account heeft geen beheerdersrechten.");
+  return user;
+}
+const d1JsonColumns = new Set(["versions","opening_hours","charger_configs","parking_blocks","construction","planned_upgrade","stall_states","traffic_forecast","works","closure","photos","price_blocks","voting"]);
+function d1DecodeCharger(row: Record<string, unknown>) {
+  const result = { ...row };
+  for (const key of d1JsonColumns) {
+    const value = result[key];
+    if (typeof value === "string") { try { result[key] = JSON.parse(value); } catch { /* preserve malformed legacy value for admin repair */ } }
+  }
+  for (const key of ["trailer_friendly","is_available","parking_fee","in_parking_garage","low_speed","published","hidden"]) {
+    if (result[key] !== undefined) result[key] = Number(result[key]) === 1;
+  }
+  return result;
+}
+async function d1Audit(userId: string, action: string, targetCount: number, details: Record<string, unknown>) {
+  const db = getD1();
+  await db.prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
+    .bind(crypto.randomUUID(), userId, action, targetCount, JSON.stringify(details)).run();
+}
 const adminRawColumns = new Set([
   "id","name","lat","lng","country","province","city","total_stalls","stall_types","max_speed_kw","versions",
   "opening_time","closing_time","opening_hours","trailer_friendly","is_available","charger_configs","parking_fee",
   "parking_fee_amount","parking_free_minutes","parking_per_minutes","parking_per_euro","parking_blocks","price_currency",
   "price_per_kwh","price_per_kwh_peak","peak_hours","in_parking_garage","status","construction","traffic_forecast",
-  "works","closure","owner_id","owner_name","low_speed","published","reopen_at","planned_upgrade","stall_states",
-  "data_source","hidden","photos","permanently_closed_at","price_blocks","occupied_stalls","last_updated","updated_at",
+  "works","closure","owner_id","owner_name","low_speed","published","notes","reopen_at","planned_upgrade","stall_states",
+  "data_source","hidden","photos","permanently_closed_at","price_blocks","occupied_stalls","last_updated","updated_at","voting"
 ]);
+function d1Value(key: string, value: unknown) {
+  if (d1JsonColumns.has(key) && value !== null && value !== undefined) return typeof value === "string" ? value : JSON.stringify(value);
+  if (typeof value === "boolean") return value ? 1 : 0;
+  return value;
+}
 
 export const adminListSuperchargers = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ from: z.number().int().min(0).max(100000).default(0) }).parse(input ?? {}))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { ensureBundledD1Seed } = await import("./d1-seed.server");
-    await ensureBundledD1Seed();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const columns = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,traffic_forecast,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks";
-    const { data: rows, error } = await supabaseAdmin.from("superchargers").select(columns).order("name").range(data.from, data.from + 999);
-    if (error) throw new Error(error.message);
-    return rows ?? [];
+  .handler(async ({ data }) => {
+    await requireD1Admin();
+    const db = getD1();
+    const rows = await db.prepare("SELECT * FROM superchargers ORDER BY name COLLATE NOCASE LIMIT 1000 OFFSET ?")
+      .bind(data.from).all<Record<string, unknown>>();
+    return (rows.results ?? []).map(d1DecodeCharger);
   });
 
 export const adminRawUpsertCharger = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.record(z.unknown()).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+  .handler(async ({ data }) => {
+    const user = await requireD1Admin();
     const row = Object.fromEntries(Object.entries(data).filter(([key, value]) => adminRawColumns.has(key) && value !== undefined));
+    if (!row.name || !row.country || typeof row.lat !== "number" || typeof row.lng !== "number") throw new Error("Naam, land, breedtegraad en lengtegraad zijn verplicht.");
     if (!row.id) row.id = crypto.randomUUID();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("superchargers").upsert(row, { onConflict: "id" });
-    if (error) throw new Error(error.message);
-    await logAction(context, "supercharger_upsert", 1, { id: row.id, name: row.name });
+    const entries = Object.entries(row);
+    const columns = entries.map(([key]) => key);
+    const values = entries.map(([key, value]) => d1Value(key, value));
+    const updates = columns.filter(key => key !== "id").map(key => `${key}=excluded.${key}`).join(",");
+    const db = getD1();
+    await db.prepare(`INSERT INTO superchargers (${columns.join(",")}) VALUES (${columns.map(() => "?").join(",")}) ON CONFLICT(id) DO UPDATE SET ${updates || "id=excluded.id"}`)
+      .bind(...values).run();
+    await d1Audit(user.id, "supercharger_upsert", 1, { id: row.id, name: row.name });
     return { id: row.id };
   });
 
 export const adminDeleteCharger = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120) }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("superchargers").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    await logAction(context, "supercharger_delete", 1, { id: data.id });
+  .handler(async ({ data }) => {
+    const user = await requireD1Admin();
+    const db = getD1();
+    const result = await db.prepare("DELETE FROM superchargers WHERE id = ?").bind(data.id).run();
+    if (!result.meta?.changes) throw new Error("Supercharger niet gevonden.");
+    await d1Audit(user.id, "supercharger_delete", 1, { id: data.id });
     return { ok: true };
   });
 
 export const adminBulkRawUpdate = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({
-    ids: z.array(z.string().min(1).max(120)).min(1).max(5000),
-    changes: z.record(z.unknown()),
-  }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const changes = Object.fromEntries(Object.entries(data.changes).filter(([key, value]) => adminRawColumns.has(key) && value !== undefined));
-    if (!Object.keys(changes).length) return { updated: 0 };
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    for (let i = 0; i < data.ids.length; i += 300) {
-      const { error } = await supabaseAdmin.from("superchargers").update(changes).in("id", data.ids.slice(i, i + 300));
-      if (error) throw new Error(error.message);
+  .inputValidator((input: unknown) => z.object({ ids: z.array(z.string().min(1).max(120)).min(1).max(5000), changes: z.record(z.unknown()) }).parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireD1Admin();
+    const changes = Object.fromEntries(Object.entries(data.changes).filter(([key,value]) => adminRawColumns.has(key) && key !== "id" && value !== undefined));
+    const keys = Object.keys(changes);
+    if (!keys.length) return { updated: 0 };
+    const db = getD1();
+    const statements = [];
+    for (let i=0;i<data.ids.length;i+=100) {
+      const ids=data.ids.slice(i,i+100);
+      const set=keys.map(key=>`${key}=?`).join(",");
+      const binds=[...keys.map(key=>d1Value(key,changes[key])),...ids];
+      statements.push(db.prepare(`UPDATE superchargers SET ${set}, data_source='manual', updated_at=CURRENT_TIMESTAMP WHERE id IN (${ids.map(()=>"?").join(",")})`).bind(...binds));
     }
-    await logAction(context, "supercharger_bulk_update", data.ids.length, { fields: Object.keys(changes) });
-    return { updated: data.ids.length };
+    await db.batch(statements);
+    await d1Audit(user.id,"supercharger_bulk_update",data.ids.length,{fields:keys});
+    return {updated:data.ids.length};
   });
 
-export const adminListOwners = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin.from("charger_owners").select("id,name").order("name");
-    if (error) throw new Error(error.message);
-    return data ?? [];
-  });
-
+export const adminListOwners = createServerFn({ method: "GET" }).handler(async () => {
+  await requireD1Admin();
+  const rows = await getD1().prepare("SELECT id,name FROM charger_owners ORDER BY name COLLATE NOCASE").all();
+  return rows.results ?? [];
+});
 export const adminCreateOwner = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ name: z.string().trim().min(1).max(120) }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row, error } = await supabaseAdmin.from("charger_owners").insert({ name: data.name }).select("id,name").single();
-    if (error) throw new Error(error.message);
-    await logAction(context, "owner_create", 1, { name: data.name });
+  .inputValidator((input: unknown) => z.object({name:z.string().trim().min(1).max(120)}).parse(input))
+  .handler(async ({data}) => {
+    const user=await requireD1Admin(); const id=crypto.randomUUID();
+    await getD1().prepare("INSERT INTO charger_owners (id,name) VALUES (?,?) ON CONFLICT(name) DO NOTHING").bind(id,data.name).run();
+    const row=await getD1().prepare("SELECT id,name FROM charger_owners WHERE name=?").bind(data.name).first();
+    if(!row) throw new Error("Eigenaar opslaan mislukt.");
+    await d1Audit(user.id,"owner_create",1,{name:data.name});
     return row;
   });
 
-export const adminListUsers = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: users, error } = await supabaseAdmin.from("users")
-      .select("id,email,display_name,blocked,last_active_at,route_count,created_at")
-      .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    const { data: roleRows, error: roleError } = await supabaseAdmin.from("user_roles").select("user_id,role");
-    if (roleError) throw new Error(roleError.message);
-    return { users: users ?? [], roles: roleRows ?? [] };
+export const adminListUsers = createServerFn({ method: "GET" }).handler(async () => {
+  await requireD1Admin(); const db=getD1();
+  const users=await db.prepare("SELECT id,email,display_name,blocked,last_active_at,route_count,created_at FROM users ORDER BY created_at DESC").all();
+  const roles=await db.prepare("SELECT user_id,role FROM user_roles").all();
+  return {users:users.results??[],roles:roles.results??[]};
+});
+export const adminSetUserBlocked = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown)=>z.object({id:z.string().min(1).max(120),blocked:z.boolean()}).parse(input))
+  .handler(async ({data})=>{
+    const user=await requireD1Admin();
+    if(data.id===user.id&&data.blocked) throw new Error("Je kunt je eigen account niet blokkeren.");
+    const result=await getD1().prepare("UPDATE users SET blocked=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(data.blocked?1:0,data.id).run();
+    if(!result.meta?.changes) throw new Error("Gebruiker niet gevonden.");
+    await d1Audit(user.id,"user_block",1,{id:data.id,blocked:data.blocked});
+    return {ok:true};
   });
 
-export const adminSetUserBlocked = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120), blocked: z.boolean() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    if (data.id === context.userId && data.blocked) throw new Error("Je kunt je eigen account niet blokkeren.");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("users").update({ blocked: data.blocked }).eq("id", data.id);
-    if (error) throw new Error(error.message);
-    await logAction(context, "user_block", 1, { id: data.id, blocked: data.blocked });
-    return { ok: true };
+/* Admin-managed vehicle catalogue: year-specific variants drive the user's vehicle defaults. */
+export const adminListVehicleModels = createServerFn({method:"GET"}).handler(async()=>{
+  await requireD1Admin();
+  const rows=await getD1().prepare("SELECT * FROM vehicle_models ORDER BY brand,model,year_from,trim").all();
+  return rows.results??[];
+});
+export const adminSaveVehicleModel = createServerFn({method:"POST"})
+  .inputValidator((input:unknown)=>z.object({
+    id:z.string().optional(),brand:z.string().trim().min(1).max(80),model:z.string().trim().min(1).max(120),
+    trim:z.string().max(120).nullable().optional(),battery_kwh:z.number().positive().max(300).nullable().optional(),
+    usable_kwh:z.number().positive().max(300).nullable().optional(),range_km:z.number().int().positive().max(1500).nullable().optional(),
+    consumption_kwh100:z.number().positive().max(100).nullable().optional(),year_from:z.number().int().min(1990).max(2100),
+    year_to:z.number().int().min(1990).max(2100),max_charge_kw:z.number().int().positive().max(1000).nullable().optional(),
+    connectors:z.array(z.string().max(30)).max(10).default(["Type 2","CCS"]),image_url:z.string().url().max(1000).nullable().optional(),
+    notes:z.string().max(2000).nullable().optional(),published:z.boolean().default(true)
+  }).refine(v=>v.year_to>=v.year_from,{message:"Eindbouwjaar moet gelijk aan of later dan beginbouwjaar zijn."}).parse(input))
+  .handler(async({data})=>{
+    const user=await requireD1Admin(); const id=data.id??crypto.randomUUID();
+    await getD1().prepare(`INSERT INTO vehicle_models (id,brand,model,trim,battery_kwh,usable_kwh,range_km,consumption_kwh100,year_from,year_to,max_charge_kw,connectors,image_url,notes,published,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+      ON CONFLICT(id) DO UPDATE SET brand=excluded.brand,model=excluded.model,trim=excluded.trim,battery_kwh=excluded.battery_kwh,usable_kwh=excluded.usable_kwh,range_km=excluded.range_km,consumption_kwh100=excluded.consumption_kwh100,year_from=excluded.year_from,year_to=excluded.year_to,max_charge_kw=excluded.max_charge_kw,connectors=excluded.connectors,image_url=excluded.image_url,notes=excluded.notes,published=excluded.published,updated_at=CURRENT_TIMESTAMP`)
+      .bind(id,data.brand,data.model,data.trim??null,data.battery_kwh??null,data.usable_kwh??null,data.range_km??null,data.consumption_kwh100??null,data.year_from,data.year_to,data.max_charge_kw??null,JSON.stringify(data.connectors),data.image_url??null,data.notes??null,data.published?1:0).run();
+    await d1Audit(user.id,"vehicle_model_save",1,{id,brand:data.brand,model:data.model,years:[data.year_from,data.year_to]});
+    return {id};
+  });
+export const adminDeleteVehicleModel = createServerFn({method:"POST"})
+  .inputValidator((input:unknown)=>z.object({id:z.string().min(1).max(120)}).parse(input))
+  .handler(async({data})=>{
+    const user=await requireD1Admin();
+    await getD1().prepare("DELETE FROM vehicle_models WHERE id=?").bind(data.id).run();
+    await d1Audit(user.id,"vehicle_model_delete",1,{id:data.id});
+    return {ok:true};
   });
 
 export const adminListLanguages = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
