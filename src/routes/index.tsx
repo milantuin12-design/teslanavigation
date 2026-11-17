@@ -237,9 +237,15 @@ function Index() {
     let active = true;
     void listFavoritesFn().then(async (remoteIds) => {
       if (!active) return;
-      if (remoteIds.length === 0 && favoriteChargerIds.length > 0) {
+      let localIds: string[] = [];
+      try {
+        const saved = JSON.parse(localStorage.getItem("teslanavigation:favorites") || "[]");
+        if (Array.isArray(saved)) localIds = saved.filter((x): x is string => typeof x === "string");
+      } catch { /* ignore invalid local preferences */ }
+      if (remoteIds.length === 0 && localIds.length > 0) {
         // One-time safe migration from this browser's existing favorites into the signed-in account.
-        await Promise.all(favoriteChargerIds.map((charger_id) => setFavoriteFn({ data: { charger_id, favorite: true } })));
+        await Promise.all(localIds.map((charger_id) => setFavoriteFn({ data: { charger_id, favorite: true } })));
+        if (active) setFavoriteChargerIds(localIds);
       } else if (active) {
         setFavoriteChargerIds(remoteIds);
       }
@@ -247,12 +253,10 @@ function Index() {
     return () => { active = false; };
   }, [currentUser?.id]);
   const toggleFavoriteCharger = (id: string) => {
-    setFavoriteChargerIds((old) => {
-      const favorite = !old.includes(id);
-      if (currentUser) void setFavoriteFn({ data: { charger_id: id, favorite } }).catch(() => {
-        toast.error("Favoriet kon niet met je account worden gesynchroniseerd; lokaal blijft hij bewaard.");
-      });
-      return favorite ? [...old, id] : old.filter((x) => x !== id);
+    const favorite = !favoriteChargerIds.includes(id);
+    setFavoriteChargerIds((old) => favorite ? [...old, id] : old.filter((x) => x !== id));
+    if (currentUser) void setFavoriteFn({ data: { charger_id: id, favorite } }).catch(() => {
+      toast.error("Favoriet kon niet met je account worden gesynchroniseerd; lokaal blijft hij bewaard.");
     });
   };
   // Price alerts for favourite Superchargers: changes are detected on the next app refresh.
