@@ -202,8 +202,9 @@ function Index() {
   }, []);
   useEffect(() => {
     const handler = (event: Event) => {
-      const name = (event as CustomEvent<{ display_name: string | null }>).detail?.display_name ?? null;
-      setCurrentUser((old) => old ? { ...old, display_name: name } : old);
+      const detail = (event as CustomEvent<{ display_name: string | null; gender?: string | null }>).detail;
+      const name = detail?.display_name ?? null;
+      setCurrentUser((old) => old ? { ...old, display_name: name, gender: detail?.gender ?? old.gender } : old);
     };
     window.addEventListener("tn-profile-updated", handler);
     return () => window.removeEventListener("tn-profile-updated", handler);
