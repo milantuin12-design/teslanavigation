@@ -418,7 +418,8 @@ function AdminPage() {
       const localRows = (localDataset as { chargers?: Charger[] }).chargers ?? [];
       if (rows.length === 0 && localRows.length > 0) {
         rows.push(...localRows.map((row) => addAdminTariff(row)));
-        toast.warning("Cloudflare D1 is nog niet beschikbaar — lokale Superchargerlijst getoond. Wijzigingen kunnen nog niet worden opgeslagen.");
+        toast.error("Cloudflare D1 kon de beheerlijst niet laden: " + (error instanceof Error ? error.message : String(error)));
+        toast.info("De lokale Superchargerlijst wordt alleen als noodweergave getoond. Opslaan is uitgeschakeld totdat de cloudverbinding werkt.");
       } else {
         toast.error("Superchargers konden niet uit Cloudflare D1 worden geladen: " + (error instanceof Error ? error.message : String(error)));
       }
