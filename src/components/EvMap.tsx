@@ -53,6 +53,9 @@ interface EvMapProps {
   favoriteChargerIds?: string[];
   winterSportsMode?: boolean;
   holidayPeriodMode?: boolean;
+  mapType?: "road" | "satellite";
+  mapZoom?: number;
+  statusColors?: Record<string, string>;
 }
 
 
@@ -77,7 +80,7 @@ const waypointIcon = L.divIcon({
   iconAnchor: [14, 14],
 });
 
-function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = false, routeUsed = false) {
+function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = false, routeUsed = false, statusColorOverride?: string) {
   // Kleurlogica ongewijzigd: groen = open, rood = gesloten (openingstijden/sluiting), grijs = niet beschikbaar.
   let color = '#22c55e'; // groen = open/beschikbaar
   if (status === 'Niet beschikbaar' || status === 'Langdurig gesloten') color = '#94a3b8'; // grijs
@@ -90,6 +93,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   else if (status === 'Permanent gesloten') color = '#0f172a';
   else if (status === 'Tijdelijk gesloten') color = '#cbd5e1';
   else if (status !== 'Beschikbaar' && status !== 'In bedrijf') color = '#ef4444'; // rood: gesloten varianten
+  if (statusColorOverride) color = statusColorOverride;
   if (routeUsed) color = '#7dd3fc'; // lichtblauw = geselecteerde laadstop
 
   if (status === 'Voting' || status === 'Plan') {
@@ -179,9 +183,11 @@ function groupChargerConfigs(configs: ChargerConfig[]): string[] {
   });
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, chargingStops = [], departure, modelName = 'Model 3 Long Range AWD', packKWh, carMaxKwOverride, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false, holidayPeriodMode = false }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, chargingStops = [], departure, modelName = 'Model 3 Long Range AWD', packKWh, carMaxKwOverride, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false, holidayPeriodMode = false, mapType = "satellite", mapZoom = 7, statusColors = {} }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const baseTileRef = useRef<L.TileLayer | null>(null);
+  const labelTileRef = useRef<L.TileLayer | null>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const routeRef = useRef<L.Polyline | null>(null);
@@ -207,6 +213,21 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
     return () => window.clearTimeout(timer);
   }, [fullscreenActive]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (baseTileRef.current) map.removeLayer(baseTileRef.current);
+    if (labelTileRef.current) map.removeLayer(labelTileRef.current);
+    labelTileRef.current = null;
+    if (mapType === "satellite") {
+      baseTileRef.current = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics', maxZoom: 18 }).addTo(map);
+      labelTileRef.current = L.tileLayer('https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri Boundaries', maxZoom: 18, pane: 'overlayPane', opacity: 0.9 }).addTo(map);
+    } else {
+      baseTileRef.current = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
+    }
+    if (map.getZoom() !== mapZoom) map.setZoom(mapZoom);
+  }, [mapType, mapZoom]);
+
   // Refresh charger colours every 60s zodat openingstijden/beschikbaarheid live is.
   useEffect(() => {
     const id = setInterval(() => setStatusTick((v) => v + 1), 60000);
@@ -218,7 +239,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
     const map = L.map(mapContainerRef.current, {
       center: [52.3676, 4.9041],
-      zoom: 7,
+      zoom: mapZoom,
       zoomControl: true,
       // Soepeler zoomen: kleinere stappen en vloeiende animatie.
       zoomSnap: 0.25,
@@ -229,19 +250,12 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
       markerZoomAnimation: true,
     });
 
-    // Oorspronkelijke satellietkaart: Esri World Imagery met plaatsnamen en grenzen.
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics',
-      maxZoom: 18,
-    }).addTo(map);
-
-    // Landgrenzen en plaatsnamen boven op de satellietbeelden.
-    L.tileLayer('https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-      attribution: '&copy; Esri Boundaries',
-      maxZoom: 18,
-      pane: 'overlayPane',
-      opacity: 0.9,
-    }).addTo(map);
+    if (mapType === "satellite") {
+      baseTileRef.current = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics', maxZoom: 18 }).addTo(map);
+      labelTileRef.current = L.tileLayer('https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri Boundaries', maxZoom: 18, pane: 'overlayPane', opacity: 0.9 }).addTo(map);
+    } else {
+      baseTileRef.current = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
+    }
 
 
     const pauseFollow = () => {
@@ -337,13 +351,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
         const status = getChargerStatus(charger);
         const isRouteStop = chargingStops.some((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
-        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? ""), isRouteStop) });
+        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? ""), isRouteStop, statusColors[status]) });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const usable = isChargerUsable(charger);
-        const statusColor = usable
+        const statusColor = statusColors[status] || (usable
           ? (charger.status === 'works' ? '#b45309' : '#16a34a')
-          : (charger.status === 'construction' ? '#f59e0b' : charger.status === 'long_closed' || charger.isAvailable === false ? '#64748b' : '#dc2626');
+          : (charger.status === 'construction' ? '#f59e0b' : charger.status === 'long_closed' || charger.isAvailable === false ? '#64748b' : '#dc2626'));
         const place = [charger.city, charger.province, charger.country].filter(Boolean).join(', ');
         const isFavorite = favoriteChargerIds.includes(charger.id ?? "");
         let popup = `<div style="font-family:system-ui;font-size:13px;min-width:240px;color:#0f172a;">
@@ -670,7 +684,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
       nextChargerMarkers.forEach((marker) => clusterRef.current?.addLayer(marker));
     }
     nextStandaloneMarkers.forEach((marker) => markersRef.current.addLayer(marker));
-  }, [startCoord, destCoord, superchargers, chargingStops, departure, modelName, packKWh, carMaxKwOverride, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode, holidayPeriodMode]);
+  }, [startCoord, destCoord, superchargers, chargingStops, departure, modelName, packKWh, carMaxKwOverride, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode, holidayPeriodMode, statusColors]);
 
   // Draai de kaart tijdens navigatie wanneer rijrichting boven is ingeschakeld.
   useEffect(() => {
