@@ -8,6 +8,54 @@ async function requireUser() {
   if (!user) throw new Error("Je bent niet ingelogd.");
   return user;
 }
+
+const accountSettingsSchema = z.object({
+  display_name: z.string().trim().max(80).nullable(),
+  gender: z.enum(["male", "female", "other", "unspecified"]),
+  preferences: z.object({
+    vehicle_model: z.string().max(120).nullable().optional(),
+    vehicle_year: z.number().int().min(1990).max(2100).nullable().optional(),
+    consumption_kwh100: z.number().min(1).max(100).nullable().optional(),
+    notifications: z.object({
+      favorite_status: z.boolean().default(true),
+      price_changes: z.boolean().default(false),
+      new_locations: z.boolean().default(false),
+    }).default({ favorite_status: true, price_changes: false, new_locations: false }),
+    map: z.object({
+      show_development_chargers: z.boolean().default(false),
+      remember_filters: z.boolean().default(true),
+    }).default({ show_development_chargers: false, remember_filters: true }),
+  }).default({}),
+});
+
+export const getMyAccountSettings = createServerFn({ method: "GET" }).handler(async () => {
+  const user = await requireUser();
+  const row = await getD1().prepare(
+    "SELECT email, display_name, gender, preferences_json FROM users WHERE id = ?"
+  ).bind(user.id).first<{ email: string; display_name: string | null; gender: string | null; preferences_json: string | null }>();
+  if (!row) throw new Error("Account niet gevonden.");
+  let preferences: unknown = {};
+  try { preferences = row.preferences_json ? JSON.parse(row.preferences_json) : {}; } catch { preferences = {}; }
+  const parsed = accountSettingsSchema.shape.preferences.safeParse(preferences);
+  return {
+    email: row.email,
+    display_name: row.display_name ?? "",
+    gender: ["male", "female", "other"].includes(row.gender ?? "") ? row.gender : "unspecified",
+    preferences: parsed.success ? parsed.data : accountSettingsSchema.shape.preferences.parse({}),
+  };
+});
+
+export const updateMyAccountSettings = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => accountSettingsSchema.parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireUser();
+    const displayName = data.display_name?.trim() || null;
+    await getD1().prepare(
+      "UPDATE users SET display_name = ?, gender = ?, preferences_json = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+    ).bind(displayName, data.gender, JSON.stringify(data.preferences), user.id).run();
+    return { ok: true, display_name: displayName };
+  });
+
 function parseJson<T>(value: unknown, fallback: T): T {
   if (typeof value !== "string") return (value as T) ?? fallback;
   try { return JSON.parse(value) as T; } catch { return fallback; }
