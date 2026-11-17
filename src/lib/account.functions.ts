@@ -486,3 +486,19 @@ export const setMyPinnedWaypoint = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+export const createMyNotificationEvent = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({
+    event_type: z.enum(["price_change", "status_change", "new_location", "closed_location", "favorite_alert"]),
+    charger_id: z.string().max(120).nullable().optional(),
+    dedupe_key: z.string().min(1).max(900),
+    title: z.string().trim().min(1).max(160),
+    body: z.string().trim().min(1).max(1200),
+  }).parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireUser();
+    await getD1().prepare(`INSERT OR IGNORE INTO user_notification_events (id,user_id,event_type,charger_id,dedupe_key,title,body,channel,delivery_status)
+      VALUES (?,?,?,?,?,?,?,'in_app','queued')`)
+      .bind(crypto.randomUUID(), user.id, data.event_type, data.charger_id ?? null, data.dedupe_key, data.title, data.body).run();
+    return { ok: true };
+  });
