@@ -201,7 +201,7 @@ function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; on
     <div className="rounded-lg border border-cyan-700/50 bg-slate-900/70 p-3 space-y-3">
       <div>
         <div className="text-sm font-semibold text-cyan-200">Druktevoorspelling</div>
-        <p className="text-[11px] text-slate-400">Vul per uur 0–100% verwachte drukte in. De drie uurprofielen worden apart gebruikt in de routeplanner; vrije laadplekken worden automatisch uit de bruikbare capaciteit berekend.</p>
+        <p className="text-[11px] text-slate-400">Vul per uur 0–100% verwachte drukte in. De drie uurprofielen worden gebruikt om de verwachte drukte bij een laadstop te tonen. Er wordt geen aantal vrije laadplekken of wachtrij voorspeld.</p>
       </div>
       {groups.map((group) => (
         <div key={group.key} className="space-y-2">
