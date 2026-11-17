@@ -371,6 +371,7 @@ function Index() {
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
   const [mapType, setMapType] = useState<"road" | "satellite">("satellite");
   const [mapZoom, setMapZoom] = useState(7);
+  const [mapMarkerSize, setMapMarkerSize] = useState(30);
   const [statusColors, setStatusColors] = useState<Record<string, string>>({});
   const [preferredRoutePriority, setPreferredRoutePriority] = useState<"cheapest" | "fastest" | "fewest_stops">("fastest");
   useEffect(() => {
@@ -379,7 +380,7 @@ function Index() {
         vehicle_model?: string | null; vehicle_year?: number | null; consumption_kwh100?: number | null;
         notifications?: { price_changes?: boolean; status_changes?: boolean };
         map?: { show_development_chargers?: boolean; remember_filters?: boolean };
-        map_type?: "road" | "satellite"; map_zoom?: number; status_colors?: Record<string, string>;
+        map_type?: "road" | "satellite"; map_zoom?: number; map_marker_size?: number; status_colors?: Record<string, string>;
         route_preferences?: { priority?: "cheapest" | "fastest" | "fewest_stops"; min_charger_kw?: number };
         theme?: "light" | "dark" | "system"; font_scale?: number; display_density?: "compact" | "comfortable";
         language?: string; profile_color?: string;
@@ -391,6 +392,7 @@ function Index() {
       setNotifyStatusChanges(prefs.notifications?.status_changes ?? true);
       if (prefs.map_type) setMapType(prefs.map_type);
       if (typeof prefs.map_zoom === "number") setMapZoom(Math.max(3, Math.min(18, prefs.map_zoom)));
+      if (typeof prefs.map_marker_size === "number") setMapMarkerSize(Math.max(20, Math.min(48, prefs.map_marker_size)));
       if (prefs.status_colors) setStatusColors(prefs.status_colors);
       if (prefs.route_preferences?.priority) setPreferredRoutePriority(prefs.route_preferences.priority);
       if (typeof prefs.route_preferences?.min_charger_kw === "number") setMinChargerSpeedKw(prefs.route_preferences.min_charger_kw);
@@ -1958,6 +1960,7 @@ function Index() {
           favoriteChargerIds={favoriteChargerIds}
           mapType={mapType}
           mapZoom={mapZoom}
+          markerSize={mapMarkerSize}
           statusColors={statusColors}
           winterSportsMode={winterSportsMode}
           holidayPeriodMode={holidayPeriodMode}
