@@ -535,7 +535,7 @@ export interface CalcChargingOptions {
   preferNearestCharger?: boolean;
   /** Laders met parkeerkosten overslaan. */
   avoidParkingFee?: boolean;
-  /** Alleen Superchargers met een door de beheerder bevestigde invalidenplek. */
+  /** Eerste voorkeur voor Superchargers met een door de beheerder bevestigde invalidenplek; wrapper probeert zonder voorkeur als dat nodig is. */
   requireWheelchairAccessible?: boolean;
   /** Maximaal totale extra afstand door omrijden (km); 0 = geen limiet. */
   maxDetourKm?: number;
