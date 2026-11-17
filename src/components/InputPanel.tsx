@@ -1028,9 +1028,9 @@ export default function InputPanel({
             </label>
             <label className="mt-1.5 flex items-center gap-2 text-xs text-slate-300">
               <input type="checkbox" checked={requireAccessibleStalls} onChange={(e) => onRequireAccessibleStallsChange(e.target.checked)} className="accent-blue-500" />
-              Alleen Superchargers met invalidenplek
+              Houd rekening met invalidenplek
             </label>
-            {requireAccessibleStalls && <p className="ml-6 mt-1 text-[10px] text-sky-300/80">De routeplanner slaat locaties zonder bevestigde invalidenplek over. Is er geen passende laadstop bereikbaar, dan meldt de planner dat.</p>}
+            {requireAccessibleStalls && <p className="ml-6 mt-1 text-[10px] text-sky-300/80">De routeplanner probeert eerst Superchargers met een bevestigde invalidenplek. Lukt de route daarmee niet, dan kiest hij automatisch een geschikte Supercharger zonder invalidenplek.</p>}
           </div>
 
           <label className="flex items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-800/40 p-3 text-xs text-slate-300">
