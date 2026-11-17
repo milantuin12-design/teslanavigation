@@ -97,7 +97,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   if (routeUsed) color = '#7dd3fc'; // lichtblauw = geselecteerde laadstop
 
   if (status === 'Voting' || status === 'Plan') {
-    const dotColor = status === 'Voting' ? '#3b82f6' : '#a855f7';
+    const dotColor = statusColorOverride || (status === 'Voting' ? '#3b82f6' : '#a855f7');
     const dotSize = status === 'Voting' ? 12 : 10;
     const snowBadge = charger.winterSportsMode && isSnowRegion(charger)
       ? `<span title="Wintersportgebied" style="position:absolute;right:-5px;top:-5px;width:14px;height:14px;border-radius:50%;background:#e0f2fe;border:1px solid #fff;color:#0369a1;font-size:9px;display:flex;align-items:center;justify-content:center;">❄</span>`
