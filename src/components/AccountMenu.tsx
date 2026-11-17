@@ -38,7 +38,7 @@ export function AccountMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 text-white">
-        <DropdownMenuItem onSelect={(event) => { event.preventDefault(); setSettingsOpen(true); }}>
+        <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
           <Settings className="w-4 h-4 mr-2" /> Accountinstellingen
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => window.location.assign("/mijn-routes")}>
