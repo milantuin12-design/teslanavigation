@@ -100,19 +100,12 @@ type UpdateRow = {
 };
 
 export const listSiteUpdates = createServerFn({ method: "GET" }).handler(async (): Promise<SiteUpdate[]> => {
-  try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
-      .from("site_updates")
-      .select("id,title,body,image_url,importance,published_at,visible")
-      .order("published_at", { ascending: false })
-      .limit(50);
-    if (error) throw new Error(error.message);
-    return ((data ?? []) as UpdateRow[]).map((row) => ({
-      id: row.id, title: row.title, body: row.body, imageUrl: row.image_url,
-      importance: row.importance, publishedAt: row.published_at, visible: row.visible,
-    }));
-  } catch { return []; }
+  const { getD1 } = await import("./d1.server");
+  const { results } = await getD1().prepare("SELECT id,title,body,image_url,importance,published_at,visible FROM site_updates WHERE visible=1 ORDER BY published_at DESC LIMIT 50").all<UpdateRow>();
+  return (results ?? []).map((row) => ({
+    id: row.id, title: row.title, body: row.body, imageUrl: row.image_url,
+    importance: row.importance, publishedAt: row.published_at, visible: Boolean(row.visible),
+  }));
 });
 
 const updateInput = z.object({
