@@ -434,6 +434,9 @@ function Index() {
       if (prefs.status_colors) setStatusColors(prefs.status_colors);
       if (prefs.route_preferences?.priority) setPreferredRoutePriority(prefs.route_preferences.priority);
       if (typeof prefs.route_preferences?.min_charger_kw === "number") setMinChargerSpeedKw(prefs.route_preferences.min_charger_kw);
+      if (typeof prefs.route_preferences?.default_charge_pause_min === "number") setDefaultChargePauseMin(prefs.route_preferences.default_charge_pause_min);
+      if (typeof prefs.route_preferences?.max_detour_km === "number") setMaxDetourKm(prefs.route_preferences.max_detour_km);
+      if (typeof prefs.route_preferences?.max_distance_between_stops_km === "number") setMaxDistanceBetweenStopsKm(prefs.route_preferences.max_distance_between_stops_km);
       if (prefs.theme) document.documentElement.classList.toggle("dark", prefs.theme === "dark" || (prefs.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches));
       if (typeof prefs.font_scale === "number") document.documentElement.style.fontSize = (16 * Math.max(0.85, Math.min(1.3, prefs.font_scale))) + "px";
       if (prefs.display_density) document.documentElement.dataset.displayDensity = prefs.display_density;
