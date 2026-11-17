@@ -154,7 +154,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>, network: Network
     closure: row.closure ?? {},
     ownerId: row.owner_id,
     ownerName: row.owner_name ?? owner?.name ?? null,
-    ownerLogoUrl: row.owner_name ? null : owner?.logo_url ?? null,
+    ownerLogoUrl: owner?.logo_url ?? null,
     ownerDescription: owner?.description ?? null,
     ownerWebsite: owner?.website ?? null,
     ownerContact: owner?.contact ?? null,
