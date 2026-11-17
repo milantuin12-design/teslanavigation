@@ -181,6 +181,21 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
       setRouteProfiles(await listRouteProfilesFn()); setProfileName(""); toast.success("Routeprofiel opgeslagen");
     } catch (error) { toast.error(error instanceof Error ? error.message : "Routeprofiel opslaan mislukt"); }
   };
+  const applyRouteProfile = (profile: RouteProfile) => {
+    const saved = profile.settings ?? {};
+    setSettings((old) => ({
+      ...old,
+      preferences: {
+        ...old.preferences,
+        vehicle_model: typeof saved.vehicle_model === "string" ? saved.vehicle_model : old.preferences.vehicle_model,
+        vehicle_year: typeof saved.vehicle_year === "number" ? saved.vehicle_year : old.preferences.vehicle_year,
+        consumption_kwh100: typeof saved.consumption_kwh100 === "number" ? saved.consumption_kwh100 : old.preferences.consumption_kwh100,
+        map_type: saved.map_type === "road" || saved.map_type === "satellite" ? saved.map_type : old.preferences.map_type,
+        route_preferences: { ...old.preferences.route_preferences, ...((saved.route_preferences ?? {}) as Preferences["route_preferences"]) },
+      },
+    }));
+    toast.success("Routeprofiel geladen. Sla de accountinstellingen op om het toe te passen.");
+  };
   const removeRouteProfile = async (id: string) => {
     try { await deleteRouteProfileFn({ data: { id } }); setRouteProfiles(await listRouteProfilesFn()); }
     catch (error) { toast.error(error instanceof Error ? error.message : "Routeprofiel verwijderen mislukt"); }
@@ -274,7 +289,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
         <section className={sectionClass}>
           <h3 className="font-semibold">Opgeslagen routeprofielen</h3>
           <div className="flex gap-2"><Input value={profileName} onChange={e=>setProfileName(e.target.value)} placeholder="Bijv. Vakantie met aanhanger" className="bg-slate-800 border-slate-700"/><Button onClick={()=>void saveRouteProfile()} disabled={!profileName.trim()} className="bg-red-600 hover:bg-red-700">Opslaan</Button></div>
-          {routeProfiles.length===0 ? <p className="text-xs text-slate-500">Nog geen routeprofielen opgeslagen.</p> : routeProfiles.map(p=><div key={p.id} className="flex items-center justify-between gap-2 rounded border border-slate-700 p-2 text-sm"><span>{p.name}</span><Button size="sm" variant="ghost" onClick={()=>void removeRouteProfile(p.id)}>Verwijderen</Button></div>)}
+          {routeProfiles.length===0 ? <p className="text-xs text-slate-500">Nog geen routeprofielen opgeslagen.</p> : routeProfiles.map(p=><div key={p.id} className="flex items-center justify-between gap-2 rounded border border-slate-700 p-2 text-sm"><span>{p.name}</span><div className="flex gap-1"><Button size="sm" variant="outline" className="border-slate-600" onClick={()=>applyRouteProfile(p)}>Gebruiken</Button><Button size="sm" variant="ghost" onClick={()=>void removeRouteProfile(p.id)}>Verwijderen</Button></div></div>)}
         </section>
 
         <section className={sectionClass}>
@@ -285,6 +300,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
             <Input type="number" value={sessionDraft.cost_amount} onChange={e=>setSessionDraft(v=>({...v,cost_amount:e.target.value}))} placeholder="Kosten in euro (optioneel)" className="bg-slate-800 border-slate-700"/>
             <Input value={sessionDraft.notes} onChange={e=>setSessionDraft(v=>({...v,notes:e.target.value}))} placeholder="Notitie (optioneel)" className="bg-slate-800 border-slate-700"/>
           </div>
+          <div className="rounded border border-slate-700 bg-slate-800/60 p-2 text-xs text-slate-300">Totaal geregistreerd: {chargingSessions.reduce((sum, item) => sum + Number(item.energy_kwh || 0), 0).toFixed(1)} kWh · {chargingSessions.filter(item => item.cost_amount != null).reduce((sum, item) => sum + Number(item.cost_amount || 0), 0).toFixed(2)} EUR</div>
           <Button onClick={()=>void addChargingSession()} className="bg-red-600 hover:bg-red-700">Laadsessie toevoegen</Button>
           {chargingSessions.slice(0,8).map(session=><div key={session.id} className="flex items-center justify-between gap-2 rounded border border-slate-700 p-2 text-xs"><span>{session.charger_name || "Locatie onbekend"} · {session.energy_kwh} kWh{session.cost_amount != null ? " · €" + Number(session.cost_amount).toFixed(2) : ""}</span><Button size="sm" variant="ghost" onClick={()=>void removeChargingSession(session.id)}>Verwijderen</Button></div>)}
         </section>
