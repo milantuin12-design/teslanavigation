@@ -394,10 +394,11 @@ export const adminRawUpsertCharger = createServerFn({ method: "POST" })
     const row = Object.fromEntries(Object.entries(data).filter(([key, value]) => adminRawColumns.has(key) && value !== undefined));
     if (!row.name || !row.country || typeof row.lat !== "number" || typeof row.lng !== "number") throw new Error("Naam, land, breedtegraad en lengtegraad zijn verplicht.");
     if (!row.id) row.id = crypto.randomUUID();
+    row.data_source = "manual";
     const entries = Object.entries(row);
     const columns = entries.map(([key]) => key);
     const values = entries.map(([key, value]) => d1Value(key, value));
-    const updates = columns.filter(key => key !== "id").map(key => `${key}=excluded.${key}`).join(",");
+    const updates = columns.filter(key => key !== "id" && key !== "data_source" && key !== "updated_at").map(key => `${key}=excluded.${key}`).concat(["data_source='manual'","updated_at=CURRENT_TIMESTAMP"]).join(",");
     const db = getD1();
     await db.prepare(`INSERT INTO superchargers (${columns.join(",")}) VALUES (${columns.map(() => "?").join(",")}) ON CONFLICT(id) DO UPDATE SET ${updates || "id=excluded.id"}`)
       .bind(...values).run();
