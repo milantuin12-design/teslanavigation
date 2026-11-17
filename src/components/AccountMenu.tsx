@@ -13,7 +13,8 @@ export function AccountMenu() {
   const [user, setUser] = useState<AccountUser | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [profileGreeting, setProfileGreeting] = useState("");
-  const [profileColor, setProfileColor] = useState("#e82127");\n  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileColor, setProfileColor] = useState("#e82127");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -27,7 +28,8 @@ export function AccountMenu() {
     void getMyAccountSettings().then((data) => {
       if (!active) return;
       setProfileGreeting(data.preferences?.greeting ?? "");
-      setProfileColor(data.preferences?.profile_color ?? "#e82127");\n      setProfileImage(data.preferences?.profile_image_url ?? null);
+      setProfileColor(data.preferences?.profile_color ?? "#e82127");
+      setProfileImage(data.preferences?.profile_image_url ?? null);
     }).catch(() => {});
     return () => { active = false; };
   }, [settingsOpen]);
