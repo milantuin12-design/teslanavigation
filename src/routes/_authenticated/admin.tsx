@@ -60,6 +60,7 @@ type Charger = {
   in_parking_garage: boolean;
   status: ChargerLifecycleStatus;
   construction: ConstructionInfo | null;
+  notes?: string | null;
   traffic_forecast?: TrafficForecast | null;
   works: WorksInfo | null;
   closure: ClosureInfo | null;
@@ -478,8 +479,10 @@ function AdminPage() {
       status: editing.status || "operational",
       // Bewaar drukteprofielen in het bestaande construction JSONB-veld.
       // Zo werkt opslaan ook bij databases zonder de optionele traffic_forecast-kolom.
+      notes: editing.notes?.trim() || null,
       construction: {
         ...(editing.construction || {}),
+        customLabel: editing.construction?.customLabel?.trim() || null,
         trafficForecast: editing.traffic_forecast || createEmptyTrafficForecast(),
         trailerFriendlyStalls: Math.max(0, Math.min(100, Math.floor(Number(editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0)) || 0))),
         trailerStallsPerSpace: Math.max(1, Math.min(8, Math.floor(Number(editing.construction?.trailerStallsPerSpace ?? 1) || 1))),
@@ -819,6 +822,8 @@ function AdminPage() {
           {editing && (
             <div className="space-y-3">
               <div><Label>Naam</Label><Input value={editing.name || ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
+              <div><Label>Eigen label (optioneel)</Label><Input placeholder="Bijv. Favoriete stop, ruime parkeerplaats…" value={editing.construction?.customLabel ?? ""} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), customLabel: e.target.value } })} className="bg-slate-800 border-slate-700" /></div>
+              <div><Label>Persoonlijke notitie</Label><textarea rows={2} placeholder="Eigen notitie over deze Supercharger…" value={editing.notes ?? ""} onChange={(e) => setEditing({ ...editing, notes: e.target.value })} className="w-full rounded-md bg-slate-800 border border-slate-700 p-2 text-sm" /></div>
               <div><Label>Land</Label><Input value={editing.country || ""} onChange={(e) => setEditing({ ...editing, country: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
               <div className="grid grid-cols-2 gap-2">
                 <div><Label>Provincie / regio</Label><Input value={editing.province || ""} onChange={(e) => setEditing({ ...editing, province: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
