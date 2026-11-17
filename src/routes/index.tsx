@@ -1836,12 +1836,6 @@ function Index() {
               </Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCountryPricesOpen(true)}>Prijs per land</Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCompareOpen(true)}>Vergelijk locaties</Button>
-              <LanguageSwitcher />
-              {currentUser?.display_name?.trim() && (
-                <span className="hidden md:inline text-xs text-slate-300 whitespace-nowrap">
-                  {currentUser.gender === "male" ? "Welkom terug, meneer " : currentUser.gender === "female" ? "Welkom terug, mevrouw " : "Welkom terug, "}{currentUser.display_name}!
-                </span>
-              )}
               <AccountMenu />
             </div>
             {filtersOpen && (
