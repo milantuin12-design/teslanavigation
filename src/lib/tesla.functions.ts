@@ -1,8 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, PlannedUpgrade, PriceBlock, ParkingFeeBlock, StallState, Supercharger, VotingInfo, WorksInfo, TrafficForecast } from "./tesla-types";
-import type { Json } from "@/integrations/supabase/types";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import tariffDataset from "@/data/supercharger-tariffs.json";
 import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, normalizeOpeningHours, parseChargerConfigsFromLegacy } from "./tesla-utils";
 import { createRegionalTrafficForecast } from "./traffic-forecast";
@@ -477,16 +475,6 @@ const chargerInput = z.object({
 
 
 
-async function assertAdmin(context: { supabase: unknown; userId: string }) {
-  const sb = context.supabase as { rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" | "user" }) => PromiseLike<{ data: boolean | null; error: { message: string } | null }> };
-  const { data, error } = await sb.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Forbidden");
-}
-
-
-
-
 async function getD1AdminSetting(action: string): Promise<boolean> {
   const { getD1 } = await import("./d1.server");
   const row = await getD1().prepare("SELECT details FROM admin_audit_log WHERE action=? ORDER BY created_at DESC LIMIT 1").bind(action).first<{details:string}>();
@@ -515,79 +503,77 @@ export const setHolidayPeriodMode = createServerFn({ method: "POST" })
   .handler(async ({data}) => setD1AdminSetting("holiday_period_mode",data.enabled));
 
 export const upsertSupercharger = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => chargerInput.parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+  .handler(async ({ data }) => {
+    const { getCurrentD1User } = await import("./auth-d1.server");
+    const user = await getCurrentD1User();
+    if (!user?.is_admin) throw new Error("Alleen een beheerder kan Superchargers aanpassen.");
+    const { getD1 } = await import("./d1.server");
     const configs = normalizeChargerConfigs(data.chargerConfigs);
-    const stallTypes = configs.map((config) => `${config.count}x${config.version} ${config.speedKw}kW`).join(" - ");
-    const payload = {
+    const id = data.id ?? crypto.randomUUID();
+    const payload: Record<string, unknown> = {
+      id,
       name: data.name,
       lat: data.lat,
       lng: data.lng,
       country: data.country,
       total_stalls: getTotalStallsFromConfigs(configs) ?? data.totalStalls ?? null,
-      stall_types: stallTypes || data.stallTypes || null,
+      stall_types: configs.map((config) => config.count + "x" + config.version + " " + config.speedKw + "kW").join(" - ") || data.stallTypes || null,
       max_speed_kw: getMaxSpeedFromConfigs(configs) ?? data.maxSpeedKw ?? null,
-      versions: getVersionsFromConfigs(configs).length > 0 ? getVersionsFromConfigs(configs) : data.versions,
-      charger_configs: configs.map((config) => ({ ...config })) as Json,
-      opening_hours: normalizeOpeningHours(data.openingHours, data.openingTime, data.closingTime) as unknown as Json,
+      versions: JSON.stringify(getVersionsFromConfigs(configs).length > 0 ? getVersionsFromConfigs(configs) : data.versions),
+      charger_configs: JSON.stringify(configs),
+      opening_hours: JSON.stringify(normalizeOpeningHours(data.openingHours, data.openingTime, data.closingTime)),
       opening_time: data.openingTime || null,
       closing_time: data.closingTime || null,
-      trailer_friendly: data.trailerFriendly,
-      is_available: data.isAvailable,
-      parking_fee: data.parkingFee,
+      trailer_friendly: data.trailerFriendly ? 1 : 0,
+      is_available: data.isAvailable ? 1 : 0,
+      parking_fee: data.parkingFee ? 1 : 0,
       parking_fee_amount: data.parkingFeeAmount ?? null,
       parking_free_minutes: data.parkingFreeMinutes ?? null,
       parking_per_minutes: data.parkingPerMinutes ?? null,
       parking_per_euro: data.parkingPerEuro ?? null,
-      parking_blocks: data.parkingBlocks ?? null,
-      price_per_kwh: data.pricePerKwh ?? null,
-      price_per_kwh_peak: data.pricePerKwhPeak ?? null,
-      peak_hours: data.peakHours ?? null,
-      price_blocks: data.priceBlocks ?? null,
-      in_parking_garage: data.inParkingGarage,
+      parking_blocks: JSON.stringify(data.parkingBlocks ?? []),
+      price_blocks: data.priceBlocks == null ? null : JSON.stringify(data.priceBlocks),
+      in_parking_garage: data.inParkingGarage ? 1 : 0,
       province: data.province || null,
       city: data.city || null,
       status: data.status,
-      construction: data.construction as Json,
-      works: data.works as Json,
-      closure: data.closure as Json,
+      construction: JSON.stringify(data.construction),
+      works: JSON.stringify(data.works),
+      closure: JSON.stringify(data.closure),
       owner_id: data.ownerId ?? null,
-      low_speed: data.lowSpeed,
-      published: data.published,
+      low_speed: data.lowSpeed ? 1 : 0,
+      published: data.published ? 1 : 0,
       notes: data.notes ?? null,
       reopen_at: data.reopenAt || null,
-      planned_upgrade: data.plannedUpgrade as Json,
-      ...(data.stallStates ? { stall_states: data.stallStates as unknown as Json } : {}),
+      planned_upgrade: JSON.stringify(data.plannedUpgrade),
+      stall_states: JSON.stringify(data.stallStates ?? []),
       data_source: data.dataSource ?? "manual",
-      ...(data.hidden !== undefined ? { hidden: data.hidden } : {}),
-      ...(data.photos ? { photos: data.photos } : {}),
-      ...(data.voting ? { voting: data.voting as Json } : {}),
-
+      hidden: data.hidden ? 1 : 0,
+      photos: JSON.stringify(data.photos ?? []),
+      voting: JSON.stringify(data.voting ?? {}),
+      updated_at: new Date().toISOString(),
     };
-    if (data.id) {
-      const { error } = await context.supabase.from("superchargers").update(payload).eq("id", data.id);
-      if (error) throw new Error(error.message);
-      return { id: data.id };
-    } else {
-      const { data: inserted, error } = await context.supabase
-        .from("superchargers")
-        .insert(payload)
-        .select("id")
-        .single();
-      if (error) throw new Error(error.message);
-      return { id: (inserted as { id: string }).id };
-    }
+    const columns = Object.keys(payload);
+    const updates = columns.filter((key) => key !== "id").map((key) => key + "=excluded." + key).join(",");
+    await getD1().prepare("INSERT INTO superchargers (" + columns.join(",") + ") VALUES (" + columns.map(() => "?").join(",") + ") ON CONFLICT(id) DO UPDATE SET " + updates)
+      .bind(...Object.values(payload)).run();
+    await getD1().prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
+      .bind(crypto.randomUUID(), user.id, "supercharger_upsert", 1, JSON.stringify({id,name:data.name})).run();
+    return { id };
   });
 
 export const deleteSupercharger = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { error } = await context.supabase.from("superchargers").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120) }).parse(input))
+  .handler(async ({ data }) => {
+    const { getCurrentD1User } = await import("./auth-d1.server");
+    const user = await getCurrentD1User();
+    if (!user?.is_admin) throw new Error("Alleen een beheerder kan Superchargers verwijderen.");
+    const { getD1 } = await import("./d1.server");
+    const result = await getD1().prepare("DELETE FROM superchargers WHERE id=?").bind(data.id).run();
+    if (!result.meta?.changes) throw new Error("Supercharger niet gevonden.");
+    await getD1().prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
+      .bind(crypto.randomUUID(), user.id, "supercharger_delete", 1, JSON.stringify({id:data.id})).run();
     return { ok: true };
   });
 
