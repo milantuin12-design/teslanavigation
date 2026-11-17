@@ -1175,7 +1175,7 @@ function Index() {
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
       whatIf,
     };
-  }, [departureDate, excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
+  }, [departureDate, excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode, activeVehicle]);
 
   const applyPlan = useCallback((index: number, plan: RoutePlan) => {
     setSelectedRouteIndex(index);
