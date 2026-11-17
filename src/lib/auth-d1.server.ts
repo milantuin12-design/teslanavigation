@@ -80,7 +80,7 @@ export async function getCurrentD1User(): Promise<D1User | null> {
   const db = getD1();
   const tokenHash = await sha256(token);
   const row = await db.prepare(`
-    SELECT u.id, u.email, u.display_name,
+    SELECT u.id, u.email, u.display_name, u.gender,
       EXISTS(SELECT 1 FROM user_roles r WHERE r.user_id = u.id AND r.role = 'admin') AS is_admin
     FROM sessions s JOIN users u ON u.id = s.user_id
     WHERE s.token_hash = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.blocked = 0
