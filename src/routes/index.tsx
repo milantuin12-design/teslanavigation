@@ -11,7 +11,7 @@ import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher } from "@/components/LanguageProvider";
-import { getMySavedRoute, saveMyRoute } from "@/lib/account.functions";
+import { getMySavedRoute, saveMyRoute, getMyAccountSettings } from "@/lib/account.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
 
 const hasSupabaseBrowserConfig = Boolean(
@@ -240,16 +240,35 @@ function Index() {
       if (previous[charger.id] && previous[charger.id] !== snapshot) changes.push(charger.name);
     }
     try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* local storage may be disabled */ }
-    if (changes.length) {
+    if (changes.length && notifyPriceChanges) {
       const first = changes.slice(0, 3).join(", ");
       toast.info(`Laadprijs gewijzigd bij favoriet: ${first}${changes.length > 3 ? ` en ${changes.length - 3} andere locatie(s)` : ""}.`);
     }
-  }, [favoriteChargerIds, isLoadingChargers, superchargers]);
+  }, [favoriteChargerIds, isLoadingChargers, superchargers, notifyPriceChanges]);
   const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>({ ...defaultChargerFilters });
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
   const [showAllChargers, setShowAllChargers] = useState(false);
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
+  const [notifyPriceChanges, setNotifyPriceChanges] = useState(true);
+  useEffect(() => {
+    if (!currentUser) return;
+    let active = true;
+    void getMyAccountSettings().then((account) => {
+      if (!active) return;
+      const prefs = account.preferences;
+      setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
+      setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
+      if (prefs.vehicle_model && teslaModels.includes(prefs.vehicle_model)) setSelectedModel(prefs.vehicle_model);
+      if (typeof prefs.vehicle_year === "number") setModelYear(prefs.vehicle_year);
+      if (typeof prefs.consumption_kwh100 === "number") {
+        setManualConsumptionKWh100(prefs.consumption_kwh100);
+        setConsumptionMode("manual");
+      }
+    }).catch(() => { /* Profile settings are optional; the route planner remains usable. */ });
+    return () => { active = false; };
+  }, [currentUser?.id]);
+
   const countryPriceStats = useMemo(() => {
     if (!countryPricesOpen) return [];
     const groups = new Map<string, { country: string; currency: string; total: number; count: number }>();
