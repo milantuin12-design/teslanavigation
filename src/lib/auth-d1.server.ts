@@ -181,3 +181,28 @@ export async function claimInitialD1Admin(token: string) {
     .bind(crypto.randomUUID(), user.id).run();
   return { ok: true };
 }
+
+/** Change password for the currently signed-in account without exposing credentials to the client. */
+export async function changeD1Password(currentPassword: string, newPassword: string) {
+  const user = await getCurrentD1User();
+  if (!user) throw new Error("Je bent niet ingelogd.");
+  if (newPassword.length < 10 || newPassword.length > 200) {
+    throw new Error("Gebruik een nieuw wachtwoord van minimaal 10 tekens.");
+  }
+  const db = getD1();
+  const row = await db.prepare("SELECT password_hash FROM users WHERE id = ? AND blocked = 0")
+    .bind(user.id).first<{ password_hash: string }>();
+  if (!row || !(await verifyPassword(currentPassword, row.password_hash))) {
+    throw new Error("Je huidige wachtwoord is onjuist.");
+  }
+  const hash = await passwordHash(newPassword);
+  await db.prepare("UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+    .bind(hash, user.id).run();
+  const token = getCookie(COOKIE);
+  if (token) {
+    const currentHash = await sha256(token);
+    await db.prepare("DELETE FROM sessions WHERE user_id = ? AND token_hash != ?")
+      .bind(user.id, currentHash).run();
+  }
+  return { ok: true };
+}
