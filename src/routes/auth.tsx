@@ -152,7 +152,7 @@ function AuthPage() {
             </div>
           )}
         </div>
-        {!currentUser && <div className="mt-5 border-t border-slate-700 pt-4">
+        <div className="mt-5 border-t border-slate-700 pt-4">
           <button type="button" className="text-xs text-slate-500 hover:text-slate-300" onClick={() => { setAdminSetup(!adminSetup); setAuthError(""); }}>
             {adminSetup ? "Beheerder activeren sluiten" : "Eerste beheerder activeren"}
           </button>
@@ -165,7 +165,7 @@ function AuthPage() {
               </Button>
             </div>
           )}
-        </div>}
+        </div>
         {!currentUser && <p className="text-center mt-6 text-sm text-slate-400">
           {mode === "login" ? "Nog geen account?" : "Al een account?"}{" "}
           <button type="button" className="text-red-400 hover:text-red-300" onClick={() => { setAuthError(""); setMode(mode === "login" ? "register" : "login"); }}>
