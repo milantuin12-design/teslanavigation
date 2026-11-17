@@ -72,7 +72,7 @@ function clearSessionCookie() {
   deleteCookie(COOKIE, { httpOnly: true, secure: true, sameSite: "lax", path: "/" });
 }
 
-export type D1User = { id: string; email: string; display_name: string | null; is_admin: boolean };
+export type D1User = { id: string; email: string; display_name: string | null; gender: string | null; is_admin: boolean };
 
 export async function getCurrentD1User(): Promise<D1User | null> {
   const token = getCookie(COOKIE);
@@ -84,7 +84,7 @@ export async function getCurrentD1User(): Promise<D1User | null> {
       EXISTS(SELECT 1 FROM user_roles r WHERE r.user_id = u.id AND r.role = 'admin') AS is_admin
     FROM sessions s JOIN users u ON u.id = s.user_id
     WHERE s.token_hash = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.blocked = 0
-  `).bind(tokenHash).first<{id:string;email:string;display_name:string|null;is_admin:number}>();
+  `).bind(tokenHash).first<{id:string;email:string;display_name:string|null;gender:string|null;is_admin:number}>();
   if (!row) return null;
   return { ...row, is_admin: row.is_admin === 1 };
 }
