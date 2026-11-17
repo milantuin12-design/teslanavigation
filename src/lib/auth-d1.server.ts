@@ -35,12 +35,31 @@ async function passwordHash(
   return `pbkdf2-sha256$${iterations}$${bytesToBase64(salt)}$${bytesToBase64(new Uint8Array(bits))}`;
 }
 async function verifyPassword(password: string, stored: string): Promise<boolean> {
-  const [algorithm, rounds, saltText, expectedText] = stored.split("$");
+  // Accept both the corrected delimited format and the legacy format that
+  // was written by the first Cloudflare migration build (without "$" separators).
+  let algorithm: string;
+  let rounds: string;
+  let saltText: string;
+  let expectedText: string;
+  if (stored.includes("$")) {
+    [algorithm, rounds, saltText, expectedText] = stored.split("$");
+  } else {
+    algorithm = stored.slice(0, 13);
+    rounds = stored.slice(13, 19);
+    saltText = stored.slice(19, 43);
+    expectedText = stored.slice(43);
+  }
   const iterations = Number(rounds);
-  if (algorithm !== "pbkdf2-sha256" || !Number.isInteger(iterations) || iterations < 1 || iterations > ITERATIONS || !saltText || !expectedText) return false;
-  const actual = await passwordHash(password, base64ToBytes(saltText), iterations);
-  const actualBytes = base64ToBytes(actual.split("$")[3]);
-  const expectedBytes = base64ToBytes(expectedText);
+  if (algorithm !== "pbkdf2-sha256" || !/^\\d+$/.test(rounds) || !Number.isInteger(iterations) || iterations < 1 || iterations > ITERATIONS || !saltText || !expectedText) return false;
+  let actualBytes: Uint8Array;
+  let expectedBytes: Uint8Array;
+  try {
+    const actual = await passwordHash(password, base64ToBytes(saltText), iterations);
+    actualBytes = base64ToBytes(actual.split("$")[3]);
+    expectedBytes = base64ToBytes(expectedText);
+  } catch {
+    return false;
+  }
   if (actualBytes.length !== expectedBytes.length) return false;
   let diff = 0;
   for (let i = 0; i < actualBytes.length; i++) diff |= actualBytes[i] ^ expectedBytes[i];
