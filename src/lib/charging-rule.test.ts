@@ -74,3 +74,28 @@ describe('route geometry cache', () => {
     expect(projected.index).toBe(10);
   });
 });
+
+describe('invalidenplekken in routeberekening', () => {
+  it('kiest alleen een Supercharger met een bevestigde invalidenplek wanneer dit is ingeschakeld', () => {
+    const inaccessible = charger(350);
+    const accessible = { ...charger(300), construction: { wheelchairAccessible: true } };
+    const result = calculateChargingStops(line(500), {
+      ...base,
+      chargers: [inaccessible, accessible],
+      requireWheelchairAccessible: true,
+    });
+    expect(result.unreachable).toBe(false);
+    expect(result.stops).toHaveLength(1);
+    expect(result.stops[0].charger.id).toBe(accessible.id);
+  });
+
+  it('markeert de route als niet haalbaar als geen geschikte invalidenplek bereikbaar is', () => {
+    const result = calculateChargingStops(line(500), {
+      ...base,
+      chargers: [charger(350)],
+      requireWheelchairAccessible: true,
+    });
+    expect(result.unreachable).toBe(true);
+    expect(result.stops).toHaveLength(0);
+  });
+});
