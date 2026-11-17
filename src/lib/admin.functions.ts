@@ -313,7 +313,8 @@ export const adminListSuperchargers = createServerFn({ method: "GET" })
     const db = getD1();
     const rows = await db.prepare("SELECT * FROM superchargers ORDER BY name COLLATE NOCASE LIMIT 1000 OFFSET ?")
       .bind(data.from).all<Record<string, unknown>>();
-    return (rows.results ?? []).map(d1DecodeCharger);
+    const resultRows = Array.isArray(rows?.results) ? rows.results : [];
+    return resultRows.map(d1DecodeCharger);
   });
 
 export const adminRawUpsertCharger = createServerFn({ method: "POST" })
