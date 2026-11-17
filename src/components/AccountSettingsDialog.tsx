@@ -78,7 +78,9 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
   onSaved: (displayName: string | null, gender: Gender) => void;
 }) {
   const [settings, setSettings] = useState<Settings>(defaults);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);\n  const [vehicleCatalogue, setVehicleCatalogue] = useState<Array<{id:string;brand:string;model:string;trim:string|null;battery_kwh:number|null;usable_kwh:number|null;range_km:number|null;consumption_kwh100:number|null;year_from:number;year_to:number;max_charge_kw:number|null;image_url:string|null}>>([]);\n  const [selectedCatalogueId, setSelectedCatalogueId] = useState("");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [vehicleCatalogue, setVehicleCatalogue] = useState<Array<{id:string;brand:string;model:string;trim:string|null;battery_kwh:number|null;usable_kwh:number|null;range_km:number|null;consumption_kwh100:number|null;year_from:number;year_to:number;max_charge_kw:number|null;image_url:string|null}>>([]);
+  const [selectedCatalogueId, setSelectedCatalogueId] = useState("");
   const [vehicleDraft, setVehicleDraft] = useState({ name: "", model_name: "", model_year: "2025", image_url: "", battery_kwh: "75", summer_consumption_kwh100: "17", winter_consumption_kwh100: "22", max_charge_kw: "250", arrival_percent: "10", trailer_enabled: false, trailer_consumption_increase_percent: "20", battery_health_percent: "100", roof_or_rack_extra_percent: "0", winter_tires_extra_percent: "0", is_default: true });
   const [routeProfiles, setRouteProfiles] = useState<RouteProfile[]>([]);
   const [profileName, setProfileName] = useState("");
@@ -116,7 +118,8 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
         route_preferences: { ...defaults.preferences.route_preferences, ...p.route_preferences },
         status_colors: { ...defaults.preferences.status_colors, ...p.status_colors },
       } as Preferences });
-      setVehicles(list as Vehicle[]);\n      setVehicleCatalogue(catalogue as typeof vehicleCatalogue);
+      setVehicles(list as Vehicle[]);
+      setVehicleCatalogue(catalogue as typeof vehicleCatalogue);
       setRouteProfiles(profiles as RouteProfile[]);
       setChargingSessions(sessions as ChargingSession[]);
     }).catch((error) => toast.error(error instanceof Error ? error.message : "Accountinstellingen laden mislukt"))
