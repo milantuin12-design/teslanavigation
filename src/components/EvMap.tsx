@@ -287,10 +287,6 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
           document.body.appendChild(overlay);
         });
       });
-      const noteButton = node?.querySelector<HTMLButtonElement>("[data-note-id]");
-      if (noteButton) noteButton.addEventListener("click", () => { window.dispatchEvent(new CustomEvent("sc-note", { detail: { id: noteButton.dataset.noteId || "" } })); map.closePopup(); }, { once: true });
-      const labelButton = node?.querySelector<HTMLButtonElement>("[data-label-id]");
-      if (labelButton) labelButton.addEventListener("click", () => { window.dispatchEvent(new CustomEvent("sc-label", { detail: { id: labelButton.dataset.labelId || "" } })); map.closePopup(); }, { once: true });
       const favoriteButton = node?.querySelector<HTMLButtonElement>("[data-favorite-id]");
       if (favoriteButton) favoriteButton.addEventListener("click", () => { window.dispatchEvent(new CustomEvent("sc-favorite", { detail: { id: favoriteButton.dataset.favoriteId || "" } })); map.closePopup(); }, { once: true });
       const ownerButton = node?.querySelector<HTMLButtonElement>('[data-owner-id]');
@@ -374,8 +370,6 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
             <button type="button" data-favorite-id="${escapeHtml(charger.id ?? '')}" aria-label="${isFavorite ? "Favoriet verwijderen" : "Favoriet maken"}" title="${isFavorite ? "Favoriet verwijderen" : "Favoriet maken"}" style="all:unset;box-sizing:border-box;flex:none;width:22px;height:22px;margin:-2px -4px 0 0;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:${isFavorite ? "#f59e0b" : "#94a3b8"};font-size:18px;line-height:1;cursor:pointer;">${isFavorite ? "★" : "☆"}</button>
           </div>
           <div style="display:flex;gap:6px;margin-top:7px;">
-            <button type="button" data-note-id="${escapeHtml(charger.id ?? '')}" style="border:1px solid #cbd5e1;border-radius:5px;padding:3px 7px;font-size:11px;background:#f8fafc;color:#334155;cursor:pointer;">Persoonlijke notitie</button>
-            <button type="button" data-label-id="${escapeHtml(charger.id ?? '')}" style="border:1px solid #cbd5e1;border-radius:5px;padding:3px 7px;font-size:11px;background:#f8fafc;color:#334155;cursor:pointer;">Eigen label</button>
           </div>
           <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
 
