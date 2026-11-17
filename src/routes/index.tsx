@@ -11,7 +11,7 @@ import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher, changeLanguage } from "@/components/LanguageProvider";
-import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, getMyChargerNote, saveMyChargerNote, setMyChargerLabel } from "@/lib/account.functions";
+import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, getMyChargerNote, saveMyChargerNote, setMyChargerLabel, createMyNotificationEvent } from "@/lib/account.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
 
 const hasSupabaseBrowserConfig = Boolean(
@@ -220,6 +220,7 @@ function Index() {
   const [favoriteChargerIds, setFavoriteChargerIds] = useState<string[]>([]);
   const listFavoritesFn = useServerFn(listMyChargerFavorites);
   const setFavoriteFn = useServerFn(setMyChargerFavorite);
+  const createNotificationFn = useServerFn(createMyNotificationEvent);
   const [notifyPriceChanges, setNotifyPriceChanges] = useState(true);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   useEffect(() => {
@@ -281,8 +282,15 @@ function Index() {
     if (changes.length && notifyPriceChanges) {
       const first = changes.slice(0, 3).join(", ");
       toast.info(`Laadprijs gewijzigd bij favoriet: ${first}${changes.length > 3 ? ` en ${changes.length - 3} andere locatie(s)` : ""}.`);
+      if (currentUser) {
+        for (const charger of superchargers) {
+          if (!charger.id || !changes.includes(charger.name)) continue;
+          const snap = next[charger.id] ?? "";
+          void createNotificationFn({ data: { event_type: "price_change", charger_id: charger.id, dedupe_key: "price:" + charger.id + ":" + snap, title: "Laadprijs gewijzigd", body: "De laadprijs bij " + charger.name + " is gewijzigd." } }).catch(() => {});
+        }
+      }
     }
-  }, [favoriteChargerIds, isLoadingChargers, superchargers, notifyPriceChanges]);
+  }, [favoriteChargerIds, isLoadingChargers, superchargers, notifyPriceChanges, currentUser?.id]);
   const [rememberFilters, setRememberFilters] = useState(true);
   const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>(() => {
     try {
