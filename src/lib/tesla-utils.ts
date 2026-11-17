@@ -558,6 +558,22 @@ function buildSuggestions(ctx: { chargeTargetPercent: number; batteryPercent: nu
   return out;
 }
 
+/**
+ * Treat wheelchair-accessible parking as a route preference: first try a route
+ * using confirmed accessible locations only; if that cannot complete the trip,
+ * retry without the preference rather than declaring the route unreachable.
+ */
+export function calculateChargingStopsWithAccessibilityPreference(
+  route: RouteResult,
+  opts: CalcChargingOptions,
+) {
+  const preferred = calculateChargingStops(route, opts);
+  if (!opts.requireWheelchairAccessible || !preferred.unreachable) return preferred;
+  const fallback = calculateChargingStops(route, { ...opts, requireWheelchairAccessible: false });
+  return fallback.unreachable ? preferred : fallback;
+}
+
+
 export function calculateChargingStops(
   route: RouteResult,
   opts: CalcChargingOptions
@@ -609,10 +625,6 @@ export function calculateChargingStops(
   if (route.coordinates.length < 2) {
     return { stops: [], arrivalPercent: batteryPercent, unreachable: false };
   }
-  if (requireWheelchairAccessible && pendingForced.some((stop) => !stop.charger.construction?.wheelchairAccessible)) {
-    return { stops: [], arrivalPercent: 0, unreachable: true, reason: 'Een verplichte laadstop heeft geen bevestigde invalidenplek.', suggestions: ['Kies een andere tussenstop met een invalidenplek of schakel deze route-eis uit.'] };
-  }
-
   let filtered = chargers.filter(c => {
     const lifecycle = c.status ?? 'operational';
     if (c.published === false) return false;
