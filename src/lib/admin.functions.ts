@@ -1,34 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { ChargerOwner, SiteUpdate } from "./tesla-types";
-import type { Json } from "@/integrations/supabase/types";
-
-type Ctx = { supabase: unknown; userId: string };
-
-async function assertAdmin(context: Ctx) {
-  const sb = context.supabase as {
-    rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" | "user" }) => PromiseLike<{
-      data: boolean | null;
-      error: { message: string } | null;
-    }>;
-  };
-  const { data, error } = await sb.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Forbidden");
-}
-
-async function logAction(context: Ctx, action: string, targetCount: number, details: Record<string, unknown>) {
-  const sb = context.supabase as {
-    from: (t: string) => { insert: (v: unknown) => PromiseLike<{ error: { message: string } | null }> };
-  };
-  await sb.from("admin_audit_log").insert({
-    user_id: context.userId,
-    action,
-    target_count: targetCount,
-    details: details as Json,
-  });
-}
 
 /* ---------------- Owners ---------------- */
 
@@ -140,10 +112,10 @@ export const deleteSiteUpdate = createServerFn({ method: "POST" })
     return {ok:true};
   });
 
-/* ---------------- Bulk edit ---------------- */
+/* ---------------- Bulk edit (Cloudflare D1) ---------------- */
 
 const bulkInput = z.object({
-  ids: z.array(z.string().uuid()).min(1).max(5000),
+  ids: z.array(z.string().min(1).max(120)).min(1).max(5000),
   changes: z.object({
     trailerFriendly: z.boolean().optional(),
     isAvailable: z.boolean().optional(),
@@ -151,7 +123,7 @@ const bulkInput = z.object({
     inParkingGarage: z.boolean().optional(),
     lowSpeed: z.boolean().optional(),
     published: z.boolean().optional(),
-    ownerId: z.string().uuid().nullable().optional(),
+    ownerId: z.string().min(1).max(120).nullable().optional(),
     status: z.enum(["operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed", "unknown"]).optional(),
     country: z.string().max(100).optional(),
     province: z.string().max(100).optional(),
@@ -161,9 +133,6 @@ const bulkInput = z.object({
     reopenAt: z.string().nullable().optional(),
     expectedOpenMonth: z.string().max(60).optional(),
     plannedUpgradeLabel: z.string().max(120).optional(),
-    pricePerKwh: z.number().min(0).max(10).nullable().optional(),
-    pricePerKwhPeak: z.number().min(0).max(10).nullable().optional(),
-    peakHours: z.string().max(120).nullable().optional(),
     priceBlocks: z.array(z.object({
       days: z.string().max(40).optional(),
       from: z.string().max(5).optional(),
@@ -178,91 +147,71 @@ const bulkInput = z.object({
 });
 
 export const bulkUpdateSuperchargers = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => bulkInput.parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+  .handler(async ({ data }) => {
+    const user = await requireD1Admin();
     const c = data.changes;
     const payload: Record<string, unknown> = {};
-    if (c.trailerFriendly !== undefined) payload["trailer_friendly"] = c.trailerFriendly;
-    if (c.isAvailable !== undefined) payload["is_available"] = c.isAvailable;
-    if (c.parkingFee !== undefined) payload["parking_fee"] = c.parkingFee;
-    if (c.inParkingGarage !== undefined) payload["in_parking_garage"] = c.inParkingGarage;
-    if (c.lowSpeed !== undefined) payload["low_speed"] = c.lowSpeed;
-    if (c.published !== undefined) payload["published"] = c.published;
-    if (c.ownerId !== undefined) payload["owner_id"] = c.ownerId;
-    if (c.status !== undefined) payload["status"] = c.status;
-    if (c.country) payload["country"] = c.country;
-    if (c.province) payload["province"] = c.province;
-    if (c.maxSpeedKw !== undefined) payload["max_speed_kw"] = c.maxSpeedKw;
-    if (c.versions && c.versions.length > 0) payload["versions"] = c.versions;
-    if (c.notes !== undefined) payload["notes"] = c.notes;
-    if (c.reopenAt !== undefined) payload["reopen_at"] = c.reopenAt || null;
-    if (c.pricePerKwh !== undefined) payload["price_per_kwh"] = c.pricePerKwh;
-    if (c.pricePerKwhPeak !== undefined) payload["price_per_kwh_peak"] = c.pricePerKwhPeak;
-    if (c.peakHours !== undefined) payload["peak_hours"] = c.peakHours;
-    if (c.priceBlocks !== undefined) payload["price_blocks"] = c.priceBlocks;
-    if (c.parkingFeeAmount !== undefined) payload["parking_fee_amount"] = c.parkingFeeAmount;
-    if (c.parkingFreeMinutes !== undefined) payload["parking_free_minutes"] = c.parkingFreeMinutes;
-    if (c.parkingPerMinutes !== undefined) payload["parking_per_minutes"] = c.parkingPerMinutes;
-    if (c.parkingPerEuro !== undefined) payload["parking_per_euro"] = c.parkingPerEuro;
+    if (c.trailerFriendly !== undefined) payload.trailer_friendly = c.trailerFriendly ? 1 : 0;
+    if (c.isAvailable !== undefined) payload.is_available = c.isAvailable ? 1 : 0;
+    if (c.parkingFee !== undefined) payload.parking_fee = c.parkingFee ? 1 : 0;
+    if (c.inParkingGarage !== undefined) payload.in_parking_garage = c.inParkingGarage ? 1 : 0;
+    if (c.lowSpeed !== undefined) payload.low_speed = c.lowSpeed ? 1 : 0;
+    if (c.published !== undefined) payload.published = c.published ? 1 : 0;
+    if (c.ownerId !== undefined) payload.owner_id = c.ownerId;
+    if (c.status !== undefined) payload.status = c.status;
+    if (c.country !== undefined) payload.country = c.country;
+    if (c.province !== undefined) payload.province = c.province;
+    if (c.maxSpeedKw !== undefined) payload.max_speed_kw = c.maxSpeedKw;
+    if (c.versions !== undefined) payload.versions = JSON.stringify(c.versions);
+    if (c.notes !== undefined) payload.notes = c.notes;
+    if (c.reopenAt !== undefined) payload.reopen_at = c.reopenAt || null;
+    if (c.priceBlocks !== undefined) payload.price_blocks = c.priceBlocks === null ? null : JSON.stringify(c.priceBlocks);
+    if (c.parkingFeeAmount !== undefined) payload.parking_fee_amount = c.parkingFeeAmount;
+    if (c.parkingFreeMinutes !== undefined) payload.parking_free_minutes = c.parkingFreeMinutes;
+    if (c.parkingPerMinutes !== undefined) payload.parking_per_minutes = c.parkingPerMinutes;
+    if (c.parkingPerEuro !== undefined) payload.parking_per_euro = c.parkingPerEuro;
 
-    if (Object.keys(payload).length === 0 && !c.expectedOpenMonth && !c.plannedUpgradeLabel) {
-      return { updated: 0 };
-    }
-    if (Object.keys(payload).length > 0) payload["data_source"] = "manual";
-
-    const sb = context.supabase as unknown as {
-      from: (t: string) => {
-        update: (v: unknown) => { in: (col: string, vals: string[]) => PromiseLike<{ error: { message: string } | null }> };
-        select: (cols: string) => { in: (col: string, vals: string[]) => PromiseLike<{ data: unknown; error: { message: string } | null }> };
-      };
-    };
-
-    const chunk = 300;
-    for (let i = 0; i < data.ids.length; i += chunk) {
-      const slice = data.ids.slice(i, i + chunk);
+    const db = getD1();
+    const ids = data.ids;
+    for (let offset = 0; offset < ids.length; offset += 300) {
+      const chunk = ids.slice(offset, offset + 300);
+      const placeholders = chunk.map(() => "?").join(",");
       if (Object.keys(payload).length > 0) {
-        const { error } = await sb.from("superchargers").update(payload).in("id", slice);
-        if (error) throw new Error(error.message);
+        const columns = Object.keys(payload);
+        const assignments = columns.map((column) => column + "=?").join(",");
+        await db.prepare("UPDATE superchargers SET " + assignments + ",data_source='manual',updated_at=CURRENT_TIMESTAMP WHERE id IN (" + placeholders + ")")
+          .bind(...Object.values(payload), ...chunk).run();
       }
       if (c.expectedOpenMonth || c.plannedUpgradeLabel) {
-        const { data: rows, error } = await sb
-          .from("superchargers")
-          .select("id,construction,planned_upgrade")
-          .in("id", slice);
-        if (error) throw new Error(error.message);
-        for (const row of (rows ?? []) as { id: string; construction: Record<string, unknown> | null; planned_upgrade: Record<string, unknown> | null }[]) {
-          const patch: Record<string, unknown> = {};
-          if (c.expectedOpenMonth) patch["construction"] = { ...(row.construction ?? {}), expectedOpenMonth: c.expectedOpenMonth };
-          if (c.plannedUpgradeLabel) patch["planned_upgrade"] = { ...(row.planned_upgrade ?? {}), label: c.plannedUpgradeLabel };
-          const { error: upErr } = await sb.from("superchargers").update(patch).in("id", [row.id]);
-          if (upErr) throw new Error(upErr.message);
+        const rows = await db.prepare("SELECT id,construction,planned_upgrade FROM superchargers WHERE id IN (" + placeholders + ")")
+          .bind(...chunk).all<Record<string, unknown>>();
+        for (const row of rows.results ?? []) {
+          const parseObject = (value: unknown): Record<string, unknown> => {
+            if (typeof value !== "string") return value && typeof value === "object" ? value as Record<string, unknown> : {};
+            try { const parsed = JSON.parse(value); return parsed && typeof parsed === "object" ? parsed as Record<string, unknown> : {}; } catch { return {}; }
+          };
+          const construction = parseObject(row.construction);
+          const plannedUpgrade = parseObject(row.planned_upgrade);
+          if (c.expectedOpenMonth) construction.expectedOpenMonth = c.expectedOpenMonth;
+          if (c.plannedUpgradeLabel) plannedUpgrade.label = c.plannedUpgradeLabel;
+          await db.prepare("UPDATE superchargers SET construction=?,planned_upgrade=?,data_source='manual',updated_at=CURRENT_TIMESTAMP WHERE id=?")
+            .bind(JSON.stringify(construction), JSON.stringify(plannedUpgrade), String(row.id)).run();
         }
       }
     }
-
-    await logAction(context, "bulk_update", data.ids.length, c as Record<string, unknown>);
-    return { updated: data.ids.length };
+    await d1Audit(user.id, "bulk_update", ids.length, c as Record<string, unknown>);
+    return { updated: ids.length };
   });
 
 export const publishDrafts = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ ids: z.array(z.string().uuid()).optional() }).parse(input ?? {}))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const sb = context.supabase as unknown as {
-      from: (t: string) => {
-        update: (v: unknown) => {
-          in: (col: string, vals: string[]) => PromiseLike<{ error: { message: string } | null }>;
-          eq: (col: string, val: unknown) => PromiseLike<{ error: { message: string } | null }>;
-        };
-      };
-    };
-    const q = sb.from("superchargers").update({ published: true });
-    const { error } = data.ids && data.ids.length > 0 ? await q.in("id", data.ids) : await q.eq("published", false);
-    if (error) throw new Error(error.message);
-    await logAction(context, "publish_drafts", data.ids?.length ?? 0, {});
+  .inputValidator((input: unknown) => z.object({ ids: z.array(z.string().min(1).max(120)).optional() }).parse(input ?? {}))
+  .handler(async ({ data }) => {
+    const user = await requireD1Admin();
+    const result = data.ids?.length
+      ? await getD1().prepare("UPDATE superchargers SET published=1,updated_at=CURRENT_TIMESTAMP WHERE id IN (" + data.ids.map(() => "?").join(",") + ")").bind(...data.ids).run()
+      : await getD1().prepare("UPDATE superchargers SET published=1,updated_at=CURRENT_TIMESTAMP WHERE published=0").run();
+    await d1Audit(user.id, "publish_drafts", Number(result.meta?.changes ?? 0), { ids: data.ids ?? null });
     return { ok: true };
   });
 
