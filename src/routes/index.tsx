@@ -271,7 +271,7 @@ function Index() {
       setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
       setRememberFilters(prefs.map?.remember_filters ?? true);
       setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
-      if (prefs.vehicle_model && teslaModels.includes(prefs.vehicle_model)) setSelectedModel(prefs.vehicle_model);
+      if (prefs.vehicle_model && Object.prototype.hasOwnProperty.call(teslaModels, prefs.vehicle_model)) setSelectedModel(prefs.vehicle_model);
       if (typeof prefs.vehicle_year === "number") setModelYear(prefs.vehicle_year);
       if (typeof prefs.consumption_kwh100 === "number") {
         setManualConsumptionKWh100(prefs.consumption_kwh100);
