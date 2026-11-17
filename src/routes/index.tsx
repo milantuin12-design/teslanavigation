@@ -419,6 +419,7 @@ function Index() {
       setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
       setRememberFilters(prefs.map?.remember_filters ?? true);
       setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
+      setNotifyStatusChanges(prefs.notifications?.status_changes ?? true);
       if (prefs.map_type) setMapType(prefs.map_type);
       if (typeof prefs.map_zoom === "number") setMapZoom(Math.max(3, Math.min(18, prefs.map_zoom)));
       if (prefs.status_colors) setStatusColors(prefs.status_colors);
