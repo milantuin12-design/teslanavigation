@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateChargingStops, projectOntoRoute } from './tesla-utils';
+import { calculateChargingStops, calculateChargingStopsWithAccessibilityPreference, projectOntoRoute } from './tesla-utils';
 import type { RouteResult, Supercharger } from './tesla-types';
 
 // Rechte lijn langs de evenaar: 1 graad lengte ≈ 111,2 km.
@@ -87,6 +87,19 @@ describe('invalidenplekken in routeberekening', () => {
     expect(result.unreachable).toBe(false);
     expect(result.stops).toHaveLength(1);
     expect(result.stops[0].charger.id).toBe(accessible.id);
+  });
+
+
+  it('valt terug op een gewone Supercharger als geen invalidenplek de route haalbaar maakt', () => {
+    const regular = charger(350);
+    const result = calculateChargingStopsWithAccessibilityPreference(line(500), {
+      ...base,
+      chargers: [regular],
+      requireWheelchairAccessible: true,
+    });
+    expect(result.unreachable).toBe(false);
+    expect(result.stops).toHaveLength(1);
+    expect(result.stops[0].charger.id).toBe(regular.id);
   });
 
   it('markeert de route als niet haalbaar als geen geschikte invalidenplek bereikbaar is', () => {
