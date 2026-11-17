@@ -164,14 +164,14 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
                   {label}
                 </label>
               ))}
-              <p className="text-xs text-slate-500">Dit bewaart je meldingsvoorkeuren. Pushmeldingen worden hiermee nog niet geactiveerd.</p>
+              <p className="text-xs text-slate-500">Laadprijswijzigingen bij favorieten kunnen in de app worden gemeld. Meldingen voor statuswijzigingen en nieuwe locaties en pushmeldingen zijn nog niet actief.</p>
             </section>
 
             <section className="space-y-3 border-t border-slate-700 pt-4">
               <h3 className="font-semibold">Kaartvoorkeuren</h3>
               {([
                 ["show_development_chargers", "Toon plannen en bouwlocaties standaard"],
-                ["remember_filters", "Mijn kaartfilters onthouden"],
+                ["remember_filters", "Mijn kaartfilters onthouden op dit apparaat"],
               ] as const).map(([key, label]) => (
                 <label key={key} className="flex items-center gap-3 text-sm text-slate-300">
                   <input type="checkbox" className="accent-red-500" checked={settings.preferences.map[key]} onChange={(e) => updatePreference("map", key, e.target.checked)} />
