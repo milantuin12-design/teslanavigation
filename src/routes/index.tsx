@@ -246,7 +246,19 @@ function Index() {
       toast.info(`Laadprijs gewijzigd bij favoriet: ${first}${changes.length > 3 ? ` en ${changes.length - 3} andere locatie(s)` : ""}.`);
     }
   }, [favoriteChargerIds, isLoadingChargers, superchargers, notifyPriceChanges]);
-  const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>({ ...defaultChargerFilters });
+  const [rememberFilters, setRememberFilters] = useState(true);
+  const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>(() => {
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem("teslanavigation:charger-filters") : null;
+      return saved ? { ...defaultChargerFilters, ...(JSON.parse(saved) as Partial<ChargerFilterState>) } : { ...defaultChargerFilters };
+    } catch { return { ...defaultChargerFilters }; }
+  });
+  useEffect(() => {
+    try {
+      if (rememberFilters) localStorage.setItem("teslanavigation:charger-filters", JSON.stringify(chargerFilters));
+      else localStorage.removeItem("teslanavigation:charger-filters");
+    } catch { /* local storage may be disabled */ }
+  }, [chargerFilters, rememberFilters]);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
   const [showAllChargers, setShowAllChargers] = useState(false);
@@ -258,6 +270,7 @@ function Index() {
       if (!active) return;
       const prefs = account.preferences;
       setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
+      setRememberFilters(prefs.map?.remember_filters ?? true);
       setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
       if (prefs.vehicle_model && teslaModels.includes(prefs.vehicle_model)) setSelectedModel(prefs.vehicle_model);
       if (typeof prefs.vehicle_year === "number") setModelYear(prefs.vehicle_year);
