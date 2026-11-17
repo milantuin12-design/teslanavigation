@@ -412,6 +412,8 @@ export const adminListSuperchargers = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ from: z.number().int().min(0).max(100000).default(0) }).parse(input ?? {}))
   .handler(async ({ data }) => {
     await requireD1Admin();
+    const { ensureBundledD1Seed } = await import("./d1-seed.server");
+    await ensureBundledD1Seed();
     const db = getD1();
     const rows = await db.prepare("SELECT * FROM superchargers ORDER BY name COLLATE NOCASE LIMIT 1000 OFFSET ?")
       .bind(data.from).all<Record<string, unknown>>();
