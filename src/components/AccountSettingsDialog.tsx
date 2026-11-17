@@ -36,7 +36,7 @@ const defaults: Settings = {
 export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaved: (displayName: string | null) => void;
+  onSaved: (displayName: string | null, gender: Settings["gender"]) => void;
 }) {
   const [settings, setSettings] = useState<Settings>(defaults);
   const [loading, setLoading] = useState(false);
@@ -84,7 +84,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
           map: settings.preferences.map,
         },
       } });
-      onSaved(settings.display_name.trim() || null);
+      onSaved(settings.display_name.trim() || null, settings.gender);
       toast.success("Accountinstellingen opgeslagen");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Opslaan mislukt");
