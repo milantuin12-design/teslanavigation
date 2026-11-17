@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getMyAccountSettings, updateMyAccountSettings } from "@/lib/account.functions";
 import { changePassword } from "@/lib/auth.functions";
+import { VehicleProfilesPanel } from "@/components/VehicleProfilesPanel";
 import { toast } from "sonner";
 
 type Settings = {
