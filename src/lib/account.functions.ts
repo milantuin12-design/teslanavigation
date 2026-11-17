@@ -241,7 +241,7 @@ const vehicleProfileSchema = z.object({
 
 /** Published admin-maintained vehicle catalogue, matched by model and build year. */
 export const listPublishedVehicleModels = createServerFn({ method: "GET" }).handler(async () => {
-  const rows = await getD1().prepare("SELECT id,brand,model,trim,battery_kwh,usable_kwh,range_km,consumption_kwh100,year_from,year_to,max_charge_kw,connectors,image_url FROM vehicle_models WHERE published=1 ORDER BY brand,model,year_from,trim").all<Record<string,unknown>>();
+  const rows = await getD1().prepare("SELECT id,brand,model,trim,battery_kwh,usable_kwh,range_km,consumption_kwh100,winter_consumption_kwh100,year_from,year_to,max_charge_kw,connectors,image_url FROM vehicle_models WHERE published=1 ORDER BY brand,model,year_from,trim").all<Record<string,unknown>>();
   return rows.results ?? [];
 });
 
