@@ -22,6 +22,7 @@ type Preferences = {
   theme?: "light" | "dark" | "system";
   map_type?: "road" | "satellite";
   map_zoom?: number;
+  map_marker_size?: number;
   remembered_countries?: string[];
   map_filters?: Record<string, unknown>;
   status_colors?: Record<string, string>;
@@ -55,7 +56,7 @@ const defaults: Settings = {
   preferences: {
     vehicle_model: "", vehicle_year: null, consumption_kwh100: null, greeting: "",
     profile_color: "#e82127", language: "nl", units: "metric", display_density: "comfortable",
-    font_scale: 1, theme: "dark", map_type: "satellite", map_zoom: 7, remembered_countries: [],
+    font_scale: 1, theme: "dark", map_type: "satellite", map_zoom: 7, map_marker_size: 30, remembered_countries: [],
     notifications: { favorite_status: true, price_changes: true, new_locations: false, closed_locations: true, status_changes: true, email_enabled: false, push_enabled: false },
     map: { show_development_chargers: false, remember_filters: true },
     route_preferences: { priority: "fastest", default_charge_pause_min: 15, max_detour_km: 30, max_distance_between_stops_km: 250, min_charger_kw: 0 },
@@ -312,6 +313,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelClass}>Kaarttype</label><select className={fieldClass} value={settings.preferences.map_type ?? "road"} onChange={e=>setPref("map_type",e.target.value as "road"|"satellite")}><option value="road">Normaal</option><option value="satellite">Satelliet</option></select></div>
             <div><label className={labelClass}>Standaard zoom (3–18)</label><Input type="number" min="3" max="18" value={settings.preferences.map_zoom ?? 7} onChange={e=>setPref("map_zoom",Math.max(3,Math.min(18,Number(e.target.value)||7)))} className="bg-slate-800 border-slate-700" /></div>
+            <div><label className={labelClass}>Grootte kaartpunten (20–48)</label><Input type="number" min="20" max="48" value={settings.preferences.map_marker_size ?? 30} onChange={e=>setPref("map_marker_size",Math.max(20,Math.min(48,Number(e.target.value)||30)))} className="bg-slate-800 border-slate-700" /></div>
           </div>
           {(["show_development_chargers","remember_filters"] as const).map(k=><label key={k} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={settings.preferences.map[k]} onChange={e=>setNested("map",k,e.target.checked)}/>{k==="show_development_chargers"?"Toon plannen en bouwlocaties standaard":"Kaartfilters onthouden"}</label>)}
           <div><label className={labelClass}>Landen onthouden (komma-gescheiden landcodes, bijv. NL,BE,DE)</label><Input value={(settings.preferences.remembered_countries ?? []).join(",")} onChange={e=>setPref("remembered_countries",e.target.value.split(",").map(x=>x.trim().toUpperCase()).filter(Boolean).slice(0,100))} className="bg-slate-800 border-slate-700" /></div>
