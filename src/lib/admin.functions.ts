@@ -172,6 +172,7 @@ export const bulkUpdateSuperchargers = createServerFn({ method: "POST" })
     if (c.parkingPerMinutes !== undefined) payload.parking_per_minutes = c.parkingPerMinutes;
     if (c.parkingPerEuro !== undefined) payload.parking_per_euro = c.parkingPerEuro;
 
+    if (Object.keys(payload).length === 0 && !c.expectedOpenMonth && !c.plannedUpgradeLabel) return { updated: 0 };
     const db = getD1();
     const ids = data.ids;
     for (let offset = 0; offset < ids.length; offset += 300) {
@@ -208,10 +209,18 @@ export const publishDrafts = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ ids: z.array(z.string().min(1).max(120)).optional() }).parse(input ?? {}))
   .handler(async ({ data }) => {
     const user = await requireD1Admin();
-    const result = data.ids?.length
-      ? await getD1().prepare("UPDATE superchargers SET published=1,updated_at=CURRENT_TIMESTAMP WHERE id IN (" + data.ids.map(() => "?").join(",") + ")").bind(...data.ids).run()
-      : await getD1().prepare("UPDATE superchargers SET published=1,updated_at=CURRENT_TIMESTAMP WHERE published=0").run();
-    await d1Audit(user.id, "publish_drafts", Number(result.meta?.changes ?? 0), { ids: data.ids ?? null });
+    let changed = 0;
+    if (data.ids?.length) {
+      for (let offset = 0; offset < data.ids.length; offset += 300) {
+        const chunk = data.ids.slice(offset, offset + 300);
+        const result = await getD1().prepare("UPDATE superchargers SET published=1,updated_at=CURRENT_TIMESTAMP WHERE id IN (" + chunk.map(() => "?").join(",") + ")").bind(...chunk).run();
+        changed += Number(result.meta?.changes ?? 0);
+      }
+    } else {
+      const result = await getD1().prepare("UPDATE superchargers SET published=1,updated_at=CURRENT_TIMESTAMP WHERE published=0").run();
+      changed = Number(result.meta?.changes ?? 0);
+    }
+    await d1Audit(user.id, "publish_drafts", changed, { ids: data.ids ?? null });
     return { ok: true };
   });
 
