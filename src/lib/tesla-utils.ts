@@ -535,6 +535,8 @@ export interface CalcChargingOptions {
   preferNearestCharger?: boolean;
   /** Laders met parkeerkosten overslaan. */
   avoidParkingFee?: boolean;
+  /** Alleen Superchargers met een door de beheerder bevestigde invalidenplek. */
+  requireWheelchairAccessible?: boolean;
   /** Maximaal totale extra afstand door omrijden (km); 0 = geen limiet. */
   maxDetourKm?: number;
   /** Maximale afstand van één laadtraject (km); 0 = geen limiet. */
@@ -591,6 +593,7 @@ export function calculateChargingStops(
     excludeIds = [],
     preferNearestCharger = false,
     avoidParkingFee = false,
+    requireWheelchairAccessible = false,
     maxDetourKm = 0,
     maxDistanceBetweenStopsKm = 0,
     defaultChargePauseMin = 0,
@@ -606,6 +609,9 @@ export function calculateChargingStops(
   if (route.coordinates.length < 2) {
     return { stops: [], arrivalPercent: batteryPercent, unreachable: false };
   }
+  if (requireWheelchairAccessible && pendingForced.some((stop) => !stop.charger.construction?.wheelchairAccessible)) {
+    return { stops: [], arrivalPercent: 0, unreachable: true, reason: 'Een verplichte laadstop heeft geen bevestigde invalidenplek.', suggestions: ['Kies een andere tussenstop met een invalidenplek of schakel deze route-eis uit.'] };
+  }
 
   let filtered = chargers.filter(c => {
     const lifecycle = c.status ?? 'operational';
@@ -613,6 +619,7 @@ export function calculateChargingStops(
     if ((c.id && excluded.has(c.id)) || excluded.has(c.name)) return false;
     if (lifecycle !== 'operational' && lifecycle !== 'works' && lifecycle !== 'expanding' && lifecycle !== 'unknown') return false;
     if (c.isAvailable === false) return false;
+    if (requireWheelchairAccessible && !c.construction?.wheelchairAccessible) return false;
     // Een locatie met 0 bruikbare laadplekken is nooit een laadstop.
     if (getTotalStalls(c) > 0 && getOpenStalls(c) <= 0) return false;
     if (avoidLowSpeed && c.lowSpeed) return false;
