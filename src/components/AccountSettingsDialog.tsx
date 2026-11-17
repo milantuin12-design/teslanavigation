@@ -108,7 +108,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
     if (!open) return;
     let active = true;
     setLoading(true);
-    void Promise.all([getMyAccountSettings(), listVehiclesFn(), listRouteProfilesFn(), listSessionsFn(), listPublishedVehicleModels()]).then(([data, list, profiles, sessions, catalogue]) => {
+    void Promise.all([getMyAccountSettings(), listVehiclesFn(), listRouteProfilesFn(), listSessionsFn(), listPublishedVehicleModels().catch(() => [])]).then(([data, list, profiles, sessions, catalogue]) => {
       if (!active) return;
       const p = data.preferences ?? {};
       setSettings({ ...defaults, ...data, preferences: {
