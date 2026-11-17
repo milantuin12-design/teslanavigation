@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from "@/lib/auth.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -62,12 +62,10 @@ function VehiclesPage() {
   const removeFn = useServerFn(deleteVehicleModel);
 
   useEffect(() => {
-    (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return setIsAdmin(false);
-      const { data } = await supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
-      setIsAdmin(!!data);
-    })();
+    let active = true;
+    void getCurrentUser().then((user) => { if (active) setIsAdmin(!!user?.is_admin); })
+      .catch(() => { if (active) setIsAdmin(false); });
+    return () => { active = false; };
   }, []);
 
   const load = useCallback(async () => {

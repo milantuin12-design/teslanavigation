@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminListChargerChanges, adminUpdateChargerChange, adminDeleteChargerChange } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import { lifecycleLabels } from "@/lib/tesla-utils";
 import { toast } from "sonner";
@@ -67,31 +67,23 @@ function ChangesPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    let query = supabase
-      .from("charger_changes")
-      .select("id,charger_id,charger_name,action,changed_fields,created_at")
-      .order("created_at", { ascending: false })
-      .limit(limit * 3);
-
-    if (from) query = query.gte("created_at", new Date(`${from}T00:00:00`).toISOString());
-    if (to) query = query.lte("created_at", new Date(`${to}T23:59:59`).toISOString());
-    if (!from && !to) {
-      const preset = PERIODS.find((p) => p.key === period);
-      if (preset && preset.days > 0) {
-        const since = new Date(Date.now() - preset.days * 86400000).toISOString();
-        query = query.gte("created_at", since);
-      }
-    }
-
-    const { data } = await query;
-    // Alleen statuswijzigingen (plus toevoegen/verwijderen) — foto's e.d. horen hier niet.
-    const onlyStatus = ((data as unknown as ChangeRow[]) || [])
-      .filter((r) => r.action !== "update" || !!r.changed_fields?.status)
-      .slice(0, limit);
-    setRows(onlyStatus);
-    setLoading(false);
+    const preset = PERIODS.find((p) => p.key === period);
+    const since = !from && !to && preset && preset.days > 0
+      ? new Date(Date.now() - preset.days * 86400000).toISOString()
+      : undefined;
+    try {
+      const data = await adminListChargerChanges({
+        data: {
+          limit,
+          from: from ? new Date(`${from}T00:00:00`).toISOString() : since,
+          to: to ? new Date(`${to}T23:59:59`).toISOString() : undefined,
+        },
+      });
+      setRows(data as ChangeRow[]);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Wijzigingen laden mislukt");
+    } finally { setLoading(false); }
   }, [limit, period, from, to]);
-
   useEffect(() => {
     load();
   }, [load]);
@@ -100,16 +92,16 @@ function ChangesPage() {
   const [draft, setDraft] = useState<{ name: string; from: string; to: string }>({ name: "", from: "", to: "" });
   const saveEdit = async (row: ChangeRow) => {
     const changed = { ...(row.changed_fields || {}), status: { from: draft.from || null, to: draft.to || null } };
-    const { error } = await supabase.from("charger_changes").update({ charger_name: draft.name, changed_fields: changed }).eq("id", row.id);
-    if (error) { toast.error("Opslaan mislukt (alleen admins)"); return; }
+    try { await adminUpdateChargerChange({ data: { id: row.id, charger_name: draft.name, changed_fields: changed } }); }
+    catch { toast.error("Opslaan mislukt (alleen admins)"); return; }
     toast.success("Wijziging aangepast");
     setEditId(null);
     load();
   };
   const removeRow = async (id: string) => {
     if (!confirm("Deze wijziging verwijderen?")) return;
-    const { error } = await supabase.from("charger_changes").delete().eq("id", id);
-    if (error) { toast.error("Verwijderen mislukt (alleen admins)"); return; }
+    try { await adminDeleteChargerChange({ data: { id } }); }
+    catch { toast.error("Verwijderen mislukt (alleen admins)"); return; }
     load();
   };
 

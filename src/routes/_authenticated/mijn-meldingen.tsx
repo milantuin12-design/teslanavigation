@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { listMyReports } from "@/lib/account.functions";
 import { ReportChat } from "@/components/ReportChat";
 
 export const Route = createFileRoute("/_authenticated/mijn-meldingen")({
@@ -44,16 +44,13 @@ function MyReportsPage() {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    const uid = userData.user?.id;
-    if (!uid) { setLoading(false); return; }
-    const { data } = await supabase
-      .from("charger_reports")
-      .select("id,charger_name,category,message,status,admin_note,created_at")
-      .eq("user_id", uid)
-      .order("created_at", { ascending: false });
-    setReports((data as MyReport[]) || []);
-    setLoading(false);
+    try {
+      const data = await listMyReports();
+      setReports(data as MyReport[]);
+    } catch (error) {
+      console.error("Meldingen laden mislukt:", error);
+      setReports([]);
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);

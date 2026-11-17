@@ -1,0 +1,18 @@
+name = "teslanavigation"
+main = ".output/server/index.mjs"
+compatibility_date = "2026-11-15"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[assets]
+directory = ".output/public"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "teslanavigation"
+database_id = "daca6f75-cb36-41cb-a288-9cf8fba57bf9"
+migrations_dir = "migrations"
+
+[observability]
+enabled = true

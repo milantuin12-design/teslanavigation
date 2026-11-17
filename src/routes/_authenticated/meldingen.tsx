@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -64,12 +63,9 @@ function ReportPhotos({ photos }: { photos: string[] | null }) {
     (async () => {
       const results: string[] = [];
       for (const path of photos) {
-        try {
-          const { data, error } = await supabase.storage.from("charger-media").createSignedUrl(path, 3600);
-          if (!error && data?.signedUrl) results.push(data.signedUrl);
-        } catch {
-          // ignore failures
-        }
+        // Nieuwe D1-installaties bewaren alleen fotolinks. Oude Supabase-bucketpaden
+        // worden niet meer opgevraagd; absolute links blijven gewoon zichtbaar.
+        if (/^https?:\/\//i.test(path)) results.push(path);
       }
       if (!cancelled) setUrls(results);
     })();

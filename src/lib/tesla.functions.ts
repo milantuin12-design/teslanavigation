@@ -208,18 +208,17 @@ function applyTariffOverride(row: Row): Row {
     });
   });
   if (!match) return row;
-  const priceBlocks = match.priceBlocks?.length
-    ? match.priceBlocks
-    : typeof match.pricePerKwh === "number"
-      ? [{ from: "00:00", to: "24:00", pricePerKwh: match.pricePerKwh }]
-      : null;
   return {
     ...row,
     price_currency: match.currency ?? 'EUR',
     price_per_kwh: null,
     price_per_kwh_peak: null,
     peak_hours: null,
-    price_blocks: priceBlocks,
+    price_blocks: match.priceBlocks?.length
+      ? match.priceBlocks
+      : typeof match.pricePerKwh === "number"
+        ? [{ from: "00:00", to: "24:00", pricePerKwh: match.pricePerKwh }]
+        : null,
   };
 }
 
@@ -232,8 +231,22 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
   async (): Promise<Supercharger[]> => {
     const { localChargerDataset } = await import("./local-chargers.server");
     const localRows = localChargerDataset.chargers as unknown as Row[];
+    // Refresh missing D1 time-block prices from the latest checked-in tariff file.
+    // This does not overwrite any manually saved price_blocks.
+    try {
+      const { ensureBundledD1Seed } = await import("./d1-seed.server");
+      await ensureBundledD1Seed();
+    } catch (error) {
+      console.warn("[TeslaNavigation] D1 baseline/tariff refresh skipped:", error);
+    }
     const owners = new Map<string, OwnerRow>();
     for (const o of localChargerDataset.owners ?? []) owners.set(o.id, o);
+
+    // Zonder legacy cloud-credentials mag de publieke kaart niet wachten op of
+    // afhankelijk zijn van Lovable/Supabase. De volledige basisdataset en
+    // tijdsgebonden tarieven zitten al in de repository.
+    // Haal de actuele beheerdersdata uit Cloudflare D1 op; bij een lege of
+    // nog niet aangemaakte database valt de kaart veilig terug op de ingebouwde dataset.
 
     // Haal de actuele clouddata volledig op. Een korte timeout kan in Preview
     // onterecht oude ingebouwde data tonen terwijl de database wel bereikbaar is.
@@ -348,6 +361,8 @@ export const importSuperchargers = createServerFn({ method: "POST" })
         for (const [key, value] of Object.entries(raw)) {
           if (allowed.has(key) && value !== undefined) row[key] = value;
         }
+        if (!row.id) row.id = crypto.randomUUID();
+        if (!row.data_source) row.data_source = "manual";
         return row;
       })
       .filter((row) => typeof row.name === "string" && typeof row.lat === "number" && typeof row.lng === "number");
@@ -566,7 +581,7 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       reopen_at: data.reopenAt || null,
       planned_upgrade: data.plannedUpgrade as Json,
       ...(data.stallStates ? { stall_states: data.stallStates as unknown as Json } : {}),
-      ...(data.dataSource ? { data_source: data.dataSource } : {}),
+      data_source: data.dataSource ?? "manual",
       ...(data.hidden !== undefined ? { hidden: data.hidden } : {}),
       ...(data.photos ? { photos: data.photos } : {}),
       ...(data.voting ? { voting: data.voting as Json } : {}),

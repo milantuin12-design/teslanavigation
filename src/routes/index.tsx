@@ -11,9 +11,13 @@ import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher } from "@/components/LanguageProvider";
-import { supabase } from "@/integrations/supabase/client";
-import { withTimeout, cacheSavedRouteRow, getCachedSavedRouteRow, saveLocalRoute, type LocalRoute } from "@/lib/local-store";
-import type { Database } from "@/integrations/supabase/types";
+import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite } from "@/lib/account.functions";
+import { getCurrentUser } from "@/lib/auth.functions";
+
+const hasSupabaseBrowserConfig = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+);
+import { cacheSavedRouteRow, getCachedSavedRouteRow, saveLocalRoute, type LocalRoute } from "@/lib/local-store";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -188,16 +192,26 @@ function Index() {
   const [saveName, setSaveName] = useState("");
   const [countryPricesOpen, setCountryPricesOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; display_name: string | null; gender?: string | null } | null>(null);
+  const listFavoritesFn = useServerFn(listMyChargerFavorites);
+  const setFavoriteFn = useServerFn(setMyChargerFavorite);
   useEffect(() => {
-    // INITIAL_SESSION supplies the persisted session; subsequent auth events
-    // update it in order. Avoid a parallel getUser() request racing SIGNED_IN
-    // and incorrectly resetting the UI to "logged out".
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setCurrentUser(session?.user ? { id: session.user.id } : null);
-    });
-    return () => sub.subscription.unsubscribe();
+    let active = true;
+    void getCurrentUser().then((user) => {
+      if (active) setCurrentUser(user ? { id: user.id, display_name: user.display_name ?? null, gender: user.gender ?? null } : null);
+    }).catch(() => { if (active) setCurrentUser(null); });
+    return () => { active = false; };
   }, []);
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ display_name: string | null; gender?: string | null }>).detail;
+      const name = detail?.display_name ?? null;
+      setCurrentUser((old) => old ? { ...old, display_name: name, gender: detail?.gender ?? old.gender } : old);
+    };
+    window.addEventListener("tn-profile-updated", handler);
+    return () => window.removeEventListener("tn-profile-updated", handler);
+  }, []);
+
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
   const [holidayPeriodMode, setHolidayPeriodModeState] = useState(false);
   const [winterSportsMode, setWinterSportsModeState] = useState(false);
@@ -206,10 +220,22 @@ function Index() {
   const previousChargerSnapshotRef = useRef<Map<string, string>>(new Map());
   const chargerSnapshot = (items: Supercharger[]) => new Map(items.filter((item) => item.id).map((item) => [item.id!, JSON.stringify({ status: item.status, available: item.isAvailable, stalls: item.stallStates })]));
   const [favoriteChargerIds, setFavoriteChargerIds] = useState<string[]>([]);
+  const [notifyPriceChanges, setNotifyPriceChanges] = useState(true);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   useEffect(() => { try { const saved = JSON.parse(localStorage.getItem("teslanavigation:favorites") || "[]"); if (Array.isArray(saved)) setFavoriteChargerIds(saved.filter((x): x is string => typeof x === "string")); } catch { /* ignore invalid local preferences */ } }, []);
   useEffect(() => { try { localStorage.setItem("teslanavigation:favorites", JSON.stringify(favoriteChargerIds)); } catch { /* storage may be unavailable */ } }, [favoriteChargerIds]);
-  const toggleFavoriteCharger = (id: string) => setFavoriteChargerIds((old) => old.includes(id) ? old.filter((x) => x !== id) : [...old, id]);
+  useEffect(() => {
+    if (!currentUser) return;
+    let active = true;
+    void listFavoritesFn().then((ids) => { if (active) setFavoriteChargerIds((old) => Array.from(new Set([...old, ...ids]))); })
+      .catch(() => { /* local favourites remain available if the account service is offline */ });
+    return () => { active = false; };
+  }, [currentUser?.id, listFavoritesFn]);
+  const toggleFavoriteCharger = (id: string) => {
+    const favorite = !favoriteChargerIds.includes(id);
+    setFavoriteChargerIds((old) => favorite ? (old.includes(id) ? old : [...old, id]) : old.filter((x) => x !== id));
+    if (currentUser) void setFavoriteFn({ data: { charger_id: id, favorite } }).catch((error) => toast.error(error instanceof Error ? error.message : "Favoriet opslaan mislukt"));
+  };
   // Price alerts for favourite Superchargers: changes are detected on the next app refresh.
   useEffect(() => {
     if (isLoadingChargers || favoriteChargerIds.length === 0 || superchargers.length === 0) return;
@@ -229,16 +255,65 @@ function Index() {
       if (previous[charger.id] && previous[charger.id] !== snapshot) changes.push(charger.name);
     }
     try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* local storage may be disabled */ }
-    if (changes.length) {
+    if (changes.length && notifyPriceChanges) {
       const first = changes.slice(0, 3).join(", ");
       toast.info(`Laadprijs gewijzigd bij favoriet: ${first}${changes.length > 3 ? ` en ${changes.length - 3} andere locatie(s)` : ""}.`);
     }
-  }, [favoriteChargerIds, isLoadingChargers, superchargers]);
-  const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>({ ...defaultChargerFilters });
+  }, [favoriteChargerIds, isLoadingChargers, superchargers, notifyPriceChanges]);
+  const [rememberFilters, setRememberFilters] = useState(true);
+  const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>(() => {
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem("teslanavigation:charger-filters") : null;
+      return saved ? { ...defaultChargerFilters, ...(JSON.parse(saved) as Partial<ChargerFilterState>) } : { ...defaultChargerFilters };
+    } catch { return { ...defaultChargerFilters }; }
+  });
+  useEffect(() => {
+    try {
+      if (rememberFilters) localStorage.setItem("teslanavigation:charger-filters", JSON.stringify(chargerFilters));
+      else localStorage.removeItem("teslanavigation:charger-filters");
+    } catch { /* local storage may be disabled */ }
+  }, [chargerFilters, rememberFilters]);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
   const [showAllChargers, setShowAllChargers] = useState(false);
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const prefs = (event as CustomEvent<{ vehicle_model?: string | null; vehicle_year?: number | null; consumption_kwh100?: number | null; notifications?: { price_changes?: boolean }; map?: { show_development_chargers?: boolean; remember_filters?: boolean } }>).detail;
+      if (!prefs) return;
+      setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
+      setRememberFilters(prefs.map?.remember_filters ?? true);
+      setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
+      if (prefs.vehicle_model && Object.prototype.hasOwnProperty.call(teslaModels, prefs.vehicle_model)) setSelectedModel(prefs.vehicle_model);
+      if (typeof prefs.vehicle_year === "number") setModelYear(prefs.vehicle_year);
+      if (typeof prefs.consumption_kwh100 === "number") {
+        setManualConsumptionKWh100(prefs.consumption_kwh100);
+        setConsumptionMode("manual");
+      }
+    };
+    window.addEventListener("tn-preferences-updated", handler);
+    return () => window.removeEventListener("tn-preferences-updated", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    let active = true;
+    void getMyAccountSettings().then((account) => {
+      if (!active) return;
+      const prefs = account.preferences;
+      setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
+      setRememberFilters(prefs.map?.remember_filters ?? true);
+      setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
+      if (prefs.vehicle_model && teslaModels.includes(prefs.vehicle_model)) setSelectedModel(prefs.vehicle_model);
+      if (typeof prefs.vehicle_year === "number") setModelYear(prefs.vehicle_year);
+      if (typeof prefs.consumption_kwh100 === "number") {
+        setManualConsumptionKWh100(prefs.consumption_kwh100);
+        setConsumptionMode("manual");
+      }
+    }).catch(() => { /* Profile settings are optional; the route planner remains usable. */ });
+    return () => { active = false; };
+  }, [currentUser?.id]);
+
   const countryPriceStats = useMemo(() => {
     if (!countryPricesOpen) return [];
     const groups = new Map<string, { country: string; currency: string; total: number; count: number }>();
@@ -440,13 +515,16 @@ function Index() {
     const loadId = params.get("load");
     if (!loadId) return;
     (async () => {
-      type SavedRow = Database["public"]["Tables"]["saved_routes"]["Row"];
-      // Lokaal eerst: direct inladen, ook als de cloud stilstaat.
+      type SavedRow = {
+        id: string; start_lat: number; start_lng: number; end_lat: number; end_lng: number;
+        model_name: string; battery_percent: number; trailer_mode: boolean; trailer_reduction: number;
+        weather_mode: string; time_mode: string; payload: unknown;
+      };
+      // Lokaal eerst: direct inladen, ook als de database niet bereikbaar is.
       let data: SavedRow | null = getCachedSavedRouteRow<SavedRow>(loadId);
       if (!data) {
         try {
-          const res = await withTimeout(supabase.from("saved_routes").select("*").eq("id", loadId).maybeSingle(), 1500);
-          data = (res.data as SavedRow | null) ?? null;
+          data = await getMySavedRoute({ data: { id: loadId } }) as SavedRow | null;
           if (data) cacheSavedRouteRow(data as unknown as { id: string } & Record<string, unknown>);
         } catch { data = null; }
       }
@@ -1607,6 +1685,11 @@ function Index() {
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCountryPricesOpen(true)}>Prijs per land</Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCompareOpen(true)}>Vergelijk locaties</Button>
               <LanguageSwitcher />
+              {currentUser?.display_name?.trim() && (
+                <span className="hidden md:inline text-xs text-slate-300 whitespace-nowrap">
+                  {currentUser.gender === "male" ? "Welkom terug, meneer " : currentUser.gender === "female" ? "Welkom terug, mevrouw " : "Welkom terug, "}{currentUser.display_name}!
+                </span>
+              )}
               <AccountMenu />
             </div>
             {filtersOpen && (
@@ -1778,7 +1861,6 @@ function Index() {
               if (!currentUser || !startCoord || !destCoord || !route) return;
               const row = {
                 id: crypto.randomUUID(),
-                user_id: currentUser.id,
                 name: saveName || "Naamloze route",
                 start_lat: startCoord.lat, start_lng: startCoord.lng,
                 end_lat: destCoord.lat, end_lng: destCoord.lng,
@@ -1803,10 +1885,10 @@ function Index() {
               saveLocalRoute({ id: row.id, name: row.name, createdAt: new Date().toISOString() } as LocalRoute);
               let cloudOk = false;
               try {
-                const { error } = await withTimeout(supabase.from("saved_routes").insert(row), 2000);
-                cloudOk = !error;
+                await saveMyRoute({ data: row });
+                cloudOk = true;
               } catch { cloudOk = false; }
-              toast.success(cloudOk ? "Route opgeslagen" : "Route lokaal opgeslagen (cloud niet bereikbaar)");
+              toast.success(cloudOk ? "Route opgeslagen in Cloudflare D1" : "Route lokaal opgeslagen (Cloudflare D1 niet bereikbaar)");
               setSaveOpen(false); setSaveName("");
             }}>Opslaan</Button>
           </DialogFooter>

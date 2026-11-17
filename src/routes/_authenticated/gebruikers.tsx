@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminListUsers, adminSetUserBlocked } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -34,19 +34,17 @@ function UsersPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id,email,display_name,blocked,last_active_at,route_count,created_at")
-      .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    setProfiles((data as Profile[] | null) ?? []);
-    const { data: roleRows } = await supabase.from("user_roles").select("user_id,role");
-    const map: Record<string, string[]> = {};
-    for (const row of (roleRows as { user_id: string; role: string }[] | null) ?? []) {
-      map[row.user_id] = [...(map[row.user_id] ?? []), row.role];
-    }
-    setRoles(map);
-    setLoading(false);
+    try {
+      const { users, roles: roleRows } = await adminListUsers();
+      setProfiles(users as Profile[]);
+      const map: Record<string, string[]> = {};
+      for (const row of roleRows as { user_id: string; role: string }[]) {
+        map[row.user_id] = [...(map[row.user_id] ?? []), row.role];
+      }
+      setRoles(map);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gebruikers laden mislukt");
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => {
@@ -54,11 +52,8 @@ function UsersPage() {
   }, [load]);
 
   const toggleBlocked = async (profile: Profile) => {
-    const { error } = await supabase.from("profiles").update({ blocked: !profile.blocked }).eq("id", profile.id);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
+    try { await adminSetUserBlocked({ data: { id: profile.id, blocked: !profile.blocked } }); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Gebruiker aanpassen mislukt"); return; }
     toast.success(profile.blocked ? "Gebruiker gedeblokkeerd" : "Gebruiker geblokkeerd");
     load();
   };

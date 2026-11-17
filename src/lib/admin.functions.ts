@@ -43,21 +43,24 @@ type OwnerRow = {
 };
 
 export const listOwners = createServerFn({ method: "GET" }).handler(async (): Promise<ChargerOwner[]> => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
-    .from("charger_owners")
-    .select("id,name,logo_url,description,website,contact,notes")
-    .order("name");
-  if (error) throw new Error(error.message);
-  return ((data ?? []) as OwnerRow[]).map((row) => ({
-    id: row.id,
-    name: row.name,
-    logoUrl: row.logo_url,
-    description: row.description,
-    website: row.website,
-    contact: row.contact,
-    notes: row.notes,
-  }));
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("charger_owners")
+      .select("id,name,logo_url,description,website,contact,notes")
+      .order("name");
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as OwnerRow[]).map((row) => ({
+      id: row.id, name: row.name, logoUrl: row.logo_url, description: row.description,
+      website: row.website, contact: row.contact, notes: row.notes,
+    }));
+  } catch {
+    const { localChargerDataset } = await import("./local-chargers.server");
+    return (localChargerDataset.owners ?? []).map((row) => ({
+      id: row.id, name: row.name, logoUrl: row.logo_url, description: row.description,
+      website: row.website, contact: row.contact, notes: row.notes,
+    }));
+  }
 });
 
 const ownerInput = z.object({
@@ -123,22 +126,19 @@ type UpdateRow = {
 };
 
 export const listSiteUpdates = createServerFn({ method: "GET" }).handler(async (): Promise<SiteUpdate[]> => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
-    .from("site_updates")
-    .select("id,title,body,image_url,importance,published_at,visible")
-    .order("published_at", { ascending: false })
-    .limit(50);
-  if (error) throw new Error(error.message);
-  return ((data ?? []) as UpdateRow[]).map((row) => ({
-    id: row.id,
-    title: row.title,
-    body: row.body,
-    imageUrl: row.image_url,
-    importance: row.importance,
-    publishedAt: row.published_at,
-    visible: row.visible,
-  }));
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("site_updates")
+      .select("id,title,body,image_url,importance,published_at,visible")
+      .order("published_at", { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as UpdateRow[]).map((row) => ({
+      id: row.id, title: row.title, body: row.body, imageUrl: row.image_url,
+      importance: row.importance, publishedAt: row.published_at, visible: row.visible,
+    }));
+  } catch { return []; }
 });
 
 const updateInput = z.object({
@@ -258,6 +258,7 @@ export const bulkUpdateSuperchargers = createServerFn({ method: "POST" })
     if (Object.keys(payload).length === 0 && !c.expectedOpenMonth && !c.plannedUpgradeLabel) {
       return { updated: 0 };
     }
+    if (Object.keys(payload).length > 0) payload["data_source"] = "manual";
 
     const sb = context.supabase as unknown as {
       from: (t: string) => {
@@ -361,6 +362,202 @@ export const updateReportStatus = createServerFn({ method: "POST" })
       .from("charger_reports")
       .update({ status: data.status, admin_note: data.adminNote ?? null })
       .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/* ---------------- Cloudflare D1 admin API ---------------- */
+
+const adminRawColumns = new Set([
+  "id","name","lat","lng","country","province","city","total_stalls","stall_types","max_speed_kw","versions",
+  "opening_time","closing_time","opening_hours","trailer_friendly","is_available","charger_configs","parking_fee",
+  "parking_fee_amount","parking_free_minutes","parking_per_minutes","parking_per_euro","parking_blocks","price_currency",
+  "price_per_kwh","price_per_kwh_peak","peak_hours","in_parking_garage","status","construction","traffic_forecast",
+  "works","closure","owner_id","owner_name","low_speed","published","reopen_at","planned_upgrade","stall_states",
+  "data_source","hidden","photos","permanently_closed_at","price_blocks","occupied_stalls","last_updated","updated_at",
+]);
+
+export const adminListSuperchargers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ from: z.number().int().min(0).max(100000).default(0) }).parse(input ?? {}))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { ensureBundledD1Seed } = await import("./d1-seed.server");
+    await ensureBundledD1Seed();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const columns = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,traffic_forecast,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks";
+    const { data: rows, error } = await supabaseAdmin.from("superchargers").select(columns).order("name").range(data.from, data.from + 999);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const adminRawUpsertCharger = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.record(z.unknown()).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const row = Object.fromEntries(Object.entries(data).filter(([key, value]) => adminRawColumns.has(key) && value !== undefined));
+    if (!row.id) row.id = crypto.randomUUID();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("superchargers").upsert(row, { onConflict: "id" });
+    if (error) throw new Error(error.message);
+    await logAction(context, "supercharger_upsert", 1, { id: row.id, name: row.name });
+    return { id: row.id };
+  });
+
+export const adminDeleteCharger = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("superchargers").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await logAction(context, "supercharger_delete", 1, { id: data.id });
+    return { ok: true };
+  });
+
+export const adminBulkRawUpdate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({
+    ids: z.array(z.string().min(1).max(120)).min(1).max(5000),
+    changes: z.record(z.unknown()),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const changes = Object.fromEntries(Object.entries(data.changes).filter(([key, value]) => adminRawColumns.has(key) && value !== undefined));
+    if (!Object.keys(changes).length) return { updated: 0 };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    for (let i = 0; i < data.ids.length; i += 300) {
+      const { error } = await supabaseAdmin.from("superchargers").update(changes).in("id", data.ids.slice(i, i + 300));
+      if (error) throw new Error(error.message);
+    }
+    await logAction(context, "supercharger_bulk_update", data.ids.length, { fields: Object.keys(changes) });
+    return { updated: data.ids.length };
+  });
+
+export const adminListOwners = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.from("charger_owners").select("id,name").order("name");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const adminCreateOwner = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ name: z.string().trim().min(1).max(120) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin.from("charger_owners").insert({ name: data.name }).select("id,name").single();
+    if (error) throw new Error(error.message);
+    await logAction(context, "owner_create", 1, { name: data.name });
+    return row;
+  });
+
+export const adminListUsers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: users, error } = await supabaseAdmin.from("users")
+      .select("id,email,display_name,blocked,last_active_at,route_count,created_at")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    const { data: roleRows, error: roleError } = await supabaseAdmin.from("user_roles").select("user_id,role");
+    if (roleError) throw new Error(roleError.message);
+    return { users: users ?? [], roles: roleRows ?? [] };
+  });
+
+export const adminSetUserBlocked = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120), blocked: z.boolean() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    if (data.id === context.userId && data.blocked) throw new Error("Je kunt je eigen account niet blokkeren.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("users").update({ blocked: data.blocked }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await logAction(context, "user_block", 1, { id: data.id, blocked: data.blocked });
+    return { ok: true };
+  });
+
+export const adminListLanguages = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+  await assertAdmin(context);
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin.from("languages").select("code,name,native_name,enabled,is_default,rtl,sort_order").order("sort_order").order("name");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+});
+export const adminListTranslations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ code: z.string().min(2).max(5) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin.from("translations").select("id,lang_code,key,value").eq("lang_code",data.code).order("key");
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+export const adminToggleLanguage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ code: z.string().min(2).max(5), enabled: z.boolean() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("languages").update({ enabled: data.enabled }).eq("code",data.code);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+export const adminSaveTranslation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().optional(), lang_code: z.string().min(2).max(5), key: z.string().min(1).max(300), value: z.string().max(2000) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.id) {
+      const { error } = await supabaseAdmin.from("translations").update({ value: data.value }).eq("id",data.id);
+      if (error) throw new Error(error.message);
+      return { id: data.id };
+    }
+    const { data: row, error } = await supabaseAdmin.from("translations").insert({ lang_code: data.lang_code, key: data.key, value: data.value }).select("id").single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const adminListChargerChanges = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ limit: z.number().int().min(1).max(300), from: z.string().optional(), to: z.string().optional() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let query = supabaseAdmin.from("charger_changes").select("id,charger_id,charger_name,action,changed_fields,created_at").order("created_at", { ascending: false }).limit(data.limit * 3);
+    if (data.from) query = query.gte("created_at", data.from);
+    if (data.to) query = query.lte("created_at", data.to);
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+    return (rows ?? []).filter((row: any) => row.action !== "update" || !!row.changed_fields?.status).slice(0, data.limit);
+  });
+export const adminUpdateChargerChange = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120), charger_name: z.string().max(200), changed_fields: z.record(z.unknown()) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("charger_changes").update({ charger_name: data.charger_name, changed_fields: data.changed_fields }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+export const adminDeleteChargerChange = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("charger_changes").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
