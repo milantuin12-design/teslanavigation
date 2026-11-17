@@ -11,7 +11,7 @@ import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher } from "@/components/LanguageProvider";
-import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite } from "@/lib/account.functions";
+import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, getMyChargerNote, saveMyChargerNote, setMyChargerLabel } from "@/lib/account.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
 
 const hasSupabaseBrowserConfig = Boolean(
@@ -300,13 +300,25 @@ function Index() {
 
   const [showAllChargers, setShowAllChargers] = useState(false);
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
+  const [mapType, setMapType] = useState<"road" | "satellite">("satellite");
+  const [mapZoom, setMapZoom] = useState(7);
+  const [statusColors, setStatusColors] = useState<Record<string, string>>({});
+  const [preferredRoutePriority, setPreferredRoutePriority] = useState<"cheapest" | "fastest" | "fewest_stops">("fastest");
   useEffect(() => {
     const handler = (event: Event) => {
-      const prefs = (event as CustomEvent<{ vehicle_model?: string | null; vehicle_year?: number | null; consumption_kwh100?: number | null; notifications?: { price_changes?: boolean }; map?: { show_development_chargers?: boolean; remember_filters?: boolean } }>).detail;
+      const prefs = (event as CustomEvent<{ vehicle_model?: string | null; vehicle_year?: number | null; consumption_kwh100?: number | null; notifications?: { price_changes?: boolean }; map?: { show_development_chargers?: boolean; remember_filters?: boolean }; map_type?: "road" | "satellite"; map_zoom?: number; status_colors?: Record<string, string>; route_preferences?: { priority?: "cheapest" | "fastest" | "fewest_stops" } }>).detail;
       if (!prefs) return;
       setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
       setRememberFilters(prefs.map?.remember_filters ?? true);
       setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
+      if (prefs.map_type) setMapType(prefs.map_type);
+      if (typeof prefs.map_zoom === "number") setMapZoom(Math.max(3, Math.min(18, prefs.map_zoom)));
+      if (prefs.status_colors) setStatusColors(prefs.status_colors);
+      if (prefs.route_preferences?.priority) setPreferredRoutePriority(prefs.route_preferences.priority);
+      if (prefs.map_type) setMapType(prefs.map_type);
+      if (typeof prefs.map_zoom === "number") setMapZoom(Math.max(3, Math.min(18, prefs.map_zoom)));
+      if (prefs.status_colors) setStatusColors(prefs.status_colors);
+      if (prefs.route_preferences?.priority) setPreferredRoutePriority(prefs.route_preferences.priority);
       if (prefs.vehicle_model && Object.prototype.hasOwnProperty.call(teslaModels, prefs.vehicle_model)) setSelectedModel(prefs.vehicle_model);
       if (typeof prefs.vehicle_year === "number") setModelYear(prefs.vehicle_year);
       if (typeof prefs.consumption_kwh100 === "number") {
@@ -406,6 +418,11 @@ function Index() {
   const routeCosts = routeOptions.map((plan) => estimateRouteCost(plan, departureDate, selectedModel, packKWh, carMaxKwOverride));
   const pricedRoutes = routeCosts.map((cost, index) => ({ cost, index })).filter((item): item is { cost: number; index: number } => item.cost !== null);
   const cheapestRouteIndex = pricedRoutes.length ? pricedRoutes.reduce((best, item) => item.cost < best.cost ? item : best).index : -1;
+  useEffect(() => {
+    if (!routeOptions.length) return;
+    const preferredIndex = preferredRoutePriority === "cheapest" ? cheapestRouteIndex : preferredRoutePriority === "fewest_stops" ? fewestStopsIndex : fastestRouteIndex;
+    if (preferredIndex >= 0) setSelectedRouteIndex(preferredIndex);
+  }, [routeOptions, preferredRoutePriority, cheapestRouteIndex, fewestStopsIndex, fastestRouteIndex]);
   // Vergelijk ook de verwachte drukte op de daadwerkelijke aankomsttijd bij elke laadstop.
   // Routes zonder bruikbare druktegegevens krijgen geen kunstmatig gunstige score.
   const routeCrowdLevels = routeOptions.map((plan) => {
@@ -1809,6 +1826,9 @@ function Index() {
           waypoints={waypoints}
           routeChargersOnly={!!route && !showAllChargers && chargingStops.length > 0}
           favoriteChargerIds={favoriteChargerIds}
+          mapType={mapType}
+          mapZoom={mapZoom}
+          statusColors={statusColors}
           winterSportsMode={winterSportsMode}
           holidayPeriodMode={holidayPeriodMode}
         />
