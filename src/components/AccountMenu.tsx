@@ -3,12 +3,14 @@ import { Link } from "@tanstack/react-router";
 import { getCurrentUser, signOut } from "@/lib/auth.functions";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User as UserIcon, LogOut, Shield, BookmarkCheck, LogIn, MessageSquare } from "lucide-react";
+import { User as UserIcon, LogOut, Shield, BookmarkCheck, LogIn, MessageSquare, Settings } from "lucide-react";
+import { AccountSettingsDialog } from "@/components/AccountSettingsDialog";
 
 type AccountUser = { id: string; email: string; display_name: string | null; is_admin: boolean };
 
 export function AccountMenu() {
   const [user, setUser] = useState<AccountUser | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -32,10 +34,13 @@ export function AccountMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline" className="bg-slate-800 border-slate-700 hover:bg-slate-700">
-          <UserIcon className="w-4 h-4 mr-1" /> {user.email.split("@")[0]}
+          <UserIcon className="w-4 h-4 mr-1" /> {user.display_name?.trim() || user.email.split("@")[0]}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 text-white">
+        <DropdownMenuItem onSelect={(event) => { event.preventDefault(); setSettingsOpen(true); }}>
+          <Settings className="w-4 h-4 mr-2" /> Accountinstellingen
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => window.location.assign("/mijn-routes")}>
           <BookmarkCheck className="w-4 h-4 mr-2" /> Mijn routes
         </DropdownMenuItem>
@@ -52,6 +57,7 @@ export function AccountMenu() {
           <LogOut className="w-4 h-4 mr-2" /> Uitloggen
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <AccountSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} onSaved={(displayName) => setUser((old) => old ? { ...old, display_name: displayName } : old)} />
     </DropdownMenu>
   );
 }
