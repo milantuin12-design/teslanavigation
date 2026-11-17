@@ -547,12 +547,12 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       notes: data.notes ?? null,
       reopen_at: data.reopenAt || null,
       planned_upgrade: JSON.stringify(data.plannedUpgrade),
-      stall_states: JSON.stringify(data.stallStates ?? []),
       data_source: data.dataSource ?? "manual",
-      hidden: data.hidden ? 1 : 0,
-      photos: JSON.stringify(data.photos ?? []),
-      voting: JSON.stringify(data.voting ?? {}),
       updated_at: new Date().toISOString(),
+      ...(data.stallStates ? { stall_states: JSON.stringify(data.stallStates) } : {}),
+      ...(data.hidden !== undefined ? { hidden: data.hidden ? 1 : 0 } : {}),
+      ...(data.photos ? { photos: JSON.stringify(data.photos) } : {}),
+      ...(data.voting ? { voting: JSON.stringify(data.voting) } : {}),
     };
     const columns = Object.keys(payload);
     const updates = columns.filter((key) => key !== "id").map((key) => key + "=excluded." + key).join(",");
