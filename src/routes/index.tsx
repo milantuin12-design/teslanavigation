@@ -248,6 +248,9 @@ function Index() {
   const previousChargerSnapshotRef = useRef<Map<string, string>>(new Map());
   const chargerSnapshot = (items: Supercharger[]) => new Map(items.filter((item) => item.id).map((item) => [item.id!, JSON.stringify({ status: item.status, available: item.isAvailable, stalls: item.stallStates })]));
   const [favoriteChargerIds, setFavoriteChargerIds] = useState<string[]>([]);
+  // Keep an immediate reference so rapid add/remove clicks cannot reuse stale React state.
+  const favoriteIdsRef = useRef<string[]>([]);
+  const favoriteWriteQueuesRef = useRef<Map<string, Promise<void>>>(new Map());
   const listFavoritesFn = useServerFn(listMyChargerFavorites);
   const setFavoriteFn = useServerFn(setMyChargerFavorite);
   const createNotificationFn = useServerFn(createMyNotificationEvent);
@@ -257,7 +260,11 @@ function Index() {
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem("teslanavigation:favorites") || "[]");
-      if (Array.isArray(saved)) setFavoriteChargerIds(saved.filter((x): x is string => typeof x === "string"));
+      if (Array.isArray(saved)) {
+        const ids = saved.filter((x): x is string => typeof x === "string");
+        favoriteIdsRef.current = ids;
+        setFavoriteChargerIds(ids);
+      }
     } catch { /* ignore invalid local preferences */ }
   }, []);
   useEffect(() => {
@@ -277,26 +284,43 @@ function Index() {
       if (remoteIds.length === 0 && localIds.length > 0) {
         // One-time safe migration from this browser's existing favorites into the signed-in account.
         await Promise.all(localIds.map((charger_id) => setFavoriteFn({ data: { charger_id, favorite: true } })));
-        if (active) setFavoriteChargerIds(localIds);
+        if (active) {
+          favoriteIdsRef.current = localIds;
+          setFavoriteChargerIds(localIds);
+        }
       } else if (active) {
+        favoriteIdsRef.current = remoteIds;
         setFavoriteChargerIds(remoteIds);
       }
     }).catch(() => { /* keep local favorites usable if D1 is temporarily unavailable */ });
     return () => { active = false; };
   }, [currentUser?.id]);
   const toggleFavoriteCharger = useCallback((id: string) => {
-    const favorite = !favoriteChargerIds.includes(id);
-    // Update the visible list immediately, then persist the exact requested state.
-    setFavoriteChargerIds((old) => favorite ? (old.includes(id) ? old : [...old, id]) : old.filter((x) => x !== id));
-    if (currentUser) {
-      void setFavoriteFn({ data: { charger_id: id, favorite } }).then(() => {
-        // Keep local storage and the account in sync after a successful D1 write.
-        setFavoriteChargerIds((old) => favorite ? (old.includes(id) ? old : [...old, id]) : old.filter((x) => x !== id));
-      }).catch(() => {
-        toast.error("Favoriet kon niet met je account worden bijgewerkt. Probeer het opnieuw.");
+    const favorite = !favoriteIdsRef.current.includes(id);
+    const updated = favorite
+      ? [...favoriteIdsRef.current, id]
+      : favoriteIdsRef.current.filter((item) => item !== id);
+    // Update the ref and UI synchronously; this also makes repeated clicks reliable.
+    favoriteIdsRef.current = updated;
+    setFavoriteChargerIds(updated);
+    if (!currentUser) return;
+
+    // Serialize writes per charger so a quick add/remove sequence reaches D1 in click order.
+    const previous = favoriteWriteQueuesRef.current.get(id) ?? Promise.resolve();
+    const write = previous
+      .catch(() => undefined)
+      .then(() => setFavoriteFn({ data: { charger_id: id, favorite } }))
+      .then(() => undefined)
+      .catch(() => {
+        toast.error("Favoriet kon niet met je account worden bijgewerkt. De lokale keuze blijft bewaard.");
       });
-    }
-  }, [favoriteChargerIds, currentUser?.id, setFavoriteFn]);
+    favoriteWriteQueuesRef.current.set(id, write);
+    void write.finally(() => {
+      if (favoriteWriteQueuesRef.current.get(id) === write) {
+        favoriteWriteQueuesRef.current.delete(id);
+      }
+    });
+  }, [currentUser?.id, setFavoriteFn]);
   // Price alerts for favourite Superchargers: changes are detected on the next app refresh.
   useEffect(() => {
     if (isLoadingChargers || favoriteChargerIds.length === 0 || superchargers.length === 0) return;
