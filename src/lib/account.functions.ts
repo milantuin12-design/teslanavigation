@@ -227,6 +227,11 @@ const vehicleProfileSchema = z.object({
   summer_consumption_kwh100: z.number().min(1).max(120).nullable().optional(),
   winter_consumption_kwh100: z.number().min(1).max(150).nullable().optional(),
   max_charge_kw: z.number().int().min(1).max(1000).nullable().optional(),
+  battery_health_percent: z.number().min(40).max(100).nullable().optional(),
+  speed_consumption_json: z.record(z.number().min(1).max(200)).default({}),
+  charging_curve_json: z.record(z.number().min(0).max(1000)).default({}),
+  roof_or_rack_extra_percent: z.number().int().min(0).max(100).default(0),
+  winter_tires_extra_percent: z.number().int().min(0).max(100).default(0),
   arrival_percent: z.number().int().min(0).max(100).default(10),
   trailer_enabled: z.boolean().default(false),
   trailer_consumption_increase_percent: z.number().int().min(0).max(200).default(0),
@@ -236,7 +241,7 @@ const vehicleProfileSchema = z.object({
 export const listMyVehicles = createServerFn({ method: "GET" }).handler(async () => {
   const user = await requireUser();
   const { results } = await getD1().prepare(
-    "SELECT id,name,model_name,model_year,image_url,battery_kwh,summer_consumption_kwh100,winter_consumption_kwh100,max_charge_kw,arrival_percent,trailer_enabled,trailer_consumption_increase_percent,is_default,created_at,updated_at FROM user_vehicles WHERE user_id = ? ORDER BY is_default DESC, created_at ASC"
+    "SELECT id,name,model_name,model_year,image_url,battery_kwh,summer_consumption_kwh100,winter_consumption_kwh100,max_charge_kw,battery_health_percent,speed_consumption_json,charging_curve_json,roof_or_rack_extra_percent,winter_tires_extra_percent,arrival_percent,trailer_enabled,trailer_consumption_increase_percent,is_default,created_at,updated_at FROM user_vehicles WHERE user_id = ? ORDER BY is_default DESC, created_at ASC"
   ).bind(user.id).all<Record<string, unknown>>();
   return results.map((row) => ({
     ...row,
@@ -259,10 +264,10 @@ export const saveMyVehicle = createServerFn({ method: "POST" })
       await db.prepare("UPDATE user_vehicles SET is_default = 0 WHERE user_id = ?").bind(user.id).run();
     }
     await db.prepare(`INSERT INTO user_vehicles
-      (id,user_id,name,model_name,model_year,image_url,battery_kwh,summer_consumption_kwh100,winter_consumption_kwh100,max_charge_kw,arrival_percent,trailer_enabled,trailer_consumption_increase_percent,is_default,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
-      ON CONFLICT(id) DO UPDATE SET name=excluded.name,model_name=excluded.model_name,model_year=excluded.model_year,image_url=excluded.image_url,battery_kwh=excluded.battery_kwh,summer_consumption_kwh100=excluded.summer_consumption_kwh100,winter_consumption_kwh100=excluded.winter_consumption_kwh100,max_charge_kw=excluded.max_charge_kw,arrival_percent=excluded.arrival_percent,trailer_enabled=excluded.trailer_enabled,trailer_consumption_increase_percent=excluded.trailer_consumption_increase_percent,is_default=excluded.is_default,updated_at=CURRENT_TIMESTAMP
-    `).bind(id,user.id,data.name,data.model_name,data.model_year??null,data.image_url??null,data.battery_kwh??null,data.summer_consumption_kwh100??null,data.winter_consumption_kwh100??null,data.max_charge_kw??null,data.arrival_percent,data.trailer_enabled?1:0,data.trailer_consumption_increase_percent,data.is_default?1:0).run();
+      (id,user_id,name,model_name,model_year,image_url,battery_kwh,summer_consumption_kwh100,winter_consumption_kwh100,max_charge_kw,battery_health_percent,speed_consumption_json,charging_curve_json,roof_or_rack_extra_percent,winter_tires_extra_percent,arrival_percent,trailer_enabled,trailer_consumption_increase_percent,is_default,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+      ON CONFLICT(id) DO UPDATE SET name=excluded.name,model_name=excluded.model_name,model_year=excluded.model_year,image_url=excluded.image_url,battery_kwh=excluded.battery_kwh,summer_consumption_kwh100=excluded.summer_consumption_kwh100,winter_consumption_kwh100=excluded.winter_consumption_kwh100,max_charge_kw=excluded.max_charge_kw,battery_health_percent=excluded.battery_health_percent,speed_consumption_json=excluded.speed_consumption_json,charging_curve_json=excluded.charging_curve_json,roof_or_rack_extra_percent=excluded.roof_or_rack_extra_percent,winter_tires_extra_percent=excluded.winter_tires_extra_percent,arrival_percent=excluded.arrival_percent,trailer_enabled=excluded.trailer_enabled,trailer_consumption_increase_percent=excluded.trailer_consumption_increase_percent,is_default=excluded.is_default,updated_at=CURRENT_TIMESTAMP
+    `).bind(id,user.id,data.name,data.model_name,data.model_year??null,data.image_url??null,data.battery_kwh??null,data.summer_consumption_kwh100??null,data.winter_consumption_kwh100??null,data.max_charge_kw??null,data.battery_health_percent??null,JSON.stringify(data.speed_consumption_json),JSON.stringify(data.charging_curve_json),data.roof_or_rack_extra_percent,data.winter_tires_extra_percent,data.arrival_percent,data.trailer_enabled?1:0,data.trailer_consumption_increase_percent,data.is_default?1:0).run();
     return { id };
   });
 
