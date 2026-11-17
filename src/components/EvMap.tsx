@@ -6,7 +6,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, getOpenStalls, formatStallAvailability, isChargerUsable, normalizeChargerConfigs, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
-import { estimateFreeStalls, estimateQueueCars, getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
+import { isSnowRegion } from '@/lib/traffic-forecast';
 import { estimateChargingCost } from '@/lib/charging-cost';
 
 
@@ -411,54 +411,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
         const routeStop = chargingStops.find((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
         const forecastAt = routeStop?.etaMinFromStart != null ? new Date((departure ?? new Date()).getTime() + routeStop.etaMinFromStart * 60000) : new Date();
-        const currentCrowd = getTrafficForecastAt(charger.trafficForecast, forecastAt, charger.province, holidayPeriodMode, winterSportsMode && isSnowRegion(charger));
-        const totalForEstimate = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
-        // Eerst de werkelijk bruikbare capaciteit bepalen (werkzaamheden en defecte/afgesloten stalls).
-        const usableCapacity = getOpenStalls(charger, forecastAt);
-        const trailerCapacity = Math.max(0, Math.floor(charger.trailerFriendlyStalls ?? (charger.trailerFriendly ? 1 : 0)));
-        // Aanhangerplekken raken tijdens vakanties vooral overdag snel bezet.
-        // Gebruik het admin-aantal plekken, met een aparte vakantiecurve voor aanhangers.
-        const trailerHour = forecastAt.getHours();
-        const holidayTrailerFloor = trailerHour < 6 ? 15
-          : trailerHour < 10 ? 65
-          : trailerHour < 16 ? 88
-          : trailerHour < 20 ? 78
-          : 42;
-        const weekendTrailerBoost = trailerHour >= 6 && trailerHour < 20 ? 15 : 3;
-        const trailerCrowdLevel = currentCrowd
-          ? Math.min(100, currentCrowd.category === "holiday"
-            ? Math.max(currentCrowd.level, holidayTrailerFloor)
-            : currentCrowd.category === "weekend"
-              ? currentCrowd.level + weekendTrailerBoost
-              : currentCrowd.level)
-          : null;
-        const estimatedTrailerFreeRaw = trailerCrowdLevel !== null && trailerCapacity > 0
-          ? trailerCapacity === 1
-            ? (trailerCrowdLevel < 50 ? 1 : 0)
-            : estimateFreeStalls(trailerCapacity, trailerCrowdLevel) ?? 0
-          : null;
-        // Aanhangerplekken zijn gewone laadplekken: als alle laadplekken bezet zijn,
-        // kan er ook geen aanhangerplek vrij zijn. Het aantal vrije aanhangerplekken
-        // kan bovendien nooit hoger zijn dan het totaal aantal vrije laadplekken.
-        const estimatedFree = currentCrowd && usableCapacity > 0
-          ? estimateFreeStalls(usableCapacity, currentCrowd.level)
-          : null;
-        const estimatedTrailerFree = estimatedTrailerFreeRaw !== null && estimatedFree !== null
-          ? Math.min(estimatedTrailerFreeRaw, estimatedFree)
-          : estimatedTrailerFreeRaw;
-        const estimatedQueue = currentCrowd && usableCapacity > 0
-          ? estimateQueueCars(usableCapacity, currentCrowd.level)
-          : 0;
-        // Toon alleen de inschatting voor het huidige moment of de aankomst; geen uurschema.
-        if (usable && totalForEstimate > 0 && usableCapacity > 0 && estimatedFree !== null) {
-          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${usableCapacity} ${routeStop ? "beschikbaar bij aankomst" : "laadplekken vrij"}</div>`;
-        }
-        if (usable && trailerCapacity > 0 && currentCrowd) {
-          const trailerText = trailerCapacity === 1
-            ? (estimatedTrailerFree === 1 ? "Waarschijnlijk vrij" : "Waarschijnlijk bezet")
-            : `Waarschijnlijk ${estimatedTrailerFree} van de ${trailerCapacity} vrij`;
-          popup += `<div style="margin-top:2px;color:#0f766e;font-size:11px;">🚙 Aanhangervriendelijk: ${trailerText}</div>`;
-        }
+        // Geen prognose van vrije laadplekken of wachtrijen tonen: dit zijn geen live gegevens.
         const routeCost = routeStop ? estimateChargingCost(routeStop, forecastAt, modelName, packKWh, carMaxKwOverride) : null;
         if (routeCost) {
           const formattedCost = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: routeCost.currency }).format(routeCost.amount);
