@@ -308,3 +308,176 @@ export const saveMyChargerNote = createServerFn({ method: "POST" })
       ON CONFLICT(user_id,charger_id) DO UPDATE SET note=excluded.note,updated_at=CURRENT_TIMESTAMP`).bind(user.id,data.charger_id,data.note).run();
     return { ok: true };
   });
+
+
+// Advanced personal tools: labels, recent/hidden chargers, route profiles, charging history and inbox.
+export const setMyChargerLabel = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({
+    charger_id: z.string().min(1).max(120),
+    label: z.string().trim().max(80),
+    color: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
+  }).parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireUser();
+    if (!data.label) {
+      await getD1().prepare("DELETE FROM user_charger_labels WHERE user_id = ? AND charger_id = ?").bind(user.id, data.charger_id).run();
+    } else {
+      await getD1().prepare(`INSERT INTO user_charger_labels (user_id,charger_id,label,color,updated_at) VALUES (?,?,?,?,CURRENT_TIMESTAMP)
+        ON CONFLICT(user_id,charger_id) DO UPDATE SET label=excluded.label,color=excluded.color,updated_at=CURRENT_TIMESTAMP`)
+        .bind(user.id, data.charger_id, data.label, data.color ?? null).run();
+    }
+    return { ok: true };
+  });
+
+export const listMyChargerLabels = createServerFn({ method: "GET" }).handler(async () => {
+  const user = await requireUser();
+  const { results } = await getD1().prepare("SELECT charger_id,label,color,updated_at FROM user_charger_labels WHERE user_id = ? ORDER BY label COLLATE NOCASE")
+    .bind(user.id).all();
+  return results;
+});
+
+export const recordMyRecentCharger = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({ charger_id: z.string().min(1).max(120) }).parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireUser();
+    await getD1().prepare(`INSERT INTO user_recent_chargers (user_id,charger_id,viewed_at) VALUES (?,?,CURRENT_TIMESTAMP)
+      ON CONFLICT(user_id,charger_id) DO UPDATE SET viewed_at=CURRENT_TIMESTAMP`).bind(user.id,data.charger_id).run();
+    await getD1().prepare(`DELETE FROM user_recent_chargers WHERE user_id = ? AND charger_id NOT IN
+      (SELECT charger_id FROM user_recent_chargers WHERE user_id = ? ORDER BY viewed_at DESC LIMIT 30)`).bind(user.id,user.id).run();
+    return { ok: true };
+  });
+
+export const listMyRecentChargers = createServerFn({ method: "GET" }).handler(async () => {
+  const user = await requireUser();
+  const { results } = await getD1().prepare("SELECT charger_id,viewed_at FROM user_recent_chargers WHERE user_id = ? ORDER BY viewed_at DESC LIMIT 30")
+    .bind(user.id).all();
+  return results;
+});
+
+export const setMyChargerHidden = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({ charger_id: z.string().min(1).max(120), hidden: z.boolean() }).parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireUser();
+    if (data.hidden) {
+      await getD1().prepare("INSERT OR IGNORE INTO user_hidden_chargers (user_id,charger_id) VALUES (?,?)").bind(user.id,data.charger_id).run();
+    } else {
+      await getD1().prepare("DELETE FROM user_hidden_chargers WHERE user_id = ? AND charger_id = ?").bind(user.id,data.charger_id).run();
+    }
+    return { ok: true };
+  });
+
+export const listMyHiddenChargers = createServerFn({ method: "GET" }).handler(async () => {
+  const user = await requireUser();
+  const { results } = await getD1().prepare("SELECT charger_id,hidden_at FROM user_hidden_chargers WHERE user_id = ? ORDER BY hidden_at DESC")
+    .bind(user.id).all();
+  return results;
+});
+
+const routeProfileSchema = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().trim().min(1).max(80),
+  settings: z.record(z.unknown()).default({}),
+});
+export const listMyRouteProfiles = createServerFn({ method: "GET" }).handler(async () => {
+  const user = await requireUser();
+  const { results } = await getD1().prepare("SELECT id,name,settings_json,created_at,updated_at FROM user_route_profiles WHERE user_id = ? ORDER BY updated_at DESC")
+    .bind(user.id).all<{id:string;name:string;settings_json:string;created_at:string;updated_at:string}>();
+  return results.map((row) => ({ ...row, settings: parseJson(row.settings_json,{}) }));
+});
+export const saveMyRouteProfile = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => routeProfileSchema.parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireUser();
+    const id = data.id ?? crypto.randomUUID();
+    if (data.id) {
+      const found = await getD1().prepare("SELECT id FROM user_route_profiles WHERE id = ? AND user_id = ?").bind(id,user.id).first();
+      if (!found) throw new Error("Routeprofiel niet gevonden.");
+    }
+    await getD1().prepare(`INSERT INTO user_route_profiles (id,user_id,name,settings_json,updated_at) VALUES (?,?,?,?,CURRENT_TIMESTAMP)
+      ON CONFLICT(id) DO UPDATE SET name=excluded.name,settings_json=excluded.settings_json,updated_at=CURRENT_TIMESTAMP`)
+      .bind(id,user.id,data.name,JSON.stringify(data.settings)).run();
+    return { id };
+  });
+export const deleteMyRouteProfile = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireUser();
+    await getD1().prepare("DELETE FROM user_route_profiles WHERE id = ? AND user_id = ?").bind(data.id,user.id).run();
+    return { ok: true };
+  });
+
+const chargingSessionSchema = z.object({
+  id: z.string().uuid().optional(),
+  charger_id: z.string().max(120).nullable().optional(),
+  charger_name: z.string().max(200).nullable().optional(),
+  started_at: z.string().datetime().nullable().optional(),
+  ended_at: z.string().datetime().nullable().optional(),
+  energy_kwh: z.number().min(0).max(1000),
+  cost_amount: z.number().min(0).max(100000).nullable().optional(),
+  currency: z.string().length(3).default("EUR"),
+  start_percent: z.number().int().min(0).max(100).nullable().optional(),
+  end_percent: z.number().int().min(0).max(100).nullable().optional(),
+  notes: z.string().max(1000).nullable().optional(),
+});
+export const listMyChargingSessions = createServerFn({ method: "GET" }).handler(async () => {
+  const user = await requireUser();
+  const { results } = await getD1().prepare("SELECT * FROM user_charging_sessions WHERE user_id = ? ORDER BY COALESCE(started_at,created_at) DESC LIMIT 500")
+    .bind(user.id).all();
+  return results;
+});
+export const saveMyChargingSession = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => chargingSessionSchema.parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireUser();
+    const id = data.id ?? crypto.randomUUID();
+    if (data.id) {
+      const found = await getD1().prepare("SELECT id FROM user_charging_sessions WHERE id = ? AND user_id = ?").bind(id,user.id).first();
+      if (!found) throw new Error("Laadsessie niet gevonden.");
+    }
+    await getD1().prepare(`INSERT INTO user_charging_sessions (id,user_id,charger_id,charger_name,started_at,ended_at,energy_kwh,cost_amount,currency,start_percent,end_percent,notes)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET charger_id=excluded.charger_id,charger_name=excluded.charger_name,started_at=excluded.started_at,ended_at=excluded.ended_at,energy_kwh=excluded.energy_kwh,cost_amount=excluded.cost_amount,currency=excluded.currency,start_percent=excluded.start_percent,end_percent=excluded.end_percent,notes=excluded.notes`)
+      .bind(id,user.id,data.charger_id??null,data.charger_name??null,data.started_at??null,data.ended_at??null,data.energy_kwh,data.cost_amount??null,data.currency,data.start_percent??null,data.end_percent??null,data.notes??null).run();
+    return { id };
+  });
+export const deleteMyChargingSession = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireUser();
+    await getD1().prepare("DELETE FROM user_charging_sessions WHERE id = ? AND user_id = ?").bind(data.id,user.id).run();
+    return { ok: true };
+  });
+
+export const listMyNotifications = createServerFn({ method: "GET" }).handler(async () => {
+  const user = await requireUser();
+  const { results } = await getD1().prepare("SELECT id,event_type,charger_id,title,body,channel,delivery_status,created_at,sent_at FROM user_notification_events WHERE user_id = ? ORDER BY created_at DESC LIMIT 100")
+    .bind(user.id).all();
+  return results;
+});
+export const markMyNotificationRead = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireUser();
+    await getD1().prepare("UPDATE user_notification_events SET delivery_status = 'read' WHERE id = ? AND user_id = ?").bind(data.id,user.id).run();
+    return { ok: true };
+  });
+
+export const setMyPinnedWaypoint = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({
+    route_id: z.string().min(1).max(120),
+    charger_id: z.string().min(1).max(120),
+    pinned: z.boolean(),
+    sort_order: z.number().int().min(0).max(100).default(0),
+  }).parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireUser();
+    const route = await getD1().prepare("SELECT id FROM saved_routes WHERE id = ? AND user_id = ?").bind(data.route_id,user.id).first();
+    if (!route) throw new Error("Opgeslagen route niet gevonden.");
+    if (data.pinned) {
+      await getD1().prepare("INSERT OR REPLACE INTO user_pinned_waypoints (user_id,route_id,charger_id,sort_order) VALUES (?,?,?,?)")
+        .bind(user.id,data.route_id,data.charger_id,data.sort_order).run();
+    } else {
+      await getD1().prepare("DELETE FROM user_pinned_waypoints WHERE user_id = ? AND route_id = ? AND charger_id = ?")
+        .bind(user.id,data.route_id,data.charger_id).run();
+    }
+    return { ok: true };
+  });
