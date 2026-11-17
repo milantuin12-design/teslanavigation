@@ -251,6 +251,7 @@ function Index() {
   const setFavoriteFn = useServerFn(setMyChargerFavorite);
   const createNotificationFn = useServerFn(createMyNotificationEvent);
   const [notifyPriceChanges, setNotifyPriceChanges] = useState(true);
+  const [notifyStatusChanges, setNotifyStatusChanges] = useState(true);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   useEffect(() => {
     try {
@@ -320,6 +321,37 @@ function Index() {
       }
     }
   }, [favoriteChargerIds, isLoadingChargers, superchargers, notifyPriceChanges, currentUser?.id]);
+  // Statuswijzigingen bij favoriete locaties worden in de persoonlijke inbox bewaard.
+  useEffect(() => {
+    if (!superchargers.length) return;
+    const previous = previousChargerSnapshotRef.current;
+    const next = chargerSnapshot(superchargers);
+    if (previous.size > 0 && currentUser && notifyStatusChanges) {
+      for (const charger of superchargers) {
+        if (!charger.id || !favoriteChargerIds.includes(charger.id)) continue;
+        const before = previous.get(charger.id);
+        const after = next.get(charger.id);
+        if (!before || !after || before === after) continue;
+        let oldData: { status?: string; available?: boolean } = {};
+        let newData: { status?: string; available?: boolean } = {};
+        try { oldData = JSON.parse(before); newData = JSON.parse(after); } catch { continue; }
+        if (oldData.status === newData.status && oldData.available === newData.available) continue;
+        const oldStatus = oldData.status ?? "onbekend";
+        const newStatus = newData.status ?? "onbekend";
+        void createNotificationFn({
+          data: {
+            event_type: "status_change",
+            charger_id: charger.id,
+            dedupe_key: "status:" + charger.id + ":" + newStatus + ":" + String(newData.available),
+            title: "Status gewijzigd",
+            body: charger.name + ": " + oldStatus + " → " + newStatus,
+          },
+        }).catch(() => {});
+      }
+    }
+    previousChargerSnapshotRef.current = next;
+  }, [superchargers, favoriteChargerIds, currentUser?.id, notifyStatusChanges]);
+
   const [rememberFilters, setRememberFilters] = useState(true);
   const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>(() => {
     try {
@@ -345,7 +377,7 @@ function Index() {
     const handler = (event: Event) => {
       const prefs = (event as CustomEvent<{
         vehicle_model?: string | null; vehicle_year?: number | null; consumption_kwh100?: number | null;
-        notifications?: { price_changes?: boolean };
+        notifications?: { price_changes?: boolean; status_changes?: boolean };
         map?: { show_development_chargers?: boolean; remember_filters?: boolean };
         map_type?: "road" | "satellite"; map_zoom?: number; status_colors?: Record<string, string>;
         route_preferences?: { priority?: "cheapest" | "fastest" | "fewest_stops"; min_charger_kw?: number };
@@ -356,6 +388,7 @@ function Index() {
       setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
       setRememberFilters(prefs.map?.remember_filters ?? true);
       setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
+      setNotifyStatusChanges(prefs.notifications?.status_changes ?? true);
       if (prefs.map_type) setMapType(prefs.map_type);
       if (typeof prefs.map_zoom === "number") setMapZoom(Math.max(3, Math.min(18, prefs.map_zoom)));
       if (prefs.status_colors) setStatusColors(prefs.status_colors);
@@ -622,7 +655,6 @@ function Index() {
     loadBundledSuperchargers()
       .then((data) => {
         if (!mounted) return;
-        previousChargerSnapshotRef.current = chargerSnapshot(data);
         setSuperchargers(data);
         setChargerLoadError(data.length ? null : "De ingebouwde Superchargerdata bevat geen locaties.");
       })
@@ -1802,7 +1834,6 @@ function Index() {
                   setIsLoadingChargers(true);
                   listSuperchargers()
                     .then((data) => {
-                      previousChargerSnapshotRef.current = chargerSnapshot(data);
                       setSuperchargers(data);
                       setChargerLoadError(data.length ? null : "Er zijn geen Superchargers ontvangen.");
                     })
