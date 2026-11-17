@@ -119,40 +119,25 @@ const updateInput = z.object({
 });
 
 export const upsertSiteUpdate = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => updateInput.parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const payload = {
-      title: data.title,
-      body: data.body || null,
-      image_url: data.imageUrl || null,
-      importance: data.importance,
-      published_at: data.publishedAt || new Date().toISOString(),
-      visible: data.visible,
-    };
-    if (data.id) {
-      const { error } = await context.supabase.from("site_updates").update(payload).eq("id", data.id);
-      if (error) throw new Error(error.message);
-      return { id: data.id };
-    }
-    const { data: inserted, error } = await context.supabase
-      .from("site_updates")
-      .insert(payload)
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    return { id: (inserted as { id: string }).id };
+  .handler(async ({ data }) => {
+    const user = await requireD1Admin();
+    const id = data.id ?? crypto.randomUUID();
+    await getD1().prepare(`INSERT INTO site_updates (id,title,body,image_url,importance,published_at,visible,updated_at)
+      VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+      ON CONFLICT(id) DO UPDATE SET title=excluded.title,body=excluded.body,image_url=excluded.image_url,importance=excluded.importance,published_at=excluded.published_at,visible=excluded.visible,updated_at=CURRENT_TIMESTAMP`)
+      .bind(id,data.title,data.body??null,data.imageUrl??null,data.importance,data.publishedAt??new Date().toISOString(),data.visible?1:0).run();
+    await d1Audit(user.id,"site_update_save",1,{id,title:data.title});
+    return {id};
   });
 
 export const deleteSiteUpdate = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { error } = await context.supabase.from("site_updates").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120) }).parse(input))
+  .handler(async ({ data }) => {
+    const user = await requireD1Admin();
+    await getD1().prepare("DELETE FROM site_updates WHERE id=?").bind(data.id).run();
+    await d1Audit(user.id,"site_update_delete",1,{id:data.id});
+    return {ok:true};
   });
 
 /* ---------------- Bulk edit ---------------- */
@@ -299,38 +284,24 @@ export type ReportRow = {
   created_at: string;
 };
 
-export const listReports = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<ReportRow[]> => {
-    await assertAdmin(context);
-    const { data, error } = await context.supabase
-      .from("charger_reports")
-      .select("id,charger_id,charger_name,user_id,contact_email,category,message,status,admin_note,photos,lat,lng,created_at")
-      .order("created_at", { ascending: false })
-      .limit(300);
-    if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as ReportRow[];
-  });
+export const listReports = createServerFn({ method: "GET" }).handler(async (): Promise<ReportRow[]> => {
+  await requireD1Admin();
+  const rows = await getD1().prepare("SELECT id,charger_id,charger_name,user_id,contact_email,category,message,status,admin_note,photos,lat,lng,created_at FROM charger_reports ORDER BY created_at DESC LIMIT 300").all<Record<string,unknown>>();
+  return (rows.results??[]).map(row=>({...row,photos:typeof row.photos==="string"?(()=>{try{return JSON.parse(row.photos as string);}catch{return [];}})():row.photos}) as ReportRow);
+});
 
 export const updateReportStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z
-      .object({
-        id: z.string().uuid(),
-        status: z.enum(["new", "seen", "in_progress", "resolved"]),
-        adminNote: z.string().max(2000).nullable().optional(),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { error } = await context.supabase
-      .from("charger_reports")
-      .update({ status: data.status, admin_note: data.adminNote ?? null })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+  .inputValidator((input: unknown) => z.object({
+    id:z.string().min(1).max(120), status:z.enum(["new","seen","in_progress","resolved"]),
+    adminNote:z.string().max(2000).nullable().optional(),
+  }).parse(input))
+  .handler(async ({data}) => {
+    const user=await requireD1Admin();
+    const result=await getD1().prepare("UPDATE charger_reports SET status=?,admin_note=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
+      .bind(data.status,data.adminNote??null,data.id).run();
+    if(!result.meta?.changes) throw new Error("Melding niet gevonden.");
+    await d1Audit(user.id,"report_status_update",1,{id:data.id,status:data.status});
+    return {ok:true};
   });
 
 /* ---------------- Cloudflare D1 admin API ---------------- */
@@ -504,79 +475,64 @@ export const adminDeleteVehicleModel = createServerFn({method:"POST"})
     return {ok:true};
   });
 
-export const adminListLanguages = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
-  await assertAdmin(context);
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin.from("languages").select("code,name,native_name,enabled,is_default,rtl,sort_order").order("sort_order").order("name");
-  if (error) throw new Error(error.message);
-  return data ?? [];
+export const adminListLanguages = createServerFn({method:"GET"}).handler(async()=>{
+  await requireD1Admin();
+  const rows=await getD1().prepare("SELECT code,name,native_name,enabled,is_default,rtl,sort_order FROM languages ORDER BY sort_order,name").all<Record<string,unknown>>();
+  return (rows.results??[]).map(r=>({...r,enabled:Number(r.enabled)===1,is_default:Number(r.is_default)===1,rtl:Number(r.rtl)===1}));
 });
-export const adminListTranslations = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ code: z.string().min(2).max(5) }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin.from("translations").select("id,lang_code,key,value").eq("lang_code",data.code).order("key");
-    if (error) throw new Error(error.message);
-    return rows ?? [];
+export const adminListTranslations = createServerFn({method:"GET"})
+  .inputValidator((input:unknown)=>z.object({code:z.string().min(2).max(5)}).parse(input))
+  .handler(async({data})=>{
+    await requireD1Admin();
+    const rows=await getD1().prepare("SELECT id,lang_code,key,value FROM translations WHERE lang_code=? ORDER BY key").bind(data.code).all();
+    return rows.results??[];
   });
-export const adminToggleLanguage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ code: z.string().min(2).max(5), enabled: z.boolean() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("languages").update({ enabled: data.enabled }).eq("code",data.code);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+export const adminToggleLanguage = createServerFn({method:"POST"})
+  .inputValidator((input:unknown)=>z.object({code:z.string().min(2).max(5),enabled:z.boolean()}).parse(input))
+  .handler(async({data})=>{
+    const user=await requireD1Admin();
+    const result=await getD1().prepare("UPDATE languages SET enabled=?,updated_at=CURRENT_TIMESTAMP WHERE code=?").bind(data.enabled?1:0,data.code).run();
+    if(!result.meta?.changes) throw new Error("Taal niet gevonden.");
+    await d1Audit(user.id,"language_toggle",1,{code:data.code,enabled:data.enabled});
+    return {ok:true};
   });
-export const adminSaveTranslation = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().optional(), lang_code: z.string().min(2).max(5), key: z.string().min(1).max(300), value: z.string().max(2000) }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    if (data.id) {
-      const { error } = await supabaseAdmin.from("translations").update({ value: data.value }).eq("id",data.id);
-      if (error) throw new Error(error.message);
-      return { id: data.id };
-    }
-    const { data: row, error } = await supabaseAdmin.from("translations").insert({ lang_code: data.lang_code, key: data.key, value: data.value }).select("id").single();
-    if (error) throw new Error(error.message);
-    return row;
+export const adminSaveTranslation = createServerFn({method:"POST"})
+  .inputValidator((input:unknown)=>z.object({id:z.string().optional(),lang_code:z.string().min(2).max(5),key:z.string().min(1).max(300),value:z.string().max(2000)}).parse(input))
+  .handler(async({data})=>{
+    const user=await requireD1Admin();
+    const id=data.id??crypto.randomUUID();
+    await getD1().prepare("INSERT INTO translations (id,lang_code,key,value,updated_at) VALUES (?,?,?,?,CURRENT_TIMESTAMP) ON CONFLICT(id) DO UPDATE SET value=excluded.value,updated_at=CURRENT_TIMESTAMP")
+      .bind(id,data.lang_code,data.key,data.value).run();
+    await d1Audit(user.id,"translation_save",1,{id,lang_code:data.lang_code,key:data.key});
+    return {id};
   });
 
-export const adminListChargerChanges = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ limit: z.number().int().min(1).max(300), from: z.string().optional(), to: z.string().optional() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    let query = supabaseAdmin.from("charger_changes").select("id,charger_id,charger_name,action,changed_fields,created_at").order("created_at", { ascending: false }).limit(data.limit * 3);
-    if (data.from) query = query.gte("created_at", data.from);
-    if (data.to) query = query.lte("created_at", data.to);
-    const { data: rows, error } = await query;
-    if (error) throw new Error(error.message);
-    return (rows ?? []).filter((row: any) => row.action !== "update" || !!row.changed_fields?.status).slice(0, data.limit);
+export const adminListChargerChanges = createServerFn({method:"GET"})
+  .inputValidator((input:unknown)=>z.object({limit:z.number().int().min(1).max(300),from:z.string().optional(),to:z.string().optional()}).parse(input))
+  .handler(async({data})=>{
+    await requireD1Admin();
+    const where:string[]=[];const values:unknown[]=[];
+    if(data.from){where.push("created_at>=?");values.push(data.from);}
+    if(data.to){where.push("created_at<=?");values.push(data.to);}
+    const sql="SELECT id,charger_id,charger_name,action,changed_fields,created_at FROM charger_changes "+(where.length?"WHERE "+where.join(" AND "):"")+" ORDER BY created_at DESC LIMIT ?";
+    const rows=await getD1().prepare(sql).bind(...values,data.limit*3).all<Record<string,unknown>>();
+    return (rows.results??[]).map(r=>({...r,changed_fields:typeof r.changed_fields==="string"?(()=>{try{return JSON.parse(r.changed_fields as string);}catch{return {};}})():r.changed_fields}))
+      .filter((r:any)=>r.action!=="update"||!!r.changed_fields?.status).slice(0,data.limit);
   });
-export const adminUpdateChargerChange = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120), charger_name: z.string().max(200), changed_fields: z.record(z.unknown()) }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("charger_changes").update({ charger_name: data.charger_name, changed_fields: data.changed_fields }).eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+export const adminUpdateChargerChange = createServerFn({method:"POST"})
+  .inputValidator((input:unknown)=>z.object({id:z.string().min(1).max(120),charger_name:z.string().max(200),changed_fields:z.record(z.unknown())}).parse(input))
+  .handler(async({data})=>{
+    const user=await requireD1Admin();
+    const result=await getD1().prepare("UPDATE charger_changes SET charger_name=?,changed_fields=? WHERE id=?").bind(data.charger_name,JSON.stringify(data.changed_fields),data.id).run();
+    if(!result.meta?.changes) throw new Error("Wijziging niet gevonden.");
+    await d1Audit(user.id,"charger_change_edit",1,{id:data.id});
+    return {ok:true};
   });
-export const adminDeleteChargerChange = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120) }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("charger_changes").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+export const adminDeleteChargerChange = createServerFn({method:"POST"})
+  .inputValidator((input:unknown)=>z.object({id:z.string().min(1).max(120)}).parse(input))
+  .handler(async({data})=>{
+    const user=await requireD1Admin();
+    await getD1().prepare("DELETE FROM charger_changes WHERE id=?").bind(data.id).run();
+    await d1Audit(user.id,"charger_change_delete",1,{id:data.id});
+    return {ok:true};
   });
