@@ -11,7 +11,7 @@ import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher } from "@/components/LanguageProvider";
-import { getMySavedRoute, saveMyRoute, getMyAccountSettings } from "@/lib/account.functions";
+import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite } from "@/lib/account.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
 
 const hasSupabaseBrowserConfig = Boolean(
@@ -193,6 +193,8 @@ function Index() {
   const [countryPricesOpen, setCountryPricesOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string; display_name: string | null; gender?: string | null } | null>(null);
+  const listFavoritesFn = useServerFn(listMyChargerFavorites);
+  const setFavoriteFn = useServerFn(setMyChargerFavorite);
   useEffect(() => {
     let active = true;
     void getCurrentUser().then((user) => {
@@ -222,7 +224,18 @@ function Index() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   useEffect(() => { try { const saved = JSON.parse(localStorage.getItem("teslanavigation:favorites") || "[]"); if (Array.isArray(saved)) setFavoriteChargerIds(saved.filter((x): x is string => typeof x === "string")); } catch { /* ignore invalid local preferences */ } }, []);
   useEffect(() => { try { localStorage.setItem("teslanavigation:favorites", JSON.stringify(favoriteChargerIds)); } catch { /* storage may be unavailable */ } }, [favoriteChargerIds]);
-  const toggleFavoriteCharger = (id: string) => setFavoriteChargerIds((old) => old.includes(id) ? old.filter((x) => x !== id) : [...old, id]);
+  useEffect(() => {
+    if (!currentUser) return;
+    let active = true;
+    void listFavoritesFn().then((ids) => { if (active) setFavoriteChargerIds((old) => Array.from(new Set([...old, ...ids]))); })
+      .catch(() => { /* local favourites remain available if the account service is offline */ });
+    return () => { active = false; };
+  }, [currentUser?.id, listFavoritesFn]);
+  const toggleFavoriteCharger = (id: string) => {
+    const favorite = !favoriteChargerIds.includes(id);
+    setFavoriteChargerIds((old) => favorite ? (old.includes(id) ? old : [...old, id]) : old.filter((x) => x !== id));
+    if (currentUser) void setFavoriteFn({ data: { charger_id: id, favorite } }).catch((error) => toast.error(error instanceof Error ? error.message : "Favoriet opslaan mislukt"));
+  };
   // Price alerts for favourite Superchargers: changes are detected on the next app refresh.
   useEffect(() => {
     if (isLoadingChargers || favoriteChargerIds.length === 0 || superchargers.length === 0) return;
