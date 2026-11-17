@@ -164,6 +164,7 @@ function Index() {
   const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
   const [avoidLowSpeed, setAvoidLowSpeed] = useState(false);
   const [avoidParkingFee, setAvoidParkingFee] = useState(false);
+  const [requireAccessibleStalls, setRequireAccessibleStalls] = useState(false);
   const [onlineTraffic, setOnlineTraffic] = useState(false);
   const [consumptionMode, setConsumptionMode] = useState<'auto' | 'manual'>('auto');
   const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(0);
@@ -1086,6 +1087,7 @@ function Index() {
       excludeParkingGarage: preferTrailerFriendly,
       avoidLowSpeed,
       avoidParkingFee,
+      requireWheelchairAccessible: requireAccessibleStalls,
       allowEurotunnel: folkestone && coquelles,
       consumptionMultiplier: elevation.multiplier,
       consumptionKWh100,
@@ -1186,7 +1188,7 @@ function Index() {
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
       whatIf,
     };
-  }, [departureDate, excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, maxDetourKm, maxDistanceBetweenStopsKm, defaultChargePauseMin, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode, activeVehicle]);
+  }, [departureDate, excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, maxDetourKm, maxDistanceBetweenStopsKm, defaultChargePauseMin, requireAccessibleStalls, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode, activeVehicle]);
 
   const applyPlan = useCallback((index: number, plan: RoutePlan) => {
     setSelectedRouteIndex(index);
@@ -1699,6 +1701,7 @@ function Index() {
               onMinChargerSpeedChange={setMinChargerSpeedKw}
               onAvoidLowSpeedChange={setAvoidLowSpeed}
               onAvoidParkingFeeChange={setAvoidParkingFee}
+              onRequireAccessibleStallsChange={setRequireAccessibleStalls}
               onOnlineTrafficChange={setOnlineTraffic}
               onManualRangeChange={setManualRangeKm}
               onManualSpeedChange={setManualSpeedKw}
@@ -1718,6 +1721,7 @@ function Index() {
               minChargerSpeedKw={minChargerSpeedKw}
               avoidLowSpeed={avoidLowSpeed}
               avoidParkingFee={avoidParkingFee}
+              requireAccessibleStalls={requireAccessibleStalls}
               onlineTraffic={onlineTraffic}
               consumptionMode={consumptionMode}
               onConsumptionModeChange={setConsumptionMode}
