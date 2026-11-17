@@ -56,6 +56,7 @@ interface EvMapProps {
   mapType?: "road" | "satellite";
   mapZoom?: number;
   statusColors?: Record<string, string>;
+  markerSize?: number;
 }
 
 
@@ -80,7 +81,7 @@ const waypointIcon = L.divIcon({
   iconAnchor: [14, 14],
 });
 
-function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = false, routeUsed = false, statusColorOverride?: string) {
+function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = false, routeUsed = false, statusColorOverride?: string, markerSize = 30) {
   // Kleurlogica ongewijzigd: groen = open, rood = gesloten (openingstijden/sluiting), grijs = niet beschikbaar.
   let color = '#22c55e'; // groen = open/beschikbaar
   if (status === 'Niet beschikbaar' || status === 'Langdurig gesloten') color = '#94a3b8'; // grijs
@@ -127,7 +128,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
     ? `<svg width="12" height="13" viewBox="0 0 24 24" fill="none" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);" xmlns="http://www.w3.org/2000/svg"><path d="M6 2h9l5 5v15H6z" fill="#fff"/><path d="M15 2v5h5" fill="#e9d5ff"/><path d="M9 12h8M9 15h8M9 18h5" stroke="#a855f7" stroke-width="1.6"/></svg>`
     : '';
 
-  const size = 30;
+  const size = Math.max(20, Math.min(48, markerSize));
   // Toon het aantal laadplekken dat volgens de admin daadwerkelijk beschikbaar is.
   const totalStalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
   const availableStalls = getOpenStalls(charger);
@@ -183,7 +184,7 @@ function groupChargerConfigs(configs: ChargerConfig[]): string[] {
   });
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, chargingStops = [], departure, modelName = 'Model 3 Long Range AWD', packKWh, carMaxKwOverride, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false, holidayPeriodMode = false, mapType = "satellite", mapZoom = 7, statusColors = {} }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, chargingStops = [], departure, modelName = 'Model 3 Long Range AWD', packKWh, carMaxKwOverride, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false, holidayPeriodMode = false, mapType = "satellite", mapZoom = 7, statusColors = {}, markerSize = 30 }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const baseTileRef = useRef<L.TileLayer | null>(null);
@@ -355,7 +356,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
         const status = getChargerStatus(charger);
         const isRouteStop = chargingStops.some((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
-        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? ""), isRouteStop, statusColors[status]) });
+        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? ""), isRouteStop, statusColors[status], markerSize) });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const usable = isChargerUsable(charger);
@@ -692,7 +693,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
       nextChargerMarkers.forEach((marker) => clusterRef.current?.addLayer(marker));
     }
     nextStandaloneMarkers.forEach((marker) => markersRef.current.addLayer(marker));
-  }, [startCoord, destCoord, superchargers, chargingStops, departure, modelName, packKWh, carMaxKwOverride, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode, holidayPeriodMode, statusColors]);
+  }, [startCoord, destCoord, superchargers, chargingStops, departure, modelName, packKWh, carMaxKwOverride, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode, holidayPeriodMode, statusColors, markerSize]);
 
   // Draai de kaart tijdens navigatie wanneer rijrichting boven is ingeschakeld.
   useEffect(() => {
