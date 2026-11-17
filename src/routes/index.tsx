@@ -43,7 +43,7 @@ import {
 } from "@/lib/tesla-types";
 import {
   getAvailableRange,
-  calculateChargingStops,
+  calculateChargingStopsWithAccessibilityPreference,
   calculateChargeDuration,
   parseMaxSpeed,
   effectiveChargeSpeedKw,
@@ -1098,10 +1098,10 @@ function Index() {
       preferNearestCharger: strictUnknownExclusionRef.current,
       departureTime: departureDate,
     };
-    let result = calculateChargingStops(base.route, calcOpts);
+    let result = calculateChargingStopsWithAccessibilityPreference(base.route, calcOpts);
     // "Liever niet hier laden": kan het niet anders, dan toch die lader gebruiken.
     if (result.unreachable && excludedChargerIds.length > 0 && !strictUnknownExclusionRef.current) {
-      const retry = calculateChargingStops(base.route, { ...calcOpts, excludeIds: [] });
+      const retry = calculateChargingStopsWithAccessibilityPreference(base.route, { ...calcOpts, excludeIds: [] });
       if (!retry.unreachable) {
         result = retry;
         toast.info("Zonder die Supercharger lukt de route niet — hij wordt toch gebruikt.");
@@ -1112,8 +1112,8 @@ function Index() {
       if (result.suggestions?.length) setRouteAdvice(result.suggestions);
       return null;
     }
-    const minus5Result = calculateChargingStops(base.route, { ...calcOpts, batteryPercent: Math.max(0, fromBattery - 5) });
-    const plus5Result = calculateChargingStops(base.route, { ...calcOpts, batteryPercent: Math.min(100, fromBattery + 5) });
+    const minus5Result = calculateChargingStopsWithAccessibilityPreference(base.route, { ...calcOpts, batteryPercent: Math.max(0, fromBattery - 5) });
+    const plus5Result = calculateChargingStopsWithAccessibilityPreference(base.route, { ...calcOpts, batteryPercent: Math.min(100, fromBattery + 5) });
     const whatIf = {
       minus5: { reachable: !minus5Result.unreachable, arrivalPercent: minus5Result.arrivalPercent, stops: minus5Result.stops.length },
       plus5: { reachable: !plus5Result.unreachable, arrivalPercent: plus5Result.arrivalPercent, stops: plus5Result.stops.length },
