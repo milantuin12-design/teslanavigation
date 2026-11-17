@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { User as UserIcon, LogOut, Shield, BookmarkCheck, LogIn, MessageSquare, Settings } from "lucide-react";
 import { AccountSettingsDialog } from "@/components/AccountSettingsDialog";
 
-type AccountUser = { id: string; email: string; display_name: string | null; is_admin: boolean };
+type AccountUser = { id: string; email: string; display_name: string | null; gender?: string | null; is_admin: boolean };
 
 export function AccountMenu() {
   const [user, setUser] = useState<AccountUser | null>(null);
@@ -57,7 +57,7 @@ export function AccountMenu() {
           <LogOut className="w-4 h-4 mr-2" /> Uitloggen
         </DropdownMenuItem>
       </DropdownMenuContent>
-      <AccountSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} onSaved={(displayName) => setUser((old) => old ? { ...old, display_name: displayName } : old)} />
+      <AccountSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} onSaved={(displayName) => { setUser((old) => old ? { ...old, display_name: displayName } : old); window.dispatchEvent(new CustomEvent("tn-profile-updated", { detail: { display_name: displayName } })); }} />
     </DropdownMenu>
   );
 }
