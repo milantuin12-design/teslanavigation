@@ -384,6 +384,43 @@ function Index() {
 
   useEffect(() => { const handler = (event: Event) => { const id = (event as CustomEvent<{ id: string }>).detail?.id; if (id) toggleFavoriteCharger(id); }; window.addEventListener("sc-favorite", handler); return () => window.removeEventListener("sc-favorite", handler); }, []);
 
+  // Persoonlijke notitie per Supercharger (opgeslagen op het account in D1).
+  useEffect(() => {
+    const handler = async (event: Event) => {
+      const id = (event as CustomEvent<{ id: string }>).detail?.id;
+      if (!id) return;
+      try {
+        const existing = await getMyChargerNote({ data: { charger_id: id } });
+        const note = window.prompt("Persoonlijke notitie voor deze Supercharger (leegmaken verwijdert de tekst):", existing);
+        if (note === null) return;
+        await saveMyChargerNote({ data: { charger_id: id, note } });
+        toast.success(note.trim() ? "Notitie opgeslagen" : "Notitie leeggemaakt");
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Notitie opslaan mislukt");
+      }
+    };
+    window.addEventListener("sc-note", handler);
+    return () => window.removeEventListener("sc-note", handler);
+  }, []);
+
+  // Eigen label per Supercharger (bijv. 'overnachting' of 'met aanhanger').
+  useEffect(() => {
+    const handler = async (event: Event) => {
+      const id = (event as CustomEvent<{ id: string }>).detail?.id;
+      if (!id) return;
+      const label = window.prompt("Eigen label voor deze Supercharger (leegmaken verwijdert het label):");
+      if (label === null) return;
+      try {
+        await setMyChargerLabel({ data: { charger_id: id, label: label.trim(), color: null } });
+        toast.success(label.trim() ? "Eigen label opgeslagen" : "Eigen label verwijderd");
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Label opslaan mislukt");
+      }
+    };
+    window.addEventListener("sc-label", handler);
+    return () => window.removeEventListener("sc-label", handler);
+  }, []);
+
   // Meldknop in de kaart-popup
   useEffect(() => {
     const handler = (event: Event) => {
