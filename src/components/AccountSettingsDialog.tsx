@@ -85,6 +85,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
         },
       } });
       onSaved(settings.display_name.trim() || null, settings.gender);
+      window.dispatchEvent(new CustomEvent("tn-preferences-updated", { detail: settings.preferences }));
       toast.success("Accountinstellingen opgeslagen");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Opslaan mislukt");
