@@ -35,6 +35,7 @@ const accountSettingsSchema = z.object({
     theme: z.enum(["light", "dark", "system"]).optional(),
     map_type: z.enum(["road", "satellite"]).optional(),
     map_zoom: z.number().int().min(3).max(18).optional(),
+    map_marker_size: z.number().int().min(20).max(48).optional(),
     remembered_countries: z.array(z.string().max(80)).max(100).optional(),
     map_filters: z.record(z.unknown()).optional(),
     status_colors: z.record(z.string().regex(/^#[0-9a-fA-F]{6}$/)).optional(),
