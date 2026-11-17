@@ -82,6 +82,9 @@ const waypointIcon = L.divIcon({
 });
 
 function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = false, routeUsed = false, statusColorOverride?: string, markerSize = 30) {
+  const accessibleBadge = charger.construction?.wheelchairAccessible
+    ? `<span title="Invalidenplek aanwezig" aria-label="Invalidenplek aanwezig" style="position:absolute;right:-6px;top:-6px;width:18px;height:18px;border-radius:50%;background:#2563eb;border:1.5px solid #fff;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:3;">♿</span>`
+    : '';
   // Kleurlogica ongewijzigd: groen = open, rood = gesloten (openingstijden/sluiting), grijs = niet beschikbaar.
   let color = '#22c55e'; // groen = open/beschikbaar
   if (status === 'Niet beschikbaar' || status === 'Langdurig gesloten') color = '#94a3b8'; // grijs
@@ -133,9 +136,6 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   const totalStalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
   const availableStalls = getOpenStalls(charger);
   const badges: string[] = [];
-  if (charger.construction?.wheelchairAccessible) {
-    badges.push(`<div title="Invalidenplek aanwezig" aria-label="Invalidenplek aanwezig" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#2563eb;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;line-height:1;z-index:3;">♿</div>`);
-  }
   if (hasOpenWorks) {
     badges.push(`<div style="position:absolute;top:-3px;left:-3px;width:14px;height:14px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&#10003;</div>`);
   }
@@ -155,7 +155,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
       <div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};${ringStyle}${isFavorite ? "outline:3px solid #fbbf24;outline-offset:3px;" : ""}box-shadow:0 3px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
         <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${wrenchGlyph || (totalStalls > 0 ? availableStalls : '')}</div>
       </div>
-      ${badges.join('')}
+      ${badges.join('')}${accessibleBadge}
     </div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
