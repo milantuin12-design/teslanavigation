@@ -6,7 +6,6 @@ import { lifecycleLabels } from "@/lib/tesla-utils";
 
 // 'plan' is hier definitief verwijderd
 const STATUS_ORDER: ChargerLifecycleStatus[] = [
-  "voting",
   "permit",
   "construction",
   "operational",
@@ -43,7 +42,7 @@ export default function ChargerFilters({ filters, onChange, chargers, visibleCou
   const availableStatuses = useMemo(() => {
     const counts: Partial<Record<ChargerLifecycleStatus, number>> = {};
     for (const c of chargers) {
-      if (c.status && c.status !== "plan") {
+      if (c.status && c.status !== "plan" && c.status !== "voting") {
         counts[c.status] = (counts[c.status] || 0) + 1;
       }
     }
