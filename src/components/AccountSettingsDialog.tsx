@@ -40,7 +40,7 @@ type Preferences = {
 };
 type Settings = { email: string; display_name: string; gender: Gender; preferences: Preferences };
 type Vehicle = {
-  id: string; name: string; model_name: string; model_year?: number | null;
+  id: string; name: string; model_name: string; model_year?: number | null; image_url?: string | null;
   battery_kwh?: number | null; summer_consumption_kwh100?: number | null;
   winter_consumption_kwh100?: number | null; max_charge_kw?: number | null;
   arrival_percent: number; trailer_enabled: boolean; trailer_consumption_increase_percent: number;
@@ -78,7 +78,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
 }) {
   const [settings, setSettings] = useState<Settings>(defaults);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [vehicleDraft, setVehicleDraft] = useState({ name: "", model_name: "", model_year: "2025", battery_kwh: "75", summer_consumption_kwh100: "17", winter_consumption_kwh100: "22", max_charge_kw: "250", arrival_percent: "10", trailer_enabled: false, trailer_consumption_increase_percent: "20", battery_health_percent: "100", roof_or_rack_extra_percent: "0", winter_tires_extra_percent: "0", is_default: true });
+  const [vehicleDraft, setVehicleDraft] = useState({ name: "", model_name: "", model_year: "2025", image_url: "", battery_kwh: "75", summer_consumption_kwh100: "17", winter_consumption_kwh100: "22", max_charge_kw: "250", arrival_percent: "10", trailer_enabled: false, trailer_consumption_increase_percent: "20", battery_health_percent: "100", roof_or_rack_extra_percent: "0", winter_tires_extra_percent: "0", is_default: true });
   const [routeProfiles, setRouteProfiles] = useState<RouteProfile[]>([]);
   const [profileName, setProfileName] = useState("");
   const [chargingSessions, setChargingSessions] = useState<ChargingSession[]>([]);
@@ -152,7 +152,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
     try {
       await saveVehicleFn({ data: {
         name: vehicleDraft.name.trim(), model_name: vehicleDraft.model_name.trim(),
-        model_year: Number(vehicleDraft.model_year), battery_kwh: Number(vehicleDraft.battery_kwh),
+        model_year: Number(vehicleDraft.model_year), image_url: vehicleDraft.image_url.trim() || null, battery_kwh: Number(vehicleDraft.battery_kwh),
         summer_consumption_kwh100: Number(vehicleDraft.summer_consumption_kwh100),
         winter_consumption_kwh100: Number(vehicleDraft.winter_consumption_kwh100),
         max_charge_kw: Number(vehicleDraft.max_charge_kw), arrival_percent: Number(vehicleDraft.arrival_percent),
@@ -226,12 +226,13 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
         <section className={sectionClass}>
           <h3 className="font-semibold">Voertuigen</h3>
           {vehicles.map(v=><div key={v.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-700 p-3">
-            <div className="min-w-0"><p className="font-medium">{v.name}{v.is_default ? " · Standaard" : ""}</p><p className="text-xs text-slate-400">{v.model_name} · {v.model_year ?? "jaar onbekend"} · zomer {v.summer_consumption_kwh100 ?? "—"} / winter {v.winter_consumption_kwh100 ?? "—"} kWh/100 km</p></div>
+            <div className="flex min-w-0 items-center gap-2">{v.image_url && <img src={v.image_url} alt="" className="h-10 w-14 rounded object-cover"/>}<div><p className="font-medium">{v.name}{v.is_default ? " · Standaard" : ""}</p><p className="text-xs text-slate-400">{v.model_name} · {v.model_year ?? "jaar onbekend"} · zomer {v.summer_consumption_kwh100 ?? "—"} / winter {v.winter_consumption_kwh100 ?? "—"} kWh/100 km</p></div></div>
             <Button variant="outline" size="sm" className="border-slate-600" onClick={()=>void removeVehicle(v.id)}>Verwijderen</Button>
           </div>)}
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelClass}>Naam voertuig</label><Input value={vehicleDraft.name} onChange={e=>setVehicleDraft(v=>({...v,name:e.target.value}))} placeholder="Mijn Model Y" className="bg-slate-800 border-slate-700" /></div>
             <div><label className={labelClass}>Model / uitvoering</label><Input value={vehicleDraft.model_name} onChange={e=>setVehicleDraft(v=>({...v,model_name:e.target.value}))} placeholder="Model Y Long Range AWD" className="bg-slate-800 border-slate-700" /></div>
+            <div className="col-span-2"><label className={labelClass}>Afbeeldings-URL van je Tesla (optioneel)</label><Input value={vehicleDraft.image_url} onChange={e=>setVehicleDraft(v=>({...v,image_url:e.target.value}))} placeholder="https://…" className="bg-slate-800 border-slate-700" /></div>
             {(["model_year","battery_kwh","summer_consumption_kwh100","winter_consumption_kwh100","max_charge_kw","arrival_percent","trailer_consumption_increase_percent","battery_health_percent","roof_or_rack_extra_percent","winter_tires_extra_percent"] as const).map(k=><div key={k}><label className={labelClass}>{{model_year:"Bouwjaar",battery_kwh:"Accu (kWh)",summer_consumption_kwh100:"Zomerverbruik (kWh/100 km)",winter_consumption_kwh100:"Winterverbruik (kWh/100 km)",max_charge_kw:"Max. laadsnelheid (kW)",arrival_percent:"Aankomstpercentage (%)",trailer_consumption_increase_percent:"Extra verbruik aanhanger (%)",battery_health_percent:"Accugezondheid (%)",roof_or_rack_extra_percent:"Extra verbruik dakdrager (%)",winter_tires_extra_percent:"Extra verbruik winterbanden (%)"}[k]}</label><Input type="number" value={vehicleDraft[k]} onChange={e=>setVehicleDraft(v=>({...v,[k]:e.target.value}))} className="bg-slate-800 border-slate-700" /></div>)}
           </div>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={vehicleDraft.trailer_enabled} onChange={e=>setVehicleDraft(v=>({...v,trailer_enabled:e.target.checked}))}/> Aanhangermodus standaard aan</label>
