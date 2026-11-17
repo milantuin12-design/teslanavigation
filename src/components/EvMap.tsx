@@ -387,6 +387,10 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
           }).join('')}</div>`;
         }
 
+        if (charger.construction?.customLabel) {
+          popup += `<div style="margin-top:5px;padding:3px 7px;display:inline-block;border-radius:5px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;">${escapeHtml(charger.construction.customLabel)}</div>`;
+        }
+
         if (charger.ownerName) {
           popup += `<button type="button" data-owner-id="${escapeHtml(charger.ownerId ?? '')}" style="margin-top:4px;display:flex;align-items:center;gap:6px;color:#1d4ed8;font-weight:600;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;">`;
           if (charger.ownerLogoUrl) {
