@@ -345,37 +345,35 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
   }
 );
 
-/** Importeert een eerder geëxporteerde back-up. Voegt toe en werkt bij, verwijdert nooit. */
+/** Additieve D1-import: werkt bestaande Superchargers bij en verwijdert nooit gegevens. */
 export const importSuperchargers = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ chargers: z.array(z.record(z.unknown())).min(1).max(20000) }).parse(input)
-  )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const allowed = new Set(SELECT_COLS.split(","));
-    const rows = data.chargers
-      .map((raw) => {
-        const row: Record<string, unknown> = {};
-        for (const [key, value] of Object.entries(raw)) {
-          if (allowed.has(key) && value !== undefined) row[key] = value;
-        }
-        if (!row.id) row.id = crypto.randomUUID();
-        if (!row.data_source) row.data_source = "manual";
-        return row;
-      })
-      .filter((row) => typeof row.name === "string" && typeof row.lat === "number" && typeof row.lng === "number");
-
+  .inputValidator((input: unknown) => z.object({ chargers: z.array(z.record(z.unknown())).min(1).max(20000) }).parse(input))
+  .handler(async ({ data }) => {
+    const user = await (await import("./auth-d1.server")).getCurrentD1User();
+    if (!user?.is_admin) throw new Error("Alleen een ingelogde beheerder mag Superchargers importeren.");
+    const { getD1 } = await import("./d1.server");
+    const allowed = new Set(SELECT_COLS.split(",").concat(["notes","hidden","photos","price_blocks","parking_blocks","occupied_stalls","last_updated","updated_at","voting"]));
+    const jsonColumns = new Set(["versions","opening_hours","charger_configs","construction","works","closure","planned_upgrade","stall_states","traffic_forecast","photos","price_blocks","parking_blocks","voting"]);
+    const db = getD1();
     let imported = 0;
-    for (let i = 0; i < rows.length; i += 500) {
-      const batch = rows.slice(i, i + 500);
-      const { error } = await supabaseAdmin
-        .from("superchargers")
-        .upsert(batch as never, { onConflict: "id" });
-      if (error) throw new Error(error.message);
-      imported += batch.length;
+    for (let i=0;i<data.chargers.length;i+=100) {
+      const statements = data.chargers.slice(i,i+100).map(raw => {
+        const row:Record<string,unknown>={};
+        for(const [key,value] of Object.entries(raw)) if(allowed.has(key)&&value!==undefined) {
+          row[key]=jsonColumns.has(key)&&value!==null&&typeof value!=="string"?JSON.stringify(value):typeof value==="boolean"?(value?1:0):value;
+        }
+        if(!row.id) row.id=crypto.randomUUID();
+        if(!row.data_source) row.data_source="manual";
+        if(typeof row.name!=="string"||typeof row.lat!=="number"||typeof row.lng!=="number"||typeof row.country!=="string") return null;
+        const entries=Object.entries(row); const columns=entries.map(([k])=>k);
+        const updates=columns.filter(k=>k!=="id").map(k=>`${k}=excluded.${k}`).join(",");
+        return db.prepare(`INSERT INTO superchargers (${columns.join(",")}) VALUES (${columns.map(()=>"?").join(",")}) ON CONFLICT(id) DO UPDATE SET ${updates||"id=excluded.id"}`)
+          .bind(...entries.map(([k,v])=>v));
+      }).filter((x):x is NonNullable<typeof x>=>x!==null);
+      if(statements.length) { await db.batch(statements); imported+=statements.length; }
     }
+    await db.prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
+      .bind(crypto.randomUUID(),user.id,"supercharger_import",imported,JSON.stringify({source:"admin-import"})).run();
     return { imported };
   });
 
