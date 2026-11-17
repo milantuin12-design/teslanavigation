@@ -18,9 +18,9 @@ const accountSettingsSchema = z.object({
     consumption_kwh100: z.number().min(1).max(100).nullable().optional(),
     notifications: z.object({
       favorite_status: z.boolean().default(true),
-      price_changes: z.boolean().default(false),
+      price_changes: z.boolean().default(true),
       new_locations: z.boolean().default(false),
-    }).default({ favorite_status: true, price_changes: false, new_locations: false }),
+    }).default({ favorite_status: true, price_changes: true, new_locations: false }),
     map: z.object({
       show_development_chargers: z.boolean().default(false),
       remember_filters: z.boolean().default(true),
