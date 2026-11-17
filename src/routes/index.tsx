@@ -11,7 +11,7 @@ import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher, changeLanguage } from "@/components/LanguageProvider";
-import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, getMyChargerNote, saveMyChargerNote, setMyChargerLabel, createMyNotificationEvent } from "@/lib/account.functions";
+import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, getMyChargerNote, saveMyChargerNote, setMyChargerLabel, createMyNotificationEvent, listMyVehicles } from "@/lib/account.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
 
 const hasSupabaseBrowserConfig = Boolean(
@@ -133,6 +133,8 @@ function estimateRouteCost(plan: RoutePlan, departure: Date, modelName: string, 
   return Number.isFinite(total) ? total : null;
 }
 
+type SavedVehicle = { id: string; name: string; model_name: string; model_year?: number | null; battery_kwh?: number | null; summer_consumption_kwh100?: number | null; winter_consumption_kwh100?: number | null; max_charge_kw?: number | null; arrival_percent: number; trailer_enabled: boolean; trailer_consumption_increase_percent: number; battery_health_percent?: number | null; roof_or_rack_extra_percent?: number; winter_tires_extra_percent?: number; is_default: boolean };
+
 const OFF_ROUTE_KM_THRESHOLD = 0.2; // 200m
 const OFF_ROUTE_PERSIST_MS = 8000; // off-route for 8s before rerouting
 
@@ -144,10 +146,14 @@ function Index() {
   const [preferTrailerFriendly, setPreferTrailerFriendly] = useState(false);
 
   const [selectedModel, setSelectedModel] = useState("Model 3 Long Range AWD");
+  const [savedVehicles, setSavedVehicles] = useState<SavedVehicle[]>([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState("");
+  const activeVehicle = savedVehicles.find((vehicle) => vehicle.id === selectedVehicleId) ?? null;
   const [manualRangeKm, setManualRangeKm] = useState(400);
   const [manualSpeedKw, setManualSpeedKw] = useState(250);
-  const carMaxKwOverride = selectedModel === "Handmatig" ? manualSpeedKw : undefined;
-  const packKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
+  const carMaxKwOverride = activeVehicle?.max_charge_kw ?? (selectedModel === "Handmatig" ? manualSpeedKw : undefined);
+  const vehicleBatteryHealth = Math.max(40, Math.min(100, activeVehicle?.battery_health_percent ?? 100)) / 100;
+  const packKWh = activeVehicle?.battery_kwh ? activeVehicle.battery_kwh * vehicleBatteryHealth : (selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79));
   const [batteryPercent, setBatteryPercent] = useState(80);
   const [targetArrivalPercent, setTargetArrivalPercent] = useState(10);
   const [chargeTargetPercent, setChargeTargetPercent] = useState(80);
@@ -162,6 +168,16 @@ function Index() {
   const [consumptionMode, setConsumptionMode] = useState<'auto' | 'manual'>('auto');
   const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(0);
   const [modelYear, setModelYear] = useState<number>(2022);
+  const applySavedVehicle = (vehicle: SavedVehicle) => {
+    setSelectedVehicleId(vehicle.id);
+    if (Object.prototype.hasOwnProperty.call(teslaModels, vehicle.model_name)) setSelectedModel(vehicle.model_name);
+    if (vehicle.model_year) setModelYear(vehicle.model_year);
+    const seasonalConsumption = weatherMode === "winter" ? vehicle.winter_consumption_kwh100 : vehicle.summer_consumption_kwh100;
+    if (seasonalConsumption && seasonalConsumption > 0) { setManualConsumptionKWh100(seasonalConsumption); setConsumptionMode("manual"); }
+    setTargetArrivalPercent(vehicle.arrival_percent ?? 10);
+    setTrailerEnabled(!!vehicle.trailer_enabled);
+    setTrailerReductionPercent((vehicle.trailer_consumption_increase_percent ?? 0) + (vehicle.roof_or_rack_extra_percent ?? 0) + (vehicle.winter_tires_extra_percent ?? 0));
+  };
   const [tripDate, setTripDate] = useState<string>("");
   const [departTime, setDepartTime] = useState<string>("");
   const [elevProfile, setElevProfile] = useState<number[] | null>(null);
@@ -193,6 +209,19 @@ function Index() {
   const [countryPricesOpen, setCountryPricesOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string; display_name: string | null; gender?: string | null } | null>(null);
+  const listVehiclesFn = useServerFn(listMyVehicles);
+  useEffect(() => {
+    if (!currentUser) { setSavedVehicles([]); setSelectedVehicleId(""); return; }
+    let active = true;
+    void listVehiclesFn().then((vehicles) => {
+      if (!active) return;
+      const list = vehicles as SavedVehicle[];
+      setSavedVehicles(list);
+      const preferred = list.find((vehicle) => vehicle.is_default) ?? list[0];
+      if (preferred) applySavedVehicle(preferred);
+    }).catch(() => { /* saved vehicles are optional */ });
+    return () => { active = false; };
+  }, [currentUser?.id]);
   useEffect(() => {
     let active = true;
     void getCurrentUser().then((user) => {
@@ -917,7 +946,7 @@ function Index() {
     return unique.sort((a, b) => a.route.totalDistanceKm - b.route.totalDistanceKm).slice(0, 5);
   }, []);
 
-  const batteryCapacityOverride = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined;
+  const batteryCapacityOverride = activeVehicle?.battery_kwh ? activeVehicle.battery_kwh * vehicleBatteryHealth : (selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined);
 
   /** Berekent voor één routegeometrie de laadstops op basis van de ingevulde percentages. */
   const buildPlan = useCallback(async (
@@ -992,9 +1021,12 @@ function Index() {
       elevationMultiplier: elevation.multiplier,
       weather,
     });
-    const consumptionKWh100 = consumptionMode === 'manual' && manualConsumptionKWh100 > 0
-      ? Math.max(9, Math.min(60, manualConsumptionKWh100))
-      : auto.kWh100;
+    const vehicleSeasonalConsumption = activeVehicle ? (weatherMode === "winter" ? activeVehicle.winter_consumption_kwh100 : activeVehicle.summer_consumption_kwh100) : null;
+    const vehicleExtraPercent = activeVehicle ? (activeVehicle.roof_or_rack_extra_percent ?? 0) + (activeVehicle.winter_tires_extra_percent ?? 0) : 0;
+    const baseConsumptionKWh100 = vehicleSeasonalConsumption && vehicleSeasonalConsumption > 0
+      ? vehicleSeasonalConsumption
+      : consumptionMode === 'manual' && manualConsumptionKWh100 > 0 ? Math.max(9, Math.min(60, manualConsumptionKWh100)) : auto.kWh100;
+    const consumptionKWh100 = baseConsumptionKWh100 * (1 + vehicleExtraPercent / 100);
     setAutoConsumption(auto.kWh100);
     setAutoConsumptionState(auto.kWh100);
     setRouteWeather(weather);
@@ -1634,13 +1666,14 @@ function Index() {
               </div>
             )}
             {(!route || showRouteInputs) && <>
+{savedVehicles.length > 0 && <div className="px-4 pt-3"><label className="mb-1 block text-xs font-medium text-slate-400">Voertuigprofiel</label><select value={selectedVehicleId} onChange={(event) => { const id = event.target.value; setSelectedVehicleId(id); const vehicle = savedVehicles.find((item) => item.id === id); if (vehicle) applySavedVehicle(vehicle); }} className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"><option value="">Gebruik standaard modelkeuze</option>{savedVehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.name}{vehicle.is_default ? " · standaard" : ""}</option>)}</select></div>}
 <InputPanel
               prefill={prefill}
               onStartChange={setStartCoord}
               onDestChange={setDestCoord}
               onWaypointsChange={setWaypoints}
               superchargers={superchargers}
-              onModelChange={setSelectedModel}
+              onModelChange={(model) => { setSelectedVehicleId(""); setSelectedModel(model); }}
               onBatteryChange={setBatteryPercent}
               onArrivalTargetChange={setTargetArrivalPercent}
               onChargeTargetChange={setChargeTargetPercent}
