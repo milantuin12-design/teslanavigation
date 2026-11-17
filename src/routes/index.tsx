@@ -424,6 +424,7 @@ function Index() {
       setNotifyStatusChanges(prefs.notifications?.status_changes ?? true);
       if (prefs.map_type) setMapType(prefs.map_type);
       if (typeof prefs.map_zoom === "number") setMapZoom(Math.max(3, Math.min(18, prefs.map_zoom)));
+      if (typeof prefs.map_marker_size === "number") setMapMarkerSize(Math.max(20, Math.min(48, prefs.map_marker_size)));
       if (prefs.status_colors) setStatusColors(prefs.status_colors);
       if (prefs.route_preferences?.priority) setPreferredRoutePriority(prefs.route_preferences.priority);
       if (typeof prefs.route_preferences?.min_charger_kw === "number") setMinChargerSpeedKw(prefs.route_preferences.min_charger_kw);
