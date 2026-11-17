@@ -105,7 +105,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
       : '';
     return L.divIcon({
       className: 'custom-marker',
-      html: `<div style="position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center;"><div style="width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:${dotColor};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>${snowBadge}</div>`,
+      html: `<div style="position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center;"><div style="width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:${dotColor};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>${snowBadge}${accessibleBadge}</div>`,
       iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9],
     });
   }
@@ -133,17 +133,20 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   const totalStalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
   const availableStalls = getOpenStalls(charger);
   const badges: string[] = [];
+  if (charger.construction?.wheelchairAccessible) {
+    badges.push(`<div title="Invalidenplek aanwezig" aria-label="Invalidenplek aanwezig" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#2563eb;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;line-height:1;z-index:3;">♿</div>`);
+  }
   if (hasOpenWorks) {
-    badges.push(`<div style="position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&#10003;</div>`);
+    badges.push(`<div style="position:absolute;top:-3px;left:-3px;width:14px;height:14px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&#10003;</div>`);
   }
   if (hasClosedWorks) {
-    badges.push(`<div style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#dc2626;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&times;</div>`);
+    badges.push(`<div style="position:absolute;top:-3px;left:-3px;width:13px;height:13px;border-radius:50%;background:#dc2626;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&times;</div>`);
   }
   if (charger.winterSportsMode && isSnowRegion(charger)) {
     badges.push(`<div title="Wintersportgebied" style="position:absolute;top:-5px;left:-5px;width:15px;height:15px;border-radius:50%;background:#e0f2fe;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#0369a1;font-size:10px;line-height:1;">❄</div>`);
   }
   if (isLowSpeed) {
-    badges.push(`<div style="position:absolute;bottom:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#0f172a;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fbbf24;font-size:9px;line-height:1;">&#9660;</div>`);
+    badges.push(`<div style="position:absolute;bottom:-3px;left:-3px;width:13px;height:13px;border-radius:50%;background:#0f172a;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fbbf24;font-size:9px;line-height:1;">&#9660;</div>`);
   }
 
   return L.divIcon({
@@ -520,6 +523,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
         const extras: string[] = [];
         if (charger.trailerFriendly) extras.push('Aanhangervriendelijk');
+        if (charger.construction?.wheelchairAccessible) extras.push('♿ Invalidenplek aanwezig');
         if (charger.inParkingGarage) extras.push('In parkeergarage');
         if (charger.parkingFee) extras.push('Parkeergeld verplicht');
         if (extras.length > 0) {
