@@ -136,6 +136,8 @@ export interface ConstructionInfo {
   siteAmenities?: string[];
   /** Admin-geverifieerde invalidenparkeerplek bij de Supercharger. */
   wheelchairAccessible?: boolean;
+  /** Vrij eigen label voor deze Supercharger; opgeslagen in construction JSON. */
+  customLabel?: string;
 }
 
 
