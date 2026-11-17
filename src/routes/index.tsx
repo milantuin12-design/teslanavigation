@@ -11,7 +11,7 @@ import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher, changeLanguage } from "@/components/LanguageProvider";
-import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, getMyChargerNote, saveMyChargerNote, setMyChargerLabel, createMyNotificationEvent, listMyVehicles } from "@/lib/account.functions";
+import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, createMyNotificationEvent, listMyVehicles } from "@/lib/account.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
 
 const hasSupabaseBrowserConfig = Boolean(
