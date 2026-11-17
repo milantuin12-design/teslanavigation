@@ -109,7 +109,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
     return () => { active = false; };
   }, [open, listVehiclesFn]);
 
-  const setPref = <K extends keyof Preferences>(key: K, value: Preferences[K]) =>
+  const setPref = <K extends keyof Preferences,>(key: K, value: Preferences[K]) =>
     setSettings(old => ({ ...old, preferences: { ...old.preferences, [key]: value } }));
   const setNested = (section: "notifications" | "map" | "route_preferences" | "status_colors", key: string, value: unknown) =>
     setSettings(old => ({ ...old, preferences: { ...old.preferences, [section]: { ...((old.preferences[section] ?? {}) as object), [key]: value } } }));
