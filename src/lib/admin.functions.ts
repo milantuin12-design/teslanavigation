@@ -441,6 +441,20 @@ export const adminSetUserBlocked = createServerFn({ method: "POST" })
     return {ok:true};
   });
 
+/* Public read-only catalogue used by the route planner; edits remain admin-only. */
+export const listPublishedVehicleModels = createServerFn({method:"GET"}).handler(async()=>{
+  const rows=await getD1().prepare("SELECT id,brand,model,trim,battery_kwh,usable_kwh,range_km,consumption_kwh100,winter_consumption_kwh100,year_from,year_to,max_charge_kw,connectors,image_url,notes,published FROM vehicle_models WHERE published=1 ORDER BY brand,model,year_from,trim").all<Record<string,unknown>>();
+  return (rows.results??[]).map((row)=>({
+    id:String(row.id),brand:String(row.brand??"Tesla"),model:String(row.model),trim:row.trim==null?null:String(row.trim),
+    batteryKWh:row.battery_kwh==null?null:Number(row.battery_kwh),usableKWh:row.usable_kwh==null?null:Number(row.usable_kwh),
+    rangeKm:row.range_km==null?null:Number(row.range_km),consumptionKWh100:row.consumption_kwh100==null?null:Number(row.consumption_kwh100),
+    winterConsumptionKWh100:row.winter_consumption_kwh100==null?null:Number(row.winter_consumption_kwh100),
+    yearFrom:row.year_from==null?null:Number(row.year_from),yearTo:row.year_to==null?null:Number(row.year_to),
+    maxChargeKw:row.max_charge_kw==null?null:Number(row.max_charge_kw),
+    connectors:Array.isArray(row.connectors)?row.connectors:(typeof row.connectors==="string"?JSON.parse(row.connectors):["Type 2","CCS"]),
+    imageUrl:row.image_url==null?null:String(row.image_url),notes:row.notes==null?null:String(row.notes),published:true,
+  }));
+});
 /* Admin-managed vehicle catalogue: year-specific variants drive the user's vehicle defaults. */
 export const adminListVehicleModels = createServerFn({method:"GET"}).handler(async()=>{
   await requireD1Admin();
