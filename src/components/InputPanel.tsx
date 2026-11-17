@@ -62,6 +62,7 @@ interface InputPanelProps {
   onMinChargerSpeedChange: (kw: number) => void;
   onAvoidLowSpeedChange: (value: boolean) => void;
   onAvoidParkingFeeChange: (value: boolean) => void;
+  onRequireAccessibleStallsChange: (value: boolean) => void;
   onOnlineTrafficChange: (value: boolean) => void;
   onManualRangeChange?: (km: number) => void;
   onManualSpeedChange?: (kw: number) => void;
@@ -80,6 +81,7 @@ interface InputPanelProps {
   minChargerSpeedKw: number;
   avoidLowSpeed: boolean;
   avoidParkingFee: boolean;
+  requireAccessibleStalls: boolean;
   onlineTraffic: boolean;
   manualRangeKm?: number;
   manualSpeedKw?: number;
@@ -267,6 +269,7 @@ export default function InputPanel({
   onMinChargerSpeedChange,
   onAvoidLowSpeedChange,
   onAvoidParkingFeeChange,
+  onRequireAccessibleStallsChange,
   onOnlineTrafficChange,
   onManualRangeChange,
   onManualSpeedChange,
@@ -288,6 +291,7 @@ export default function InputPanel({
   minChargerSpeedKw,
   avoidLowSpeed,
   avoidParkingFee,
+  requireAccessibleStalls,
   onlineTraffic,
   manualRangeKm = 400,
   manualSpeedKw = 250,
@@ -1021,6 +1025,10 @@ export default function InputPanel({
             <label className="mt-1.5 flex items-center gap-2 text-xs text-slate-300">
               <input type="checkbox" checked={avoidParkingFee} onChange={(e) => onAvoidParkingFeeChange(e.target.checked)} className="accent-blue-500" />
               Parkeerkosten vermijden
+            </label>
+            <label className="mt-1.5 flex items-center gap-2 text-xs text-slate-300">
+              <input type="checkbox" checked={requireAccessibleStalls} onChange={(e) => onRequireAccessibleStallsChange(e.target.checked)} className="accent-blue-500" />
+              Alleen Superchargers met invalidenplek
             </label>
           </div>
 
