@@ -50,6 +50,7 @@ interface InputPanelProps {
   onDestChange: (coord: { lat: number; lng: number } | null) => void;
   onWaypointsChange: (waypoints: PlannedWaypoint[]) => void;
   superchargers: Supercharger[];
+  vehicleModels: VehicleModel[];
   onModelChange: (model: string) => void;
   onBatteryChange: (pct: number) => void;
   onArrivalTargetChange: (pct: number) => void;
@@ -259,6 +260,7 @@ export default function InputPanel({
   onDestChange,
   onWaypointsChange,
   superchargers,
+  vehicleModels,
   onModelChange,
   onBatteryChange,
   onArrivalTargetChange,
@@ -349,7 +351,9 @@ export default function InputPanel({
     setStartInput(prefill.start);
     setDestInput(prefill.dest);
   }, [prefill]);
-  const minYear = minYearForModel(selectedModel);
+  const selectedVariant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === selectedModel) ?? null;
+  const minYear = selectedVariant?.yearFrom ?? minYearForModel(selectedModel);
+  const maxYear = selectedVariant?.yearTo ?? 2026;
   useEffect(() => {
     if (modelYear < minYear) onModelYearChange(minYear);
   }, [modelYear, minYear, onModelYearChange]);
@@ -684,7 +688,12 @@ export default function InputPanel({
             </label>
             <select
               value={selectedModel}
-              onChange={e => onModelChange(e.target.value)}
+              onChange={e => {
+                const nextModel = e.target.value;
+                onModelChange(nextModel);
+                const variant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === nextModel);
+                if (variant?.yearFrom) onModelYearChange(variant.yearFrom);
+              }}
               onDoubleClick={() => {
                 const keys = Object.keys(teslaModels);
                 const idx = keys.indexOf(selectedModel);
@@ -698,6 +707,10 @@ export default function InputPanel({
                   {model}
                 </option>
               ))}
+              {vehicleModels.filter((vehicle) => vehicle.brand.toLowerCase() === "tesla").map((vehicle) => {
+                const key = vehicleKey(vehicle);
+                return <option key={vehicle.id} value={key}>{vehicle.brand} {key} · {vehicle.yearFrom ?? "?"}–{vehicle.yearTo ?? "heden"}</option>;
+              })}
               <option value="Handmatig">Handmatig (eigen instellingen)</option>
             </select>
 
@@ -706,10 +719,10 @@ export default function InputPanel({
               <input
                 type="number"
                 min={minYear}
-                max={2026}
+                max={maxYear}
                 value={modelYear}
                 onChange={(e) => onModelYearChange(parseInt(e.target.value) || 2022)}
-                onBlur={(e) => { const y = parseInt(e.target.value) || minYear; onModelYearChange(Math.max(minYear, Math.min(2026, y))); }}
+                onBlur={(e) => { const y = parseInt(e.target.value) || minYear; onModelYearChange(Math.max(minYear, Math.min(maxYear, y))); }}
                 className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
               />
             </div>
