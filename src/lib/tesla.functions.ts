@@ -248,49 +248,54 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
 
     // Haal de actuele clouddata volledig op. Een korte timeout kan in Preview
     // onterecht oude ingebouwde data tonen terwijl de database wel bereikbaar is.
+    // Cloudflare D1 is the single source of truth for live Supercharger data.
+    // The admin panel writes to D1, so the public map must read from that same
+    // database; never fall back to the retired Supabase project.
     const cloud = async () => {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { getD1 } = await import("./d1.server");
+      const db = getD1();
       const pageSize = 1000;
       const rows: Row[] = [];
+      const jsonFields = new Set([
+        "versions", "opening_hours", "charger_configs", "construction", "works",
+        "closure", "planned_upgrade", "stall_states", "traffic_forecast",
+        "photos", "price_blocks", "parking_blocks", "voting",
+      ]);
+      const booleanFields = new Set([
+        "trailer_friendly", "is_available", "parking_fee", "in_parking_garage",
+        "low_speed", "published", "hidden",
+      ]);
       for (let from = 0; ; from += pageSize) {
-        let result = await supabaseAdmin.from("superchargers").select(SELECT_COLS).order("name").range(from, from + pageSize - 1);
-        let parkingBlocksMissing = false;
-        if (result.error && /parking_blocks|column .* does not exist|schema cache/i.test(result.error.message)) {
-          parkingBlocksMissing = true;
-          result = await supabaseAdmin.from("superchargers").select(SELECT_COLS_WITHOUT_PARKING_BLOCKS).order("name").range(from, from + pageSize - 1);
-        }
-        if (result.error && /traffic_forecast|column .* does not exist|schema cache/i.test(result.error.message)) {
-          result = await supabaseAdmin.from("superchargers").select(SELECT_COLS_WITHOUT_TRAFFIC).order("name").range(from, from + pageSize - 1);
-        }
-        if (result.error && /price_currency|column .* does not exist|schema cache/i.test(result.error.message)) {
-          console.warn("[TeslaNavigation] Optionele parkeer-/valutakolom ontbreekt; compatibele dataset wordt geladen.", result.error.message);
-          result = await supabaseAdmin.from("superchargers").select(parkingBlocksMissing ? SELECT_COLS_WITHOUT_BOTH : SELECT_COLS_WITHOUT_CURRENCY).order("name").range(from, from + pageSize - 1);
-        }
-        if (result.error) throw new Error(result.error.message);
-        const pageRows = ((result.data as unknown as Row[]) ?? []).map((row) => ({
-          ...row,
-          price_currency: row.price_currency ?? "EUR",
-        }));
-        rows.push(...pageRows);
-        if (!result.data || result.data.length < pageSize) break;
+        const page = await db.prepare(
+          "SELECT * FROM superchargers WHERE published = 1 AND hidden = 0 ORDER BY name COLLATE NOCASE LIMIT ? OFFSET ?"
+        ).bind(pageSize, from).all<Record<string, unknown>>();
+        const decoded = (page.results ?? []).map((source) => {
+          const row: Record<string, unknown> = { ...source };
+          for (const field of jsonFields) {
+            if (typeof row[field] === "string") {
+              try { row[field] = JSON.parse(row[field] as string); } catch { /* keep malformed data visible for repair */ }
+            }
+          }
+          for (const field of booleanFields) {
+            if (row[field] !== null && row[field] !== undefined) row[field] = Number(row[field]) === 1;
+          }
+          return row as unknown as Row;
+        });
+        rows.push(...decoded);
+        if (decoded.length < pageSize) break;
       }
-      if (rows.length === 0 || rows.length < localRows.length * 0.5) {
-        throw new Error("cloud dataset incomplete");
-      }
-      const { data: ownerRows } = await supabaseAdmin
-        .from("charger_owners")
-        .select("id,name,logo_url,description,website,contact,notes");
-      let winterSportsMode = false;
-      let holidayPeriodMode = false;
-      try {
-        const setting = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "winter_sports_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
-        winterSportsMode = setting.data?.details?.enabled === true;
-        const holidaySetting = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "holiday_period_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
-        holidayPeriodMode = holidaySetting.data?.details?.enabled === true;
-      } catch { /* global settings are optional in older hosted environments */ }
-      return { rows, ownerRows: (ownerRows ?? []) as (OwnerRow & { id: string })[], winterSportsMode, holidayPeriodMode };
+      const ownerResult = await db.prepare(
+        "SELECT id,name,logo_url,description,website,contact,notes FROM charger_owners ORDER BY name COLLATE NOCASE"
+      ).all<OwnerRow & { id: string }>();
+      const winterSportsMode = await getD1AdminSetting("winter_sports_mode");
+      const holidayPeriodMode = await getD1AdminSetting("holiday_period_mode");
+      return {
+        rows,
+        ownerRows: ownerResult.results ?? [],
+        winterSportsMode,
+        holidayPeriodMode,
+      };
     };
-
     try {
       const result = await cloud();
       for (const o of result.ownerRows) owners.set(o.id, o);
