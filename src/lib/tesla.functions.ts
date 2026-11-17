@@ -487,51 +487,32 @@ async function assertAdmin(context: { supabase: unknown; userId: string }) {
 
 
 
-export const getWinterSportsMode = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "winter_sports_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
-    if (error) throw error;
-    return data?.details?.enabled === true;
-  } catch (error) {
-    console.warn("[TeslaNavigation] Wintersportmodus-instelling niet beschikbaar:", error);
-    return false;
-  }
-});
+async function getD1AdminSetting(action: string): Promise<boolean> {
+  const { getD1 } = await import("./d1.server");
+  const row = await getD1().prepare("SELECT details FROM admin_audit_log WHERE action=? ORDER BY created_at DESC LIMIT 1").bind(action).first<{details:string}>();
+  if (!row?.details) return false;
+  try { return JSON.parse(row.details).enabled === true; } catch { return false; }
+}
+async function setD1AdminSetting(action: string, enabled: boolean) {
+  const { getCurrentD1User } = await import("./auth-d1.server");
+  const user = await getCurrentD1User();
+  if (!user) throw new Error("Je bent niet ingelogd.");
+  if (!user.is_admin) throw new Error("Alleen een beheerder kan deze instelling wijzigen.");
+  const { getD1 } = await import("./d1.server");
+  await getD1().prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
+    .bind(crypto.randomUUID(), user.id, action, 0, JSON.stringify({enabled})).run();
+  return {enabled};
+}
 
+export const getWinterSportsMode = createServerFn({ method: "GET" }).handler(async () => getD1AdminSetting("winter_sports_mode"));
 export const setWinterSportsMode = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ enabled: z.boolean() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await (supabaseAdmin as any).from("admin_audit_log").insert({ action: "winter_sports_mode", target_count: 0, details: { enabled: data.enabled } });
-    if (error) throw new Error(error.message);
-    return { enabled: data.enabled };
-  });
+  .inputValidator((input: unknown) => z.object({enabled:z.boolean()}).parse(input))
+  .handler(async ({data}) => setD1AdminSetting("winter_sports_mode",data.enabled));
 
-export const getHolidayPeriodMode = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "holiday_period_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
-    if (error) throw error;
-    return data?.details?.enabled === true;
-  } catch (error) {
-    console.warn("[TeslaNavigation] Vakantieperiode-instelling niet beschikbaar:", error);
-    return false;
-  }
-});
-
+export const getHolidayPeriodMode = createServerFn({ method: "GET" }).handler(async () => getD1AdminSetting("holiday_period_mode"));
 export const setHolidayPeriodMode = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ enabled: z.boolean() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await (supabaseAdmin as any).from("admin_audit_log").insert({ action: "holiday_period_mode", target_count: 0, details: { enabled: data.enabled } });
-    if (error) throw new Error(error.message);
-    return { enabled: data.enabled };
-  });
+  .inputValidator((input: unknown) => z.object({enabled:z.boolean()}).parse(input))
+  .handler(async ({data}) => setD1AdminSetting("holiday_period_mode",data.enabled));
 
 export const upsertSupercharger = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
