@@ -13,7 +13,7 @@ export function AccountMenu() {
   const [user, setUser] = useState<AccountUser | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [profileGreeting, setProfileGreeting] = useState("");
-  const [profileColor, setProfileColor] = useState("#e82127");
+  const [profileColor, setProfileColor] = useState("#e82127");\n  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -27,7 +27,7 @@ export function AccountMenu() {
     void getMyAccountSettings().then((data) => {
       if (!active) return;
       setProfileGreeting(data.preferences?.greeting ?? "");
-      setProfileColor(data.preferences?.profile_color ?? "#e82127");
+      setProfileColor(data.preferences?.profile_color ?? "#e82127");\n      setProfileImage(data.preferences?.profile_image_url ?? null);
     }).catch(() => {});
     return () => { active = false; };
   }, [settingsOpen]);
@@ -46,7 +46,7 @@ export function AccountMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline" className="bg-slate-800 border-slate-700 hover:bg-slate-700">
-          <span className="mr-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-white" style={{ backgroundColor: profileColor }}><UserIcon className="h-3 w-3" /></span> {user.display_name?.trim() || user.email.split("@")[0]}
+          <span className="mr-1 inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full text-white" style={{ backgroundColor: profileColor }}>{profileImage ? <img src={profileImage} alt="" className="h-full w-full object-cover" /> : <UserIcon className="h-3 w-3" />}</span> {user.display_name?.trim() || user.email.split("@")[0]}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 text-white">
