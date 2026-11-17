@@ -13,6 +13,8 @@ import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher, changeLanguage } from "@/components/LanguageProvider";
 import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, createMyNotificationEvent, listMyVehicles } from "@/lib/account.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
+import { listPublishedVehicleModels } from "@/lib/admin.functions";
+import { vehicleKey, type VehicleModel } from "@/lib/vehicle-types";
 
 const hasSupabaseBrowserConfig = Boolean(
   import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -146,14 +148,19 @@ function Index() {
   const [preferTrailerFriendly, setPreferTrailerFriendly] = useState(false);
 
   const [selectedModel, setSelectedModel] = useState("Model 3 Long Range AWD");
+  const [catalogueVehicles, setCatalogueVehicles] = useState<VehicleModel[]>([]);
+  const listCatalogueFn = useServerFn(listPublishedVehicleModels);
+  useEffect(() => { let active = true; void listCatalogueFn().then((rows) => { if (active) setCatalogueVehicles(rows as VehicleModel[]); }).catch(() => { if (active) setCatalogueVehicles([]); }); return () => { active = false; }; }, []);
   const [savedVehicles, setSavedVehicles] = useState<SavedVehicle[]>([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState("");
   const activeVehicle = savedVehicles.find((vehicle) => vehicle.id === selectedVehicleId) ?? null;
   const [manualRangeKm, setManualRangeKm] = useState(400);
   const [manualSpeedKw, setManualSpeedKw] = useState(250);
-  const carMaxKwOverride = activeVehicle?.max_charge_kw ?? (selectedModel === "Handmatig" ? manualSpeedKw : undefined);
+  const [modelYear, setModelYear] = useState<number>(2022);
+  const selectedCatalogueVehicle = catalogueVehicles.find((vehicle) => vehicle.brand.toLowerCase() === "tesla" && vehicleKey(vehicle) === selectedModel && (vehicle.yearFrom == null || modelYear >= vehicle.yearFrom) && (vehicle.yearTo == null || modelYear <= vehicle.yearTo)) ?? catalogueVehicles.find((vehicle) => vehicle.brand.toLowerCase() === "tesla" && vehicleKey(vehicle) === selectedModel) ?? null;
+  const carMaxKwOverride = activeVehicle?.max_charge_kw ?? selectedCatalogueVehicle?.maxChargeKw ?? (selectedModel === "Handmatig" ? manualSpeedKw : undefined);
   const vehicleBatteryHealth = Math.max(40, Math.min(100, activeVehicle?.battery_health_percent ?? 100)) / 100;
-  const packKWh = activeVehicle?.battery_kwh ? activeVehicle.battery_kwh * vehicleBatteryHealth : (selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79));
+  const packKWh = activeVehicle?.battery_kwh ? activeVehicle.battery_kwh * vehicleBatteryHealth : (selectedCatalogueVehicle?.usableKWh ?? selectedCatalogueVehicle?.batteryKWh ?? (selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79)));
   const [batteryPercent, setBatteryPercent] = useState(80);
   const [targetArrivalPercent, setTargetArrivalPercent] = useState(10);
   const [chargeTargetPercent, setChargeTargetPercent] = useState(80);
@@ -168,7 +175,6 @@ function Index() {
   const [onlineTraffic, setOnlineTraffic] = useState(false);
   const [consumptionMode, setConsumptionMode] = useState<'auto' | 'manual'>('auto');
   const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(0);
-  const [modelYear, setModelYear] = useState<number>(2022);
   const applySavedVehicle = (vehicle: SavedVehicle) => {
     setSelectedVehicleId(vehicle.id);
     if (Object.prototype.hasOwnProperty.call(teslaModels, vehicle.model_name)) setSelectedModel(vehicle.model_name);
@@ -655,13 +661,17 @@ function Index() {
   const fetchTrafficRoutesFn = useServerFn(fetchTrafficRoutes);
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
-  const modelRange = selectedModel === "Handmatig" ? manualRangeKm : teslaModels[selectedModel];
+  const modelRange = activeVehicle?.battery_kwh && activeVehicle?.summer_consumption_kwh100
+    ? Math.round(activeVehicle.battery_kwh / activeVehicle.summer_consumption_kwh100 * 100)
+    : (selectedCatalogueVehicle?.rangeKm ?? (selectedModel === "Handmatig" ? manualRangeKm : (teslaModels[selectedModel] ?? 450)));
   const ccsBlocked = needsCcsAdapter(selectedModel, modelYear) && !hasCcsAdapter;
   const [autoConsumptionKWh100State, setAutoConsumptionState] = useState<number | null>(null);
   // Bereik volgt uitsluitend uit verbruik (kWh/100 km), niet uit een vaste km-waarde.
+  const catalogueSeasonalConsumption = weatherMode === "winter" ? selectedCatalogueVehicle?.winterConsumptionKWh100 : selectedCatalogueVehicle?.consumptionKWh100;
+  const savedSeasonalConsumption = activeVehicle ? (weatherMode === "winter" ? activeVehicle.winter_consumption_kwh100 : activeVehicle.summer_consumption_kwh100) : null;
   const effectiveKWh100 = consumptionMode === 'manual' && manualConsumptionKWh100 > 0
     ? manualConsumptionKWh100
-    : (autoConsumptionKWh100State ?? Math.max(13, (packKWh / Math.max(1, modelRange)) * 100 * 1.1) * (1 + trailerReductionEffective / 100));
+    : ((savedSeasonalConsumption && savedSeasonalConsumption > 0 ? savedSeasonalConsumption : catalogueSeasonalConsumption) || (autoConsumptionKWh100State ?? Math.max(13, (packKWh / Math.max(1, modelRange)) * 100 * 1.1) * (1 + trailerReductionEffective / 100)));
   const fullEnergyRangeKm = Math.max(50, (packKWh / effectiveKWh100) * 100);
   const availableRange = fullEnergyRangeKm * batteryPercent / 100;
 
@@ -1728,6 +1738,7 @@ function Index() {
               onDestChange={setDestCoord}
               onWaypointsChange={setWaypoints}
               superchargers={superchargers}
+              vehicleModels={catalogueVehicles}
               onModelChange={(model) => { setSelectedVehicleId(""); setSelectedModel(model); }}
               onBatteryChange={setBatteryPercent}
               onArrivalTargetChange={setTargetArrivalPercent}
