@@ -43,28 +43,16 @@ type OwnerRow = {
 };
 
 export const listOwners = createServerFn({ method: "GET" }).handler(async (): Promise<ChargerOwner[]> => {
-  try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
-      .from("charger_owners")
-      .select("id,name,logo_url,description,website,contact,notes")
-      .order("name");
-    if (error) throw new Error(error.message);
-    return ((data ?? []) as OwnerRow[]).map((row) => ({
-      id: row.id, name: row.name, logoUrl: row.logo_url, description: row.description,
-      website: row.website, contact: row.contact, notes: row.notes,
-    }));
-  } catch {
-    const { localChargerDataset } = await import("./local-chargers.server");
-    return (localChargerDataset.owners ?? []).map((row) => ({
-      id: row.id, name: row.name, logoUrl: row.logo_url, description: row.description,
-      website: row.website, contact: row.contact, notes: row.notes,
-    }));
-  }
+  const { getD1 } = await import("./d1.server");
+  const rows = await getD1().prepare("SELECT id,name,logo_url,description,website,contact,notes FROM charger_owners ORDER BY name COLLATE NOCASE").all<OwnerRow>();
+  return (rows.results ?? []).map((row) => ({
+    id: row.id, name: row.name, logoUrl: row.logo_url, description: row.description,
+    website: row.website, contact: row.contact, notes: row.notes,
+  }));
 });
 
 const ownerInput = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().max(120).optional(),
   name: z.string().trim().min(1).max(120),
   logoUrl: z.string().max(500).nullable().optional(),
   description: z.string().max(2000).nullable().optional(),
@@ -74,43 +62,29 @@ const ownerInput = z.object({
 });
 
 export const upsertOwner = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => ownerInput.parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const payload = {
-      name: data.name,
-      logo_url: data.logoUrl || null,
-      description: data.description || null,
-      website: data.website || null,
-      contact: data.contact || null,
-      notes: data.notes || null,
-    };
-    if (data.id) {
-      const { error } = await context.supabase.from("charger_owners").update(payload).eq("id", data.id);
-      if (error) throw new Error(error.message);
-      await logAction(context, "owner_update", 1, { id: data.id, name: data.name });
-      return { id: data.id };
-    }
-    const { data: inserted, error } = await context.supabase
-      .from("charger_owners")
-      .insert(payload)
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    await logAction(context, "owner_create", 1, { name: data.name });
-    return { id: (inserted as { id: string }).id };
+  .handler(async ({ data }) => {
+    const { getD1 } = await import("./d1.server");
+    const { getCurrentD1User } = await import("./auth-d1.server");
+    const user = await getCurrentD1User();
+    if (!user?.is_admin) throw new Error("Alleen een beheerder kan eigenaren aanpassen.");
+    const id = data.id ?? crypto.randomUUID();
+    await getD1().prepare(`INSERT INTO charger_owners (id,name,logo_url,description,website,contact,notes,updated_at)
+      VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+      ON CONFLICT(id) DO UPDATE SET name=excluded.name,logo_url=excluded.logo_url,description=excluded.description,website=excluded.website,contact=excluded.contact,notes=excluded.notes,updated_at=CURRENT_TIMESTAMP`)
+      .bind(id,data.name,data.logoUrl??null,data.description??null,data.website??null,data.contact??null,data.notes??null).run();
+    return {id};
   });
 
 export const deleteOwner = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { error } = await context.supabase.from("charger_owners").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    await logAction(context, "owner_delete", 1, { id: data.id });
-    return { ok: true };
+  .inputValidator((input: unknown) => z.object({id:z.string().min(1).max(120)}).parse(input))
+  .handler(async ({data}) => {
+    const { getD1 } = await import("./d1.server");
+    const { getCurrentD1User } = await import("./auth-d1.server");
+    const user = await getCurrentD1User();
+    if (!user?.is_admin) throw new Error("Alleen een beheerder kan eigenaren verwijderen.");
+    await getD1().prepare("DELETE FROM charger_owners WHERE id=?").bind(data.id).run();
+    return {ok:true};
   });
 
 /* ---------------- Site updates ---------------- */
