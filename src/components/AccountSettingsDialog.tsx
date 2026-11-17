@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getMyAccountSettings, updateMyAccountSettings, listMyVehicles, saveMyVehicle, deleteMyVehicle, listMyRouteProfiles, saveMyRouteProfile, deleteMyRouteProfile, listMyChargingSessions, saveMyChargingSession, deleteMyChargingSession } from "@/lib/account.functions";
+import { getMyAccountSettings, updateMyAccountSettings, listMyVehicles, listPublishedVehicleModels, saveMyVehicle, deleteMyVehicle, listMyRouteProfiles, saveMyRouteProfile, deleteMyRouteProfile, listMyChargingSessions, saveMyChargingSession, deleteMyChargingSession } from "@/lib/account.functions";
 import { changePassword } from "@/lib/auth.functions";
 import { toast } from "sonner";
 
@@ -78,7 +78,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
   onSaved: (displayName: string | null, gender: Gender) => void;
 }) {
   const [settings, setSettings] = useState<Settings>(defaults);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);\n  const [vehicleCatalogue, setVehicleCatalogue] = useState<Array<{id:string;brand:string;model:string;trim:string|null;battery_kwh:number|null;usable_kwh:number|null;range_km:number|null;consumption_kwh100:number|null;year_from:number;year_to:number;max_charge_kw:number|null;image_url:string|null}>>([]);\n  const [selectedCatalogueId, setSelectedCatalogueId] = useState("");
   const [vehicleDraft, setVehicleDraft] = useState({ name: "", model_name: "", model_year: "2025", image_url: "", battery_kwh: "75", summer_consumption_kwh100: "17", winter_consumption_kwh100: "22", max_charge_kw: "250", arrival_percent: "10", trailer_enabled: false, trailer_consumption_increase_percent: "20", battery_health_percent: "100", roof_or_rack_extra_percent: "0", winter_tires_extra_percent: "0", is_default: true });
   const [routeProfiles, setRouteProfiles] = useState<RouteProfile[]>([]);
   const [profileName, setProfileName] = useState("");
@@ -106,7 +106,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
     if (!open) return;
     let active = true;
     setLoading(true);
-    void Promise.all([getMyAccountSettings(), listVehiclesFn(), listRouteProfilesFn(), listSessionsFn()]).then(([data, list, profiles, sessions]) => {
+    void Promise.all([getMyAccountSettings(), listVehiclesFn(), listRouteProfilesFn(), listSessionsFn(), listPublishedVehicleModels()]).then(([data, list, profiles, sessions, catalogue]) => {
       if (!active) return;
       const p = data.preferences ?? {};
       setSettings({ ...defaults, ...data, preferences: {
@@ -116,7 +116,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
         route_preferences: { ...defaults.preferences.route_preferences, ...p.route_preferences },
         status_colors: { ...defaults.preferences.status_colors, ...p.status_colors },
       } as Preferences });
-      setVehicles(list as Vehicle[]);
+      setVehicles(list as Vehicle[]);\n      setVehicleCatalogue(catalogue as typeof vehicleCatalogue);
       setRouteProfiles(profiles as RouteProfile[]);
       setChargingSessions(sessions as ChargingSession[]);
     }).catch((error) => toast.error(error instanceof Error ? error.message : "Accountinstellingen laden mislukt"))
@@ -290,7 +290,7 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
             <div><label className={labelClass}>Naam voertuig</label><Input value={vehicleDraft.name} onChange={e=>setVehicleDraft(v=>({...v,name:e.target.value}))} placeholder="Mijn Model Y" className="bg-slate-800 border-slate-700" /></div>
             <div><label className={labelClass}>Model / uitvoering</label><Input value={vehicleDraft.model_name} onChange={e=>setVehicleDraft(v=>({...v,model_name:e.target.value}))} placeholder="Model Y Long Range AWD" className="bg-slate-800 border-slate-700" /></div>
             <div className="col-span-2"><label className={labelClass}>Afbeeldings-URL van je Tesla (optioneel)</label><Input value={vehicleDraft.image_url} onChange={e=>setVehicleDraft(v=>({...v,image_url:e.target.value}))} placeholder="https://…" className="bg-slate-800 border-slate-700" /></div>
-            {(["model_year","battery_kwh","summer_consumption_kwh100","winter_consumption_kwh100","max_charge_kw","arrival_percent","trailer_consumption_increase_percent","battery_health_percent","roof_or_rack_extra_percent","winter_tires_extra_percent"] as const).map(k=><div key={k}><label className={labelClass}>{{model_year:"Bouwjaar",battery_kwh:"Accu (kWh)",summer_consumption_kwh100:"Zomerverbruik (kWh/100 km)",winter_consumption_kwh100:"Winterverbruik (kWh/100 km)",max_charge_kw:"Max. laadsnelheid (kW)",arrival_percent:"Aankomstpercentage (%)",trailer_consumption_increase_percent:"Extra verbruik aanhanger (%)",battery_health_percent:"Accugezondheid (%)",roof_or_rack_extra_percent:"Extra verbruik dakdrager (%)",winter_tires_extra_percent:"Extra verbruik winterbanden (%)"}[k]}</label><Input type="number" value={vehicleDraft[k]} onChange={e=>setVehicleDraft(v=>({...v,[k]:e.target.value}))} className="bg-slate-800 border-slate-700" /></div>)}
+            {(["model_year","battery_kwh","summer_consumption_kwh100","winter_consumption_kwh100","max_charge_kw","arrival_percent","trailer_consumption_increase_percent","battery_health_percent","roof_or_rack_extra_percent","winter_tires_extra_percent"] as const).map(k=><div key={k}><label className={labelClass}>{{model_year:"Bouwjaar",battery_kwh:"Accu (kWh)",summer_consumption_kwh100:"Zomerverbruik (kWh/100 km)",winter_consumption_kwh100:"Winterverbruik (kWh/100 km)",max_charge_kw:"Max. laadsnelheid (kW)",arrival_percent:"Aankomstpercentage (%)",trailer_consumption_increase_percent:"Extra verbruik aanhanger (%)",battery_health_percent:"Accugezondheid (%)",roof_or_rack_extra_percent:"Extra verbruik dakdrager (%)",winter_tires_extra_percent:"Extra verbruik winterbanden (%)"}[k]}</label><Input type="number" value={vehicleDraft[k]} onChange={e=>{setVehicleDraft(v=>({...v,[k]:e.target.value}));if(k==="model_year"&&selectedCatalogueId){const m=vehicleCatalogue.find(x=>x.id===selectedCatalogueId);const y=Number(e.target.value);if(m&&y>=m.year_from&&y<=m.year_to)setVehicleDraft(v=>({...v,battery_kwh:m.battery_kwh?.toString()??v.battery_kwh,summer_consumption_kwh100:m.consumption_kwh100?.toString()??v.summer_consumption_kwh100,max_charge_kw:m.max_charge_kw?.toString()??v.max_charge_kw}));}}} className="bg-slate-800 border-slate-700" /></div>)}
           </div>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={vehicleDraft.trailer_enabled} onChange={e=>setVehicleDraft(v=>({...v,trailer_enabled:e.target.checked}))}/> Aanhangermodus standaard aan</label>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={vehicleDraft.is_default} onChange={e=>setVehicleDraft(v=>({...v,is_default:e.target.checked}))}/> Instellen als standaardvoertuig</label>
