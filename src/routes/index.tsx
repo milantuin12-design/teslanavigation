@@ -482,8 +482,8 @@ function Index() {
   }, [countryPricesOpen, superchargers, departureDate, selectedModel, packKWh, carMaxKwOverride]);
 
   const visibleChargers = useMemo(
-    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters)),
-    [superchargers, chargerFilters],
+    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters) && (showDevelopmentChargers || (charger.status !== "plan" && charger.status !== "voting"))),
+    [superchargers, chargerFilters, showDevelopmentChargers],
   );
   const favoriteChargers = useMemo(
     () => superchargers.filter((charger) => !!charger.id && favoriteChargerIds.includes(charger.id)),
