@@ -213,6 +213,47 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
     catch (error) { toast.error(error instanceof Error ? error.message : "Laadsessie verwijderen mislukt"); }
   };
 
+  const exportAccountData = () => {
+    const payload = { version: 1, exported_at: new Date().toISOString(), settings: { display_name: settings.display_name, gender: settings.gender, preferences: settings.preferences }, vehicles };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url; link.download = "teslanavigation-instellingen.json"; link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Instellingenbestand aangemaakt");
+  };
+  const importAccountData = async (file?: File) => {
+    if (!file) return;
+    if (file.size > 1_000_000) { toast.error("Het bestand is te groot (maximaal 1 MB)."); return; }
+    try {
+      const payload = JSON.parse(await file.text()) as { version?: number; settings?: { display_name?: string; gender?: Gender; preferences?: Record<string, unknown> }; vehicles?: Array<Record<string, unknown>> };
+      if (payload.version !== 1 || !payload.settings || typeof payload.settings !== "object") throw new Error("Dit is geen geldig TeslaNavigation-instellingenbestand.");
+      const importedPreferences = payload.settings.preferences && typeof payload.settings.preferences === "object" ? payload.settings.preferences : {};
+      const nextSettings = { ...defaults.preferences, ...importedPreferences } as Preferences;
+      const nextName = typeof payload.settings.display_name === "string" ? payload.settings.display_name.slice(0,80) : settings.display_name;
+      const nextGender = ["male","female","other","unspecified"].includes(payload.settings.gender ?? "") ? payload.settings.gender as Gender : settings.gender;
+      await saveSettingsFn({ data: { display_name: nextName.trim() || null, gender: nextGender, preferences: nextSettings } });
+      setSettings(old => ({ ...old, display_name: nextName, gender: nextGender, preferences: nextSettings }));
+      for (const item of (Array.isArray(payload.vehicles) ? payload.vehicles.slice(0,20) : [])) {
+        if (typeof item.name !== "string" || typeof item.model_name !== "string") continue;
+        const num = (key: string, fallback: number) => typeof item[key] === "number" && Number.isFinite(item[key]) ? item[key] as number : fallback;
+        const image = typeof item.image_url === "string" && /^https?:\/\//i.test(item.image_url) ? item.image_url : null;
+        await saveVehicleFn({ data: {
+          name: item.name.slice(0,80), model_name: item.model_name.slice(0,120), model_year: num("model_year",2025),
+          image_url: image, battery_kwh: num("battery_kwh",75), summer_consumption_kwh100: num("summer_consumption_kwh100",17),
+          winter_consumption_kwh100: num("winter_consumption_kwh100",22), max_charge_kw: num("max_charge_kw",250),
+          battery_health_percent: num("battery_health_percent",100), roof_or_rack_extra_percent: num("roof_or_rack_extra_percent",0),
+          winter_tires_extra_percent: num("winter_tires_extra_percent",0), arrival_percent: num("arrival_percent",10),
+          trailer_enabled: item.trailer_enabled === true, trailer_consumption_increase_percent: num("trailer_consumption_increase_percent",0),
+          is_default: item.is_default === true,
+        } });
+      }
+      setVehicles(await listVehiclesFn());
+      window.dispatchEvent(new CustomEvent("tn-preferences-updated", { detail: nextSettings }));
+      toast.success("Instellingen geïmporteerd. Bestaande voertuigen zijn behouden; voertuigen uit het bestand zijn toegevoegd.");
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Importeren mislukt"); }
+  };
+
   const savePassword = async () => {
     if (newPassword !== confirmPassword) { toast.error("De nieuwe wachtwoorden komen niet overeen."); return; }
     try {
@@ -311,6 +352,15 @@ export function AccountSettingsDialog({ open, onOpenChange, onSaved }: {
             ["favorite_status","Wijzigingen bij favoriete Superchargers"],["price_changes","Prijswijzigingen"],["new_locations","Nieuwe locaties"],["closed_locations","Gesloten locaties"],["status_changes","Statuswijzigingen"],["email_enabled","E-mailmeldingen inschakelen"],["push_enabled","Pushmeldingen inschakelen"],
           ] as const).map(([key,label])=><label key={key} className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" checked={settings.preferences.notifications[key] ?? false} onChange={e=>setNested("notifications",key,e.target.checked)}/>{label}</label>)}
           <p className="text-xs text-amber-300">E-mail- en pushbezorging blijven uitgeschakeld totdat de externe maildienst en pushsleutels veilig zijn ingesteld. Deze keuzes bewaren alleen je voorkeur.</p>
+        </section>
+
+        <section className={sectionClass}>
+          <h3 className="font-semibold">Instellingen exporteren / importeren</h3>
+          <p className="text-xs text-slate-400">Maak een reservekopie van je voorkeuren en voertuigen. Importeren voegt voertuigen toe en verwijdert geen bestaande gegevens.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" className="border-slate-600" onClick={exportAccountData}>Exporteren als JSON</Button>
+            <label className="inline-flex cursor-pointer items-center rounded-md border border-slate-600 px-3 py-2 text-sm hover:bg-slate-800">JSON importeren<input type="file" accept="application/json,.json" className="sr-only" onChange={e=>{ void importAccountData(e.target.files?.[0]); e.currentTarget.value=""; }}/></label>
+          </div>
         </section>
 
         <section className={sectionClass}>
