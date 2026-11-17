@@ -284,13 +284,19 @@ function Index() {
     }).catch(() => { /* keep local favorites usable if D1 is temporarily unavailable */ });
     return () => { active = false; };
   }, [currentUser?.id]);
-  const toggleFavoriteCharger = (id: string) => {
+  const toggleFavoriteCharger = useCallback((id: string) => {
     const favorite = !favoriteChargerIds.includes(id);
-    setFavoriteChargerIds((old) => favorite ? [...old, id] : old.filter((x) => x !== id));
-    if (currentUser) void setFavoriteFn({ data: { charger_id: id, favorite } }).catch(() => {
-      toast.error("Favoriet kon niet met je account worden gesynchroniseerd; lokaal blijft hij bewaard.");
-    });
-  };
+    // Update the visible list immediately, then persist the exact requested state.
+    setFavoriteChargerIds((old) => favorite ? (old.includes(id) ? old : [...old, id]) : old.filter((x) => x !== id));
+    if (currentUser) {
+      void setFavoriteFn({ data: { charger_id: id, favorite } }).then(() => {
+        // Keep local storage and the account in sync after a successful D1 write.
+        setFavoriteChargerIds((old) => favorite ? (old.includes(id) ? old : [...old, id]) : old.filter((x) => x !== id));
+      }).catch(() => {
+        toast.error("Favoriet kon niet met je account worden bijgewerkt. Probeer het opnieuw.");
+      });
+    }
+  }, [favoriteChargerIds, currentUser?.id, setFavoriteFn]);
   // Price alerts for favourite Superchargers: changes are detected on the next app refresh.
   useEffect(() => {
     if (isLoadingChargers || favoriteChargerIds.length === 0 || superchargers.length === 0) return;
@@ -490,7 +496,14 @@ function Index() {
     [superchargers, favoriteChargerIds],
   );
 
-  useEffect(() => { const handler = (event: Event) => { const id = (event as CustomEvent<{ id: string }>).detail?.id; if (id) toggleFavoriteCharger(id); }; window.addEventListener("sc-favorite", handler); return () => window.removeEventListener("sc-favorite", handler); }, []);
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const id = (event as CustomEvent<{ id: string }>).detail?.id;
+      if (id) toggleFavoriteCharger(id);
+    };
+    window.addEventListener("sc-favorite", handler);
+    return () => window.removeEventListener("sc-favorite", handler);
+  }, [toggleFavoriteCharger]);
 
   // Meldknop in de kaart-popup
   useEffect(() => {
