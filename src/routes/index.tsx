@@ -177,7 +177,7 @@ function Index() {
   const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(0);
   const applySavedVehicle = (vehicle: SavedVehicle) => {
     setSelectedVehicleId(vehicle.id);
-    if (Object.prototype.hasOwnProperty.call(teslaModels, vehicle.model_name)) setSelectedModel(vehicle.model_name);
+    setSelectedModel(vehicle.model_name);
     if (vehicle.model_year) setModelYear(vehicle.model_year);
     const seasonalConsumption = weatherMode === "winter" ? vehicle.winter_consumption_kwh100 : vehicle.summer_consumption_kwh100;
     if (seasonalConsumption && seasonalConsumption > 0) { setManualConsumptionKWh100(seasonalConsumption); setConsumptionMode("manual"); }
@@ -661,9 +661,13 @@ function Index() {
   const fetchTrafficRoutesFn = useServerFn(fetchTrafficRoutes);
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
+  const catalogueBatteryForRange = selectedCatalogueVehicle?.usableKWh ?? selectedCatalogueVehicle?.batteryKWh ?? packKWh;
+  const catalogueRangeFromConsumption = selectedCatalogueVehicle?.consumptionKWh100 && selectedCatalogueVehicle.consumptionKWh100 > 0
+    ? Math.round(catalogueBatteryForRange / selectedCatalogueVehicle.consumptionKWh100 * 100)
+    : null;
   const modelRange = activeVehicle?.battery_kwh && activeVehicle?.summer_consumption_kwh100
     ? Math.round(activeVehicle.battery_kwh / activeVehicle.summer_consumption_kwh100 * 100)
-    : (selectedCatalogueVehicle?.rangeKm ?? (selectedModel === "Handmatig" ? manualRangeKm : (teslaModels[selectedModel] ?? 450)));
+    : (selectedCatalogueVehicle?.rangeKm ?? catalogueRangeFromConsumption ?? (selectedModel === "Handmatig" ? manualRangeKm : (teslaModels[selectedModel] ?? 450)));
   const ccsBlocked = needsCcsAdapter(selectedModel, modelYear) && !hasCcsAdapter;
   const [autoConsumptionKWh100State, setAutoConsumptionState] = useState<number | null>(null);
   // Bereik volgt uitsluitend uit verbruik (kWh/100 km), niet uit een vaste km-waarde.
