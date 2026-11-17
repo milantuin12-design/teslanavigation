@@ -50,7 +50,7 @@ async function verifyPassword(password: string, stored: string): Promise<boolean
     expectedText = stored.slice(43);
   }
   const iterations = Number(rounds);
-  if (algorithm !== "pbkdf2-sha256" || !/^\\d+$/.test(rounds) || !Number.isInteger(iterations) || iterations < 1 || iterations > ITERATIONS || !saltText || !expectedText) return false;
+  if (algorithm !== "pbkdf2-sha256" || !/^\d+$/.test(rounds) || !Number.isInteger(iterations) || iterations < 1 || iterations > ITERATIONS || !saltText || !expectedText) return false;
   let actualBytes: Uint8Array;
   let expectedBytes: Uint8Array;
   try {
