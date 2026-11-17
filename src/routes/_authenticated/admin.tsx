@@ -688,6 +688,7 @@ function AdminPage() {
             <Link to="/eigenaren"><Button variant="outline" size="sm" className="border-slate-700">Eigenaren</Button></Link>
             <Link to="/meldingen"><Button variant="outline" size="sm" className="border-slate-700">Meldingen</Button></Link>
             <Link to="/voertuigen"><Button variant="outline" size="sm" className="border-slate-700">Voertuigen</Button></Link>
+            <Link to="/voertuigmodellen"><Button variant="outline" size="sm" className="border-slate-700">Voertuigdatabase</Button></Link>
             <Link to="/gebruikers"><Button variant="outline" size="sm" className="border-slate-700">Gebruikers</Button></Link>
             <Link to="/talen"><Button variant="outline" size="sm" className="border-slate-700">Talen</Button></Link>
             <Link to="/wijzigingen"><Button variant="outline" size="sm" className="border-slate-700">Wijzigingen</Button></Link>
