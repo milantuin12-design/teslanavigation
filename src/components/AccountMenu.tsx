@@ -57,7 +57,7 @@ export function AccountMenu() {
           <LogOut className="w-4 h-4 mr-2" /> Uitloggen
         </DropdownMenuItem>
       </DropdownMenuContent>
-      <AccountSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} onSaved={(displayName) => { setUser((old) => old ? { ...old, display_name: displayName } : old); window.dispatchEvent(new CustomEvent("tn-profile-updated", { detail: { display_name: displayName } })); }} />
+      <AccountSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} onSaved={(displayName, gender) => { setUser((old) => old ? { ...old, display_name: displayName, gender } : old); window.dispatchEvent(new CustomEvent("tn-profile-updated", { detail: { display_name: displayName, gender } })); }} />
     </DropdownMenu>
   );
 }
