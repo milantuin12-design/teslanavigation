@@ -537,6 +537,8 @@ export interface CalcChargingOptions {
   avoidParkingFee?: boolean;
   /** Eerste voorkeur voor Superchargers met een door de beheerder bevestigde invalidenplek; wrapper probeert zonder voorkeur als dat nodig is. */
   requireWheelchairAccessible?: boolean;
+  /** Favoriete Superchargers krijgen voorrang wanneer ze binnen de routecorridor en technisch haalbaar zijn. */
+  favoriteChargerIds?: string[];
   /** Maximaal totale extra afstand door omrijden (km); 0 = geen limiet. */
   maxDetourKm?: number;
   /** Maximale afstand van één laadtraject (km); 0 = geen limiet. */
@@ -610,6 +612,7 @@ export function calculateChargingStops(
     preferNearestCharger = false,
     avoidParkingFee = false,
     requireWheelchairAccessible = false,
+    favoriteChargerIds = [],
     maxDetourKm = 0,
     maxDistanceBetweenStopsKm = 0,
     defaultChargePauseMin = 0,
@@ -875,9 +878,11 @@ export function calculateChargingStops(
       // Eén euro laadkosten telt mee als circa 1,2 km routevoorkeur.
       // Onbekende tarieven krijgen alleen een kleine voorkeurssanctie wanneer er wél prijzen bekend zijn.
       const tariffPenaltyKm = estimatedCost !== null ? estimatedCost * 1.2 : hasKnownCandidateCosts && (c.charger.priceCurrency || "EUR").toUpperCase() === "EUR" ? 6 : 0;
+      const favoriteBonusKm = c.charger.id && favoriteChargerIds.includes(c.charger.id) ? 30 : 0;
       return c.detourKm * 2
         + crowdPenaltyKm
         + tariffPenaltyKm
+        - favoriteBonusKm
         + (preferTrailerFriendly && c.charger.trailerFriendly ? -15 : 0)
         + (c.charger.inParkingGarage ? 10 : 0);
     };
