@@ -1010,7 +1010,7 @@ function Index() {
     return unique.sort((a, b) => a.route.totalDistanceKm - b.route.totalDistanceKm).slice(0, 5);
   }, []);
 
-  const batteryCapacityOverride = activeVehicle?.battery_kwh ? activeVehicle.battery_kwh * vehicleBatteryHealth : (selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined);
+  const batteryCapacityOverride = activeVehicle?.battery_kwh ? activeVehicle.battery_kwh * vehicleBatteryHealth : (selectedCatalogueVehicle?.usableKWh ?? selectedCatalogueVehicle?.batteryKWh ?? (selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined));
 
   /** Berekent voor één routegeometrie de laadstops op basis van de ingevulde percentages. */
   const buildPlan = useCallback(async (
@@ -1669,8 +1669,8 @@ function Index() {
       setChargingStops((prev) =>
         prev.map((stop, i) => {
           if (i !== index) return stop;
-          const chargerSpeedKw = effectiveChargeSpeedKw(parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs), selectedModel);
-          const batteryKWh = teslaBatteryKWh[selectedModel] || 79;
+          const chargerSpeedKw = effectiveChargeSpeedKw(parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs), selectedModel, carMaxKwOverride);
+          const batteryKWh = batteryCapacityOverride ?? packKWh;
           const chargeDurationMin = calculateChargeDuration(
             stop.batteryBefore,
             newBatteryAfter,
@@ -1681,7 +1681,7 @@ function Index() {
         })
       );
     },
-    [selectedModel]
+    [batteryCapacityOverride, carMaxKwOverride, packKWh, selectedModel]
   );
 
   const handleChargerArrivalChange = useCallback((index: number, arrival: number) => {
@@ -1691,14 +1691,14 @@ function Index() {
       const legKm = Math.max(0, current[index].distanceFromStart - stop.distanceFromStart);
       const requiredDeparture = Math.min(100, Math.ceil(arrival + (legKm / fullRangeKmActive) * 100));
       const chargerSpeedKw = effectiveChargeSpeedKw(parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs), selectedModel, carMaxKwOverride);
-      const batteryKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
+      const batteryKWh = batteryCapacityOverride ?? packKWh;
       return {
         ...stop,
         batteryAfter: requiredDeparture,
         chargeDurationMin: calculateChargeDuration(stop.batteryBefore, requiredDeparture, batteryKWh, chargerSpeedKw),
       };
     }));
-  }, [carMaxKwOverride, fullRangeKmActive, manualRangeKm, selectedModel]);
+  }, [batteryCapacityOverride, carMaxKwOverride, fullRangeKmActive, packKWh, selectedModel]);
 
   // Na een berekende route: alleen de laders waar je laadt, tenzij je alles wilt zien.
   const mapChargers = useMemo(() => {
@@ -2045,7 +2045,7 @@ function Index() {
           <ChargingScreen
             stop={activeChargingStop}
             modelName={selectedModel}
-            batteryCapacityKWhOverride={selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined}
+            batteryCapacityKWhOverride={batteryCapacityOverride}
             carMaxKwOverride={carMaxKwOverride}
             currentBattery={Math.round(estimatedBattery ?? liveBattery)}
             onDone={(finalPct) => {
