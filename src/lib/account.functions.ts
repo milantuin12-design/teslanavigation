@@ -27,7 +27,7 @@ const accountSettingsSchema = z.object({
     }).default({ show_development_chargers: false, remember_filters: true }),
     greeting: z.string().trim().max(120).nullable().optional(),
     profile_color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
-    profile_image_url: z.string().max(600000).refine(value => value === null || value.startsWith("data:image/") || /^https?:\\/\\//i.test(value), "Gebruik een afbeeldingsbestand of https-afbeeldingslink.").nullable().optional(),
+    profile_image_url: z.string().max(600000).refine(value => value === null || value.startsWith("data:image/") || value.startsWith("https://") || value.startsWith("http://"), "Gebruik een afbeeldingsbestand of https-afbeeldingslink.").nullable().optional(),
     language: z.string().regex(/^[a-z]{2}(-[A-Z]{2})?$/).optional(),
     units: z.enum(["metric", "imperial"]).optional(),
     display_density: z.enum(["compact", "comfortable"]).optional(),
