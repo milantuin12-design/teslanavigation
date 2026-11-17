@@ -265,6 +265,24 @@ function Index() {
   const [showAllChargers, setShowAllChargers] = useState(false);
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
   useEffect(() => {
+    const handler = (event: Event) => {
+      const prefs = (event as CustomEvent<{ vehicle_model?: string | null; vehicle_year?: number | null; consumption_kwh100?: number | null; notifications?: { price_changes?: boolean }; map?: { show_development_chargers?: boolean; remember_filters?: boolean } }>).detail;
+      if (!prefs) return;
+      setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
+      setRememberFilters(prefs.map?.remember_filters ?? true);
+      setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
+      if (prefs.vehicle_model && teslaModels.includes(prefs.vehicle_model)) setSelectedModel(prefs.vehicle_model);
+      if (typeof prefs.vehicle_year === "number") setModelYear(prefs.vehicle_year);
+      if (typeof prefs.consumption_kwh100 === "number") {
+        setManualConsumptionKWh100(prefs.consumption_kwh100);
+        setConsumptionMode("manual");
+      }
+    };
+    window.addEventListener("tn-preferences-updated", handler);
+    return () => window.removeEventListener("tn-preferences-updated", handler);
+  }, []);
+
+  useEffect(() => {
     if (!currentUser) return;
     let active = true;
     void getMyAccountSettings().then((account) => {
@@ -1655,7 +1673,7 @@ function Index() {
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCompareOpen(true)}>Vergelijk locaties</Button>
               <LanguageSwitcher />
               {currentUser?.display_name?.trim() && (
-                <span className="hidden lg:inline text-xs text-slate-300 whitespace-nowrap">
+                <span className="hidden md:inline text-xs text-slate-300 whitespace-nowrap">
                   {currentUser.gender === "male" ? "Welkom terug, meneer " : currentUser.gender === "female" ? "Welkom terug, mevrouw " : "Welkom terug, "}{currentUser.display_name}!
                 </span>
               )}
