@@ -374,6 +374,9 @@ function Index() {
   const [mapMarkerSize, setMapMarkerSize] = useState(30);
   const [statusColors, setStatusColors] = useState<Record<string, string>>({});
   const [preferredRoutePriority, setPreferredRoutePriority] = useState<"cheapest" | "fastest" | "fewest_stops">("fastest");
+  const [defaultChargePauseMin, setDefaultChargePauseMin] = useState(0);
+  const [maxDetourKm, setMaxDetourKm] = useState(0);
+  const [maxDistanceBetweenStopsKm, setMaxDistanceBetweenStopsKm] = useState(0);
   useEffect(() => {
     const handler = (event: Event) => {
       const prefs = (event as CustomEvent<{
@@ -381,7 +384,7 @@ function Index() {
         notifications?: { price_changes?: boolean; status_changes?: boolean };
         map?: { show_development_chargers?: boolean; remember_filters?: boolean };
         map_type?: "road" | "satellite"; map_zoom?: number; map_marker_size?: number; status_colors?: Record<string, string>;
-        route_preferences?: { priority?: "cheapest" | "fastest" | "fewest_stops"; min_charger_kw?: number };
+        route_preferences?: { priority?: "cheapest" | "fastest" | "fewest_stops"; min_charger_kw?: number; default_charge_pause_min?: number; max_detour_km?: number; max_distance_between_stops_km?: number };
         theme?: "light" | "dark" | "system"; font_scale?: number; display_density?: "compact" | "comfortable";
         language?: string; profile_color?: string;
       }>).detail;
@@ -396,6 +399,9 @@ function Index() {
       if (prefs.status_colors) setStatusColors(prefs.status_colors);
       if (prefs.route_preferences?.priority) setPreferredRoutePriority(prefs.route_preferences.priority);
       if (typeof prefs.route_preferences?.min_charger_kw === "number") setMinChargerSpeedKw(prefs.route_preferences.min_charger_kw);
+      if (typeof prefs.route_preferences?.default_charge_pause_min === "number") setDefaultChargePauseMin(prefs.route_preferences.default_charge_pause_min);
+      if (typeof prefs.route_preferences?.max_detour_km === "number") setMaxDetourKm(prefs.route_preferences.max_detour_km);
+      if (typeof prefs.route_preferences?.max_distance_between_stops_km === "number") setMaxDistanceBetweenStopsKm(prefs.route_preferences.max_distance_between_stops_km);
       if (prefs.theme) document.documentElement.classList.toggle("dark", prefs.theme === "dark" || (prefs.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches));
       if (typeof prefs.font_scale === "number") document.documentElement.style.fontSize = (16 * Math.max(0.85, Math.min(1.3, prefs.font_scale))) + "px";
       if (prefs.display_density) document.documentElement.dataset.displayDensity = prefs.display_density;
@@ -1103,6 +1109,9 @@ function Index() {
       weatherMode,
       timeMode,
       minChargerSpeedKw,
+      maxDetourKm,
+      maxDistanceBetweenStopsKm,
+      defaultChargePauseMin,
       carMaxKwOverride,
       batteryCapacityKWhOverride: batteryCapacityOverride,
       chargeTargetPercent,
@@ -1211,7 +1220,7 @@ function Index() {
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
       whatIf,
     };
-  }, [departureDate, excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode, activeVehicle]);
+  }, [departureDate, excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, maxDetourKm, maxDistanceBetweenStopsKm, defaultChargePauseMin, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode, activeVehicle]);
 
   const applyPlan = useCallback((index: number, plan: RoutePlan) => {
     setSelectedRouteIndex(index);
