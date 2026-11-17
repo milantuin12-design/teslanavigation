@@ -408,12 +408,16 @@ function AdminPage() {
     const rows: Charger[] = [];
     try {
       for (let from = 0; ; from += 1000) {
-        const pageRows = await adminListSuperchargers({ data: { from } }) as Charger[];
+        const response = await adminListSuperchargers({ data: { from } });
+        if (!Array.isArray(response)) {
+          throw new Error("Cloudflare D1 gaf geen geldige lijst terug (verwachtte een array).");
+        }
+        const pageRows = response as Charger[];
         rows.push(...pageRows.map((row) => addAdminTariff(row)));
         if (pageRows.length < 1000) break;
       }
       const ownerRows = await adminListOwners();
-      setOwners(ownerRows as Owner[]);
+      setOwners(Array.isArray(ownerRows) ? ownerRows as Owner[] : []);
     } catch (error) {
       console.error("[TeslaNavigation] D1-adminlijst niet bereikbaar; toon lokale dataset:", error);
       const localRows = (localDataset as { chargers?: Charger[] }).chargers ?? [];
