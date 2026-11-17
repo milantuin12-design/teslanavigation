@@ -253,7 +253,7 @@ function Index() {
   const createNotificationFn = useServerFn(createMyNotificationEvent);
   const [notifyPriceChanges, setNotifyPriceChanges] = useState(true);
   const [notifyStatusChanges, setNotifyStatusChanges] = useState(true);
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [showFavoriteList, setShowFavoriteList] = useState(false);
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem("teslanavigation:favorites") || "[]");
@@ -482,8 +482,12 @@ function Index() {
   }, [countryPricesOpen, superchargers, departureDate, selectedModel, packKWh, carMaxKwOverride]);
 
   const visibleChargers = useMemo(
-    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters) && (!showFavoritesOnly || (!!charger.id && favoriteChargerIds.includes(charger.id)))),
-    [superchargers, chargerFilters, showFavoritesOnly, favoriteChargerIds],
+    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters)),
+    [superchargers, chargerFilters],
+  );
+  const favoriteChargers = useMemo(
+    () => superchargers.filter((charger) => !!charger.id && favoriteChargerIds.includes(charger.id)),
+    [superchargers, favoriteChargerIds],
   );
 
   useEffect(() => { const handler = (event: Event) => { const id = (event as CustomEvent<{ id: string }>).detail?.id; if (id) toggleFavoriteCharger(id); }; window.addEventListener("sc-favorite", handler); return () => window.removeEventListener("sc-favorite", handler); }, []);
@@ -1088,6 +1092,7 @@ function Index() {
       avoidLowSpeed,
       avoidParkingFee,
       requireWheelchairAccessible: requireAccessibleStalls,
+      favoriteChargerIds,
       allowEurotunnel: folkestone && coquelles,
       consumptionMultiplier: elevation.multiplier,
       consumptionKWh100,
@@ -1646,13 +1651,13 @@ function Index() {
 
   // Na een berekende route: alleen de laders waar je laadt, tenzij je alles wilt zien.
   const mapChargers = useMemo(() => {
-    const isDevelopment = (c: Supercharger) => c.status === "construction" || c.status === "permit" || c.status === "plan";
+    const isDevelopment = (c: Supercharger) => c.status === "construction" || c.status === "permit" || c.status === "plan" || c.status === "voting";
     if (!route || showAllChargers || chargingStops.length === 0) {
       return visibleChargers.filter((c) => showDevelopmentChargers || !isDevelopment(c));
     }
     const used = new Set(chargingStops.map((s) => s.charger.id ?? s.charger.name));
-    return superchargers.filter((c) => used.has(c.id ?? c.name) && (!showFavoritesOnly || (!!c.id && favoriteChargerIds.includes(c.id))) && (showDevelopmentChargers || !isDevelopment(c)));
-  }, [route, showAllChargers, chargingStops, visibleChargers, superchargers, showDevelopmentChargers, showFavoritesOnly, favoriteChargerIds]);
+    return superchargers.filter((c) => used.has(c.id ?? c.name) && (showDevelopmentChargers || !isDevelopment(c)));
+  }, [route, showAllChargers, chargingStops, visibleChargers, superchargers, showDevelopmentChargers]);
 
   const handleRemoveCharger = useCallback((index: number) => {
     // "Liever niet hier laden": sluit deze lader uit en zoek een andere Supercharger.
@@ -1798,11 +1803,27 @@ function Index() {
       <div className="flex-1 relative">
         {!isNavigating && (
           <>
-          <div className="absolute top-16 left-3 z-[1000]"><Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowFavoritesOnly((v) => !v)}>{showFavoritesOnly ? "Alle Superchargers" : `Favorieten (${favoriteChargerIds.length})`}</Button></div>
+          <div className="absolute top-16 left-3 z-[1000]">
+            <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowFavoriteList((v) => !v)}>Favorieten ({favoriteChargerIds.length})</Button>
+            {showFavoriteList && (
+              <div className="mt-2 w-[min(320px,calc(100vw-24px))] max-h-[45vh] overflow-y-auto rounded-xl border border-slate-700 bg-slate-950/95 p-2 shadow-2xl">
+                <div className="px-2 py-1 text-xs font-semibold text-slate-300">Mijn favoriete Superchargers</div>
+                {favoriteChargers.length === 0 ? <p className="px-2 py-3 text-xs text-slate-400">Nog geen favorieten. Open een Supercharger op de kaart en tik op de ster.</p> : favoriteChargers.map((charger) => (
+                  <div key={charger.id} className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-white/5">
+                    <button type="button" className="min-w-0 flex-1 text-left" onClick={() => { setFocusCoord({ lat: charger.lat, lng: charger.lng }); setShowFavoriteList(false); }}>
+                      <span className="block truncate text-xs font-medium text-white">{charger.name}</span>
+                      <span className="block truncate text-[10px] text-slate-400">{[charger.city, charger.country].filter(Boolean).join(", ")}</span>
+                    </button>
+                    <button type="button" aria-label={charger.name + " uit favorieten verwijderen"} title="Uit favorieten verwijderen" className="rounded-md px-2 py-1 text-lg leading-none text-amber-400 hover:bg-amber-400/10" onClick={() => toggleFavoriteCharger(charger.id!)}>★</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           {!route && (
             <div className="absolute top-3 left-3 z-[1000]">
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowDevelopmentChargers((v) => !v)}>
-                {showDevelopmentChargers ? "Verberg plannen & bouwlocaties" : "Alles tonen"}
+                {showDevelopmentChargers ? "Verberg bouw-, vergunning- & stemlocaties" : "Alles tonen (ook bouw & vergunning)"}
               </Button>
             </div>
           )}
