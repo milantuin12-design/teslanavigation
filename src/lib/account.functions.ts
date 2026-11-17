@@ -43,9 +43,9 @@ const accountSettingsSchema = z.object({
       priority: z.enum(["cheapest", "fastest", "fewest_stops"]).optional(),
       default_charge_pause_min: z.number().int().min(0).max(180).optional(),
       max_detour_km: z.number().min(0).max(500).optional(),
-      max_distance_between_stops_km: z.number().min(20).max(1000).optional(),
+      max_distance_between_stops_km: z.number().min(0).max(1000).optional(),
       min_charger_kw: z.number().min(0).max(1000).optional(),
-    }).optional(),
+    }).default({ priority: "fastest", default_charge_pause_min: 15, max_detour_km: 30, max_distance_between_stops_km: 250, min_charger_kw: 0 }),
     notifications: z.object({
       favorite_status: z.boolean().default(true),
       price_changes: z.boolean().default(true),
