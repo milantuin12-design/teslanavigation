@@ -10,7 +10,7 @@ import { estimateChargingCost } from "@/lib/charging-cost";
 import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
-import { LanguageSwitcher } from "@/components/LanguageProvider";
+import { LanguageSwitcher, changeLanguage } from "@/components/LanguageProvider";
 import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, getMyChargerNote, saveMyChargerNote, setMyChargerLabel } from "@/lib/account.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
 
@@ -306,7 +306,7 @@ function Index() {
   const [preferredRoutePriority, setPreferredRoutePriority] = useState<"cheapest" | "fastest" | "fewest_stops">("fastest");
   useEffect(() => {
     const handler = (event: Event) => {
-      const prefs = (event as CustomEvent<{ vehicle_model?: string | null; vehicle_year?: number | null; consumption_kwh100?: number | null; notifications?: { price_changes?: boolean }; map?: { show_development_chargers?: boolean; remember_filters?: boolean }; map_type?: "road" | "satellite"; map_zoom?: number; status_colors?: Record<string, string>; route_preferences?: { priority?: "cheapest" | "fastest" | "fewest_stops" } }>).detail;
+      const prefs = (event as CustomEvent<{ vehicle_model?: string | null; vehicle_year?: number | null; consumption_kwh100?: number | null; notifications?: { price_changes?: boolean }; map?: { show_development_chargers?: boolean; remember_filters?: boolean }; map_type?: "road" | "satellite"; map_zoom?: number; status_colors?: Record<string, string>; route_preferences?: { priority?: "cheapest" | "fastest" | "fewest_stops" }; theme?: "light" | "dark" | "system"; font_scale?: number; display_density?: "compact" | "comfortable"; language?: string; profile_color?: string }>).detail;
       if (!prefs) return;
       setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
       setRememberFilters(prefs.map?.remember_filters ?? true);
@@ -315,6 +315,16 @@ function Index() {
       if (typeof prefs.map_zoom === "number") setMapZoom(Math.max(3, Math.min(18, prefs.map_zoom)));
       if (prefs.status_colors) setStatusColors(prefs.status_colors);
       if (prefs.route_preferences?.priority) setPreferredRoutePriority(prefs.route_preferences.priority);
+      if (prefs.theme) document.documentElement.classList.toggle("dark", prefs.theme === "dark" || (prefs.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches));
+      if (typeof prefs.font_scale === "number") document.documentElement.style.fontSize = (16 * Math.max(0.85, Math.min(1.3, prefs.font_scale))) + "px";
+      if (prefs.display_density) document.documentElement.dataset.displayDensity = prefs.display_density;
+      if (prefs.profile_color && /^#[0-9a-fA-F]{6}$/.test(prefs.profile_color)) document.documentElement.style.setProperty("--profile-accent", prefs.profile_color);
+      if (prefs.language) changeLanguage(prefs.language);
+      if (prefs.theme) document.documentElement.classList.toggle("dark", prefs.theme === "dark" || (prefs.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches));
+      if (typeof prefs.font_scale === "number") document.documentElement.style.fontSize = (16 * Math.max(0.85, Math.min(1.3, prefs.font_scale))) + "px";
+      if (prefs.display_density) document.documentElement.dataset.displayDensity = prefs.display_density;
+      if (prefs.profile_color && /^#[0-9a-fA-F]{6}$/.test(prefs.profile_color)) document.documentElement.style.setProperty("--profile-accent", prefs.profile_color);
+      if (prefs.language) changeLanguage(prefs.language);
       if (prefs.map_type) setMapType(prefs.map_type);
       if (typeof prefs.map_zoom === "number") setMapZoom(Math.max(3, Math.min(18, prefs.map_zoom)));
       if (prefs.status_colors) setStatusColors(prefs.status_colors);
