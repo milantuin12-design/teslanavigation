@@ -692,13 +692,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
     markersRef.current.clearLayers();
     clusterRef.current?.clearLayers();
     if (routeChargersOnly) {
-      markersRef.current.addLayers(nextChargerMarkers);
+      nextChargerMarkers.forEach((marker) => markersRef.current.addLayer(marker));
     } else {
       // addLayers() activeert Leaflet.markercluster chunkedLoading; addLayer()
       // in een lus omzeilt die batching en kan de hoofdthread blokkeren.
       clusterRef.current?.addLayers(nextChargerMarkers);
     }
-    markersRef.current.addLayers(nextStandaloneMarkers);
+    nextStandaloneMarkers.forEach((marker) => markersRef.current.addLayer(marker));
   }, [startCoord, destCoord, superchargers, chargingStops, departure, modelName, packKWh, carMaxKwOverride, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode, holidayPeriodMode, statusColors, markerSize]);
 
   // Draai de kaart tijdens navigatie wanneer rijrichting boven is ingeschakeld.
