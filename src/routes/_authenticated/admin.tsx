@@ -786,6 +786,8 @@ function AdminPage() {
           <div className="mb-4 flex flex-wrap items-center gap-2 border border-blue-500/40 bg-blue-500/10 p-3 rounded-lg">
             <span className="text-sm font-semibold mr-2">{selectedIds.size} geselecteerd</span>
             <Button size="sm" variant="outline" onClick={() => bulkUpdate({ trailer_friendly: true })}>Aanhangervriendelijk</Button>
+            <Button size="sm" variant="outline" onClick={() => bulkUpdate({ wheelchairAccessible: true })}>♿ Invalidenplek aanwezig</Button>
+            <Button size="sm" variant="outline" onClick={() => bulkUpdate({ wheelchairAccessible: false })}>♿ Invalidenplek verwijderen</Button>
             <Button size="sm" variant="outline" onClick={() => bulkUpdate({ low_speed: true })}>Lage snelheid</Button>
             <Button size="sm" variant="outline" onClick={() => bulkUpdate({ published: false })}><EyeOff className="w-3.5 h-3.5 mr-1" /> Concept</Button>
             <div className="relative">
