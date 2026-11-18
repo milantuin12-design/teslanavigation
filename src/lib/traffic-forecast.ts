@@ -440,32 +440,55 @@ function getNetworkSpatialIndex(network: NetworkLocation[]): Map<string, Network
 /** Schat relatieve lokale concurrentie/vraag met alleen geografisch nabije locaties. */
 function regionalNetworkFactor(charger: Supercharger, network: NetworkLocation[], zone: ReturnType<typeof zoneFor>): number {
   const index = getNetworkSpatialIndex(network);
+  // Kijk niet alleen naar een grove straal van 60 km: een Supercharger met
+  // meerdere directe alternatieven heeft een andere verwachte bezetting dan
+  // een geïsoleerde locatie, ook wanneer beide in dezelfde regio liggen.
   const latRadius = 60 / 110.6;
   const lonRadius = 60 / (111.32 * Math.max(0.2, Math.cos(charger.lat * Math.PI / 180)));
   const minLat = Math.floor((charger.lat - latRadius) / NETWORK_CELL_DEGREES);
   const maxLat = Math.floor((charger.lat + latRadius) / NETWORK_CELL_DEGREES);
   const minLng = Math.floor((charger.lng - lonRadius) / NETWORK_CELL_DEGREES);
   const maxLng = Math.floor((charger.lng + lonRadius) / NETWORK_CELL_DEGREES);
-  let nearby = 0;
+  let weightedCompetition = 0;
+  let nearby10 = 0;
+  let nearby25 = 0;
+  let nearby60 = 0;
+  let nearest = 60;
   for (let latCell = minLat; latCell <= maxLat; latCell++) {
     for (let lngCell = minLng; lngCell <= maxLng; lngCell++) {
       const bucket = index.get(`${latCell}:${lngCell}`);
       if (!bucket) continue;
       for (const site of bucket) {
-        if (site.id !== charger.id && distanceKm(charger, site) <= 60) nearby++;
+        if (site.id === charger.id) continue;
+        const distance = distanceKm(charger, site);
+        if (distance > 60) continue;
+        nearby60++;
+        nearest = Math.min(nearest, distance);
+        if (distance <= 10) nearby10++;
+        if (distance <= 25) nearby25++;
+        // Nabije Tesla-alternatieven tellen zwaarder dan stations aan de rand
+        // van de regio. Dit maakt de schatting lokaal in plaats van per provincie.
+        weightedCompetition += Math.pow(1 - distance / 65, 2);
       }
     }
   }
-  const densityFactor = nearby === 0 ? 0.10
-    : nearby <= 2 ? 0.06
-    : nearby <= 5 ? 0.02
-    : nearby <= 10 ? 0
-    : nearby <= 20 ? -0.04
-    : -0.08;
-  // Een afgelegen snelweg-, ski- of toeristische locatie kan ondanks weinig
-  // Tesla-buren toch veel passanten trekken; demp de isolatiecorrectie daar.
-  const zoneProtection = zone === "transit" || zone === "ski" || zone === "retail" ? 0.10 : 0;
-  return Math.max(-0.18, Math.min(0.16, densityFactor + zoneProtection));
+
+  // Doorlopende correctie voorkomt dat alle stations in een groot gebied
+  // in dezelfde grove categorie vallen. De correctie blijft bewust begrensd.
+  let factor = 0.14 - Math.min(0.34, weightedCompetition * 0.045);
+  if (nearest < 8) factor -= 0.035;
+  else if (nearest > 35) factor += 0.025;
+  if (nearby10 >= 3) factor -= 0.035;
+  else if (nearby10 === 0 && nearby25 === 0) factor += 0.035;
+
+  // Doorgaande snelweg-, ski- en toeristische locaties trekken ook verkeer
+  // van buiten de directe Tesla-omgeving.
+  if (zone === "transit" || zone === "ski") factor += 0.07;
+  else if (zone === "retail") factor += 0.025;
+
+  // Extra drukte op een druk netwerkgebied; niet op alle stations hetzelfde.
+  if (nearby60 >= 18) factor -= 0.025;
+  return Math.max(-0.22, Math.min(0.22, factor));
 }
 
 export function createRegionalTrafficForecast(charger: Supercharger, network: NetworkLocation[] = []): TrafficForecast {
