@@ -134,3 +134,71 @@ export async function loadBundledSuperchargers(): Promise<Supercharger[]> {
   const tariffs = (tariffFile as unknown as { tariffs: any[] }).tariffs ?? [];
   return rows.map((row) => toSupercharger(withBundledTariff(row, tariffs), owners, network));
 }
+
+
+/* IndexedDB keeps the last successful public map snapshot available for instant startup.
+ * It is only a disposable read cache: D1 remains the source of truth and is never changed.
+ */
+const PUBLIC_MAP_CACHE_DB = "teslanavigation-public-cache";
+const PUBLIC_MAP_CACHE_STORE = "snapshots";
+const PUBLIC_MAP_CACHE_KEY = "published-superchargers-v1";
+
+function openPublicMapCache(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    if (typeof indexedDB === "undefined") {
+      reject(new Error("IndexedDB is not available"));
+      return;
+    }
+    const request = indexedDB.open(PUBLIC_MAP_CACHE_DB, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(PUBLIC_MAP_CACHE_STORE)) {
+        db.createObjectStore(PUBLIC_MAP_CACHE_STORE);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? new Error("Could not open map cache"));
+    request.onblocked = () => reject(new Error("Map cache upgrade is blocked"));
+  });
+}
+
+export async function readCachedPublicSuperchargers(): Promise<Supercharger[] | null> {
+  let db: IDBDatabase | null = null;
+  try {
+    db = await openPublicMapCache();
+    return await new Promise((resolve, reject) => {
+      const request = db!.transaction(PUBLIC_MAP_CACHE_STORE, "readonly")
+        .objectStore(PUBLIC_MAP_CACHE_STORE).get(PUBLIC_MAP_CACHE_KEY);
+      request.onsuccess = () => {
+        const value = request.result as { chargers?: unknown } | undefined;
+        resolve(Array.isArray(value?.chargers) ? value.chargers as Supercharger[] : null);
+      };
+      request.onerror = () => reject(request.error ?? new Error("Could not read map cache"));
+    });
+  } catch {
+    return null;
+  } finally {
+    db?.close();
+  }
+}
+
+export async function writeCachedPublicSuperchargers(chargers: Supercharger[]): Promise<void> {
+  let db: IDBDatabase | null = null;
+  try {
+    db = await openPublicMapCache();
+    await new Promise<void>((resolve, reject) => {
+      const transaction = db!.transaction(PUBLIC_MAP_CACHE_STORE, "readwrite");
+      transaction.objectStore(PUBLIC_MAP_CACHE_STORE).put(
+        { savedAt: Date.now(), chargers },
+        PUBLIC_MAP_CACHE_KEY,
+      );
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error ?? new Error("Could not save map cache"));
+      transaction.onabort = () => reject(transaction.error ?? new Error("Map cache write aborted"));
+    });
+  } catch {
+    // Caching is optional; never interrupt the live D1 feed if storage is full or disabled.
+  } finally {
+    db?.close();
+  }
+}
