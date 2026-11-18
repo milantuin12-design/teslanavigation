@@ -166,7 +166,7 @@ const emptyCharger = {
 };
 
 
-function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; onChange: (value: TrafficForecast) => void }) {
+function TrafficForecastEditor({ value, onChange, title = "Druktevoorspelling" }: { value: TrafficForecast; onChange: (value: TrafficForecast) => void; title?: string }) {
   const formatHolidayPeriods = (periods: TrafficForecast["holidayPeriods"] = []) =>
     periods.map((period) => [period.label, period.from, period.to].join("|")).join("\n");
   const [holidayText, setHolidayText] = useState(() => formatHolidayPeriods(value.holidayPeriods));
@@ -201,7 +201,7 @@ function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; on
   return (
     <div className="rounded-lg border border-cyan-700/50 bg-slate-900/70 p-3 space-y-3">
       <div>
-        <div className="text-sm font-semibold text-cyan-200">Druktevoorspelling</div>
+        <div className="text-sm font-semibold text-cyan-200">{title}</div>
         <p className="text-[11px] text-slate-400">Vul per uur 0–100% verwachte drukte in. De drie uurprofielen worden gebruikt om de verwachte drukte bij een laadstop te tonen. Er wordt geen aantal vrije laadplekken of wachtrij voorspeld.</p>
       </div>
       {groups.map((group) => (
@@ -1028,6 +1028,12 @@ function AdminPage() {
               <TrafficForecastEditor
                 value={editing.traffic_forecast ? { ...editing.traffic_forecast, holidayPeriods: editing.traffic_forecast.source === "regional-estimate" ? [] : editing.traffic_forecast.holidayPeriods } : createEmptyTrafficForecast()}
                 onChange={(traffic_forecast) => setEditing({ ...editing, traffic_forecast })}
+              />
+
+              <TrafficForecastEditor
+                title="Drukte aanhangerplekken"
+                value={editing.construction?.trailerTrafficForecast ?? createEmptyTrafficForecast()}
+                onChange={(trailerTrafficForecast) => setEditing({ ...editing, construction: { ...(editing.construction ?? {}), trailerTrafficForecast } })}
               />
 
               <div>
