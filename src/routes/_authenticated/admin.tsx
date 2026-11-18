@@ -862,6 +862,25 @@ function AdminPage() {
               </div>
               <div><Label>Coordinaten (lat,lng)</Label><Input value={coordsInput} onChange={(e) => setCoordsInput(e.target.value)} placeholder="52.3702,4.8952" className="bg-slate-800 border-slate-700" /></div>
 
+              <div className="space-y-2 rounded-lg border border-amber-500/30 bg-amber-950/20 p-3">
+                <div className="flex items-center gap-2 text-sm font-semibold text-amber-200"><Truck className="h-4 w-4" /> Aanhanger / caravan</div>
+                <p className="text-[11px] text-slate-400">Vul dit bij iedere Supercharger in. Deze gegevens worden gebruikt voor de route-inschatting wanneer de aanhangerstand aanstaat.</p>
+                <label className="flex items-center gap-2 text-xs text-white">
+                  <Checkbox checked={!!editing.trailer_friendly} onCheckedChange={(checked) => setEditing({ ...editing, trailer_friendly: checked === true })} />
+                  Deze locatie is aanhangervriendelijk
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs">Aantal geschikte aanhangerplaatsen</Label>
+                    <Input type="number" min={0} max={100} value={editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0)} onChange={(e) => setEditing({ ...editing, trailer_friendly: Number(e.target.value) > 0, construction: { ...(editing.construction || {}), trailerFriendlyStalls: Math.max(0, Math.min(100, Number(e.target.value) || 0)) } })} className="bg-slate-800 border-slate-700" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Laadplekken per aanhangerplaats</Label>
+                    <Input type="number" min={1} max={8} value={editing.construction?.trailerStallsPerSpace ?? 1} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), trailerStallsPerSpace: Math.max(1, Math.min(8, Number(e.target.value) || 1)) } })} className="bg-slate-800 border-slate-700" />
+                  </div>
+                </div>
+              </div>
+
               <div className="rounded-2xl border border-sky-400/20 bg-gradient-to-br from-slate-900 to-slate-950 p-4 shadow-lg space-y-3">
                 <div>
                   <Label>Status</Label>
