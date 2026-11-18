@@ -435,8 +435,14 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         const currentAvailability = estimateFreeStalls(charger);
         if (currentAvailability) {
           popup += `<div style="margin-top:7px;padding:7px 8px;border-radius:7px;background:#eff6ff;color:#1e3a8a;">
-            <div style="font-weight:800;">Geschat beschikbaar: ±${currentAvailability.count} laadplekken</div>
+            <div style="font-weight:800;">Waarschijnlijk ${currentAvailability.count} van de ${currentAvailability.total} laadplekken vrij</div>
           </div>`;
+        }
+        if (charger.trailerFriendly) {
+          const trailerTotal = Math.max(0, Math.floor(charger.construction?.trailerFriendlyStalls ?? 1));
+          const perSpace = Math.max(1, Math.floor(charger.construction?.trailerStallsPerSpace ?? 1));
+          const trailerFree = currentAvailability ? Math.min(trailerTotal, Math.floor(currentAvailability.count / perSpace)) : null;
+          if (trailerTotal > 0) popup += `<div style="margin-top:5px;padding:6px 8px;border-radius:7px;background:#ecfdf5;color:#065f46;font-weight:700;">🚐 Aanhangerplek: ${trailerFree === null ? `beschikbaarheid onbekend · ${trailerTotal} totaal` : `waarschijnlijk ${trailerFree} van de ${trailerTotal} vrij`}</div>`;
         }
 
         const routeStop = chargingStops.find((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
