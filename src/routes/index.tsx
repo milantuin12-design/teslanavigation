@@ -420,7 +420,6 @@ function Index() {
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
   const [showAllChargers, setShowAllChargers] = useState(false);
-  const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
   const [mapType, setMapType] = useState<"road" | "satellite">("satellite");
   const [mapZoom, setMapZoom] = useState(7);
   const [mapMarkerSize, setMapMarkerSize] = useState(30);
@@ -441,7 +440,6 @@ function Index() {
         language?: string; profile_color?: string;
       }>).detail;
       if (!prefs) return;
-      setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
       setRememberFilters(prefs.map?.remember_filters ?? true);
       setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
       setNotifyStatusChanges(prefs.notifications?.status_changes ?? true);
@@ -476,7 +474,6 @@ function Index() {
     void getMyAccountSettings().then((account) => {
       if (!active) return;
       const prefs = account.preferences;
-      setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
       setRememberFilters(prefs.map?.remember_filters ?? true);
       setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
       setNotifyStatusChanges(prefs.notifications?.status_changes ?? true);
@@ -532,9 +529,11 @@ function Index() {
       .sort((a, b) => a.currency.localeCompare(b.currency) || a.average - b.average);
   }, [countryPricesOpen, superchargers, departureDate, selectedModel, packKWh, carMaxKwOverride]);
 
+  // Plan-, vergunning-, bouw- en votinglocaties horen altijd zichtbaar te zijn.
+  // Ze worden niet meer afhankelijk gemaakt van een oude gebruikersvoorkeur.
   const visibleChargers = useMemo(
-    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters) && (showDevelopmentChargers || (charger.status !== "plan" && charger.status !== "voting"))),
-    [superchargers, chargerFilters, showDevelopmentChargers],
+    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters)),
+    [superchargers, chargerFilters],
   );
   const favoriteChargers = useMemo(
     () => superchargers.filter((charger) => !!charger.id && favoriteChargerIds.includes(charger.id)),
@@ -1793,15 +1792,14 @@ function Index() {
     }));
   }, [batteryCapacityOverride, carMaxKwOverride, fullRangeKmActive, packKWh, selectedModel]);
 
-  // Na een berekende route: alleen de laders waar je laadt, tenzij je alles wilt zien.
+  // Na een berekende route blijven ontwikkel-, vergunning-, plan- en votinglocaties
+  // zichtbaar; daarnaast tonen we de laadstations die voor de route zijn geselecteerd.
   const mapChargers = useMemo(() => {
     const isDevelopment = (c: Supercharger) => c.status === "construction" || c.status === "permit" || c.status === "plan" || c.status === "voting";
-    if (!route || showAllChargers || chargingStops.length === 0) {
-      return visibleChargers.filter((c) => showDevelopmentChargers || !isDevelopment(c));
-    }
+    if (!route || showAllChargers || chargingStops.length === 0) return visibleChargers;
     const used = new Set(chargingStops.map((s) => s.charger.id ?? s.charger.name));
-    return superchargers.filter((c) => used.has(c.id ?? c.name) && (showDevelopmentChargers || !isDevelopment(c)));
-  }, [route, showAllChargers, chargingStops, visibleChargers, superchargers, showDevelopmentChargers]);
+    return visibleChargers.filter((c) => isDevelopment(c) || used.has(c.id ?? c.name));
+  }, [route, showAllChargers, chargingStops, visibleChargers]);
 
   const handleRemoveCharger = useCallback((index: number) => {
     // "Liever niet hier laden": sluit deze lader uit en zoek een andere Supercharger.
@@ -1965,13 +1963,6 @@ function Index() {
               </div>
             )}
           </div>
-          {!route && (
-            <div className="absolute top-3 left-3 z-[1000]">
-              <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowDevelopmentChargers((v) => !v)}>
-                {showDevelopmentChargers ? "Verberg bouw-, vergunning- & stemlocaties" : "Alles tonen (ook bouw & vergunning)"}
-              </Button>
-            </div>
-          )}
           {chargerLoadError && (
             <div role="alert" className="absolute top-20 left-3 z-[1100] max-w-[min(420px,calc(100vw-24px))] rounded-lg border border-red-500/40 bg-slate-950/95 px-3 py-2 text-xs text-red-200 shadow-xl">
               Superchargers laden mislukt: {chargerLoadError}
