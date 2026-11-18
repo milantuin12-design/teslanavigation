@@ -132,6 +132,8 @@ export interface ConstructionInfo {
   trailerFriendlyStalls?: number;
   /** Number of charger stalls blocked by one occupied trailer-friendly bay; defaults to 1. */
   trailerStallsPerSpace?: number;
+  /** Separate admin-configured crowd profile for trailer-friendly bays. */
+  trailerTrafficForecast?: TrafficForecast;
   /** On-site amenities manually verified by the admin. */
   siteAmenities?: string[];
   /** Admin-geverifieerde invalidenparkeerplek bij de Supercharger. */
