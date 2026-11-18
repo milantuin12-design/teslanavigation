@@ -318,7 +318,7 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 <span className="flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-amber-300">
                   <BatteryCharging size={11} />{stop.batteryBefore}% → {stop.batteryAfter}%
                 </span>
-                {estimatedFreeStalls !== null && <span className="flex items-center gap-1 text-emerald-300"><Zap size={11} />±{estimatedFreeStalls} vrij</span>}
+                {estimatedFreeStalls !== null && <span className="flex items-center gap-1 text-emerald-300"><Zap size={11} />Waarschijnlijk {estimatedFreeStalls} van de {openStalls} laadplekken vrij</span>}
                 <span className="flex items-center gap-1 text-green-400"><Clock size={11} />{dur(stop.chargeDurationMin)}</span>
                 {maxSpeedKw > 0 && stop.charger.totalStalls ? <span className="flex items-center gap-1 text-blue-400"><Gauge size={11} />{maxSpeedKw} kW{ccsBlocked ? ' (V2)' : ''}</span> : null}
                 {showTrailer && (trailerFriendlyCapacity > 0
