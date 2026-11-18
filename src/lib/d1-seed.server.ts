@@ -60,7 +60,7 @@ export async function ensureBundledD1Seed() {
   const owners = Array.isArray(localChargerDataset.owners) ? localChargerDataset.owners : [];
   const chargers = Array.isArray(localChargerDataset.chargers) ? localChargerDataset.chargers as unknown as Record<string, unknown>[] : [];
   const { FALLBACK_LANGUAGES } = await import("./i18n");
-  const datasetVersion = String((localChargerDataset as unknown as { exportedAt?: string }).exportedAt ?? "unknown");
+  const datasetVersion = `restore-baseline-2026-11-18-v2:${String((localChargerDataset as unknown as { exportedAt?: string }).exportedAt ?? "unknown")}`;
   const tariffVersion = String((tariffDataset as unknown as { checkedAt?: string }).checkedAt ?? "unknown");
 
   for (const [index, language] of (Array.isArray(FALLBACK_LANGUAGES) ? FALLBACK_LANGUAGES : []).entries()) {
