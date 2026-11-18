@@ -343,6 +343,12 @@ function AdminPage() {
   const saveWinterSportsMode = useServerFn(setWinterSportsMode);
   const readHolidayPeriodMode = useServerFn(getHolidayPeriodMode);
   const saveHolidayPeriodMode = useServerFn(setHolidayPeriodMode);
+  const listAdminSuperchargers = useServerFn(adminListSuperchargers);
+  const upsertAdminCharger = useServerFn(adminRawUpsertCharger);
+  const deleteAdminCharger = useServerFn(adminDeleteCharger);
+  const bulkUpdateAdminChargers = useServerFn(adminBulkRawUpdate);
+  const listAdminOwners = useServerFn(adminListOwners);
+  const createAdminOwner = useServerFn(adminCreateOwner);
   const [holidayPeriodEnabled, setHolidayPeriodEnabled] = useState(false);
   const [holidayPeriodSaving, setHolidayPeriodSaving] = useState(false);
   const [winterSportsEnabled, setWinterSportsEnabled] = useState(false);
@@ -395,9 +401,9 @@ function AdminPage() {
       for (const change of pending) {
         try {
           if (change.type === "delete" && change.id) {
-            await adminDeleteCharger({ data: { id: change.id } });
+            await deleteAdminCharger({ data: { id: change.id } });
           } else if (change.type === "upsert" && change.payload) {
-            await adminRawUpsertCharger({ data: stripLegacyTrafficColumn(change.payload as Record<string, unknown>) });
+            await upsertAdminCharger({ data: stripLegacyTrafficColumn(change.payload as Record<string, unknown>) });
           }
           processed += 1;
         } catch {
@@ -418,7 +424,7 @@ function AdminPage() {
     const rows: Charger[] = [];
     try {
       for (let from = 0; ; from += 1000) {
-        const response = await adminListSuperchargers({ data: { from } });
+        const response = await listAdminSuperchargers({ data: { from } });
         if (!Array.isArray(response)) {
           throw new Error("Cloudflare D1 gaf geen geldige lijst terug (verwachtte een array).");
         }
@@ -426,7 +432,7 @@ function AdminPage() {
         rows.push(...pageRows.map((row) => addAdminTariff(row)));
         if (pageRows.length < 1000) break;
       }
-      const ownerRows = await adminListOwners();
+      const ownerRows = await listAdminOwners();
       setOwners(Array.isArray(ownerRows) ? ownerRows as Owner[] : []);
       setCloudConnected(true);
     } catch (error) {
@@ -519,7 +525,7 @@ function AdminPage() {
       photos: (editing.photos || []).map((u) => u.trim()).filter(Boolean),
     };
     try {
-      await adminRawUpsertCharger({ data: stripLegacyTrafficColumn({ ...(editing.id ? { id: editing.id } : {}), ...payload } as Record<string, unknown>) });
+      await upsertAdminCharger({ data: stripLegacyTrafficColumn({ ...(editing.id ? { id: editing.id } : {}), ...payload } as Record<string, unknown>) });
       toast.success(editing.id ? "Bijgewerkt" : "Toegevoegd");
     } catch (error) {
       // Bewaar de wijziging lokaal, maar toon ook de echte databasefout zodat schema-
@@ -545,7 +551,7 @@ function AdminPage() {
     if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Verwijderen is uitgeschakeld."); return; }
     if (!confirm("Weet je zeker dat je deze supercharger wilt verwijderen?")) return;
     try {
-      await adminDeleteCharger({ data: { id } });
+      await deleteAdminCharger({ data: { id } });
       toast.success("Verwijderd");
     } catch {
       queueAdminChange({ type: "delete", id });
@@ -574,7 +580,7 @@ function AdminPage() {
     const drafts = chargers.filter((c) => c.published === false);
     if (drafts.length === 0) { toast.info("Geen concepten om te publiceren"); return; }
     if (!confirm(`${drafts.length} concepten publiceren?`)) return;
-    try { await adminBulkRawUpdate({ data: { ids: drafts.map((draft) => draft.id), changes: { published: true } } }); }
+    try { await bulkUpdateAdminChargers({ data: { ids: drafts.map((draft) => draft.id), changes: { published: true } } }); }
     catch (error) { toast.error(error instanceof Error ? error.message : "Publiceren mislukt"); return; }
     toast.success(`${drafts.length} concepten gepubliceerd`);
     load();
@@ -616,7 +622,7 @@ function AdminPage() {
     const existing = owners.find((o) => o.name.toLowerCase() === trimmed.toLowerCase());
     if (existing) return existing.id;
     let data: { id: string; name: string } | null = null;
-    try { data = await adminCreateOwner({ data: { name: trimmed } }) as { id: string; name: string }; }
+    try { data = await createAdminOwner({ data: { name: trimmed } }) as { id: string; name: string }; }
     catch (error) { toast.error(error instanceof Error ? error.message : "Eigenaar aanmaken mislukt"); return null; }
     if (!data) return null;
     setOwners((prev) => [...prev, data as Owner].sort((a, b) => a.name.localeCompare(b.name)));
@@ -627,7 +633,7 @@ function AdminPage() {
     if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Bulk wijzigen is uitgeschakeld."); return; }
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
-    try { await adminBulkRawUpdate({ data: { ids, changes } }); }
+    try { await bulkUpdateAdminChargers({ data: { ids, changes } }); }
     catch (error) { toast.error(error instanceof Error ? error.message : "Bijwerken mislukt"); return; }
     toast.success(`${ids.length} Superchargers bijgewerkt`);
     setSelectedIds(new Set());
@@ -863,25 +869,6 @@ function AdminPage() {
                 <div><Label>Plaats</Label><Input value={editing.city || ""} onChange={(e) => setEditing({ ...editing, city: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
               </div>
               <div><Label>Coordinaten (lat,lng)</Label><Input value={coordsInput} onChange={(e) => setCoordsInput(e.target.value)} placeholder="52.3702,4.8952" className="bg-slate-800 border-slate-700" /></div>
-
-              <div className="space-y-2 rounded-lg border border-amber-500/30 bg-amber-950/20 p-3">
-                <div className="flex items-center gap-2 text-sm font-semibold text-amber-200"><Truck className="h-4 w-4" /> Aanhanger / caravan</div>
-                <p className="text-[11px] text-slate-400">Vul dit bij iedere Supercharger in. Deze gegevens worden gebruikt voor de route-inschatting wanneer de aanhangerstand aanstaat.</p>
-                <label className="flex items-center gap-2 text-xs text-white">
-                  <Checkbox checked={!!editing.trailer_friendly} onCheckedChange={(checked) => setEditing({ ...editing, trailer_friendly: checked === true })} />
-                  Deze locatie is aanhangervriendelijk
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs">Aantal geschikte aanhangerplaatsen</Label>
-                    <Input type="number" min={0} max={100} value={editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0)} onChange={(e) => setEditing({ ...editing, trailer_friendly: Number(e.target.value) > 0, construction: { ...(editing.construction || {}), trailerFriendlyStalls: Math.max(0, Math.min(100, Number(e.target.value) || 0)) } })} className="bg-slate-800 border-slate-700" />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Laadplekken per aanhangerplaats</Label>
-                    <Input type="number" min={1} max={8} value={editing.construction?.trailerStallsPerSpace ?? 1} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), trailerStallsPerSpace: Math.max(1, Math.min(8, Number(e.target.value) || 1)) } })} className="bg-slate-800 border-slate-700" />
-                  </div>
-                </div>
-              </div>
 
               <div className="rounded-2xl border border-sky-400/20 bg-gradient-to-br from-slate-900 to-slate-950 p-4 shadow-lg space-y-3">
                 <div>
