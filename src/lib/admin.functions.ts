@@ -33,6 +33,10 @@ export const reverseGeocodeCharger = createServerFn({ method: "POST" })
 
 /* Public map feed: the map must read the same D1 records that the admin edits. */
 export const listPublishedSuperchargers = createServerFn({ method: "GET" }).handler(async () => {
+  // Ensure the restored bundled baseline is present before the public map reads D1.
+  // This only refreshes bundled/automatic rows; manual admin rows are preserved.
+  const { ensureBundledD1Seed } = await import("./d1-seed.server");
+  await ensureBundledD1Seed();
   const { getD1 } = await import("./d1.server");
   const db = getD1();
   const [chargerRows, ownerRows] = await Promise.all([
