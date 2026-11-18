@@ -546,7 +546,7 @@ function AdminPage() {
         customLabel: editing.construction?.customLabel?.trim() || null,
         trafficForecast: editing.traffic_forecast || createEmptyTrafficForecast(),
         trailerFriendlyStalls: Math.max(0, Math.min(100, Math.floor(Number(editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0)) || 0))),
-        trailerStallsPerSpace: 1,
+        trailerStallsPerSpace: Math.max(1, Math.min(20, Math.floor(Number(editing.construction?.trailerStallsPerSpace ?? 1) || 1))),
       } as unknown as Json,
       works: (editing.works || {}) as Json,
       closure: (editing.closure || {}) as Json,
@@ -1199,7 +1199,9 @@ function AdminPage() {
                 <Label htmlFor="trailer-friendly-stalls">Aantal laadplekken waar je met aanhanger kunt laden</Label>
                 <Input id="trailer-friendly-stalls" type="number" min="0" max="100" step="1" value={editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0)} onChange={(e) => setEditing({ ...editing, trailer_friendly: Number(e.target.value) > 0, construction: { ...(editing.construction ?? {}), trailerFriendlyStalls: Math.max(0, Math.min(100, Math.floor(Number(e.target.value) || 0))) } })} className="bg-slate-800 border-slate-700" />
                 <p className="text-xs text-slate-500">Vul het echte aantal geschikte plekken in. Dit aantal wordt gebruikt om bij een route te schatten hoeveel aanhangerplekken waarschijnlijk vrij zijn.</p>
-
+                <Label htmlFor="trailer-stalls-per-space" className="pt-2">Gewone laadplekken die één aanhangerplek inneemt</Label>
+                <Input id="trailer-stalls-per-space" type="number" min="1" max="20" step="1" value={editing.construction?.trailerStallsPerSpace ?? 1} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction ?? {}), trailerStallsPerSpace: Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))) } })} className="bg-slate-800 border-slate-700" />
+                <p className="text-xs text-slate-500">Gesloten of defecte laadplekken tellen niet mee als bruikbare capaciteit.</p>
               </div>
               <label className="flex items-center gap-2 cursor-pointer rounded-lg border border-sky-500/20 bg-sky-500/5 p-2">
                 <Checkbox checked={!!editing.construction?.wheelchairAccessible} onCheckedChange={(checked) => setEditing({ ...editing, construction: { ...(editing.construction ?? {}), wheelchairAccessible: !!checked } })} />
