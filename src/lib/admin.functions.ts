@@ -309,14 +309,12 @@ export const adminListSuperchargers = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     await requireD1Admin();
     const db = getD1();
-    // Seed the bundled baseline only when D1 is genuinely empty. Re-running the
-    // full dataset/tariff synchronisation during every admin page load caused
-    // thousands of writes before the list could be shown.
-    const count = await db.prepare("SELECT COUNT(*) AS count FROM superchargers").first<{ count: number }>();
-    if (!count || Number(count.count) === 0) {
-      const { ensureBundledD1Seed } = await import("./d1-seed.server");
-      await ensureBundledD1Seed();
-    }
+    // The seed function checks bundled dataset/tariff versions in app_meta.
+    // Calling it on every admin load is safe: unchanged versions skip the
+    // expensive bulk refresh, while populated databases still receive new
+    // public stations without overwriting manual admin edits.
+    const { ensureBundledD1Seed } = await import("./d1-seed.server");
+    await ensureBundledD1Seed();
     const rows = await db.prepare("SELECT * FROM superchargers ORDER BY name COLLATE NOCASE LIMIT 1000 OFFSET ?")
       .bind(data.from).all<Record<string, unknown>>();
     if (!Array.isArray(rows?.results)) {
