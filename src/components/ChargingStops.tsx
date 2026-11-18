@@ -296,8 +296,11 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
         const estimatedFreeStalls = availabilityForecast ? Math.max(0, Math.min(openStalls, Math.round(openStalls * (1 - availabilityForecast.level / 100)))) : null;
         const trailerFriendlyCapacity = Math.max(0, Math.floor(stop.charger.construction?.trailerFriendlyStalls ?? (stop.charger.trailerFriendly ? 1 : 0)));
         const trailerStallsPerSpace = Math.max(1, Math.floor(stop.charger.construction?.trailerStallsPerSpace ?? 1));
-        const estimatedFreeTrailerSpaces = showTrailer && trailerFriendlyCapacity > 0 && estimatedFreeStalls !== null
-          ? Math.max(0, Math.min(trailerFriendlyCapacity, Math.floor(estimatedFreeStalls / trailerStallsPerSpace)))
+        const trailerForecast = eta ? getTrafficForecastAt(stop.charger.construction?.trailerTrafficForecast ?? stop.charger.trafficForecast, eta, stop.charger.province, holidayMode, winterSportsMode && isSnowRegion(stop.charger)) : null;
+        const trailerForecastFree = trailerForecast ? Math.floor(trailerFriendlyCapacity * (1 - trailerForecast.level / 100)) : null;
+        const trailerCapacityFromFreeStalls = estimatedFreeStalls !== null ? Math.floor(estimatedFreeStalls / trailerStallsPerSpace) : null;
+        const estimatedFreeTrailerSpaces = showTrailer && trailerFriendlyCapacity > 0
+          ? Math.max(0, Math.min(trailerFriendlyCapacity, trailerForecastFree === null ? (trailerCapacityFromFreeStalls ?? 0) : trailerCapacityFromFreeStalls === null ? trailerForecastFree : Math.min(trailerForecastFree, trailerCapacityFromFreeStalls)))
           : null;
         return (
           <div key={idx} className="space-y-2">
@@ -318,7 +321,7 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 <span className="flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-amber-300">
                   <BatteryCharging size={11} />{stop.batteryBefore}% → {stop.batteryAfter}%
                 </span>
-                {estimatedFreeStalls !== null && <span className="flex items-center gap-1 text-emerald-300"><Zap size={11} />Waarschijnlijk {estimatedFreeStalls} van de {openStalls} laadplekken vrij</span>}
+                {estimatedFreeStalls !== null && <span className="flex items-center gap-1 text-emerald-300"><Zap size={11} />{estimatedFreeStalls}</span>}
                 <span className="flex items-center gap-1 text-green-400"><Clock size={11} />{dur(stop.chargeDurationMin)}</span>
                 {maxSpeedKw > 0 && stop.charger.totalStalls ? <span className="flex items-center gap-1 text-blue-400"><Gauge size={11} />{maxSpeedKw} kW{ccsBlocked ? ' (V2)' : ''}</span> : null}
                 {showTrailer && (trailerFriendlyCapacity > 0
