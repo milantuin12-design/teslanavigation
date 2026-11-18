@@ -380,7 +380,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
     superchargers.forEach(charger => {
       try {
-        if (charger.published === false && !showDrafts) return;
+        const isDevelopmentLocation = charger.status === 'plan' || charger.status === 'voting' || charger.status === 'permit';
+        if (charger.published === false && !showDrafts && !isDevelopmentLocation) return;
         if (!isVisibleOnMap(charger)) return;
 
         const status = getChargerStatus(charger);
