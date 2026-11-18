@@ -329,6 +329,7 @@ function AdminPage() {
   const [editing, setEditing] = useState<Partial<Charger> | null>(null);
   const [coordsInput, setCoordsInput] = useState("");
   const [loading, setLoading] = useState(true);
+  const [cloudConnected, setCloudConnected] = useState(false);
   const [qualityOpen, setQualityOpen] = useState(false);
   const [owners, setOwners] = useState<Owner[]>([]);
   const [newOwnerName, setNewOwnerName] = useState("");
@@ -387,6 +388,7 @@ function AdminPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setCloudConnected(false);
     const pending = getPendingAdminChanges();
     if (pending.length > 0) {
       let processed = 0;
@@ -426,7 +428,9 @@ function AdminPage() {
       }
       const ownerRows = await adminListOwners();
       setOwners(Array.isArray(ownerRows) ? ownerRows as Owner[] : []);
+      setCloudConnected(true);
     } catch (error) {
+      setCloudConnected(false);
       console.error("[TeslaNavigation] D1-adminlijst niet bereikbaar; toon lokale dataset:", error);
       const localRows = (localDataset as { chargers?: Charger[] }).chargers ?? [];
       if (rows.length === 0 && localRows.length > 0) {
@@ -452,6 +456,7 @@ function AdminPage() {
   };
 
   const save = async () => {
+    if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Wijzigingen zijn uitgeschakeld; probeer eerst opnieuw te laden."); return; }
     if (!editing) return;
     const parts = coordsInput.split(",").map((s) => parseFloat(s.trim()));
     if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
@@ -537,6 +542,7 @@ function AdminPage() {
   };
 
   const remove = async (id: string) => {
+    if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Verwijderen is uitgeschakeld."); return; }
     if (!confirm("Weet je zeker dat je deze supercharger wilt verwijderen?")) return;
     try {
       await adminDeleteCharger({ data: { id } });
@@ -563,6 +569,7 @@ function AdminPage() {
   };
 
   const publishAllDrafts = async () => {
+    if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Publiceren is uitgeschakeld."); return; }
     const drafts = chargers.filter((c) => c.published === false);
     if (drafts.length === 0) { toast.info("Geen concepten om te publiceren"); return; }
     if (!confirm(`${drafts.length} concepten publiceren?`)) return;
@@ -588,6 +595,7 @@ function AdminPage() {
 
   /** Import voegt toe en werkt bij; bestaande laders worden nooit verwijderd. */
   const importData = async (file: File) => {
+    if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Importeren is uitgeschakeld."); return; }
     try {
       const parsed = JSON.parse(await file.text()) as { chargers?: unknown } | unknown[];
       const list = Array.isArray(parsed) ? parsed : (parsed.chargers as unknown[] | undefined);
@@ -615,6 +623,7 @@ function AdminPage() {
   };
 
   const bulkUpdate = async (changes: Record<string, unknown>) => {
+    if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Bulk wijzigen is uitgeschakeld."); return; }
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
     try { await adminBulkRawUpdate({ data: { ids, changes } }); }
@@ -707,9 +716,9 @@ function AdminPage() {
             <Link to="/gebruikers"><Button variant="outline" size="sm" className="border-slate-700">Gebruikers</Button></Link>
             <Link to="/talen"><Button variant="outline" size="sm" className="border-slate-700">Talen</Button></Link>
             <Link to="/wijzigingen"><Button variant="outline" size="sm" className="border-slate-700">Wijzigingen</Button></Link>
-            <Button variant="outline" size="sm" className="border-slate-700" onClick={publishAllDrafts}>Alle concepten publiceren</Button>
+            <Button variant="outline" size="sm" className="border-slate-700" onClick={publishAllDrafts} disabled={!cloudConnected || loading}>Alle concepten publiceren</Button>
             <Button variant="outline" size="sm" className="border-slate-700" onClick={exportData}>Exporteer back-up</Button>
-            <Button variant="outline" size="sm" className="border-slate-700" onClick={() => fileRef.current?.click()}>Importeer back-up</Button>
+            <Button variant="outline" size="sm" className="border-slate-700" onClick={() => fileRef.current?.click()} disabled={!cloudConnected || loading}>Importeer back-up</Button>
             <input
               ref={fileRef}
               type="file"
@@ -717,7 +726,7 @@ function AdminPage() {
               className="hidden"
               onChange={(e) => { const file = e.target.files?.[0]; if (file) importData(file); e.target.value = ""; }}
             />
-            <Button onClick={openNew} className="bg-red-600 hover:bg-red-700"><Plus className="w-4 h-4 mr-1" /> Nieuw</Button>
+            <Button onClick={openNew} disabled={!cloudConnected || loading} className="bg-red-600 hover:bg-red-700"><Plus className="w-4 h-4 mr-1" /> Nieuw</Button>
           </div>
         </div>
         <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-sky-500/40 bg-sky-500/10 p-3">
@@ -815,8 +824,8 @@ function AdminPage() {
                       <td className="p-3">{c.published === false ? <span className="text-amber-300">Concept</span> : c.status && c.status !== "operational" ? <span className={c.status === "expanding" ? "text-green-400" : c.status === "construction" ? "text-orange-300" : c.status === "voting" ? "text-blue-300" : c.status === "plan" || c.status === "permit" ? "text-purple-300" : "text-slate-300"}>{lifecycleLabels[c.status] ?? c.status}</span> : c.is_available === false ? <span className="text-slate-300">Niet beschikbaar</span> : <span className="text-green-400">Beschikbaar</span>}</td>
                       <td className="p-3">{c.trailer_friendly ? "✓" : "-"}</td>
                       <td className="p-3 text-right whitespace-nowrap">
-                        <Button size="sm" variant="ghost" onClick={() => openEdit(c)}><Pencil className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => remove(c.id)}><Trash2 className="w-4 h-4 text-red-400" /></Button>
+                        <Button size="sm" variant="ghost" disabled={!cloudConnected || loading} onClick={() => openEdit(c)}><Pencil className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="ghost" disabled={!cloudConnected || loading} onClick={() => remove(c.id)}><Trash2 className="w-4 h-4 text-red-400" /></Button>
                       </td>
                     </tr>
                   ))}
@@ -1214,7 +1223,7 @@ function AdminPage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Annuleren</Button>
-            <Button onClick={save} className="bg-red-600 hover:bg-red-700">Opslaan</Button>
+            <Button onClick={save} disabled={!cloudConnected} className="bg-red-600 hover:bg-red-700">Opslaan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
