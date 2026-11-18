@@ -96,7 +96,7 @@ function estimateFreeStalls(charger: Supercharger, at: Date = new Date()) {
   );
   if (!forecast) return null;
   const count = Math.max(0, Math.min(capacity, Math.round(capacity * (1 - forecast.level / 100))));
-  return { count, total, occupancy: forecast.level, confidence: forecast.confidence, source: forecast.source };
+  return { count, total: capacity, occupancy: forecast.level, confidence: forecast.confidence, source: forecast.source };
 }
 
 function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = false, routeUsed = false, statusColorOverride?: string, markerSize = 30) {
