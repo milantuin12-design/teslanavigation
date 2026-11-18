@@ -9,7 +9,7 @@ import {
 } from "./tesla-utils";
 import { createRegionalTrafficForecast } from "./traffic-forecast";
 
-type LocalRow = {
+export type LocalRow = {
   id: string; name: string; lat: number; lng: number;
   total_stalls?: number | null; stall_types?: string | null; occupied_stalls?: number | null;
   country?: string | null; province?: string | null; city?: string | null;
@@ -108,6 +108,16 @@ function toSupercharger(row: LocalRow, owners: Map<string, Owner>, network: Netw
     dataSource: row.data_source === "automatic" ? "automatic" : "manual",
     voting: row.voting ?? {}, hidden: !!row.hidden, photos: row.photos ?? [],
   };
+}
+
+
+/** Zet de live D1-rijen om naar hetzelfde kaartmodel als de ingebouwde dataset. */
+export async function mapCloudSuperchargers(rows: LocalRow[], ownerRows: Owner[] = []): Promise<Supercharger[]> {
+  const { default: tariffFile } = await import("@/data/supercharger-tariffs.json");
+  const owners = new Map(ownerRows.map((owner) => [owner.id, owner]));
+  const network: NetworkSite[] = rows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
+  const tariffs = (tariffFile as unknown as { tariffs: any[] }).tariffs ?? [];
+  return rows.map((row) => toSupercharger(withBundledTariff(row, tariffs), owners, network));
 }
 
 /** Laadt de volledige meegeleverde dataset rechtstreeks in de browser; geen Lovable Cloud of Supabase nodig. */
