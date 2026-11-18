@@ -843,13 +843,15 @@ function AdminPage() {
             <DialogTitle className="text-xl">{editing?.id ? "Supercharger bewerken" : "Nieuwe Supercharger"}</DialogTitle>
             <p className="text-xs text-slate-400">Beheer locatie, status en laadgegevens op één plek</p>
           </DialogHeader>
-          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800 via-slate-900 to-black">
-            {editing.photos?.[0] ? <img src={editing.photos[0]} alt="" className="h-36 w-full object-cover opacity-75" /> : <div className="flex h-28 items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-950 via-slate-900 to-slate-950"><div className="text-center"><div className="text-3xl">⚡</div><div className="mt-1 text-xs text-slate-400">Tesla Supercharger</div></div></div>}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/95 to-transparent p-3 pt-8">
-              <div className="text-sm font-semibold">{editing.name || "Nieuwe locatie"}</div>
-              <div className="text-[11px] text-slate-300">{[editing.city, editing.country].filter(Boolean).join(", ") || "Locatie nog niet ingevuld"}</div>
+          {editing && (
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800 via-slate-900 to-black">
+              {editing.photos?.[0] ? <img src={editing.photos[0]} alt="" className="h-36 w-full object-cover opacity-75" /> : <div className="flex h-28 items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-950 via-slate-900 to-slate-950"><div className="text-center"><div className="text-3xl">⚡</div><div className="mt-1 text-xs text-slate-400">Tesla Supercharger</div></div></div>}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/95 to-transparent p-3 pt-8">
+                <div className="text-sm font-semibold">{editing.name || "Nieuwe locatie"}</div>
+                <div className="text-[11px] text-slate-300">{[editing.city, editing.country].filter(Boolean).join(", ") || "Locatie nog niet ingevuld"}</div>
+              </div>
             </div>
-          </div>
+          )}
           {editing && (
             <div className="space-y-3">
               <div><Label>Naam</Label><Input value={editing.name || ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
