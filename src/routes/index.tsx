@@ -2118,24 +2118,33 @@ function Index() {
         </DialogContent>
       </Dialog>
       <Dialog open={!!riskCharger} onOpenChange={(o) => { if (!o) setRiskCharger(null); }}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-white">
-          <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="size-5 text-amber-400" />Status onbekend</DialogTitle></DialogHeader>
-          <p className="text-sm text-slate-300">De status van <strong>{riskCharger?.name}</strong> is onbekend. Wil je het risico aangaan om hier te gaan laden?</p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              const key = riskCharger?.id ?? riskCharger?.name;
-              setRiskCharger(null);
-              setRiskChargerQueue([]);
-              if (key) { strictUnknownExclusionRef.current = true; recalcAfterExcludeRef.current = true; setExcludedChargerIds((prev) => (prev.includes(key) ? prev : [...prev, key])); }
-            }}>Nee, andere Supercharger</Button>
-            <Button className="bg-amber-600 hover:bg-amber-700" onClick={() => {
-              const key = riskCharger?.id ?? riskCharger?.name;
-              if (key) setAcceptedUnknownIds((prev) => (prev.includes(key) ? prev : [...prev, key]));
-              const [next, ...remaining] = riskChargerQueue;
-              setRiskChargerQueue(remaining);
-              setRiskCharger(next ?? null);
-            }}>Ja, gebruiken</Button>
-          </DialogFooter>
+        <DialogContent className="max-w-md overflow-hidden rounded-2xl border border-amber-400/25 bg-slate-950 p-0 text-white shadow-2xl">
+          <div className="relative h-36 overflow-hidden bg-gradient-to-br from-amber-950 via-slate-900 to-black">
+            {riskCharger?.photos?.[0] ? <img src={riskCharger.photos[0]} alt="" className="h-full w-full object-cover opacity-65" /> : <div className="flex h-full items-center justify-center"><AlertTriangle className="size-12 text-amber-400/80" /></div>}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 to-transparent p-4 pt-8">
+              <div className="text-xs font-semibold uppercase tracking-wider text-amber-300">Controleer voor vertrek</div>
+              <div className="text-lg font-bold">{riskCharger?.name}</div>
+            </div>
+          </div>
+          <div className="space-y-3 p-4">
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="size-5 text-amber-400" />Onbekende status — risico?</DialogTitle></DialogHeader>
+            <p className="text-sm leading-relaxed text-slate-300">Van deze Supercharger is niet bevestigd of hij open is en laden mogelijk is. Je kunt hem toch als laadstop gebruiken, maar mogelijk kom je voor een gesloten of onbruikbare locatie te staan.</p>
+            <DialogFooter className="flex-col gap-2 sm:flex-col">
+              <Button variant="outline" className="w-full border-slate-700" onClick={() => {
+                const key = riskCharger?.id ?? riskCharger?.name;
+                setRiskCharger(null);
+                setRiskChargerQueue([]);
+                if (key) { strictUnknownExclusionRef.current = true; recalcAfterExcludeRef.current = true; setExcludedChargerIds((prev) => (prev.includes(key) ? prev : [...prev, key])); }
+              }}>Nee, kies een andere Supercharger</Button>
+              <Button className="w-full bg-amber-600 hover:bg-amber-700" onClick={() => {
+                const key = riskCharger?.id ?? riskCharger?.name;
+                if (key) setAcceptedUnknownIds((prev) => (prev.includes(key) ? prev : [...prev, key]));
+                const [next, ...remaining] = riskChargerQueue;
+                setRiskChargerQueue(remaining);
+                setRiskCharger(next ?? null);
+              }}>Ja, ik aanvaard het risico</Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
       <ReportChargerDialog target={reportTarget} onClose={() => setReportTarget(null)} />
