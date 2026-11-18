@@ -337,6 +337,7 @@ export default function InputPanel({
   const [destError, setDestError] = useState('');
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
   const [mobileExpanded, setMobileExpanded] = useState(true);
+  const [vehiclePickerExpanded, setVehiclePickerExpanded] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [trailerKind, setTrailerKind] = useState<'trailer' | 'caravan'>('trailer');
   const [trailerWeight, setTrailerWeight] = useState(750);
@@ -682,29 +683,45 @@ export default function InputPanel({
           </div>
 
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
-              <Car size={13} className="text-slate-300" />
-              Kies je Tesla
-            </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                <Car size={13} className="text-slate-300" />
+                Kies je Tesla
+              </label>
+              <button type="button" onClick={() => setVehiclePickerExpanded((value) => !value)} aria-expanded={vehiclePickerExpanded}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/70 px-2 py-1 text-[11px] text-slate-300 hover:bg-slate-700">
+                {vehiclePickerExpanded ? "Inklappen" : "Modellen tonen"}
+                {vehiclePickerExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+              </button>
+            </div>
+            {!vehiclePickerExpanded && (
+              <button type="button" onClick={() => setVehiclePickerExpanded(true)} className="flex w-full items-center gap-3 rounded-lg border border-red-400/40 bg-red-500/10 p-2 text-left">
+                <div className="flex h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-slate-900/70">
+                  {selectedVariant?.imageUrl ? <img src={selectedVariant.imageUrl} alt={selectedModel} className="h-full w-full object-contain" /> : <Car size={22} className="text-slate-400" />}
+                </div>
+                <span className="min-w-0 flex-1 truncate text-xs font-semibold text-white">{selectedModel}</span>
+                <ChevronDown size={15} className="shrink-0 text-slate-400" />
+              </button>
+            )}
+            {vehiclePickerExpanded && <div className="grid grid-cols-2 gap-1.5">
               {Array.from(new Set([...Object.keys(teslaModels), ...vehicleModels.filter((vehicle) => vehicle.brand.toLowerCase() === "tesla").map((vehicle) => vehicleKey(vehicle))])).map((model) => {
                 const variant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === model);
                 const selected = selectedModel === model;
                 return (
-                  <button key={model} type="button" onClick={() => { onModelChange(model); if (variant?.yearFrom) onModelYearChange(variant.yearFrom); }}
-                    className={`group overflow-hidden rounded-xl border text-left transition-all ${selected ? "border-red-400 bg-red-500/10 ring-2 ring-red-500/30" : "border-slate-700 bg-slate-800/60 hover:border-slate-500"}`}>
-                    <div className="relative flex h-20 items-center justify-center bg-gradient-to-br from-slate-700/70 to-slate-950">
-                      {variant?.imageUrl ? <img src={variant.imageUrl} alt={model} loading="lazy" className="h-full w-full object-contain p-1 transition-transform group-hover:scale-105" /> : <Car className="h-9 w-9 text-slate-500" />}
-                      {selected && <span className="absolute right-2 top-2 rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-semibold text-white">Gekozen</span>}
+                  <button key={model} type="button" onClick={() => { onModelChange(model); if (variant?.yearFrom) onModelYearChange(variant.yearFrom); setVehiclePickerExpanded(false); }}
+                    className={`group overflow-hidden rounded-lg border text-left transition-all ${selected ? "border-red-400 bg-red-500/10 ring-1 ring-red-500/30" : "border-slate-700 bg-slate-800/60 hover:border-slate-500"}`}>
+                    <div className="relative flex h-14 items-center justify-center bg-gradient-to-br from-slate-700/70 to-slate-950">
+                      {variant?.imageUrl ? <img src={variant.imageUrl} alt={model} loading="lazy" className="h-full w-full object-contain p-1 transition-transform group-hover:scale-105" /> : <Car className="h-7 w-7 text-slate-500" />}
+                      {selected && <span className="absolute right-1 top-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[8px] font-semibold text-white">Gekozen</span>}
                     </div>
-                    <div className="px-2 py-2"><div className="truncate text-xs font-semibold text-white">{model}</div>{variant?.yearFrom && <div className="text-[10px] text-slate-400">{variant.yearFrom}–{variant.yearTo ?? "heden"}</div>}</div>
+                    <div className="px-1.5 py-1"><div className="truncate text-[11px] font-semibold text-white">{model}</div>{variant?.yearFrom && <div className="text-[9px] text-slate-400">{variant.yearFrom}–{variant.yearTo ?? "heden"}</div>}</div>
                   </button>
                 );
               })}
-              <button type="button" onClick={() => onModelChange("Handmatig")} className={`rounded-xl border p-3 text-left transition-all ${selectedModel === "Handmatig" ? "border-red-400 bg-red-500/10" : "border-slate-700 bg-slate-800/60 hover:border-slate-500"}`}>
-                <div className="flex h-20 items-center justify-center"><Car className="h-9 w-9 text-slate-500" /></div><div className="text-xs font-semibold text-white">Handmatig</div><div className="text-[10px] text-slate-400">Eigen instellingen</div>
+              <button type="button" onClick={() => { onModelChange("Handmatig"); setVehiclePickerExpanded(false); }} className={`rounded-lg border p-2 text-left transition-all ${selectedModel === "Handmatig" ? "border-red-400 bg-red-500/10" : "border-slate-700 bg-slate-800/60 hover:border-slate-500"}`}>
+                <div className="flex h-14 items-center justify-center"><Car className="h-7 w-7 text-slate-500" /></div><div className="text-[11px] font-semibold text-white">Handmatig</div><div className="text-[9px] text-slate-400">Eigen instellingen</div>
               </button>
-            </div>
+            </div>}
 
             <div className="mt-2">
               <label className="text-[11px] text-slate-400">Bouwjaar (optioneel)</label>
