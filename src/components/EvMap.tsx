@@ -150,10 +150,10 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
     : '';
 
   const size = Math.max(20, Math.min(48, markerSize));
-  // Toon een transparante schatting op basis van het drukteprofiel, nooit een verzonnen live bezettingsgetal.
+  // Het kaarticoon toont uitsluitend het aantal bruikbare laadplekken, niet de voorspelde vrije plekken.
   const totalStalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
-  const estimatedFree = estimateFreeStalls(charger);
-  const markerAvailability = estimatedFree ? `~${estimatedFree.count}` : '';
+  const usableStalls = getOpenStalls(charger);
+  const markerAvailability = usableStalls > 0 ? String(usableStalls) : '';
   const badges: string[] = [];
   if (hasOpenWorks) {
     badges.push(`<div style="position:absolute;top:-3px;left:-3px;width:14px;height:14px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&#10003;</div>`);
@@ -441,8 +441,11 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         if (charger.trailerFriendly) {
           const trailerTotal = Math.max(0, Math.floor(charger.construction?.trailerFriendlyStalls ?? 1));
           const perSpace = Math.max(1, Math.floor(charger.construction?.trailerStallsPerSpace ?? 1));
-          const trailerFree = currentAvailability ? Math.min(trailerTotal, Math.floor(currentAvailability.count / perSpace)) : null;
-          if (trailerTotal > 0) popup += `<div style="margin-top:2px;margin-left:2px;color:#64748b;font-size:10px;font-weight:400;">Aanhangerplek: ${trailerFree === null ? `beschikbaarheid onbekend · ${trailerTotal} totaal` : `waarschijnlijk ${trailerFree} van de ${trailerTotal} vrij`}</div>`;
+          const trailerForecast = getTrafficForecastAt(charger.construction?.trailerTrafficForecast ?? charger.trafficForecast, new Date(), charger.province ?? undefined, holidayPeriodMode, winterSportsMode && isSnowRegion(charger));
+          const forecastFree = trailerForecast ? Math.floor(trailerTotal * (1 - trailerForecast.level / 100)) : null;
+          const capacityFree = currentAvailability ? Math.floor(currentAvailability.count / perSpace) : null;
+          const trailerFree = forecastFree === null ? capacityFree : capacityFree === null ? forecastFree : Math.min(forecastFree, capacityFree);
+          if (trailerTotal > 0) popup += `<div style="margin-top:2px;margin-left:2px;color:#64748b;font-size:10px;font-weight:400;">Aanhangerplek: ${trailerFree === null ? `beschikbaarheid onbekend · ${trailerTotal} totaal` : `waarschijnlijk ${Math.max(0, Math.min(trailerTotal, trailerFree))} van de ${trailerTotal} vrij`}</div>`;
         }
 
         const routeStop = chargingStops.find((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
