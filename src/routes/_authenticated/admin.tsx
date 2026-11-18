@@ -990,7 +990,7 @@ function AdminPage() {
                       <div className="grid grid-cols-4 gap-2 mt-1">
                         {[1, 3, 7, 14].map((days) => <Button key={days} type="button" size="sm" variant="outline" onClick={() => setTemporaryClosureDays(days)}>{days} {days === 1 ? "dag" : "dagen"}</Button>)}
                       </div>
-                      <Input type="datetime-local" value={editing.reopen_at ? editing.reopen_at.slice(0, 16) : ""} onChange={(e) => setEditing({ ...editing, is_available: false, reopen_at: e.target.value ? new Date(e.target.value).toISOString() : null })} className="mt-2 bg-slate-800 border-slate-700" />
+                      <Input type="datetime-local" value={editing.reopen_at ? editing.reopen_at.slice(0, 16) : ""} onChange={(e) => setEditing({ ...editing, is_available: editing.status === "unknown" ? true : false, reopen_at: e.target.value ? new Date(e.target.value).toISOString() : null })} className="mt-2 bg-slate-800 border-slate-700" />
                     </div>}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
