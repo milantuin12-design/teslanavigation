@@ -4,6 +4,7 @@ import type { ChargingStop, RouteResult } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
 import { getChargeCurvePoints, parseMaxSpeed, v2SpeedKw } from '@/lib/tesla-utils';
 import { getTrafficForecastAt, isSnowRegion, trafficLevelLabel } from '@/lib/traffic-forecast';
+import { getOpenStalls } from '@/lib/tesla-utils';
 import { estimateChargingCost } from '@/lib/charging-cost';
 
 interface ChargingStopsProps {
@@ -290,6 +291,9 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
         const charge = chargingCost(stop, eta ?? undefined);
         const activePrice = activePricePerKwh(stop, eta ?? undefined);
         const costEstimate = eta ? estimateChargingCost(stop, eta, modelName, packKWh ?? undefined, carMaxKwOverride) : null;
+        const availabilityForecast = eta ? getTrafficForecastAt(stop.charger.trafficForecast, eta, stop.charger.province, holidayMode, winterSportsMode && isSnowRegion(stop.charger)) : null;
+        const openStalls = eta ? getOpenStalls(stop.charger, eta) : 0;
+        const estimatedFreeStalls = availabilityForecast ? Math.max(0, Math.min(openStalls, Math.round(openStalls * (1 - availabilityForecast.level / 100)))) : null;
         return (
           <div key={idx} className="space-y-2">
             {legEl(idx)}
@@ -309,6 +313,7 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 <span className="flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-amber-300">
                   <BatteryCharging size={11} />{stop.batteryBefore}% → {stop.batteryAfter}%
                 </span>
+                {estimatedFreeStalls !== null && <span className="flex items-center gap-1 text-emerald-300"><Zap size={11} />±{estimatedFreeStalls} vrij</span>}
                 <span className="flex items-center gap-1 text-green-400"><Clock size={11} />{dur(stop.chargeDurationMin)}</span>
                 {maxSpeedKw > 0 && stop.charger.totalStalls ? <span className="flex items-center gap-1 text-blue-400"><Gauge size={11} />{maxSpeedKw} kW{ccsBlocked ? ' (V2)' : ''}</span> : null}
                 {showTrailer && (stop.charger.trailerFriendly
@@ -316,9 +321,8 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                   : <span className="rounded-md bg-red-500/10 px-1.5 py-0.5 text-red-300">🚐 Niet aanhangervriendelijk</span>)}
                 {typeof stop.energyChargedKWh === 'number' && <span className="text-emerald-300">+{stop.energyChargedKWh} kWh</span>}
               </div>
-              {stop.charger.trafficForecast && eta && (() => {
-                const forecast = getTrafficForecastAt(stop.charger.trafficForecast, eta, stop.charger.province, holidayMode, winterSportsMode && isSnowRegion(stop.charger));
-                if (!forecast) return null;
+              {availabilityForecast && eta && (() => {
+                const forecast = availabilityForecast;
                 const color = forecast.level >= 70 ? "bg-red-500/15 text-red-300" : forecast.level <= 30 ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300";
                 return <div className="mt-2 space-y-2 text-[11px]">
                   <div className="flex flex-wrap items-center gap-2">
