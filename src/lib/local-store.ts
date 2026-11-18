@@ -123,6 +123,11 @@ export function clearPendingAdminChanges(): void {
   writeLocal(ADMIN_QUEUE_KEY, []);
 }
 
+/** Verwijder alleen de reeds gesynchroniseerde wijzigingen uit de wachtrij. */
+export function keepPendingAdminChanges(changes: PendingAdminChange[]): void {
+  writeLocal(ADMIN_QUEUE_KEY, changes);
+}
+
 /** Back-up van alle lokale gegevens (routes + instellingen + taal). */
 export function exportLocalData(): void {
   const payload = {

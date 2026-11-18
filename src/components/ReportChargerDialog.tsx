@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { submitChargerReport } from "@/lib/account.functions";
 import { toast } from "sonner";
 
 export interface ReportTarget {
@@ -44,21 +44,20 @@ export default function ReportChargerDialog({
       return;
     }
     setSaving(true);
-    const { data: userData } = await supabase.auth.getUser();
-    const { error } = await supabase.from("charger_reports").insert({
-      charger_id: target?.id ?? null,
-      charger_name: target?.name ?? null,
-      user_id: userData.user?.id ?? null,
-      contact_email: email.trim() || userData.user?.email || null,
-      category,
-      message: trimmed.slice(0, 2000),
-      status: "new",
-    });
-    setSaving(false);
-    if (error) {
-      toast.error(error.message);
+    try {
+      await submitChargerReport({ data: {
+        charger_id: target?.id ?? null,
+        charger_name: target?.name ?? null,
+        contact_email: email.trim() || null,
+        category,
+        message: trimmed.slice(0, 2000),
+      } });
+    } catch (error) {
+      setSaving(false);
+      toast.error(error instanceof Error ? error.message : "Melding versturen mislukt");
       return;
     }
+    setSaving(false);
     toast.success("Bedankt! Je melding is verstuurd.");
     setMessage("");
     setEmail("");

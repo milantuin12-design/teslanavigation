@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { Zap, BatteryCharging, MapPin, Gauge, Clock, Ban, Mountain, Thermometer, Wind, CloudRain, Car, Flag, Route as RouteIcon } from 'lucide-react';
 import type { ChargingStop, RouteResult } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
-import { getChargeCurvePoints, getOpenStalls, parseMaxSpeed, v2SpeedKw } from '@/lib/tesla-utils';
-import { estimateFreeStalls, estimateQueueCars, getTrafficForecastAt, isSnowRegion, trafficLevelLabel } from '@/lib/traffic-forecast';
+import { getChargeCurvePoints, parseMaxSpeed, v2SpeedKw } from '@/lib/tesla-utils';
+import { getTrafficForecastAt, isSnowRegion, trafficLevelLabel } from '@/lib/traffic-forecast';
 import { estimateChargingCost } from '@/lib/charging-cost';
 
 interface ChargingStopsProps {
@@ -181,15 +181,20 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
     const at = new Date(start.getTime() + (stop.etaMinFromStart ?? 0) * 60000);
     const estimate = estimateChargingCost(stop, at, modelName, packKWh, carMaxKwOverride);
     const chargeCurrency = estimate?.currency ?? stop.charger.priceCurrency ?? 'EUR';
-    const charge = estimate ? convertToEuro(estimate.amount, chargeCurrency, chfToEur) : null;
+    const chargeAmount = estimate?.amount ?? chargingCost(stop, at);
+    const charge = chargeAmount !== null ? convertToEuro(chargeAmount, chargeCurrency, chfToEur) : null;
     const parking = parkingCost(stop, at);
     const parkingKnown = !stop.charger.parkingFee || parking !== null;
-    return { charge, parking, known: charge !== null && parkingKnown, originalCharge: estimate?.amount ?? null, chargeCurrency };
+    return { charge, parking, known: charge !== null && parkingKnown, originalCharge: chargeAmount, chargeCurrency };
   });
   const allCostsKnown = stops.length > 0 && stopCosts.every((cost) => cost.known);
   const knownStopCosts = stopCosts.map((cost, index) => ({ ...cost, index, total: cost.charge !== null && (!stops[index].charger.parkingFee || cost.parking !== null) ? cost.charge + (cost.parking ?? 0) : null })).filter((cost): cost is typeof cost & { total: number } => cost.total !== null);
   const cheapestStopIndex = knownStopCosts.length ? knownStopCosts.reduce((best, item) => item.total < best.total ? item : best).index : -1;
-  const totalCost = stopCosts.reduce((sum, cost) => sum + (cost.charge ?? 0) + (cost.parking ?? 0), 0);
+  const totalChargingCost = stopCosts.reduce((sum, cost) => sum + (cost.charge ?? 0), 0);
+  const totalParkingCost = stopCosts.reduce((sum, cost) => sum + (cost.parking ?? 0), 0);
+  const chargingCostsKnown = stopCosts.every((cost) => cost.charge !== null);
+  const parkingCostsKnown = stopCosts.every((cost, index) => !stops[index].charger.parkingFee || cost.parking !== null);
+  const totalCost = totalChargingCost + totalParkingCost;
   const arrivalTime = route ? new Date(start.getTime() + (route.totalTimeMin + totalChargeMin + restMin) * 60000) : null;
 
   if (totalDistanceKm === null || !route) {
@@ -206,6 +211,13 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
         <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Actieradius nu</div><div className="text-sm font-semibold text-blue-300">{fullRange !== null ? `${fullRange} km` : '–'}<span className="text-[11px] font-normal text-slate-400"> bij 100%</span></div></div>
         <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Laden</div><div className="text-sm font-semibold text-white">{stops.length} stop{stops.length === 1 ? '' : 's'} · {dur(totalChargeMin)}</div></div>
         <div className="rounded-lg bg-white/5 p-2"><div className="text-slate-400">Kosten</div><div className="text-sm font-semibold text-white">{allCostsKnown ? euro(totalCost) : 'onbekend'}</div></div>
+      </div>
+      <div className="mt-2 rounded-lg border border-white/10 bg-black/10 p-2 text-[11px]">
+        <div className="mb-1 font-semibold text-slate-300">Kostenraming van alle laadstops</div>
+        <div className="flex justify-between gap-3"><span className="text-slate-400">Elektriciteit laden</span><strong className="text-white">{chargingCostsKnown ? euro(totalChargingCost) : 'gedeeltelijk bekend'}</strong></div>
+        <div className="flex justify-between gap-3"><span className="text-slate-400">Parkeren</span><strong className="text-white">{parkingCostsKnown ? euro(totalParkingCost) : 'tarief onbekend'}</strong></div>
+        <div className="mt-1 flex justify-between gap-3 border-t border-white/10 pt-1"><span className="font-semibold text-slate-300">Totaal geschat</span><strong className="text-emerald-300">{allCostsKnown ? euro(totalCost) : 'niet volledig bekend'}</strong></div>
+        {!allCostsKnown && <p className="mt-1 text-[10px] text-amber-300">Niet alle laad- of parkeertarieven zijn bekend. De uiteindelijke kosten kunnen afwijken.</p>}
       </div>
       {whatIf && (
         <div className="mt-2">
@@ -285,6 +297,7 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="text-sm font-semibold text-white">{stop.charger.name}</div>
+                  {stop.charger.construction?.wheelchairAccessible && <div className="mt-1 text-[11px] font-medium text-sky-300">♿ Invalidenplek aanwezig</div>}
                   {eta && <div className="mt-0.5 text-[11px] text-blue-300">Aankomst ± {time(eta)} · vertrek ± {time(new Date(eta.getTime() + stop.chargeDurationMin * 60000))}</div>}
                   {cheapestStopIndex === idx && knownStopCosts.length > 1 && <div className="mt-1 inline-flex rounded-md bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-300">Goedkoopste berekende laadstop incl. parkeren</div>}
                   {eta && (() => { const chargerTemp = weather?.temperatureSegments?.length ? weather.temperatureSegments.reduce((best, point) => Math.abs(point.km - stop.distanceFromStart) < Math.abs(best.km - stop.distanceFromStart) ? point : best).tempC : weather?.tempC ?? null; const preheat = batteryPreheatMinutes(chargerTemp); return <div className="mt-1 text-[10px] text-cyan-300">❄ Accu-voorverwarming: {preheat == null ? "temperatuurverwachting niet beschikbaar; Tesla bepaalt de benodigde tijd automatisch." : `bij ongeveer ${Math.round(chargerTemp!)}°C kan Tesla circa ${preheat} min voor aankomst beginnen.`} Navigeren naar de Supercharger activeert de automatische voorverwarming.</div>; })()}
@@ -307,34 +320,10 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 const forecast = getTrafficForecastAt(stop.charger.trafficForecast, eta, stop.charger.province, holidayMode, winterSportsMode && isSnowRegion(stop.charger));
                 if (!forecast) return null;
                 const color = forecast.level >= 70 ? "bg-red-500/15 text-red-300" : forecast.level <= 30 ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300";
-                const total = stop.charger.totalStalls ?? stop.charger.chargerConfigs?.reduce((sum, config) => sum + config.count, 0) ?? 0;
-                // Bereken vrije plekken uitsluitend over de laadpunten die op aankomsttijd beschikbaar zijn.
-                // Voorbeeld: 16 totaal, 4 buiten gebruik = 12 beschikbaar; bij 40% drukte circa 7 vrij.
-                const available = total > 0 ? getOpenStalls(stop.charger, eta ?? new Date()) : 0;
-                const free = available > 0 ? estimateFreeStalls(available, forecast.level) : available === 0 && total > 0 ? 0 : null;
-                const queue = available > 0 ? estimateQueueCars(available, forecast.level) : 0;
-                const queueText = queue > 0 ? ` · mogelijk ${queue} ${queue === 1 ? "auto" : "auto’s"} in de wachtrij` : "";
-                const hourly = Array.from({ length: 24 }, (_, hour) => {
-                  const at = new Date(eta);
-                  at.setHours(hour, 0, 0, 0);
-                  const hourForecast = getTrafficForecastAt(stop.charger.trafficForecast, at, stop.charger.province, holidayMode, winterSportsMode && isSnowRegion(stop.charger));
-                  const capacity = getOpenStalls(stop.charger, at);
-                  return { hour, free: hourForecast && capacity > 0 ? estimateFreeStalls(capacity, hourForecast.level) : null };
-                });
                 return <div className="mt-2 space-y-2 text-[11px]">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-md px-2 py-1 ${color}`}>{trafficLevelLabel(forecast.level)} · {forecast.level}%</span>
-                    <span className="rounded-md bg-sky-500/10 px-2 py-1 text-sky-300">{free !== null ? (available > 0 ? `Waarschijnlijk ${free} van de ${available} beschikbaar${free === 0 ? queueText : ""}` : "Geen laadpunten beschikbaar") : "Geen capaciteitsgegevens"}</span>
+                    <span className={`rounded-md px-2 py-1 ${color}`}>{trafficLevelLabel(forecast.level)} · {forecast.level}% drukteverwachting</span>
                     <span className="text-slate-400">{forecast.holiday ? `vakantie: ${forecast.holiday}` : forecast.category === "weekend" ? "weekend" : "doordeweeks"}{forecast.winterSports ? " · wintersportcorrectie" : ""} · {forecast.source === "regional-estimate" ? "locatieschatting" : "beheerdersprofiel"} · {forecast.confidence === "low" ? "lage zekerheid" : forecast.confidence === "high" ? "hoge zekerheid" : "gemiddelde zekerheid"}</span>
-                  </div>
-                  <div className="rounded-md bg-slate-900/60 p-2">
-                    <div className="mb-1 text-[10px] font-semibold text-slate-300">Verwacht vrije laadplekken per uur</div>
-                    <div className="grid grid-cols-6 gap-1">
-                      {hourly.map(({ hour, free }) => <div key={hour} className="rounded bg-slate-800/80 px-1 py-1 text-center">
-                        <div className="text-[9px] text-slate-500">{String(hour).padStart(2, "0")}u</div>
-                        <div className="font-semibold text-sky-300">{free === null ? "–" : free}</div>
-                      </div>)}
-                    </div>
                   </div>
                 </div>;
               })()}
@@ -355,6 +344,14 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 {stop.charger.parkingFee && (
                   <span className="rounded-md bg-orange-500/10 px-2 py-0.5 text-orange-300">🅿️ {park === 0 ? 'nu gratis' : park !== null ? euro(park) : 'parkeergeld'}</span>
                 )}
+              </div>
+              <div className="mt-2 rounded-lg border border-white/10 bg-black/10 p-2 text-[11px] space-y-1">
+                <div className="font-semibold text-slate-300">Kosten van deze laadstop</div>
+                <div className="flex justify-between gap-3"><span className="text-slate-400">Bijgeladen</span><strong className="text-white">{typeof stop.energyChargedKWh === 'number' ? `${stop.energyChargedKWh.toFixed(1)} kWh` : 'onbekend'}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-slate-400">Laadtarief</span><strong className="text-white">{costEstimate?.type === 'minute' ? `${localCurrency(costEstimate.amount, costEstimate.currency)} totaal · per minuut` : activePrice !== null ? `${localCurrency(activePrice, stop.charger.priceCurrency)}/kWh` : 'tarief onbekend'}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-slate-400">Elektriciteit</span><strong className="text-white">{costEstimate ? `${localCurrency(costEstimate.amount, costEstimate.currency)}${costEstimate.currency.toUpperCase() === 'CHF' ? ` (${euro(convertToEuro(costEstimate.amount, costEstimate.currency, chfToEur) ?? 0)})` : ''}` : charge !== null ? euro(charge) : 'tarief onbekend'}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-slate-400">Parkeren</span><strong className="text-white">{!stop.charger.parkingFee ? 'Geen parkeerkosten' : park !== null ? euro(park) : 'tarief onbekend'}</strong></div>
+                <div className="flex justify-between gap-3 border-t border-white/10 pt-1"><span className="font-semibold text-slate-300">Totaal stop</span><strong className="text-emerald-300">{stopCosts[idx].known ? euro((stopCosts[idx].charge ?? 0) + (stopCosts[idx].parking ?? 0)) : 'niet volledig bekend'}</strong></div>
               </div>
               <details className="mt-3 rounded-lg border border-white/10 bg-black/10 px-2 py-2">
                 <summary className="cursor-pointer text-[11px] font-medium text-slate-300">Laadcurve bekijken · {modelName}</summary>

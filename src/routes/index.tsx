@@ -10,10 +10,16 @@ import { estimateChargingCost } from "@/lib/charging-cost";
 import NavigationPanel from "@/components/NavigationPanel";
 import ChargingScreen from "@/components/ChargingScreen";
 import { AccountMenu } from "@/components/AccountMenu";
-import { LanguageSwitcher } from "@/components/LanguageProvider";
-import { supabase } from "@/integrations/supabase/client";
-import { withTimeout, cacheSavedRouteRow, getCachedSavedRouteRow, saveLocalRoute, type LocalRoute } from "@/lib/local-store";
-import type { Database } from "@/integrations/supabase/types";
+import { LanguageSwitcher, changeLanguage } from "@/components/LanguageProvider";
+import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, createMyNotificationEvent, listMyVehicles } from "@/lib/account.functions";
+import { getCurrentUser } from "@/lib/auth.functions";
+import { listPublishedVehicleModels } from "@/lib/admin.functions";
+import { vehicleKey, type VehicleModel } from "@/lib/vehicle-types";
+
+const hasSupabaseBrowserConfig = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+);
+import { cacheSavedRouteRow, getCachedSavedRouteRow, saveLocalRoute, type LocalRoute } from "@/lib/local-store";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -39,7 +45,7 @@ import {
 } from "@/lib/tesla-types";
 import {
   getAvailableRange,
-  calculateChargingStops,
+  calculateChargingStopsWithAccessibilityPreference,
   calculateChargeDuration,
   parseMaxSpeed,
   effectiveChargeSpeedKw,
@@ -129,6 +135,8 @@ function estimateRouteCost(plan: RoutePlan, departure: Date, modelName: string, 
   return Number.isFinite(total) ? total : null;
 }
 
+type SavedVehicle = { id: string; name: string; model_name: string; model_year?: number | null; battery_kwh?: number | null; summer_consumption_kwh100?: number | null; winter_consumption_kwh100?: number | null; max_charge_kw?: number | null; arrival_percent: number; trailer_enabled: boolean; trailer_consumption_increase_percent: number; battery_health_percent?: number | null; roof_or_rack_extra_percent?: number; winter_tires_extra_percent?: number; is_default: boolean };
+
 const OFF_ROUTE_KM_THRESHOLD = 0.2; // 200m
 const OFF_ROUTE_PERSIST_MS = 8000; // off-route for 8s before rerouting
 
@@ -140,10 +148,19 @@ function Index() {
   const [preferTrailerFriendly, setPreferTrailerFriendly] = useState(false);
 
   const [selectedModel, setSelectedModel] = useState("Model 3 Long Range AWD");
+  const [catalogueVehicles, setCatalogueVehicles] = useState<VehicleModel[]>([]);
+  const listCatalogueFn = useServerFn(listPublishedVehicleModels);
+  useEffect(() => { let active = true; void listCatalogueFn().then((rows) => { if (active) setCatalogueVehicles(rows as VehicleModel[]); }).catch(() => { if (active) setCatalogueVehicles([]); }); return () => { active = false; }; }, []);
+  const [savedVehicles, setSavedVehicles] = useState<SavedVehicle[]>([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState("");
+  const activeVehicle = savedVehicles.find((vehicle) => vehicle.id === selectedVehicleId) ?? null;
   const [manualRangeKm, setManualRangeKm] = useState(400);
   const [manualSpeedKw, setManualSpeedKw] = useState(250);
-  const carMaxKwOverride = selectedModel === "Handmatig" ? manualSpeedKw : undefined;
-  const packKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
+  const [modelYear, setModelYear] = useState<number>(2022);
+  const selectedCatalogueVehicle = catalogueVehicles.find((vehicle) => vehicle.brand.toLowerCase() === "tesla" && vehicleKey(vehicle) === selectedModel && (vehicle.yearFrom == null || modelYear >= vehicle.yearFrom) && (vehicle.yearTo == null || modelYear <= vehicle.yearTo)) ?? catalogueVehicles.find((vehicle) => vehicle.brand.toLowerCase() === "tesla" && vehicleKey(vehicle) === selectedModel) ?? null;
+  const carMaxKwOverride = activeVehicle?.max_charge_kw ?? selectedCatalogueVehicle?.maxChargeKw ?? (selectedModel === "Handmatig" ? manualSpeedKw : undefined);
+  const vehicleBatteryHealth = Math.max(40, Math.min(100, activeVehicle?.battery_health_percent ?? 100)) / 100;
+  const packKWh = activeVehicle?.battery_kwh ? activeVehicle.battery_kwh * vehicleBatteryHealth : (selectedCatalogueVehicle?.usableKWh ?? selectedCatalogueVehicle?.batteryKWh ?? (selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79)));
   const [batteryPercent, setBatteryPercent] = useState(80);
   const [targetArrivalPercent, setTargetArrivalPercent] = useState(10);
   const [chargeTargetPercent, setChargeTargetPercent] = useState(80);
@@ -154,10 +171,20 @@ function Index() {
   const [minChargerSpeedKw, setMinChargerSpeedKw] = useState(0);
   const [avoidLowSpeed, setAvoidLowSpeed] = useState(false);
   const [avoidParkingFee, setAvoidParkingFee] = useState(false);
+  const [requireAccessibleStalls, setRequireAccessibleStalls] = useState(false);
   const [onlineTraffic, setOnlineTraffic] = useState(false);
   const [consumptionMode, setConsumptionMode] = useState<'auto' | 'manual'>('auto');
   const [manualConsumptionKWh100, setManualConsumptionKWh100] = useState(0);
-  const [modelYear, setModelYear] = useState<number>(2022);
+  const applySavedVehicle = (vehicle: SavedVehicle) => {
+    setSelectedVehicleId(vehicle.id);
+    setSelectedModel(vehicle.model_name);
+    if (vehicle.model_year) setModelYear(vehicle.model_year);
+    const seasonalConsumption = weatherMode === "winter" ? vehicle.winter_consumption_kwh100 : vehicle.summer_consumption_kwh100;
+    if (seasonalConsumption && seasonalConsumption > 0) { setManualConsumptionKWh100(seasonalConsumption); setConsumptionMode("manual"); }
+    setTargetArrivalPercent(vehicle.arrival_percent ?? 10);
+    setTrailerEnabled(!!vehicle.trailer_enabled);
+    setTrailerReductionPercent((vehicle.trailer_consumption_increase_percent ?? 0) + (vehicle.roof_or_rack_extra_percent ?? 0) + (vehicle.winter_tires_extra_percent ?? 0));
+  };
   const [tripDate, setTripDate] = useState<string>("");
   const [departTime, setDepartTime] = useState<string>("");
   const [elevProfile, setElevProfile] = useState<number[] | null>(null);
@@ -188,16 +215,37 @@ function Index() {
   const [saveName, setSaveName] = useState("");
   const [countryPricesOpen, setCountryPricesOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; display_name: string | null; gender?: string | null } | null>(null);
+  const listVehiclesFn = useServerFn(listMyVehicles);
   useEffect(() => {
-    // INITIAL_SESSION supplies the persisted session; subsequent auth events
-    // update it in order. Avoid a parallel getUser() request racing SIGNED_IN
-    // and incorrectly resetting the UI to "logged out".
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setCurrentUser(session?.user ? { id: session.user.id } : null);
-    });
-    return () => sub.subscription.unsubscribe();
+    if (!currentUser) { setSavedVehicles([]); setSelectedVehicleId(""); return; }
+    let active = true;
+    void listVehiclesFn().then((vehicles) => {
+      if (!active) return;
+      const list = vehicles as SavedVehicle[];
+      setSavedVehicles(list);
+      const preferred = list.find((vehicle) => vehicle.is_default) ?? list[0];
+      if (preferred) applySavedVehicle(preferred);
+    }).catch(() => { /* saved vehicles are optional */ });
+    return () => { active = false; };
+  }, [currentUser?.id]);
+  useEffect(() => {
+    let active = true;
+    void getCurrentUser().then((user) => {
+      if (active) setCurrentUser(user ? { id: user.id, display_name: user.display_name ?? null, gender: user.gender ?? null } : null);
+    }).catch(() => { if (active) setCurrentUser(null); });
+    return () => { active = false; };
   }, []);
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ display_name: string | null; gender?: string | null }>).detail;
+      const name = detail?.display_name ?? null;
+      setCurrentUser((old) => old ? { ...old, display_name: name, gender: detail?.gender ?? old.gender } : old);
+    };
+    window.addEventListener("tn-profile-updated", handler);
+    return () => window.removeEventListener("tn-profile-updated", handler);
+  }, []);
+
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
   const [holidayPeriodMode, setHolidayPeriodModeState] = useState(false);
   const [winterSportsMode, setWinterSportsModeState] = useState(false);
@@ -206,10 +254,79 @@ function Index() {
   const previousChargerSnapshotRef = useRef<Map<string, string>>(new Map());
   const chargerSnapshot = (items: Supercharger[]) => new Map(items.filter((item) => item.id).map((item) => [item.id!, JSON.stringify({ status: item.status, available: item.isAvailable, stalls: item.stallStates })]));
   const [favoriteChargerIds, setFavoriteChargerIds] = useState<string[]>([]);
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  useEffect(() => { try { const saved = JSON.parse(localStorage.getItem("teslanavigation:favorites") || "[]"); if (Array.isArray(saved)) setFavoriteChargerIds(saved.filter((x): x is string => typeof x === "string")); } catch { /* ignore invalid local preferences */ } }, []);
-  useEffect(() => { try { localStorage.setItem("teslanavigation:favorites", JSON.stringify(favoriteChargerIds)); } catch { /* storage may be unavailable */ } }, [favoriteChargerIds]);
-  const toggleFavoriteCharger = (id: string) => setFavoriteChargerIds((old) => old.includes(id) ? old.filter((x) => x !== id) : [...old, id]);
+  // Keep an immediate reference so rapid add/remove clicks cannot reuse stale React state.
+  const favoriteIdsRef = useRef<string[]>([]);
+  const favoriteWriteQueuesRef = useRef<Map<string, Promise<void>>>(new Map());
+  const listFavoritesFn = useServerFn(listMyChargerFavorites);
+  const setFavoriteFn = useServerFn(setMyChargerFavorite);
+  const createNotificationFn = useServerFn(createMyNotificationEvent);
+  const [notifyPriceChanges, setNotifyPriceChanges] = useState(true);
+  const [notifyStatusChanges, setNotifyStatusChanges] = useState(true);
+  const [showFavoriteList, setShowFavoriteList] = useState(false);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("teslanavigation:favorites") || "[]");
+      if (Array.isArray(saved)) {
+        const ids = saved.filter((x): x is string => typeof x === "string");
+        favoriteIdsRef.current = ids;
+        setFavoriteChargerIds(ids);
+      }
+    } catch { /* ignore invalid local preferences */ }
+  }, []);
+  useEffect(() => {
+    try { localStorage.setItem("teslanavigation:favorites", JSON.stringify(favoriteChargerIds)); }
+    catch { /* storage may be unavailable */ }
+  }, [favoriteChargerIds]);
+  useEffect(() => {
+    if (!currentUser) return;
+    let active = true;
+    void listFavoritesFn().then(async (remoteIds) => {
+      if (!active) return;
+      let localIds: string[] = [];
+      try {
+        const saved = JSON.parse(localStorage.getItem("teslanavigation:favorites") || "[]");
+        if (Array.isArray(saved)) localIds = saved.filter((x): x is string => typeof x === "string");
+      } catch { /* ignore invalid local preferences */ }
+      if (remoteIds.length === 0 && localIds.length > 0) {
+        // One-time safe migration from this browser's existing favorites into the signed-in account.
+        await Promise.all(localIds.map((charger_id) => setFavoriteFn({ data: { charger_id, favorite: true } })));
+        if (active) {
+          favoriteIdsRef.current = localIds;
+          setFavoriteChargerIds(localIds);
+        }
+      } else if (active) {
+        favoriteIdsRef.current = remoteIds;
+        setFavoriteChargerIds(remoteIds);
+      }
+    }).catch(() => { /* keep local favorites usable if D1 is temporarily unavailable */ });
+    return () => { active = false; };
+  }, [currentUser?.id]);
+  const toggleFavoriteCharger = useCallback((id: string) => {
+    const favorite = !favoriteIdsRef.current.includes(id);
+    const updated = favorite
+      ? [...favoriteIdsRef.current, id]
+      : favoriteIdsRef.current.filter((item) => item !== id);
+    // Update the ref and UI synchronously; this also makes repeated clicks reliable.
+    favoriteIdsRef.current = updated;
+    setFavoriteChargerIds(updated);
+    if (!currentUser) return;
+
+    // Serialize writes per charger so a quick add/remove sequence reaches D1 in click order.
+    const previous = favoriteWriteQueuesRef.current.get(id) ?? Promise.resolve();
+    const write = previous
+      .catch(() => undefined)
+      .then(() => setFavoriteFn({ data: { charger_id: id, favorite } }))
+      .then(() => undefined)
+      .catch(() => {
+        toast.error("Favoriet kon niet met je account worden bijgewerkt. De lokale keuze blijft bewaard.");
+      });
+    favoriteWriteQueuesRef.current.set(id, write);
+    void write.finally(() => {
+      if (favoriteWriteQueuesRef.current.get(id) === write) {
+        favoriteWriteQueuesRef.current.delete(id);
+      }
+    });
+  }, [currentUser?.id, setFavoriteFn]);
   // Price alerts for favourite Superchargers: changes are detected on the next app refresh.
   useEffect(() => {
     if (isLoadingChargers || favoriteChargerIds.length === 0 || superchargers.length === 0) return;
@@ -229,16 +346,149 @@ function Index() {
       if (previous[charger.id] && previous[charger.id] !== snapshot) changes.push(charger.name);
     }
     try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* local storage may be disabled */ }
-    if (changes.length) {
+    if (changes.length && notifyPriceChanges) {
       const first = changes.slice(0, 3).join(", ");
       toast.info(`Laadprijs gewijzigd bij favoriet: ${first}${changes.length > 3 ? ` en ${changes.length - 3} andere locatie(s)` : ""}.`);
+      if (currentUser) {
+        for (const charger of superchargers) {
+          if (!charger.id || !changes.includes(charger.name)) continue;
+          const snap = next[charger.id] ?? "";
+          void createNotificationFn({ data: { event_type: "price_change", charger_id: charger.id, dedupe_key: "price:" + charger.id + ":" + snap, title: "Laadprijs gewijzigd", body: "De laadprijs bij " + charger.name + " is gewijzigd." } }).catch(() => {});
+        }
+      }
     }
-  }, [favoriteChargerIds, isLoadingChargers, superchargers]);
-  const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>({ ...defaultChargerFilters });
+  }, [favoriteChargerIds, isLoadingChargers, superchargers, notifyPriceChanges, currentUser?.id]);
+  // Statuswijzigingen bij favoriete locaties worden in de persoonlijke inbox bewaard.
+  useEffect(() => {
+    if (!superchargers.length) return;
+    const previous = previousChargerSnapshotRef.current;
+    const next = chargerSnapshot(superchargers);
+    if (previous.size > 0 && currentUser && notifyStatusChanges) {
+      for (const charger of superchargers) {
+        if (!charger.id || !favoriteChargerIds.includes(charger.id)) continue;
+        const before = previous.get(charger.id);
+        const after = next.get(charger.id);
+        if (!before || !after || before === after) continue;
+        let oldData: { status?: string; available?: boolean } = {};
+        let newData: { status?: string; available?: boolean } = {};
+        try { oldData = JSON.parse(before); newData = JSON.parse(after); } catch { continue; }
+        if (oldData.status === newData.status && oldData.available === newData.available) continue;
+        const oldStatus = oldData.status ?? "onbekend";
+        const newStatus = newData.status ?? "onbekend";
+        void createNotificationFn({
+          data: {
+            event_type: "status_change",
+            charger_id: charger.id,
+            dedupe_key: "status:" + charger.id + ":" + newStatus + ":" + String(newData.available),
+            title: "Status gewijzigd",
+            body: charger.name + ": " + oldStatus + " → " + newStatus,
+          },
+        }).catch(() => {});
+      }
+    }
+    previousChargerSnapshotRef.current = next;
+  }, [superchargers, favoriteChargerIds, currentUser?.id, notifyStatusChanges]);
+
+  const [rememberFilters, setRememberFilters] = useState(true);
+  const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>(() => {
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem("teslanavigation:charger-filters") : null;
+      return saved ? { ...defaultChargerFilters, ...(JSON.parse(saved) as Partial<ChargerFilterState>) } : { ...defaultChargerFilters };
+    } catch { return { ...defaultChargerFilters }; }
+  });
+  useEffect(() => {
+    try {
+      if (rememberFilters) localStorage.setItem("teslanavigation:charger-filters", JSON.stringify(chargerFilters));
+      else localStorage.removeItem("teslanavigation:charger-filters");
+    } catch { /* local storage may be disabled */ }
+  }, [chargerFilters, rememberFilters]);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
   const [showAllChargers, setShowAllChargers] = useState(false);
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
+  const [mapType, setMapType] = useState<"road" | "satellite">("satellite");
+  const [mapZoom, setMapZoom] = useState(7);
+  const [mapMarkerSize, setMapMarkerSize] = useState(30);
+  const [statusColors, setStatusColors] = useState<Record<string, string>>({});
+  const [preferredRoutePriority, setPreferredRoutePriority] = useState<"cheapest" | "fastest" | "fewest_stops">("fastest");
+  const [defaultChargePauseMin, setDefaultChargePauseMin] = useState(0);
+  const [maxDetourKm, setMaxDetourKm] = useState(0);
+  const [maxDistanceBetweenStopsKm, setMaxDistanceBetweenStopsKm] = useState(0);
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const prefs = (event as CustomEvent<{
+        vehicle_model?: string | null; vehicle_year?: number | null; consumption_kwh100?: number | null;
+        notifications?: { price_changes?: boolean; status_changes?: boolean };
+        map?: { show_development_chargers?: boolean; remember_filters?: boolean };
+        map_type?: "road" | "satellite"; map_zoom?: number; map_marker_size?: number; status_colors?: Record<string, string>;
+        route_preferences?: { priority?: "cheapest" | "fastest" | "fewest_stops"; min_charger_kw?: number; default_charge_pause_min?: number; max_detour_km?: number; max_distance_between_stops_km?: number };
+        theme?: "light" | "dark" | "system"; font_scale?: number; display_density?: "compact" | "comfortable";
+        language?: string; profile_color?: string;
+      }>).detail;
+      if (!prefs) return;
+      setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
+      setRememberFilters(prefs.map?.remember_filters ?? true);
+      setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
+      setNotifyStatusChanges(prefs.notifications?.status_changes ?? true);
+      if (prefs.map_type) setMapType(prefs.map_type);
+      if (typeof prefs.map_zoom === "number") setMapZoom(Math.max(3, Math.min(18, prefs.map_zoom)));
+      if (typeof prefs.map_marker_size === "number") setMapMarkerSize(Math.max(20, Math.min(48, prefs.map_marker_size)));
+      if (prefs.status_colors) setStatusColors(prefs.status_colors);
+      if (prefs.route_preferences?.priority) setPreferredRoutePriority(prefs.route_preferences.priority);
+      if (typeof prefs.route_preferences?.min_charger_kw === "number") setMinChargerSpeedKw(prefs.route_preferences.min_charger_kw);
+      if (typeof prefs.route_preferences?.default_charge_pause_min === "number") setDefaultChargePauseMin(prefs.route_preferences.default_charge_pause_min);
+      if (typeof prefs.route_preferences?.max_detour_km === "number") setMaxDetourKm(prefs.route_preferences.max_detour_km);
+      if (typeof prefs.route_preferences?.max_distance_between_stops_km === "number") setMaxDistanceBetweenStopsKm(prefs.route_preferences.max_distance_between_stops_km);
+      if (prefs.theme) document.documentElement.classList.toggle("dark", prefs.theme === "dark" || (prefs.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches));
+      if (typeof prefs.font_scale === "number") document.documentElement.style.fontSize = (16 * Math.max(0.85, Math.min(1.3, prefs.font_scale))) + "px";
+      if (prefs.display_density) document.documentElement.dataset.displayDensity = prefs.display_density;
+      if (prefs.profile_color && /^#[0-9a-fA-F]{6}$/.test(prefs.profile_color)) document.documentElement.style.setProperty("--profile-accent", prefs.profile_color);
+      if (prefs.language) changeLanguage(prefs.language);
+      if (prefs.vehicle_model && Object.prototype.hasOwnProperty.call(teslaModels, prefs.vehicle_model)) setSelectedModel(prefs.vehicle_model);
+      if (typeof prefs.vehicle_year === "number") setModelYear(prefs.vehicle_year);
+      if (typeof prefs.consumption_kwh100 === "number") {
+        setManualConsumptionKWh100(prefs.consumption_kwh100);
+        setConsumptionMode("manual");
+      }
+    };
+    window.addEventListener("tn-preferences-updated", handler);
+    return () => window.removeEventListener("tn-preferences-updated", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    let active = true;
+    void getMyAccountSettings().then((account) => {
+      if (!active) return;
+      const prefs = account.preferences;
+      setShowDevelopmentChargers(prefs.map?.show_development_chargers ?? false);
+      setRememberFilters(prefs.map?.remember_filters ?? true);
+      setNotifyPriceChanges(prefs.notifications?.price_changes ?? true);
+      setNotifyStatusChanges(prefs.notifications?.status_changes ?? true);
+      if (prefs.map_type) setMapType(prefs.map_type);
+      if (typeof prefs.map_zoom === "number") setMapZoom(Math.max(3, Math.min(18, prefs.map_zoom)));
+      if (typeof prefs.map_marker_size === "number") setMapMarkerSize(Math.max(20, Math.min(48, prefs.map_marker_size)));
+      if (prefs.status_colors) setStatusColors(prefs.status_colors);
+      if (prefs.route_preferences?.priority) setPreferredRoutePriority(prefs.route_preferences.priority);
+      if (typeof prefs.route_preferences?.min_charger_kw === "number") setMinChargerSpeedKw(prefs.route_preferences.min_charger_kw);
+      if (typeof prefs.route_preferences?.default_charge_pause_min === "number") setDefaultChargePauseMin(prefs.route_preferences.default_charge_pause_min);
+      if (typeof prefs.route_preferences?.max_detour_km === "number") setMaxDetourKm(prefs.route_preferences.max_detour_km);
+      if (typeof prefs.route_preferences?.max_distance_between_stops_km === "number") setMaxDistanceBetweenStopsKm(prefs.route_preferences.max_distance_between_stops_km);
+      if (prefs.theme) document.documentElement.classList.toggle("dark", prefs.theme === "dark" || (prefs.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches));
+      if (typeof prefs.font_scale === "number") document.documentElement.style.fontSize = (16 * Math.max(0.85, Math.min(1.3, prefs.font_scale))) + "px";
+      if (prefs.display_density) document.documentElement.dataset.displayDensity = prefs.display_density;
+      if (prefs.profile_color && /^#[0-9a-fA-F]{6}$/.test(prefs.profile_color)) document.documentElement.style.setProperty("--profile-accent", prefs.profile_color);
+      if (prefs.language) changeLanguage(prefs.language);
+      if (prefs.vehicle_model && teslaModels.includes(prefs.vehicle_model)) setSelectedModel(prefs.vehicle_model);
+      if (typeof prefs.vehicle_year === "number") setModelYear(prefs.vehicle_year);
+      if (typeof prefs.consumption_kwh100 === "number") {
+        setManualConsumptionKWh100(prefs.consumption_kwh100);
+        setConsumptionMode("manual");
+      }
+    }).catch(() => { /* Profile settings are optional; the route planner remains usable. */ });
+    return () => { active = false; };
+  }, [currentUser?.id]);
+
   const countryPriceStats = useMemo(() => {
     if (!countryPricesOpen) return [];
     const groups = new Map<string, { country: string; currency: string; total: number; count: number }>();
@@ -268,11 +518,22 @@ function Index() {
   }, [countryPricesOpen, superchargers, departureDate, selectedModel, packKWh, carMaxKwOverride]);
 
   const visibleChargers = useMemo(
-    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters) && (!showFavoritesOnly || (!!charger.id && favoriteChargerIds.includes(charger.id)))),
-    [superchargers, chargerFilters, showFavoritesOnly, favoriteChargerIds],
+    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters) && (showDevelopmentChargers || (charger.status !== "plan" && charger.status !== "voting"))),
+    [superchargers, chargerFilters, showDevelopmentChargers],
+  );
+  const favoriteChargers = useMemo(
+    () => superchargers.filter((charger) => !!charger.id && favoriteChargerIds.includes(charger.id)),
+    [superchargers, favoriteChargerIds],
   );
 
-  useEffect(() => { const handler = (event: Event) => { const id = (event as CustomEvent<{ id: string }>).detail?.id; if (id) toggleFavoriteCharger(id); }; window.addEventListener("sc-favorite", handler); return () => window.removeEventListener("sc-favorite", handler); }, []);
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const id = (event as CustomEvent<{ id: string }>).detail?.id;
+      if (id) toggleFavoriteCharger(id);
+    };
+    window.addEventListener("sc-favorite", handler);
+    return () => window.removeEventListener("sc-favorite", handler);
+  }, [toggleFavoriteCharger]);
 
   // Meldknop in de kaart-popup
   useEffect(() => {
@@ -308,6 +569,11 @@ function Index() {
   const routeCosts = routeOptions.map((plan) => estimateRouteCost(plan, departureDate, selectedModel, packKWh, carMaxKwOverride));
   const pricedRoutes = routeCosts.map((cost, index) => ({ cost, index })).filter((item): item is { cost: number; index: number } => item.cost !== null);
   const cheapestRouteIndex = pricedRoutes.length ? pricedRoutes.reduce((best, item) => item.cost < best.cost ? item : best).index : -1;
+  useEffect(() => {
+    if (!routeOptions.length) return;
+    const preferredIndex = preferredRoutePriority === "cheapest" ? cheapestRouteIndex : preferredRoutePriority === "fewest_stops" ? fewestStopsIndex : fastestRouteIndex;
+    if (preferredIndex >= 0) setSelectedRouteIndex(preferredIndex);
+  }, [routeOptions, preferredRoutePriority, cheapestRouteIndex, fewestStopsIndex, fastestRouteIndex]);
   // Vergelijk ook de verwachte drukte op de daadwerkelijke aankomsttijd bij elke laadstop.
   // Routes zonder bruikbare druktegegevens krijgen geen kunstmatig gunstige score.
   const routeCrowdLevels = routeOptions.map((plan) => {
@@ -395,13 +661,21 @@ function Index() {
   const fetchTrafficRoutesFn = useServerFn(fetchTrafficRoutes);
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
-  const modelRange = selectedModel === "Handmatig" ? manualRangeKm : teslaModels[selectedModel];
+  const catalogueBatteryForRange = selectedCatalogueVehicle?.usableKWh ?? selectedCatalogueVehicle?.batteryKWh ?? packKWh;
+  const catalogueRangeFromConsumption = selectedCatalogueVehicle?.consumptionKWh100 && selectedCatalogueVehicle.consumptionKWh100 > 0
+    ? Math.round(catalogueBatteryForRange / selectedCatalogueVehicle.consumptionKWh100 * 100)
+    : null;
+  const modelRange = activeVehicle?.battery_kwh && activeVehicle?.summer_consumption_kwh100
+    ? Math.round(activeVehicle.battery_kwh / activeVehicle.summer_consumption_kwh100 * 100)
+    : (selectedCatalogueVehicle?.rangeKm ?? catalogueRangeFromConsumption ?? (selectedModel === "Handmatig" ? manualRangeKm : (teslaModels[selectedModel] ?? 450)));
   const ccsBlocked = needsCcsAdapter(selectedModel, modelYear) && !hasCcsAdapter;
   const [autoConsumptionKWh100State, setAutoConsumptionState] = useState<number | null>(null);
   // Bereik volgt uitsluitend uit verbruik (kWh/100 km), niet uit een vaste km-waarde.
+  const catalogueSeasonalConsumption = weatherMode === "winter" ? selectedCatalogueVehicle?.winterConsumptionKWh100 : selectedCatalogueVehicle?.consumptionKWh100;
+  const savedSeasonalConsumption = activeVehicle ? (weatherMode === "winter" ? activeVehicle.winter_consumption_kwh100 : activeVehicle.summer_consumption_kwh100) : null;
   const effectiveKWh100 = consumptionMode === 'manual' && manualConsumptionKWh100 > 0
     ? manualConsumptionKWh100
-    : (autoConsumptionKWh100State ?? Math.max(13, (packKWh / Math.max(1, modelRange)) * 100 * 1.1) * (1 + trailerReductionEffective / 100));
+    : ((savedSeasonalConsumption && savedSeasonalConsumption > 0 ? savedSeasonalConsumption : catalogueSeasonalConsumption) || (autoConsumptionKWh100State ?? Math.max(13, (packKWh / Math.max(1, modelRange)) * 100 * 1.1) * (1 + trailerReductionEffective / 100)));
   const fullEnergyRangeKm = Math.max(50, (packKWh / effectiveKWh100) * 100);
   const availableRange = fullEnergyRangeKm * batteryPercent / 100;
 
@@ -413,7 +687,6 @@ function Index() {
     loadBundledSuperchargers()
       .then((data) => {
         if (!mounted) return;
-        previousChargerSnapshotRef.current = chargerSnapshot(data);
         setSuperchargers(data);
         setChargerLoadError(data.length ? null : "De ingebouwde Superchargerdata bevat geen locaties.");
       })
@@ -440,13 +713,16 @@ function Index() {
     const loadId = params.get("load");
     if (!loadId) return;
     (async () => {
-      type SavedRow = Database["public"]["Tables"]["saved_routes"]["Row"];
-      // Lokaal eerst: direct inladen, ook als de cloud stilstaat.
+      type SavedRow = {
+        id: string; start_lat: number; start_lng: number; end_lat: number; end_lng: number;
+        model_name: string; battery_percent: number; trailer_mode: boolean; trailer_reduction: number;
+        weather_mode: string; time_mode: string; payload: unknown;
+      };
+      // Lokaal eerst: direct inladen, ook als de database niet bereikbaar is.
       let data: SavedRow | null = getCachedSavedRouteRow<SavedRow>(loadId);
       if (!data) {
         try {
-          const res = await withTimeout(supabase.from("saved_routes").select("*").eq("id", loadId).maybeSingle(), 1500);
-          data = (res.data as SavedRow | null) ?? null;
+          data = await getMySavedRoute({ data: { id: loadId } }) as SavedRow | null;
           if (data) cacheSavedRouteRow(data as unknown as { id: string } & Record<string, unknown>);
         } catch { data = null; }
       }
@@ -734,7 +1010,7 @@ function Index() {
     return unique.sort((a, b) => a.route.totalDistanceKm - b.route.totalDistanceKm).slice(0, 5);
   }, []);
 
-  const batteryCapacityOverride = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined;
+  const batteryCapacityOverride = activeVehicle?.battery_kwh ? activeVehicle.battery_kwh * vehicleBatteryHealth : (selectedCatalogueVehicle?.usableKWh ?? selectedCatalogueVehicle?.batteryKWh ?? (selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined));
 
   /** Berekent voor één routegeometrie de laadstops op basis van de ingevulde percentages. */
   const buildPlan = useCallback(async (
@@ -809,9 +1085,12 @@ function Index() {
       elevationMultiplier: elevation.multiplier,
       weather,
     });
-    const consumptionKWh100 = consumptionMode === 'manual' && manualConsumptionKWh100 > 0
-      ? Math.max(9, Math.min(60, manualConsumptionKWh100))
-      : auto.kWh100;
+    const vehicleSeasonalConsumption = activeVehicle ? (weatherMode === "winter" ? activeVehicle.winter_consumption_kwh100 : activeVehicle.summer_consumption_kwh100) : null;
+    const vehicleExtraPercent = activeVehicle ? (activeVehicle.roof_or_rack_extra_percent ?? 0) + (activeVehicle.winter_tires_extra_percent ?? 0) : 0;
+    const baseConsumptionKWh100 = vehicleSeasonalConsumption && vehicleSeasonalConsumption > 0
+      ? vehicleSeasonalConsumption
+      : consumptionMode === 'manual' && manualConsumptionKWh100 > 0 ? Math.max(9, Math.min(60, manualConsumptionKWh100)) : auto.kWh100;
+    const consumptionKWh100 = baseConsumptionKWh100 * (1 + vehicleExtraPercent / 100);
     setAutoConsumption(auto.kWh100);
     setAutoConsumptionState(auto.kWh100);
     setRouteWeather(weather);
@@ -852,6 +1131,9 @@ function Index() {
       weatherMode,
       timeMode,
       minChargerSpeedKw,
+      maxDetourKm,
+      maxDistanceBetweenStopsKm,
+      defaultChargePauseMin,
       carMaxKwOverride,
       batteryCapacityKWhOverride: batteryCapacityOverride,
       chargeTargetPercent,
@@ -860,6 +1142,8 @@ function Index() {
       excludeParkingGarage: preferTrailerFriendly,
       avoidLowSpeed,
       avoidParkingFee,
+      requireWheelchairAccessible: requireAccessibleStalls,
+      favoriteChargerIds,
       allowEurotunnel: folkestone && coquelles,
       consumptionMultiplier: elevation.multiplier,
       consumptionKWh100,
@@ -870,10 +1154,10 @@ function Index() {
       preferNearestCharger: strictUnknownExclusionRef.current,
       departureTime: departureDate,
     };
-    let result = calculateChargingStops(base.route, calcOpts);
+    let result = calculateChargingStopsWithAccessibilityPreference(base.route, calcOpts);
     // "Liever niet hier laden": kan het niet anders, dan toch die lader gebruiken.
     if (result.unreachable && excludedChargerIds.length > 0 && !strictUnknownExclusionRef.current) {
-      const retry = calculateChargingStops(base.route, { ...calcOpts, excludeIds: [] });
+      const retry = calculateChargingStopsWithAccessibilityPreference(base.route, { ...calcOpts, excludeIds: [] });
       if (!retry.unreachable) {
         result = retry;
         toast.info("Zonder die Supercharger lukt de route niet — hij wordt toch gebruikt.");
@@ -884,8 +1168,8 @@ function Index() {
       if (result.suggestions?.length) setRouteAdvice(result.suggestions);
       return null;
     }
-    const minus5Result = calculateChargingStops(base.route, { ...calcOpts, batteryPercent: Math.max(0, fromBattery - 5) });
-    const plus5Result = calculateChargingStops(base.route, { ...calcOpts, batteryPercent: Math.min(100, fromBattery + 5) });
+    const minus5Result = calculateChargingStopsWithAccessibilityPreference(base.route, { ...calcOpts, batteryPercent: Math.max(0, fromBattery - 5) });
+    const plus5Result = calculateChargingStopsWithAccessibilityPreference(base.route, { ...calcOpts, batteryPercent: Math.min(100, fromBattery + 5) });
     const whatIf = {
       minus5: { reachable: !minus5Result.unreachable, arrivalPercent: minus5Result.arrivalPercent, stops: minus5Result.stops.length },
       plus5: { reachable: !plus5Result.unreachable, arrivalPercent: plus5Result.arrivalPercent, stops: plus5Result.stops.length },
@@ -960,7 +1244,7 @@ function Index() {
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
       whatIf,
     };
-  }, [departureDate, excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode]);
+  }, [departureDate, excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, maxDetourKm, maxDistanceBetweenStopsKm, defaultChargePauseMin, requireAccessibleStalls, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode, activeVehicle]);
 
   const applyPlan = useCallback((index: number, plan: RoutePlan) => {
     setSelectedRouteIndex(index);
@@ -1385,8 +1669,8 @@ function Index() {
       setChargingStops((prev) =>
         prev.map((stop, i) => {
           if (i !== index) return stop;
-          const chargerSpeedKw = effectiveChargeSpeedKw(parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs), selectedModel);
-          const batteryKWh = teslaBatteryKWh[selectedModel] || 79;
+          const chargerSpeedKw = effectiveChargeSpeedKw(parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs), selectedModel, carMaxKwOverride);
+          const batteryKWh = batteryCapacityOverride ?? packKWh;
           const chargeDurationMin = calculateChargeDuration(
             stop.batteryBefore,
             newBatteryAfter,
@@ -1397,7 +1681,7 @@ function Index() {
         })
       );
     },
-    [selectedModel]
+    [batteryCapacityOverride, carMaxKwOverride, packKWh, selectedModel]
   );
 
   const handleChargerArrivalChange = useCallback((index: number, arrival: number) => {
@@ -1407,24 +1691,24 @@ function Index() {
       const legKm = Math.max(0, current[index].distanceFromStart - stop.distanceFromStart);
       const requiredDeparture = Math.min(100, Math.ceil(arrival + (legKm / fullRangeKmActive) * 100));
       const chargerSpeedKw = effectiveChargeSpeedKw(parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs), selectedModel, carMaxKwOverride);
-      const batteryKWh = selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79);
+      const batteryKWh = batteryCapacityOverride ?? packKWh;
       return {
         ...stop,
         batteryAfter: requiredDeparture,
         chargeDurationMin: calculateChargeDuration(stop.batteryBefore, requiredDeparture, batteryKWh, chargerSpeedKw),
       };
     }));
-  }, [carMaxKwOverride, fullRangeKmActive, manualRangeKm, selectedModel]);
+  }, [batteryCapacityOverride, carMaxKwOverride, fullRangeKmActive, packKWh, selectedModel]);
 
   // Na een berekende route: alleen de laders waar je laadt, tenzij je alles wilt zien.
   const mapChargers = useMemo(() => {
-    const isDevelopment = (c: Supercharger) => c.status === "construction" || c.status === "permit" || c.status === "plan";
+    const isDevelopment = (c: Supercharger) => c.status === "construction" || c.status === "permit" || c.status === "plan" || c.status === "voting";
     if (!route || showAllChargers || chargingStops.length === 0) {
       return visibleChargers.filter((c) => showDevelopmentChargers || !isDevelopment(c));
     }
     const used = new Set(chargingStops.map((s) => s.charger.id ?? s.charger.name));
-    return superchargers.filter((c) => used.has(c.id ?? c.name) && (!showFavoritesOnly || (!!c.id && favoriteChargerIds.includes(c.id))) && (showDevelopmentChargers || !isDevelopment(c)));
-  }, [route, showAllChargers, chargingStops, visibleChargers, superchargers, showDevelopmentChargers, showFavoritesOnly, favoriteChargerIds]);
+    return superchargers.filter((c) => used.has(c.id ?? c.name) && (showDevelopmentChargers || !isDevelopment(c)));
+  }, [route, showAllChargers, chargingStops, visibleChargers, superchargers, showDevelopmentChargers]);
 
   const handleRemoveCharger = useCallback((index: number) => {
     // "Liever niet hier laden": sluit deze lader uit en zoek een andere Supercharger.
@@ -1451,13 +1735,15 @@ function Index() {
               </div>
             )}
             {(!route || showRouteInputs) && <>
+{savedVehicles.length > 0 && <div className="px-4 pt-3"><label className="mb-1 block text-xs font-medium text-slate-400">Voertuigprofiel</label><select value={selectedVehicleId} onChange={(event) => { const id = event.target.value; setSelectedVehicleId(id); const vehicle = savedVehicles.find((item) => item.id === id); if (vehicle) applySavedVehicle(vehicle); }} className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"><option value="">Gebruik standaard modelkeuze</option>{savedVehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.name}{vehicle.is_default ? " · standaard" : ""}</option>)}</select></div>}
 <InputPanel
               prefill={prefill}
               onStartChange={setStartCoord}
               onDestChange={setDestCoord}
               onWaypointsChange={setWaypoints}
               superchargers={superchargers}
-              onModelChange={setSelectedModel}
+              vehicleModels={catalogueVehicles}
+              onModelChange={(model) => { setSelectedVehicleId(""); setSelectedModel(model); }}
               onBatteryChange={setBatteryPercent}
               onArrivalTargetChange={setTargetArrivalPercent}
               onChargeTargetChange={setChargeTargetPercent}
@@ -1472,6 +1758,7 @@ function Index() {
               onMinChargerSpeedChange={setMinChargerSpeedKw}
               onAvoidLowSpeedChange={setAvoidLowSpeed}
               onAvoidParkingFeeChange={setAvoidParkingFee}
+              onRequireAccessibleStallsChange={setRequireAccessibleStalls}
               onOnlineTrafficChange={setOnlineTraffic}
               onManualRangeChange={setManualRangeKm}
               onManualSpeedChange={setManualSpeedKw}
@@ -1491,6 +1778,7 @@ function Index() {
               minChargerSpeedKw={minChargerSpeedKw}
               avoidLowSpeed={avoidLowSpeed}
               avoidParkingFee={avoidParkingFee}
+              requireAccessibleStalls={requireAccessibleStalls}
               onlineTraffic={onlineTraffic}
               consumptionMode={consumptionMode}
               onConsumptionModeChange={setConsumptionMode}
@@ -1567,11 +1855,27 @@ function Index() {
       <div className="flex-1 relative">
         {!isNavigating && (
           <>
-          <div className="absolute top-16 left-3 z-[1000]"><Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowFavoritesOnly((v) => !v)}>{showFavoritesOnly ? "Alle Superchargers" : `Favorieten (${favoriteChargerIds.length})`}</Button></div>
+          <div className="absolute top-16 left-3 z-[1000]">
+            <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowFavoriteList((v) => !v)}>Favorieten ({favoriteChargerIds.length})</Button>
+            {showFavoriteList && (
+              <div className="mt-2 w-[min(320px,calc(100vw-24px))] max-h-[45vh] overflow-y-auto rounded-xl border border-slate-700 bg-slate-950/95 p-2 shadow-2xl">
+                <div className="px-2 py-1 text-xs font-semibold text-slate-300">Mijn favoriete Superchargers</div>
+                {favoriteChargers.length === 0 ? <p className="px-2 py-3 text-xs text-slate-400">Nog geen favorieten. Open een Supercharger op de kaart en tik op de ster.</p> : favoriteChargers.map((charger) => (
+                  <div key={charger.id} className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-white/5">
+                    <button type="button" className="min-w-0 flex-1 text-left" onClick={() => { setFocusCoord({ lat: charger.lat, lng: charger.lng }); setShowFavoriteList(false); }}>
+                      <span className="block truncate text-xs font-medium text-white">{charger.name}</span>
+                      <span className="block truncate text-[10px] text-slate-400">{[charger.city, charger.country].filter(Boolean).join(", ")}</span>
+                    </button>
+                    <button type="button" aria-label={charger.name + " uit favorieten verwijderen"} title="Uit favorieten verwijderen" className="rounded-md px-2 py-1 text-lg leading-none text-amber-400 hover:bg-amber-400/10" onClick={() => toggleFavoriteCharger(charger.id!)}>★</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           {!route && (
             <div className="absolute top-3 left-3 z-[1000]">
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowDevelopmentChargers((v) => !v)}>
-                {showDevelopmentChargers ? "Verberg plannen & bouwlocaties" : "Alles tonen"}
+                {showDevelopmentChargers ? "Verberg bouw-, vergunning- & stemlocaties" : "Alles tonen (ook bouw & vergunning)"}
               </Button>
             </div>
           )}
@@ -1586,7 +1890,6 @@ function Index() {
                   setIsLoadingChargers(true);
                   listSuperchargers()
                     .then((data) => {
-                      previousChargerSnapshotRef.current = chargerSnapshot(data);
                       setSuperchargers(data);
                       setChargerLoadError(data.length ? null : "Er zijn geen Superchargers ontvangen.");
                     })
@@ -1606,7 +1909,6 @@ function Index() {
               </Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCountryPricesOpen(true)}>Prijs per land</Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCompareOpen(true)}>Vergelijk locaties</Button>
-              <LanguageSwitcher />
               <AccountMenu />
             </div>
             {filtersOpen && (
@@ -1703,6 +2005,10 @@ function Index() {
           waypoints={waypoints}
           routeChargersOnly={!!route && !showAllChargers && chargingStops.length > 0}
           favoriteChargerIds={favoriteChargerIds}
+          mapType={mapType}
+          mapZoom={mapZoom}
+          markerSize={mapMarkerSize}
+          statusColors={statusColors}
           winterSportsMode={winterSportsMode}
           holidayPeriodMode={holidayPeriodMode}
         />
@@ -1739,7 +2045,7 @@ function Index() {
           <ChargingScreen
             stop={activeChargingStop}
             modelName={selectedModel}
-            batteryCapacityKWhOverride={selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : undefined}
+            batteryCapacityKWhOverride={batteryCapacityOverride}
             carMaxKwOverride={carMaxKwOverride}
             currentBattery={Math.round(estimatedBattery ?? liveBattery)}
             onDone={(finalPct) => {
@@ -1778,7 +2084,6 @@ function Index() {
               if (!currentUser || !startCoord || !destCoord || !route) return;
               const row = {
                 id: crypto.randomUUID(),
-                user_id: currentUser.id,
                 name: saveName || "Naamloze route",
                 start_lat: startCoord.lat, start_lng: startCoord.lng,
                 end_lat: destCoord.lat, end_lng: destCoord.lng,
@@ -1803,34 +2108,43 @@ function Index() {
               saveLocalRoute({ id: row.id, name: row.name, createdAt: new Date().toISOString() } as LocalRoute);
               let cloudOk = false;
               try {
-                const { error } = await withTimeout(supabase.from("saved_routes").insert(row), 2000);
-                cloudOk = !error;
+                await saveMyRoute({ data: row });
+                cloudOk = true;
               } catch { cloudOk = false; }
-              toast.success(cloudOk ? "Route opgeslagen" : "Route lokaal opgeslagen (cloud niet bereikbaar)");
+              toast.success(cloudOk ? "Route opgeslagen in Cloudflare D1" : "Route lokaal opgeslagen (Cloudflare D1 niet bereikbaar)");
               setSaveOpen(false); setSaveName("");
             }}>Opslaan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       <Dialog open={!!riskCharger} onOpenChange={(o) => { if (!o) setRiskCharger(null); }}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-white">
-          <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="size-5 text-amber-400" />Status onbekend</DialogTitle></DialogHeader>
-          <p className="text-sm text-slate-300">De status van <strong>{riskCharger?.name}</strong> is onbekend. Wil je het risico aangaan om hier te gaan laden?</p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              const key = riskCharger?.id ?? riskCharger?.name;
-              setRiskCharger(null);
-              setRiskChargerQueue([]);
-              if (key) { strictUnknownExclusionRef.current = true; recalcAfterExcludeRef.current = true; setExcludedChargerIds((prev) => (prev.includes(key) ? prev : [...prev, key])); }
-            }}>Nee, andere Supercharger</Button>
-            <Button className="bg-amber-600 hover:bg-amber-700" onClick={() => {
-              const key = riskCharger?.id ?? riskCharger?.name;
-              if (key) setAcceptedUnknownIds((prev) => (prev.includes(key) ? prev : [...prev, key]));
-              const [next, ...remaining] = riskChargerQueue;
-              setRiskChargerQueue(remaining);
-              setRiskCharger(next ?? null);
-            }}>Ja, gebruiken</Button>
-          </DialogFooter>
+        <DialogContent className="max-w-md overflow-hidden rounded-2xl border border-amber-400/25 bg-slate-950 p-0 text-white shadow-2xl">
+          <div className="relative h-36 overflow-hidden bg-gradient-to-br from-amber-950 via-slate-900 to-black">
+            {riskCharger?.photos?.[0] ? <img src={riskCharger.photos[0]} alt="" className="h-full w-full object-cover opacity-65" /> : <div className="flex h-full items-center justify-center"><AlertTriangle className="size-12 text-amber-400/80" /></div>}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 to-transparent p-4 pt-8">
+              <div className="text-xs font-semibold uppercase tracking-wider text-amber-300">Controleer voor vertrek</div>
+              <div className="text-lg font-bold">{riskCharger?.name}</div>
+            </div>
+          </div>
+          <div className="space-y-3 p-4">
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="size-5 text-amber-400" />Onbekende status — risico?</DialogTitle></DialogHeader>
+            <p className="text-sm leading-relaxed text-slate-300">Van deze Supercharger is niet bevestigd of hij open is en laden mogelijk is. Je kunt hem toch als laadstop gebruiken, maar mogelijk kom je voor een gesloten of onbruikbare locatie te staan.</p>
+            <DialogFooter className="flex-col gap-2 sm:flex-col">
+              <Button variant="outline" className="w-full border-slate-700" onClick={() => {
+                const key = riskCharger?.id ?? riskCharger?.name;
+                setRiskCharger(null);
+                setRiskChargerQueue([]);
+                if (key) { strictUnknownExclusionRef.current = true; recalcAfterExcludeRef.current = true; setExcludedChargerIds((prev) => (prev.includes(key) ? prev : [...prev, key])); }
+              }}>Nee, kies een andere Supercharger</Button>
+              <Button className="w-full bg-amber-600 hover:bg-amber-700" onClick={() => {
+                const key = riskCharger?.id ?? riskCharger?.name;
+                if (key) setAcceptedUnknownIds((prev) => (prev.includes(key) ? prev : [...prev, key]));
+                const [next, ...remaining] = riskChargerQueue;
+                setRiskChargerQueue(remaining);
+                setRiskCharger(next ?? null);
+              }}>Ja, ik aanvaard het risico</Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
       <ReportChargerDialog target={reportTarget} onClose={() => setReportTarget(null)} />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getLanguageTranslations, getEnabledLanguages } from "@/lib/translate.functions";
 import { translateTexts } from "@/lib/translate.functions";
 import { DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, getStoredLanguage, setStoredLanguage, type AppLanguage } from "@/lib/i18n";
 import { Globe } from "lucide-react";
@@ -49,9 +49,9 @@ export function LanguageProvider() {
 
     let map = loadCache(lang);
     // Admin-aanpassingen ophalen (overschrijven cache)
-    supabase.from("translations").select("key,value").eq("lang_code", lang).then(({ data }) => {
-      if (data?.length) { for (const r of data) map[r.key] = r.value; saveCache(lang, map); apply(document.body); }
-    });
+    void getLanguageTranslations({ data: { lang } }).then((translations) => {
+      if (Object.keys(translations).length) { Object.assign(map, translations); saveCache(lang, map); apply(document.body); }
+    }).catch(() => {});
 
     const pending = new Set<string>();
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -141,9 +141,9 @@ export function LanguageSwitcher() {
     setLang(getStoredLanguage());
     const fn = (l: string) => setLang(l);
     listeners.add(fn);
-    supabase.from("languages").select("code,name,native_name,enabled,is_default,rtl,sort_order").order("sort_order").then(({ data }) => {
-      if (data?.length) setLangs(data.filter((l) => l.enabled).map((l) => ({ code: l.code, name: l.name, nativeName: l.native_name, enabled: l.enabled, isDefault: l.is_default, rtl: l.rtl, sortOrder: l.sort_order })));
-    });
+    void getEnabledLanguages().then((data) => {
+      if (data.length) setLangs(data.map((l) => ({ code: l.code, name: l.name, nativeName: l.native_name, enabled: l.enabled, isDefault: l.is_default, rtl: l.rtl, sortOrder: l.sort_order })));
+    }).catch(() => {});
     return () => { listeners.delete(fn); };
   }, []);
   return (

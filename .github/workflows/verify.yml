@@ -2,9 +2,13 @@ name: Verify app
 
 on:
   push:
-    branches: [main]
+    branches: [main, cloudflare-migratie]
   pull_request:
     branches: [main]
+
+concurrency:
+  group: verify-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:

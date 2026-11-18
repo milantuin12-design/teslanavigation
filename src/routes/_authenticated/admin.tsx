@@ -2,10 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { importSuperchargers, getWinterSportsMode, setWinterSportsMode, getHolidayPeriodMode, setHolidayPeriodMode } from "@/lib/tesla.functions";
+import { adminListSuperchargers, adminRawUpsertCharger, adminDeleteCharger, adminBulkRawUpdate, adminListOwners, adminCreateOwner } from "@/lib/admin.functions";
+import { getCurrentUser } from "@/lib/auth.functions";
 import localDataset from "@/data/superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
-import { queueAdminChange, getPendingAdminChanges, clearPendingAdminChanges } from "@/lib/local-store";
-import { supabase } from "@/integrations/supabase/client";
+import { queueAdminChange, getPendingAdminChanges, clearPendingAdminChanges, keepPendingAdminChanges } from "@/lib/local-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,6 +60,7 @@ type Charger = {
   in_parking_garage: boolean;
   status: ChargerLifecycleStatus;
   construction: ConstructionInfo | null;
+  notes?: string | null;
   traffic_forecast?: TrafficForecast | null;
   works: WorksInfo | null;
   closure: ClosureInfo | null;
@@ -86,18 +88,6 @@ type AdminTariff = {
   priceBlocks?: { from: string; to: string; pricePerKwh: number }[];
 };
 
-function broadcastCrowdModeUpdate(mode: "winterSportsMode" | "holidayPeriodMode", enabled: boolean) {
-  const channel = supabase.channel("global-crowd-modes-live");
-  channel.subscribe((status) => {
-    if (status === "SUBSCRIBED") {
-      void channel.send({
-        type: "broadcast",
-        event: "modes-updated",
-        payload: { mode, enabled },
-      }).finally(() => { void supabase.removeChannel(channel); });
-    }
-  });
-}
 
 function normalizeTariffMatch(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -212,7 +202,7 @@ function TrafficForecastEditor({ value, onChange }: { value: TrafficForecast; on
     <div className="rounded-lg border border-cyan-700/50 bg-slate-900/70 p-3 space-y-3">
       <div>
         <div className="text-sm font-semibold text-cyan-200">Druktevoorspelling</div>
-        <p className="text-[11px] text-slate-400">Vul per uur 0–100% verwachte drukte in. De drie uurprofielen worden apart gebruikt in de routeplanner; vrije laadplekken worden automatisch uit de bruikbare capaciteit berekend.</p>
+        <p className="text-[11px] text-slate-400">Vul per uur 0–100% verwachte drukte in. De drie uurprofielen worden gebruikt om de verwachte drukte bij een laadstop te tonen. Er wordt geen aantal vrije laadplekken of wachtrij voorspeld.</p>
       </div>
       {groups.map((group) => (
         <div key={group.key} className="space-y-2">
@@ -339,6 +329,7 @@ function AdminPage() {
   const [editing, setEditing] = useState<Partial<Charger> | null>(null);
   const [coordsInput, setCoordsInput] = useState("");
   const [loading, setLoading] = useState(true);
+  const [cloudConnected, setCloudConnected] = useState(false);
   const [qualityOpen, setQualityOpen] = useState(false);
   const [owners, setOwners] = useState<Owner[]>([]);
   const [newOwnerName, setNewOwnerName] = useState("");
@@ -358,21 +349,26 @@ function AdminPage() {
   const [winterSportsSaving, setWinterSportsSaving] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
-      const { data } = await supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
-      setIsAdmin(!!data);
-      if (data) { try { setWinterSportsEnabled(await readWinterSportsMode()); setHolidayPeriodEnabled(await readHolidayPeriodMode()); } catch { setWinterSportsEnabled(false); setHolidayPeriodEnabled(false); } }
-    })();
-  }, [readWinterSportsMode]);
+    let active = true;
+    void getCurrentUser().then(async (user) => {
+      if (!active) return;
+      const admin = !!user?.is_admin;
+      setIsAdmin(admin);
+      if (admin) {
+        try {
+          const [winter, holiday] = await Promise.all([readWinterSportsMode(), readHolidayPeriodMode()]);
+          if (active) { setWinterSportsEnabled(winter); setHolidayPeriodEnabled(holiday); }
+        } catch { if (active) { setWinterSportsEnabled(false); setHolidayPeriodEnabled(false); } }
+      }
+    }).catch(() => { if (active) setIsAdmin(false); });
+    return () => { active = false; };
+  }, [readWinterSportsMode, readHolidayPeriodMode]);
 
   const toggleWinterSports = async (enabled: boolean) => {
     setWinterSportsSaving(true);
     try {
       await saveWinterSportsMode({ data: { enabled } });
       setWinterSportsEnabled(enabled);
-      broadcastCrowdModeUpdate("winterSportsMode", enabled);
       toast.success(enabled ? "Wintersportmodus ingeschakeld" : "Wintersportmodus uitgeschakeld");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Instelling opslaan mislukt");
@@ -384,7 +380,6 @@ function AdminPage() {
     try {
       await saveHolidayPeriodMode({ data: { enabled } });
       setHolidayPeriodEnabled(enabled);
-      broadcastCrowdModeUpdate("holidayPeriodMode", enabled);
       toast.success(enabled ? "Vakantieperiode ingeschakeld" : "Vakantieperiode uitgeschakeld");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Vakantieperiode opslaan mislukt");
@@ -393,85 +388,62 @@ function AdminPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    // Eerst eventuele wijzigingen versturen die in de wachtrij stonden (cloud was weg).
+    setCloudConnected(false);
     const pending = getPendingAdminChanges();
     if (pending.length > 0) {
-      let failed = false;
+      let processed = 0;
       for (const change of pending) {
         try {
           if (change.type === "delete" && change.id) {
-            const { error } = await supabase.from("superchargers").delete().eq("id", change.id);
-            if (error) failed = true;
+            await adminDeleteCharger({ data: { id: change.id } });
           } else if (change.type === "upsert" && change.payload) {
-            const { error } = await supabase.from("superchargers").upsert(stripLegacyTrafficColumn(change.payload as Record<string, unknown>) as never);
-            if (error) failed = true;
+            await adminRawUpsertCharger({ data: stripLegacyTrafficColumn(change.payload as Record<string, unknown>) });
           }
-        } catch { failed = true; }
-        if (failed) break;
+          processed += 1;
+        } catch {
+          break;
+        }
       }
-      if (!failed) {
+      // Bewaar uitsluitend de nog niet verwerkte wijzigingen. Zo wordt een
+      // eerder geslaagde delete niet opnieuw uitgevoerd en blijft de wachtrij
+      // niet permanent vastzitten op "Supercharger niet gevonden".
+      if (processed === pending.length) {
         clearPendingAdminChanges();
-        toast.success("Wachtrij met wijzigingen verstuurd naar de cloud");
+        toast.success("Wachtrij met wijzigingen verwerkt in Cloudflare D1");
+      } else if (processed > 0) {
+        keepPendingAdminChanges(pending.slice(processed));
       }
     }
+
     const rows: Charger[] = [];
-    let parkingBlocksColumnMissing = false;
-    for (let from = 0; ; from += 1000) {
-      const columnsWithCurrency = "id,name,lat,lng,country,province,city,total_stalls,stall_types,max_speed_kw,versions,opening_time,closing_time,opening_hours,trailer_friendly,is_available,charger_configs,parking_fee,parking_fee_amount,parking_free_minutes,parking_per_minutes,parking_per_euro,parking_blocks,price_currency,price_per_kwh,price_per_kwh_peak,peak_hours,in_parking_garage,status,construction,traffic_forecast,works,closure,owner_id,owner_name,low_speed,published,reopen_at,planned_upgrade,stall_states,data_source,hidden,photos,permanently_closed_at,price_blocks";
-      const columnsWithoutCurrency = columnsWithCurrency.replace("price_currency,", "");
-      const columnsWithoutParkingBlocks = columnsWithCurrency.replace("parking_blocks,", "");
-      const columnsWithoutBoth = columnsWithCurrency.replace("parking_blocks,", "").replace("price_currency,", "");
-      const columnsWithoutTraffic = columnsWithCurrency.replace("traffic_forecast,", "");
-      const columnsWithoutTrafficAndParking = columnsWithoutTraffic.replace("parking_blocks,", "");
-      let parkingBlocksMissing = false;
-      let result = await supabase.from("superchargers")
-        .select(columnsWithCurrency)
-        .order("name").range(from, from + 999);
-
-      // Oudere databases kunnen de druktevoorspellingskolom nog missen.
-      if (result.error && /traffic_forecast|column .* does not exist|schema cache/i.test(result.error.message)) {
-        result = await supabase.from("superchargers").select(columnsWithoutTraffic).order("name").range(from, from + 999);
-      }
-
-      // Oudere databases kunnen de nieuwe parkeerblokkenkolom nog missen.
-      if (result.error && /parking_blocks|column .* does not exist|schema cache/i.test(result.error.message)) {
-        parkingBlocksMissing = true;
-        parkingBlocksColumnMissing = true;
-        result = await supabase.from("superchargers").select(columnsWithoutTrafficAndParking).order("name").range(from, from + 999);
-      }
-      if (result.error && /price_currency|column .* does not exist|schema cache/i.test(result.error.message)) {
-        result = await supabase.from("superchargers")
-          .select(parkingBlocksMissing ? columnsWithoutBoth : columnsWithoutCurrency)
-          .order("name").range(from, from + 999);
-      }
-
-      if (result.error) {
-        console.error("[TeslaNavigation] Admin-cloudlijst niet bereikbaar; toon lokale dataset:", result.error.message);
-        const localRows = (localDataset as { chargers?: Charger[] }).chargers ?? [];
-        if (rows.length === 0 && localRows.length > 0) {
-          rows.push(...localRows);
-          toast.warning("Cloud tijdelijk niet bereikbaar — lokale Superchargerlijst getoond. Wijzigingen worden pas opgeslagen zodra de cloud weer werkt.");
-        } else if (rows.length === 0) {
-          toast.error("Superchargers konden niet uit de cloud of lokale dataset worden geladen: " + result.error.message);
+    try {
+      for (let from = 0; ; from += 1000) {
+        const response = await adminListSuperchargers({ data: { from } });
+        if (!Array.isArray(response)) {
+          throw new Error("Cloudflare D1 gaf geen geldige lijst terug (verwachtte een array).");
         }
-        break;
+        const pageRows = response as Charger[];
+        rows.push(...pageRows.map((row) => addAdminTariff(row)));
+        if (pageRows.length < 1000) break;
       }
-      const pageRows = (result.data || []).map((row) => addAdminTariff({
-        ...row,
-        price_currency: (row as typeof row & { price_currency?: string | null }).price_currency || "EUR",
-      } as Charger));
-      rows.push(...pageRows);
-      if (!result.data || result.data.length < 1000) break;
+      const ownerRows = await adminListOwners();
+      setOwners(Array.isArray(ownerRows) ? ownerRows as Owner[] : []);
+      setCloudConnected(true);
+    } catch (error) {
+      setCloudConnected(false);
+      console.error("[TeslaNavigation] D1-adminlijst niet bereikbaar; toon lokale dataset:", error);
+      const localRows = (localDataset as { chargers?: Charger[] }).chargers ?? [];
+      if (rows.length === 0 && localRows.length > 0) {
+        rows.push(...localRows.map((row) => addAdminTariff(row)));
+        toast.error("Cloudflare D1 kon de beheerlijst niet laden: " + (error instanceof Error ? error.message : String(error)));
+        toast.info("De lokale Superchargerlijst wordt alleen als noodweergave getoond. Opslaan is uitgeschakeld totdat de cloudverbinding werkt.");
+      } else {
+        toast.error("Superchargers konden niet uit Cloudflare D1 worden geladen: " + (error instanceof Error ? error.message : String(error)));
+      }
     }
     setChargers(rows);
-    if (parkingBlocksColumnMissing) {
-      toast.warning("Nieuwe parkeertarieven zijn nog niet beschikbaar in de database. De migratie parking_blocks moet eerst worden uitgevoerd; bestaande gegevens blijven behouden.");
-    }
-    const { data: ownerRows } = await supabase.from("charger_owners").select("id,name").order("name");
-    setOwners((ownerRows as Owner[] | null) ?? []);
     setLoading(false);
   }, []);
-
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
   const openNew = () => { setEditing({ ...emptyCharger, opening_hours: defaultOpeningHours(), traffic_forecast: createEmptyTrafficForecast() }); setCoordsInput(""); };
@@ -484,6 +456,7 @@ function AdminPage() {
   };
 
   const save = async () => {
+    if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Wijzigingen zijn uitgeschakeld; probeer eerst opnieuw te laden."); return; }
     if (!editing) return;
     const parts = coordsInput.split(",").map((s) => parseFloat(s.trim()));
     if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
@@ -523,8 +496,10 @@ function AdminPage() {
       status: editing.status || "operational",
       // Bewaar drukteprofielen in het bestaande construction JSONB-veld.
       // Zo werkt opslaan ook bij databases zonder de optionele traffic_forecast-kolom.
+      notes: editing.notes?.trim() || null,
       construction: {
         ...(editing.construction || {}),
+        customLabel: editing.construction?.customLabel?.trim() || null,
         trafficForecast: editing.traffic_forecast || createEmptyTrafficForecast(),
         trailerFriendlyStalls: Math.max(0, Math.min(100, Math.floor(Number(editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0)) || 0))),
         trailerStallsPerSpace: Math.max(1, Math.min(8, Math.floor(Number(editing.construction?.trailerStallsPerSpace ?? 1) || 1))),
@@ -536,7 +511,7 @@ function AdminPage() {
       ...(editing.status === "permanent_closed" && editing.permanently_closed_at ? { permanently_closed_at: editing.permanently_closed_at } : {}),
       low_speed: !!editing.low_speed,
       published: editing.published !== false,
-      reopen_at: editing.status === "temp_closed" ? (editing.reopen_at || null) : null,
+      reopen_at: ["temp_closed", "long_closed", "works_closed", "unknown"].includes(editing.status || "") ? (editing.reopen_at || null) : null,
       planned_upgrade: (editing.planned_upgrade || {}) as Json,
       stall_states: (editing.stall_states || []).filter((x) => x.condition !== "available") as unknown as Json,
       data_source: editing.data_source === "automatic" ? "automatic" : "manual",
@@ -544,15 +519,8 @@ function AdminPage() {
       photos: (editing.photos || []).map((u) => u.trim()).filter(Boolean),
     };
     try {
-      if (editing.id) {
-        const { error } = await supabase.from("superchargers").update(stripLegacyTrafficColumn(payload as Record<string, unknown>) as never).eq("id", editing.id);
-        if (error) throw new Error(error.message);
-        toast.success("Bijgewerkt");
-      } else {
-        const { error } = await supabase.from("superchargers").insert(stripLegacyTrafficColumn(payload as Record<string, unknown>) as never);
-        if (error) throw new Error(error.message);
-        toast.success("Toegevoegd");
-      }
+      await adminRawUpsertCharger({ data: stripLegacyTrafficColumn({ ...(editing.id ? { id: editing.id } : {}), ...payload } as Record<string, unknown>) });
+      toast.success(editing.id ? "Bijgewerkt" : "Toegevoegd");
     } catch (error) {
       // Bewaar de wijziging lokaal, maar toon ook de echte databasefout zodat schema-
       // of validatiefouten niet onterecht als alleen een cloudstoring worden gemeld.
@@ -561,7 +529,7 @@ function AdminPage() {
       // Een ontbrekende JSONB-kolom kan niet met een lokale wachtrij worden opgelost.
       // Laat het formulier open zodat de gebruiker geen ingevoerde tarieven verliest.
       if (/parking_blocks/i.test(message) && /(column|schema cache|does not exist|could not find)/i.test(message)) {
-        toast.error("Parkeertarieven niet opgeslagen: de database mist parking_blocks. Voer de Supabase-migratie 20261108113000_add_parking_fee_blocks.sql uit en probeer opnieuw.");
+        toast.error("Parkeertarieven niet opgeslagen: controleer of de D1-migratie parking_blocks is toegepast. Je ingevoerde gegevens blijven in het formulier staan.");
         return;
       }
       queueAdminChange({ type: "upsert", id: editing.id, payload: stripLegacyTrafficColumn(editing.id ? { id: editing.id, ...payload } : payload) });
@@ -574,10 +542,10 @@ function AdminPage() {
   };
 
   const remove = async (id: string) => {
+    if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Verwijderen is uitgeschakeld."); return; }
     if (!confirm("Weet je zeker dat je deze supercharger wilt verwijderen?")) return;
     try {
-      const { error } = await supabase.from("superchargers").delete().eq("id", id);
-      if (error) throw new Error(error.message);
+      await adminDeleteCharger({ data: { id } });
       toast.success("Verwijderd");
     } catch {
       queueAdminChange({ type: "delete", id });
@@ -591,21 +559,23 @@ function AdminPage() {
   const setTemporaryClosureDays = (days: number) => {
     if (!editing) return;
     const reopen = new Date(Date.now() + Math.max(1, days) * 86400000);
+    const status = editing.status || "temp_closed";
     setEditing({
       ...editing,
-      status: "temp_closed",
-      is_available: false,
+      status,
+      is_available: status === "unknown" ? true : false,
       reopen_at: reopen.toISOString(),
       closure: { ...(editing.closure || {}), until: reopen.toISOString().slice(0, 10) },
     });
   };
 
   const publishAllDrafts = async () => {
+    if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Publiceren is uitgeschakeld."); return; }
     const drafts = chargers.filter((c) => c.published === false);
     if (drafts.length === 0) { toast.info("Geen concepten om te publiceren"); return; }
     if (!confirm(`${drafts.length} concepten publiceren?`)) return;
-    const { error } = await supabase.from("superchargers").update({ published: true }).eq("published", false);
-    if (error) { toast.error(error.message); return; }
+    try { await adminBulkRawUpdate({ data: { ids: drafts.map((draft) => draft.id), changes: { published: true } } }); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Publiceren mislukt"); return; }
     toast.success(`${drafts.length} concepten gepubliceerd`);
     load();
   };
@@ -626,6 +596,7 @@ function AdminPage() {
 
   /** Import voegt toe en werkt bij; bestaande laders worden nooit verwijderd. */
   const importData = async (file: File) => {
+    if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Importeren is uitgeschakeld."); return; }
     try {
       const parsed = JSON.parse(await file.text()) as { chargers?: unknown } | unknown[];
       const list = Array.isArray(parsed) ? parsed : (parsed.chargers as unknown[] | undefined);
@@ -644,17 +615,20 @@ function AdminPage() {
     if (!trimmed) return null;
     const existing = owners.find((o) => o.name.toLowerCase() === trimmed.toLowerCase());
     if (existing) return existing.id;
-    const { data, error } = await supabase.from("charger_owners").insert({ name: trimmed }).select("id,name").single();
-    if (error || !data) { toast.error(error?.message || "Eigenaar aanmaken mislukt"); return null; }
+    let data: { id: string; name: string } | null = null;
+    try { data = await adminCreateOwner({ data: { name: trimmed } }) as { id: string; name: string }; }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Eigenaar aanmaken mislukt"); return null; }
+    if (!data) return null;
     setOwners((prev) => [...prev, data as Owner].sort((a, b) => a.name.localeCompare(b.name)));
     return data.id;
   };
 
   const bulkUpdate = async (changes: Record<string, unknown>) => {
+    if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Bulk wijzigen is uitgeschakeld."); return; }
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
-    const { error } = await supabase.from("superchargers").update(changes as never).in("id", ids);
-    if (error) { toast.error(error.message); return; }
+    try { await adminBulkRawUpdate({ data: { ids, changes } }); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Bijwerken mislukt"); return; }
     toast.success(`${ids.length} Superchargers bijgewerkt`);
     setSelectedIds(new Set());
     setBulkOpen(false);
@@ -739,13 +713,13 @@ function AdminPage() {
           <div className="flex items-center gap-2">
             <Link to="/eigenaren"><Button variant="outline" size="sm" className="border-slate-700">Eigenaren</Button></Link>
             <Link to="/meldingen"><Button variant="outline" size="sm" className="border-slate-700">Meldingen</Button></Link>
-            <Link to="/voertuigen"><Button variant="outline" size="sm" className="border-slate-700">Voertuigen</Button></Link>
+            <Link to="/voertuigmodellen"><Button variant="outline" size="sm" className="border-slate-700">Voertuigdatabase</Button></Link>
             <Link to="/gebruikers"><Button variant="outline" size="sm" className="border-slate-700">Gebruikers</Button></Link>
             <Link to="/talen"><Button variant="outline" size="sm" className="border-slate-700">Talen</Button></Link>
             <Link to="/wijzigingen"><Button variant="outline" size="sm" className="border-slate-700">Wijzigingen</Button></Link>
-            <Button variant="outline" size="sm" className="border-slate-700" onClick={publishAllDrafts}>Alle concepten publiceren</Button>
+            <Button variant="outline" size="sm" className="border-slate-700" onClick={publishAllDrafts} disabled={!cloudConnected || loading}>Alle concepten publiceren</Button>
             <Button variant="outline" size="sm" className="border-slate-700" onClick={exportData}>Exporteer back-up</Button>
-            <Button variant="outline" size="sm" className="border-slate-700" onClick={() => fileRef.current?.click()}>Importeer back-up</Button>
+            <Button variant="outline" size="sm" className="border-slate-700" onClick={() => fileRef.current?.click()} disabled={!cloudConnected || loading}>Importeer back-up</Button>
             <input
               ref={fileRef}
               type="file"
@@ -753,7 +727,7 @@ function AdminPage() {
               className="hidden"
               onChange={(e) => { const file = e.target.files?.[0]; if (file) importData(file); e.target.value = ""; }}
             />
-            <Button onClick={openNew} className="bg-red-600 hover:bg-red-700"><Plus className="w-4 h-4 mr-1" /> Nieuw</Button>
+            <Button onClick={openNew} disabled={!cloudConnected || loading} className="bg-red-600 hover:bg-red-700"><Plus className="w-4 h-4 mr-1" /> Nieuw</Button>
           </div>
         </div>
         <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-sky-500/40 bg-sky-500/10 p-3">
@@ -851,8 +825,8 @@ function AdminPage() {
                       <td className="p-3">{c.published === false ? <span className="text-amber-300">Concept</span> : c.status && c.status !== "operational" ? <span className={c.status === "expanding" ? "text-green-400" : c.status === "construction" ? "text-orange-300" : c.status === "voting" ? "text-blue-300" : c.status === "plan" || c.status === "permit" ? "text-purple-300" : "text-slate-300"}>{lifecycleLabels[c.status] ?? c.status}</span> : c.is_available === false ? <span className="text-slate-300">Niet beschikbaar</span> : <span className="text-green-400">Beschikbaar</span>}</td>
                       <td className="p-3">{c.trailer_friendly ? "✓" : "-"}</td>
                       <td className="p-3 text-right whitespace-nowrap">
-                        <Button size="sm" variant="ghost" onClick={() => openEdit(c)}><Pencil className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => remove(c.id)}><Trash2 className="w-4 h-4 text-red-400" /></Button>
+                        <Button size="sm" variant="ghost" disabled={!cloudConnected || loading} onClick={() => openEdit(c)}><Pencil className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="ghost" disabled={!cloudConnected || loading} onClick={() => remove(c.id)}><Trash2 className="w-4 h-4 text-red-400" /></Button>
                       </td>
                     </tr>
                   ))}
@@ -864,11 +838,23 @@ function AdminPage() {
       </div>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing?.id ? "Supercharger bewerken" : "Nieuwe supercharger"}</DialogTitle></DialogHeader>
+        <DialogContent className="bg-slate-950 border-slate-700/80 text-white max-w-4xl max-h-[92vh] overflow-y-auto shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">{editing?.id ? "Supercharger bewerken" : "Nieuwe Supercharger"}</DialogTitle>
+            <p className="text-xs text-slate-400">Beheer locatie, status en laadgegevens op één plek</p>
+          </DialogHeader>
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800 via-slate-900 to-black">
+            {editing.photos?.[0] ? <img src={editing.photos[0]} alt="" className="h-36 w-full object-cover opacity-75" /> : <div className="flex h-28 items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-950 via-slate-900 to-slate-950"><div className="text-center"><div className="text-3xl">⚡</div><div className="mt-1 text-xs text-slate-400">Tesla Supercharger</div></div></div>}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/95 to-transparent p-3 pt-8">
+              <div className="text-sm font-semibold">{editing.name || "Nieuwe locatie"}</div>
+              <div className="text-[11px] text-slate-300">{[editing.city, editing.country].filter(Boolean).join(", ") || "Locatie nog niet ingevuld"}</div>
+            </div>
+          </div>
           {editing && (
             <div className="space-y-3">
               <div><Label>Naam</Label><Input value={editing.name || ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
+              <div><Label>Eigen label (optioneel)</Label><Input placeholder="Bijv. Favoriete stop, ruime parkeerplaats…" value={editing.construction?.customLabel ?? ""} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction || {}), customLabel: e.target.value } })} className="bg-slate-800 border-slate-700" /></div>
+              <div><Label>Persoonlijke notitie</Label><textarea rows={2} placeholder="Eigen notitie over deze Supercharger…" value={editing.notes ?? ""} onChange={(e) => setEditing({ ...editing, notes: e.target.value })} className="w-full rounded-md bg-slate-800 border border-slate-700 p-2 text-sm" /></div>
               <div><Label>Land</Label><Input value={editing.country || ""} onChange={(e) => setEditing({ ...editing, country: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
               <div className="grid grid-cols-2 gap-2">
                 <div><Label>Provincie / regio</Label><Input value={editing.province || ""} onChange={(e) => setEditing({ ...editing, province: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
@@ -876,12 +862,12 @@ function AdminPage() {
               </div>
               <div><Label>Coordinaten (lat,lng)</Label><Input value={coordsInput} onChange={(e) => setCoordsInput(e.target.value)} placeholder="52.3702,4.8952" className="bg-slate-800 border-slate-700" /></div>
 
-              <div className="rounded-lg border border-slate-700 p-3 space-y-3">
+              <div className="rounded-2xl border border-sky-400/20 bg-gradient-to-br from-slate-900 to-slate-950 p-4 shadow-lg space-y-3">
                 <div>
                   <Label>Status</Label>
                   <select
                     value={editing.status || "operational"}
-                    onChange={(e) => { const status = e.target.value as ChargerLifecycleStatus; setEditing({ ...editing, status, is_available: status === "temp_closed" || status === "long_closed" || status === "works_closed" ? false : editing.is_available }); }}
+                    onChange={(e) => { const status = e.target.value as ChargerLifecycleStatus; setEditing({ ...editing, status, is_available: status === "unknown" ? true : status === "temp_closed" || status === "long_closed" || status === "works_closed" ? false : editing.is_available, reopen_at: ["unknown", "temp_closed", "long_closed", "works_closed"].includes(status) ? editing.reopen_at : null }); }}
                     className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm"
                   >
                     {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{lifecycleLabels[s]}</option>)}
@@ -993,14 +979,14 @@ function AdminPage() {
                   {editing.status === "permanent_closed" && <p className="text-xs text-slate-400">Permanent gesloten blijft 14 dagen zichtbaar (zwart) en verdwijnt daarna van de kaart; de gegevens blijven bewaard.</p>}
                 </div>
 
-                {(editing.status === "temp_closed" || editing.status === "long_closed") && (
+                {(["temp_closed", "long_closed", "works_closed", "unknown"].includes(editing.status || "")) && (
                   <div className="space-y-2">
                     <div>
                       <Label className="text-xs">Reden van sluiting</Label>
                       <Input value={editing.closure?.reason ?? ""} onChange={(e) => setEditing({ ...editing, closure: { ...(editing.closure || {}), reason: e.target.value } })} className="bg-slate-800 border-slate-700" />
                     </div>
-                    {editing.status === "temp_closed" && <div>
-                      <Label className="text-xs">Automatisch heropenen (alleen admin)</Label>
+                    {["temp_closed", "long_closed", "works_closed", "unknown"].includes(editing.status || "") && <div>
+                      <Label className="text-xs">Automatisch status herstellen (alleen admin)</Label>
                       <div className="grid grid-cols-4 gap-2 mt-1">
                         {[1, 3, 7, 14].map((days) => <Button key={days} type="button" size="sm" variant="outline" onClick={() => setTemporaryClosureDays(days)}>{days} {days === 1 ? "dag" : "dagen"}</Button>)}
                       </div>
@@ -1164,6 +1150,11 @@ function AdminPage() {
                 <Input id="trailer-stalls-per-space" type="number" min="1" max="8" step="1" value={editing.construction?.trailerStallsPerSpace ?? 1} onChange={(e) => setEditing({ ...editing, construction: { ...(editing.construction ?? {}), trailerStallsPerSpace: Math.max(1, Math.min(8, Math.floor(Number(e.target.value) || 1))) } })} className="bg-slate-800 border-slate-700" />
                 <p className="text-xs text-slate-500">Standaard 1. Iedere bezette aanhangerplek telt als één bezette lader.</p>
               </div>
+              <label className="flex items-center gap-2 cursor-pointer rounded-lg border border-sky-500/20 bg-sky-500/5 p-2">
+                <Checkbox checked={!!editing.construction?.wheelchairAccessible} onCheckedChange={(checked) => setEditing({ ...editing, construction: { ...(editing.construction ?? {}), wheelchairAccessible: !!checked } })} />
+                ♿ Invalidenplek aanwezig
+              </label>
+              <p className="ml-7 text-[11px] text-slate-500">Vink dit alleen aan als er bij deze Supercharger een officiële invalidenparkeerplek aanwezig is. Het rolstoelicoon verschijnt op de kaart.</p>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={!!editing.parking_fee} onCheckedChange={(c) => setEditing({ ...editing, parking_fee: !!c })} />
                 💶 Parkeergeld verplicht
@@ -1243,7 +1234,7 @@ function AdminPage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Annuleren</Button>
-            <Button onClick={save} className="bg-red-600 hover:bg-red-700">Opslaan</Button>
+            <Button onClick={save} disabled={!cloudConnected} className="bg-red-600 hover:bg-red-700">Opslaan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

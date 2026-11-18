@@ -50,6 +50,7 @@ interface InputPanelProps {
   onDestChange: (coord: { lat: number; lng: number } | null) => void;
   onWaypointsChange: (waypoints: PlannedWaypoint[]) => void;
   superchargers: Supercharger[];
+  vehicleModels: VehicleModel[];
   onModelChange: (model: string) => void;
   onBatteryChange: (pct: number) => void;
   onArrivalTargetChange: (pct: number) => void;
@@ -62,6 +63,7 @@ interface InputPanelProps {
   onMinChargerSpeedChange: (kw: number) => void;
   onAvoidLowSpeedChange: (value: boolean) => void;
   onAvoidParkingFeeChange: (value: boolean) => void;
+  onRequireAccessibleStallsChange: (value: boolean) => void;
   onOnlineTrafficChange: (value: boolean) => void;
   onManualRangeChange?: (km: number) => void;
   onManualSpeedChange?: (kw: number) => void;
@@ -80,6 +82,7 @@ interface InputPanelProps {
   minChargerSpeedKw: number;
   avoidLowSpeed: boolean;
   avoidParkingFee: boolean;
+  requireAccessibleStalls: boolean;
   onlineTraffic: boolean;
   manualRangeKm?: number;
   manualSpeedKw?: number;
@@ -257,6 +260,7 @@ export default function InputPanel({
   onDestChange,
   onWaypointsChange,
   superchargers,
+  vehicleModels,
   onModelChange,
   onBatteryChange,
   onArrivalTargetChange,
@@ -267,6 +271,7 @@ export default function InputPanel({
   onMinChargerSpeedChange,
   onAvoidLowSpeedChange,
   onAvoidParkingFeeChange,
+  onRequireAccessibleStallsChange,
   onOnlineTrafficChange,
   onManualRangeChange,
   onManualSpeedChange,
@@ -288,6 +293,7 @@ export default function InputPanel({
   minChargerSpeedKw,
   avoidLowSpeed,
   avoidParkingFee,
+  requireAccessibleStalls,
   onlineTraffic,
   manualRangeKm = 400,
   manualSpeedKw = 250,
@@ -345,7 +351,9 @@ export default function InputPanel({
     setStartInput(prefill.start);
     setDestInput(prefill.dest);
   }, [prefill]);
-  const minYear = minYearForModel(selectedModel);
+  const selectedVariant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === selectedModel) ?? null;
+  const minYear = selectedVariant?.yearFrom ?? minYearForModel(selectedModel);
+  const maxYear = selectedVariant?.yearTo ?? 2026;
   useEffect(() => {
     if (modelYear < minYear) onModelYearChange(minYear);
   }, [modelYear, minYear, onModelYearChange]);
@@ -676,36 +684,37 @@ export default function InputPanel({
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
               <Car size={13} className="text-slate-300" />
-              Model <span className="text-slate-500">(dubbelklik = volgende)</span>
+              Kies je Tesla
             </label>
-            <select
-              value={selectedModel}
-              onChange={e => onModelChange(e.target.value)}
-              onDoubleClick={() => {
-                const keys = Object.keys(teslaModels);
-                const idx = keys.indexOf(selectedModel);
-                const next = keys[(idx + 1) % keys.length];
-                onModelChange(next);
-              }}
-              className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all appearance-none cursor-pointer"
-            >
-              {Object.keys(teslaModels).map(model => (
-                <option key={model} value={model}>
-                  {model}
-                </option>
-              ))}
-              <option value="Handmatig">Handmatig (eigen instellingen)</option>
-            </select>
+            <div className="grid grid-cols-2 gap-2">
+              {Array.from(new Set([...Object.keys(teslaModels), ...vehicleModels.filter((vehicle) => vehicle.brand.toLowerCase() === "tesla").map((vehicle) => vehicleKey(vehicle))])).map((model) => {
+                const variant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === model);
+                const selected = selectedModel === model;
+                return (
+                  <button key={model} type="button" onClick={() => { onModelChange(model); if (variant?.yearFrom) onModelYearChange(variant.yearFrom); }}
+                    className={`group overflow-hidden rounded-xl border text-left transition-all ${selected ? "border-red-400 bg-red-500/10 ring-2 ring-red-500/30" : "border-slate-700 bg-slate-800/60 hover:border-slate-500"}`}>
+                    <div className="relative flex h-20 items-center justify-center bg-gradient-to-br from-slate-700/70 to-slate-950">
+                      {variant?.imageUrl ? <img src={variant.imageUrl} alt={model} loading="lazy" className="h-full w-full object-contain p-1 transition-transform group-hover:scale-105" /> : <Car className="h-9 w-9 text-slate-500" />}
+                      {selected && <span className="absolute right-2 top-2 rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-semibold text-white">Gekozen</span>}
+                    </div>
+                    <div className="px-2 py-2"><div className="truncate text-xs font-semibold text-white">{model}</div>{variant?.yearFrom && <div className="text-[10px] text-slate-400">{variant.yearFrom}–{variant.yearTo ?? "heden"}</div>}</div>
+                  </button>
+                );
+              })}
+              <button type="button" onClick={() => onModelChange("Handmatig")} className={`rounded-xl border p-3 text-left transition-all ${selectedModel === "Handmatig" ? "border-red-400 bg-red-500/10" : "border-slate-700 bg-slate-800/60 hover:border-slate-500"}`}>
+                <div className="flex h-20 items-center justify-center"><Car className="h-9 w-9 text-slate-500" /></div><div className="text-xs font-semibold text-white">Handmatig</div><div className="text-[10px] text-slate-400">Eigen instellingen</div>
+              </button>
+            </div>
 
             <div className="mt-2">
               <label className="text-[11px] text-slate-400">Bouwjaar (optioneel)</label>
               <input
                 type="number"
                 min={minYear}
-                max={2026}
+                max={maxYear}
                 value={modelYear}
                 onChange={(e) => onModelYearChange(parseInt(e.target.value) || 2022)}
-                onBlur={(e) => { const y = parseInt(e.target.value) || minYear; onModelYearChange(Math.max(minYear, Math.min(2026, y))); }}
+                onBlur={(e) => { const y = parseInt(e.target.value) || minYear; onModelYearChange(Math.max(minYear, Math.min(maxYear, y))); }}
                 className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
               />
             </div>
@@ -1022,6 +1031,11 @@ export default function InputPanel({
               <input type="checkbox" checked={avoidParkingFee} onChange={(e) => onAvoidParkingFeeChange(e.target.checked)} className="accent-blue-500" />
               Parkeerkosten vermijden
             </label>
+            <label className="mt-1.5 flex items-center gap-2 text-xs text-slate-300">
+              <input type="checkbox" checked={requireAccessibleStalls} onChange={(e) => onRequireAccessibleStallsChange(e.target.checked)} className="accent-blue-500" />
+              Houd rekening met invalidenplek
+            </label>
+            {requireAccessibleStalls && <p className="ml-6 mt-1 text-[10px] text-sky-300/80">De routeplanner probeert eerst Superchargers met een bevestigde invalidenplek. Lukt de route daarmee niet, dan kiest hij automatisch een geschikte Supercharger zonder invalidenplek.</p>}
           </div>
 
           <label className="flex items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-800/40 p-3 text-xs text-slate-300">

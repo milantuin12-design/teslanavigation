@@ -1,30 +1,38 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { Link } from "@tanstack/react-router";
+import { getCurrentUser, signOut } from "@/lib/auth.functions";
+import { getMyAccountSettings } from "@/lib/account.functions";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User as UserIcon, LogOut, Shield, BookmarkCheck, LogIn, MessageSquare } from "lucide-react";
-import type { User } from "@supabase/supabase-js";
+import { User as UserIcon, LogOut, Shield, BookmarkCheck, LogIn, MessageSquare, Settings } from "lucide-react";
+import { AccountSettingsDialog } from "@/components/AccountSettingsDialog";
+
+type AccountUser = { id: string; email: string; display_name: string | null; gender?: string | null; is_admin: boolean };
 
 export function AccountMenu() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const navigate = useNavigate();
+  const [user, setUser] = useState<AccountUser | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [profileGreeting, setProfileGreeting] = useState("");
+  const [profileColor, setProfileColor] = useState("#e82127");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Supabase emits INITIAL_SESSION after the listener is attached. Use this
-    // single ordered source of truth so a late getUser() response cannot
-    // overwrite a newer SIGNED_IN event with a stale null user.
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => sub.subscription.unsubscribe();
+    let active = true;
+    void getCurrentUser().then((value) => {
+      if (active) setUser(value as AccountUser | null);
+    }).catch(() => { if (active) setUser(null); });
+    return () => { active = false; };
   }, []);
-
   useEffect(() => {
-    if (!user) { setIsAdmin(false); return; }
-    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
-  }, [user]);
+    let active = true;
+    void getMyAccountSettings().then((data) => {
+      if (!active) return;
+      setProfileGreeting(data.preferences?.greeting ?? "");
+      setProfileColor(data.preferences?.profile_color ?? "#e82127");
+      setProfileImage(data.preferences?.profile_image_url ?? null);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [settingsOpen]);
 
   if (!user) {
     return (
@@ -40,26 +48,31 @@ export function AccountMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline" className="bg-slate-800 border-slate-700 hover:bg-slate-700">
-          <UserIcon className="w-4 h-4 mr-1" /> {user.email?.split("@")[0]}
+          <span className="mr-1 inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full text-white" style={{ backgroundColor: profileColor }}>{profileImage ? <img src={profileImage} alt="" className="h-full w-full object-cover" /> : <UserIcon className="h-3 w-3" />}</span> {user.display_name?.trim() || user.email.split("@")[0]}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 text-white">
-        <DropdownMenuItem onClick={() => navigate({ to: "/mijn-routes" })}>
+        {profileGreeting.trim() && <div className="px-2 py-2 text-xs text-slate-300">{profileGreeting}</div>}
+        <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
+          <Settings className="w-4 h-4 mr-2" /> Accountinstellingen
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => window.location.assign("/mijn-routes")}>
           <BookmarkCheck className="w-4 h-4 mr-2" /> Mijn routes
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate({ to: "/mijn-meldingen" })}>
+        <DropdownMenuItem onClick={() => window.location.assign("/mijn-meldingen")}>
           <MessageSquare className="w-4 h-4 mr-2" /> Mijn meldingen
         </DropdownMenuItem>
-        {isAdmin && (
-          <DropdownMenuItem onClick={() => navigate({ to: "/admin" })}>
+        {user.is_admin && (
+          <DropdownMenuItem onClick={() => window.location.assign("/admin")}>
             <Shield className="w-4 h-4 mr-2" /> Admin
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator className="bg-slate-700" />
-        <DropdownMenuItem onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/" }); }}>
+        <DropdownMenuItem onClick={async () => { await signOut(); window.location.assign("/"); }}>
           <LogOut className="w-4 h-4 mr-2" /> Uitloggen
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <AccountSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} onSaved={(displayName, gender) => { setUser((old) => old ? { ...old, display_name: displayName, gender } : old); window.dispatchEvent(new CustomEvent("tn-profile-updated", { detail: { display_name: displayName, gender } })); }} />
     </DropdownMenu>
   );
 }

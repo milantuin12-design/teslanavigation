@@ -1,6 +1,9 @@
 name: Deploy TeslaNavigation to Cloudflare
 
 on:
+  push:
+    branches:
+      - cloudflare-migratie
   workflow_dispatch:
 
 permissions:

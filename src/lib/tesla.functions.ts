@@ -1,8 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { ChargerConfig, ChargerLifecycleStatus, ClosureInfo, ConstructionInfo, OpeningHours, PlannedUpgrade, PriceBlock, ParkingFeeBlock, StallState, Supercharger, VotingInfo, WorksInfo, TrafficForecast } from "./tesla-types";
-import type { Json } from "@/integrations/supabase/types";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import tariffDataset from "@/data/supercharger-tariffs.json";
 import { getMaxSpeedFromConfigs, getTotalStallsFromConfigs, getVersionsFromConfigs, normalizeChargerConfigs, normalizeOpeningHours, parseChargerConfigsFromLegacy } from "./tesla-utils";
 import { createRegionalTrafficForecast } from "./traffic-forecast";
@@ -94,10 +92,10 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>, network: Network
     ? normalizeChargerConfigs(row.charger_configs)
     : parseChargerConfigsFromLegacy(row.stall_types, row.total_stalls, row.max_speed_kw, row.versions);
   let status = (LIFECYCLE as string[]).includes(row.status ?? '') ? (row.status as ChargerLifecycleStatus) : 'operational';
-  // Tijdelijk gesloten laders gaan automatisch weer open zodra de einddatum voorbij is.
-  if (status === 'temp_closed' && row.reopen_at && new Date(row.reopen_at).getTime() <= Date.now()) {
-    status = 'operational';
-  }
+  // Tijdelijke admin-statussen lopen automatisch af op het ingestelde moment.
+  const temporaryStatus = status === 'temp_closed' || status === 'long_closed' || status === 'works_closed' || status === 'unknown';
+  const autoReopened = temporaryStatus && !!row.reopen_at && new Date(row.reopen_at).getTime() <= Date.now();
+  if (autoReopened) status = 'operational';
   const owner = row.owner_id ? owners?.get(row.owner_id) : undefined;
   return {
     id: row.id,
@@ -122,7 +120,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>, network: Network
     trailerFriendlyStalls: row.construction?.trailerFriendlyStalls != null
       ? Math.max(0, Math.floor(Number(row.construction.trailerFriendlyStalls) || 0))
       : (row.trailer_friendly ? 1 : 0),
-    isAvailable: row.is_available !== false,
+    isAvailable: autoReopened ? true : row.is_available !== false,
     parkingFee: !!row.parking_fee,
     parkingFeeAmount: row.parking_fee_amount ?? null,
     parkingFreeMinutes: row.parking_free_minutes ?? null,
@@ -154,7 +152,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>, network: Network
     closure: row.closure ?? {},
     ownerId: row.owner_id,
     ownerName: row.owner_name ?? owner?.name ?? null,
-    ownerLogoUrl: row.owner_name ? null : owner?.logo_url ?? null,
+    ownerLogoUrl: owner?.logo_url ?? null,
     ownerDescription: owner?.description ?? null,
     ownerWebsite: owner?.website ?? null,
     ownerContact: owner?.contact ?? null,
@@ -208,18 +206,17 @@ function applyTariffOverride(row: Row): Row {
     });
   });
   if (!match) return row;
-  const priceBlocks = match.priceBlocks?.length
-    ? match.priceBlocks
-    : typeof match.pricePerKwh === "number"
-      ? [{ from: "00:00", to: "24:00", pricePerKwh: match.pricePerKwh }]
-      : null;
   return {
     ...row,
     price_currency: match.currency ?? 'EUR',
     price_per_kwh: null,
     price_per_kwh_peak: null,
     peak_hours: null,
-    price_blocks: priceBlocks,
+    price_blocks: match.priceBlocks?.length
+      ? match.priceBlocks
+      : typeof match.pricePerKwh === "number"
+        ? [{ from: "00:00", to: "24:00", pricePerKwh: match.pricePerKwh }]
+        : null,
   };
 }
 
@@ -232,54 +229,75 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
   async (): Promise<Supercharger[]> => {
     const { localChargerDataset } = await import("./local-chargers.server");
     const localRows = localChargerDataset.chargers as unknown as Row[];
+    // Refresh missing D1 time-block prices from the latest checked-in tariff file.
+    // This does not overwrite any manually saved price_blocks.
+    try {
+      const { ensureBundledD1Seed } = await import("./d1-seed.server");
+      await ensureBundledD1Seed();
+    } catch (error) {
+      console.warn("[TeslaNavigation] D1 baseline/tariff refresh skipped:", error);
+    }
     const owners = new Map<string, OwnerRow>();
     for (const o of localChargerDataset.owners ?? []) owners.set(o.id, o);
 
+    // Zonder legacy cloud-credentials mag de publieke kaart niet wachten op of
+    // afhankelijk zijn van Lovable/Supabase. De volledige basisdataset en
+    // tijdsgebonden tarieven zitten al in de repository.
+    // Haal de actuele beheerdersdata uit Cloudflare D1 op; bij een lege of
+    // nog niet aangemaakte database valt de kaart veilig terug op de ingebouwde dataset.
+
     // Haal de actuele clouddata volledig op. Een korte timeout kan in Preview
     // onterecht oude ingebouwde data tonen terwijl de database wel bereikbaar is.
+    // Cloudflare D1 is the single source of truth for live Supercharger data.
+    // The admin panel writes to D1, so the public map must read from that same
+    // database; never fall back to the retired Supabase project.
     const cloud = async () => {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { getD1 } = await import("./d1.server");
+      const db = getD1();
       const pageSize = 1000;
       const rows: Row[] = [];
+      const jsonFields = new Set([
+        "versions", "opening_hours", "charger_configs", "construction", "works",
+        "closure", "planned_upgrade", "stall_states", "traffic_forecast",
+        "photos", "price_blocks", "parking_blocks", "voting",
+      ]);
+      const booleanFields = new Set([
+        "trailer_friendly", "is_available", "parking_fee", "in_parking_garage",
+        "low_speed", "published", "hidden",
+      ]);
       for (let from = 0; ; from += pageSize) {
-        let result = await supabaseAdmin.from("superchargers").select(SELECT_COLS).order("name").range(from, from + pageSize - 1);
-        let parkingBlocksMissing = false;
-        if (result.error && /parking_blocks|column .* does not exist|schema cache/i.test(result.error.message)) {
-          parkingBlocksMissing = true;
-          result = await supabaseAdmin.from("superchargers").select(SELECT_COLS_WITHOUT_PARKING_BLOCKS).order("name").range(from, from + pageSize - 1);
-        }
-        if (result.error && /traffic_forecast|column .* does not exist|schema cache/i.test(result.error.message)) {
-          result = await supabaseAdmin.from("superchargers").select(SELECT_COLS_WITHOUT_TRAFFIC).order("name").range(from, from + pageSize - 1);
-        }
-        if (result.error && /price_currency|column .* does not exist|schema cache/i.test(result.error.message)) {
-          console.warn("[TeslaNavigation] Optionele parkeer-/valutakolom ontbreekt; compatibele dataset wordt geladen.", result.error.message);
-          result = await supabaseAdmin.from("superchargers").select(parkingBlocksMissing ? SELECT_COLS_WITHOUT_BOTH : SELECT_COLS_WITHOUT_CURRENCY).order("name").range(from, from + pageSize - 1);
-        }
-        if (result.error) throw new Error(result.error.message);
-        const pageRows = ((result.data as unknown as Row[]) ?? []).map((row) => ({
-          ...row,
-          price_currency: row.price_currency ?? "EUR",
-        }));
-        rows.push(...pageRows);
-        if (!result.data || result.data.length < pageSize) break;
+        const page = await db.prepare(
+          "SELECT * FROM superchargers WHERE published = 1 AND hidden = 0 ORDER BY name COLLATE NOCASE LIMIT ? OFFSET ?"
+        ).bind(pageSize, from).all<Record<string, unknown>>();
+        if (!Array.isArray(page?.results)) throw new Error("Cloudflare D1 gaf geen geldige resultaten terug voor de Supercharger-lijst.");
+        const decoded = page.results.map((source) => {
+          const row: Record<string, unknown> = { ...source };
+          for (const field of jsonFields) {
+            if (typeof row[field] === "string") {
+              try { row[field] = JSON.parse(row[field] as string); } catch { /* keep malformed data visible for repair */ }
+            }
+          }
+          for (const field of booleanFields) {
+            if (row[field] !== null && row[field] !== undefined) row[field] = Number(row[field]) === 1;
+          }
+          return row as unknown as Row;
+        });
+        rows.push(...decoded);
+        if (decoded.length < pageSize) break;
       }
-      if (rows.length === 0 || rows.length < localRows.length * 0.5) {
-        throw new Error("cloud dataset incomplete");
-      }
-      const { data: ownerRows } = await supabaseAdmin
-        .from("charger_owners")
-        .select("id,name,logo_url,description,website,contact,notes");
-      let winterSportsMode = false;
-      let holidayPeriodMode = false;
-      try {
-        const setting = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "winter_sports_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
-        winterSportsMode = setting.data?.details?.enabled === true;
-        const holidaySetting = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "holiday_period_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
-        holidayPeriodMode = holidaySetting.data?.details?.enabled === true;
-      } catch { /* global settings are optional in older hosted environments */ }
-      return { rows, ownerRows: (ownerRows ?? []) as (OwnerRow & { id: string })[], winterSportsMode, holidayPeriodMode };
+      const ownerResult = await db.prepare(
+        "SELECT id,name,logo_url,description,website,contact,notes FROM charger_owners ORDER BY name COLLATE NOCASE"
+      ).all<OwnerRow & { id: string }>();
+      const winterSportsMode = await getD1AdminSetting("winter_sports_mode");
+      const holidayPeriodMode = await getD1AdminSetting("holiday_period_mode");
+      if (!Array.isArray(ownerResult?.results)) throw new Error("Cloudflare D1 gaf geen geldige resultaten terug voor de eigenaarslijst.");
+      return {
+        rows,
+        ownerRows: ownerResult.results,
+        winterSportsMode,
+        holidayPeriodMode,
+      };
     };
-
     try {
       const result = await cloud();
       for (const o of result.ownerRows) owners.set(o.id, o);
@@ -322,7 +340,7 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
     } catch (error) {
       // De kaart blijft bruikbaar als Supabase tijdelijk onbereikbaar is.
       // De lokale dataset bevat de volledige meegeleverde Superchargerbasis.
-      console.error("[TeslaNavigation] Supabase-data ophalen mislukt; toon lokale Superchargerdataset:", error);
+      console.error("[TeslaNavigation] Cloudflare D1-data ophalen mislukt; toon lokale Superchargerdataset:", error);
       if (!localRows.length) {
         throw new Error("Supabase is niet bereikbaar en de lokale Superchargerdataset is leeg.");
       }
@@ -332,35 +350,35 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
   }
 );
 
-/** Importeert een eerder geëxporteerde back-up. Voegt toe en werkt bij, verwijdert nooit. */
+/** Additieve D1-import: werkt bestaande Superchargers bij en verwijdert nooit gegevens. */
 export const importSuperchargers = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ chargers: z.array(z.record(z.unknown())).min(1).max(20000) }).parse(input)
-  )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const allowed = new Set(SELECT_COLS.split(","));
-    const rows = data.chargers
-      .map((raw) => {
-        const row: Record<string, unknown> = {};
-        for (const [key, value] of Object.entries(raw)) {
-          if (allowed.has(key) && value !== undefined) row[key] = value;
-        }
-        return row;
-      })
-      .filter((row) => typeof row.name === "string" && typeof row.lat === "number" && typeof row.lng === "number");
-
+  .inputValidator((input: unknown) => z.object({ chargers: z.array(z.record(z.unknown())).min(1).max(20000) }).parse(input))
+  .handler(async ({ data }) => {
+    const user = await (await import("./auth-d1.server")).getCurrentD1User();
+    if (!user?.is_admin) throw new Error("Alleen een ingelogde beheerder mag Superchargers importeren.");
+    const { getD1 } = await import("./d1.server");
+    const allowed = new Set(SELECT_COLS.split(",").concat(["notes","hidden","photos","price_blocks","parking_blocks","occupied_stalls","last_updated","updated_at","voting"]));
+    const jsonColumns = new Set(["versions","opening_hours","charger_configs","construction","works","closure","planned_upgrade","stall_states","traffic_forecast","photos","price_blocks","parking_blocks","voting"]);
+    const db = getD1();
     let imported = 0;
-    for (let i = 0; i < rows.length; i += 500) {
-      const batch = rows.slice(i, i + 500);
-      const { error } = await supabaseAdmin
-        .from("superchargers")
-        .upsert(batch as never, { onConflict: "id" });
-      if (error) throw new Error(error.message);
-      imported += batch.length;
+    for (let i=0;i<data.chargers.length;i+=100) {
+      const statements = data.chargers.slice(i,i+100).map(raw => {
+        const row:Record<string,unknown>={};
+        for(const [key,value] of Object.entries(raw)) if(allowed.has(key)&&value!==undefined) {
+          row[key]=jsonColumns.has(key)&&value!==null&&typeof value!=="string"?JSON.stringify(value):typeof value==="boolean"?(value?1:0):value;
+        }
+        if(!row.id) row.id=crypto.randomUUID();
+        if(!row.data_source) row.data_source="manual";
+        if(typeof row.name!=="string"||typeof row.lat!=="number"||typeof row.lng!=="number"||typeof row.country!=="string") return null;
+        const entries=Object.entries(row); const columns=entries.map(([k])=>k);
+        const updates=columns.filter(k=>k!=="id").map(k=>`${k}=excluded.${k}`).join(",");
+        return db.prepare(`INSERT INTO superchargers (${columns.join(",")}) VALUES (${columns.map(()=>"?").join(",")}) ON CONFLICT(id) DO UPDATE SET ${updates||"id=excluded.id"}`)
+          .bind(...entries.map(([k,v])=>v));
+      }).filter((x):x is NonNullable<typeof x>=>x!==null);
+      if(statements.length) { await db.batch(statements); imported+=statements.length; }
     }
+    await db.prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
+      .bind(crypto.randomUUID(),user.id,"supercharger_import",imported,JSON.stringify({source:"admin-import"})).run();
     return { imported };
   });
 
@@ -464,136 +482,105 @@ const chargerInput = z.object({
 
 
 
-async function assertAdmin(context: { supabase: unknown; userId: string }) {
-  const sb = context.supabase as { rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" | "user" }) => PromiseLike<{ data: boolean | null; error: { message: string } | null }> };
-  const { data, error } = await sb.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Forbidden");
+async function getD1AdminSetting(action: string): Promise<boolean> {
+  const { getD1 } = await import("./d1.server");
+  const row = await getD1().prepare("SELECT details FROM admin_audit_log WHERE action=? ORDER BY created_at DESC LIMIT 1").bind(action).first<{details:string}>();
+  if (!row?.details) return false;
+  try { return JSON.parse(row.details).enabled === true; } catch { return false; }
+}
+async function setD1AdminSetting(action: string, enabled: boolean) {
+  const { getCurrentD1User } = await import("./auth-d1.server");
+  const user = await getCurrentD1User();
+  if (!user) throw new Error("Je bent niet ingelogd.");
+  if (!user.is_admin) throw new Error("Alleen een beheerder kan deze instelling wijzigen.");
+  const { getD1 } = await import("./d1.server");
+  await getD1().prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
+    .bind(crypto.randomUUID(), user.id, action, 0, JSON.stringify({enabled})).run();
+  return {enabled};
 }
 
-
-
-
-export const getWinterSportsMode = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "winter_sports_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
-    if (error) throw error;
-    return data?.details?.enabled === true;
-  } catch (error) {
-    console.warn("[TeslaNavigation] Wintersportmodus-instelling niet beschikbaar:", error);
-    return false;
-  }
-});
-
+export const getWinterSportsMode = createServerFn({ method: "GET" }).handler(async () => getD1AdminSetting("winter_sports_mode"));
 export const setWinterSportsMode = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ enabled: z.boolean() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await (supabaseAdmin as any).from("admin_audit_log").insert({ action: "winter_sports_mode", target_count: 0, details: { enabled: data.enabled } });
-    if (error) throw new Error(error.message);
-    return { enabled: data.enabled };
-  });
+  .inputValidator((input: unknown) => z.object({enabled:z.boolean()}).parse(input))
+  .handler(async ({data}) => setD1AdminSetting("winter_sports_mode",data.enabled));
 
-export const getHolidayPeriodMode = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await (supabaseAdmin as any).from("admin_audit_log").select("details").eq("action", "holiday_period_mode").order("created_at", { ascending: false }).limit(1).maybeSingle();
-    if (error) throw error;
-    return data?.details?.enabled === true;
-  } catch (error) {
-    console.warn("[TeslaNavigation] Vakantieperiode-instelling niet beschikbaar:", error);
-    return false;
-  }
-});
-
+export const getHolidayPeriodMode = createServerFn({ method: "GET" }).handler(async () => getD1AdminSetting("holiday_period_mode"));
 export const setHolidayPeriodMode = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ enabled: z.boolean() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await (supabaseAdmin as any).from("admin_audit_log").insert({ action: "holiday_period_mode", target_count: 0, details: { enabled: data.enabled } });
-    if (error) throw new Error(error.message);
-    return { enabled: data.enabled };
-  });
+  .inputValidator((input: unknown) => z.object({enabled:z.boolean()}).parse(input))
+  .handler(async ({data}) => setD1AdminSetting("holiday_period_mode",data.enabled));
 
 export const upsertSupercharger = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => chargerInput.parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+  .handler(async ({ data }) => {
+    const { getCurrentD1User } = await import("./auth-d1.server");
+    const user = await getCurrentD1User();
+    if (!user?.is_admin) throw new Error("Alleen een beheerder kan Superchargers aanpassen.");
+    const { getD1 } = await import("./d1.server");
     const configs = normalizeChargerConfigs(data.chargerConfigs);
-    const stallTypes = configs.map((config) => `${config.count}x${config.version} ${config.speedKw}kW`).join(" - ");
-    const payload = {
+    const id = data.id ?? crypto.randomUUID();
+    const payload: Record<string, unknown> = {
+      id,
       name: data.name,
       lat: data.lat,
       lng: data.lng,
       country: data.country,
       total_stalls: getTotalStallsFromConfigs(configs) ?? data.totalStalls ?? null,
-      stall_types: stallTypes || data.stallTypes || null,
+      stall_types: configs.map((config) => config.count + "x" + config.version + " " + config.speedKw + "kW").join(" - ") || data.stallTypes || null,
       max_speed_kw: getMaxSpeedFromConfigs(configs) ?? data.maxSpeedKw ?? null,
-      versions: getVersionsFromConfigs(configs).length > 0 ? getVersionsFromConfigs(configs) : data.versions,
-      charger_configs: configs.map((config) => ({ ...config })) as Json,
-      opening_hours: normalizeOpeningHours(data.openingHours, data.openingTime, data.closingTime) as unknown as Json,
+      versions: JSON.stringify(getVersionsFromConfigs(configs).length > 0 ? getVersionsFromConfigs(configs) : data.versions),
+      charger_configs: JSON.stringify(configs),
+      opening_hours: JSON.stringify(normalizeOpeningHours(data.openingHours, data.openingTime, data.closingTime)),
       opening_time: data.openingTime || null,
       closing_time: data.closingTime || null,
-      trailer_friendly: data.trailerFriendly,
-      is_available: data.isAvailable,
-      parking_fee: data.parkingFee,
+      trailer_friendly: data.trailerFriendly ? 1 : 0,
+      is_available: data.isAvailable ? 1 : 0,
+      parking_fee: data.parkingFee ? 1 : 0,
       parking_fee_amount: data.parkingFeeAmount ?? null,
       parking_free_minutes: data.parkingFreeMinutes ?? null,
       parking_per_minutes: data.parkingPerMinutes ?? null,
       parking_per_euro: data.parkingPerEuro ?? null,
-      parking_blocks: data.parkingBlocks ?? null,
-      price_per_kwh: data.pricePerKwh ?? null,
-      price_per_kwh_peak: data.pricePerKwhPeak ?? null,
-      peak_hours: data.peakHours ?? null,
-      price_blocks: data.priceBlocks ?? null,
-      in_parking_garage: data.inParkingGarage,
+      parking_blocks: JSON.stringify(data.parkingBlocks ?? []),
+      price_blocks: data.priceBlocks == null ? null : JSON.stringify(data.priceBlocks),
+      in_parking_garage: data.inParkingGarage ? 1 : 0,
       province: data.province || null,
       city: data.city || null,
       status: data.status,
-      construction: data.construction as Json,
-      works: data.works as Json,
-      closure: data.closure as Json,
+      construction: JSON.stringify(data.construction),
+      works: JSON.stringify(data.works),
+      closure: JSON.stringify(data.closure),
       owner_id: data.ownerId ?? null,
-      low_speed: data.lowSpeed,
-      published: data.published,
+      low_speed: data.lowSpeed ? 1 : 0,
+      published: data.published ? 1 : 0,
       notes: data.notes ?? null,
       reopen_at: data.reopenAt || null,
-      planned_upgrade: data.plannedUpgrade as Json,
-      ...(data.stallStates ? { stall_states: data.stallStates as unknown as Json } : {}),
-      ...(data.dataSource ? { data_source: data.dataSource } : {}),
-      ...(data.hidden !== undefined ? { hidden: data.hidden } : {}),
-      ...(data.photos ? { photos: data.photos } : {}),
-      ...(data.voting ? { voting: data.voting as Json } : {}),
-
+      planned_upgrade: JSON.stringify(data.plannedUpgrade),
+      data_source: data.dataSource ?? "manual",
+      updated_at: new Date().toISOString(),
+      ...(data.stallStates ? { stall_states: JSON.stringify(data.stallStates) } : {}),
+      ...(data.hidden !== undefined ? { hidden: data.hidden ? 1 : 0 } : {}),
+      ...(data.photos ? { photos: JSON.stringify(data.photos) } : {}),
+      ...(data.voting ? { voting: JSON.stringify(data.voting) } : {}),
     };
-    if (data.id) {
-      const { error } = await context.supabase.from("superchargers").update(payload).eq("id", data.id);
-      if (error) throw new Error(error.message);
-      return { id: data.id };
-    } else {
-      const { data: inserted, error } = await context.supabase
-        .from("superchargers")
-        .insert(payload)
-        .select("id")
-        .single();
-      if (error) throw new Error(error.message);
-      return { id: (inserted as { id: string }).id };
-    }
+    const columns = Object.keys(payload);
+    const updates = columns.filter((key) => key !== "id").map((key) => key + "=excluded." + key).join(",");
+    await getD1().prepare("INSERT INTO superchargers (" + columns.join(",") + ") VALUES (" + columns.map(() => "?").join(",") + ") ON CONFLICT(id) DO UPDATE SET " + updates)
+      .bind(...Object.values(payload)).run();
+    await getD1().prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
+      .bind(crypto.randomUUID(), user.id, "supercharger_upsert", 1, JSON.stringify({id,name:data.name})).run();
+    return { id };
   });
 
 export const deleteSupercharger = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const { error } = await context.supabase.from("superchargers").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+  .inputValidator((input: unknown) => z.object({ id: z.string().min(1).max(120) }).parse(input))
+  .handler(async ({ data }) => {
+    const { getCurrentD1User } = await import("./auth-d1.server");
+    const user = await getCurrentD1User();
+    if (!user?.is_admin) throw new Error("Alleen een beheerder kan Superchargers verwijderen.");
+    const { getD1 } = await import("./d1.server");
+    const result = await getD1().prepare("DELETE FROM superchargers WHERE id=?").bind(data.id).run();
+    if (!result.meta?.changes) throw new Error("Supercharger niet gevonden.");
+    await getD1().prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
+      .bind(crypto.randomUUID(), user.id, "supercharger_delete", 1, JSON.stringify({id:data.id})).run();
     return { ok: true };
   });
 

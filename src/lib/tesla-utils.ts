@@ -281,7 +281,9 @@ export function calculateChargeDuration(
 
 export function isChargerOperationalAt(charger: Supercharger, atDate: Date = new Date()): boolean {
   const lifecycle = charger.status ?? 'operational';
-  if (lifecycle !== 'operational' && lifecycle !== 'works' && lifecycle !== 'expanding') return false;
+  // Onbekend blijft een mogelijke laadstop: de routeplanner toont daarna
+  // expliciet een risico-keuze. Echt gesloten/bouwstatussen blijven uitgesloten.
+  if (lifecycle !== 'operational' && lifecycle !== 'works' && lifecycle !== 'expanding' && lifecycle !== 'unknown') return false;
   if (getTotalStalls(charger) > 0 && getOpenStalls(charger, atDate) <= 0) return false;
   return charger.isAvailable !== false && isChargerOpenAt(charger, atDate);
 }
@@ -535,6 +537,16 @@ export interface CalcChargingOptions {
   preferNearestCharger?: boolean;
   /** Laders met parkeerkosten overslaan. */
   avoidParkingFee?: boolean;
+  /** Eerste voorkeur voor Superchargers met een door de beheerder bevestigde invalidenplek; wrapper probeert zonder voorkeur als dat nodig is. */
+  requireWheelchairAccessible?: boolean;
+  /** Favoriete Superchargers krijgen voorrang wanneer ze binnen de routecorridor en technisch haalbaar zijn. */
+  favoriteChargerIds?: string[];
+  /** Maximaal totale extra afstand door omrijden (km); 0 = geen limiet. */
+  maxDetourKm?: number;
+  /** Maximale afstand van één laadtraject (km); 0 = geen limiet. */
+  maxDistanceBetweenStopsKm?: number;
+  /** Extra standaardpauze per laadstop (minuten). */
+  defaultChargePauseMin?: number;
 
 }
 
@@ -549,6 +561,22 @@ function buildSuggestions(ctx: { chargeTargetPercent: number; batteryPercent: nu
   out.push('Verlaag het gewenste aankomstpercentage op de bestemming.');
   return out;
 }
+
+/**
+ * Treat wheelchair-accessible parking as a route preference: first try a route
+ * using confirmed accessible locations only; if that cannot complete the trip,
+ * retry without the preference rather than declaring the route unreachable.
+ */
+export function calculateChargingStopsWithAccessibilityPreference(
+  route: RouteResult,
+  opts: CalcChargingOptions,
+) {
+  const preferred = calculateChargingStops(route, opts);
+  if (!opts.requireWheelchairAccessible || !preferred.unreachable) return preferred;
+  const fallback = calculateChargingStops(route, { ...opts, requireWheelchairAccessible: false });
+  return fallback.unreachable ? preferred : fallback;
+}
+
 
 export function calculateChargingStops(
   route: RouteResult,
@@ -585,6 +613,11 @@ export function calculateChargingStops(
     excludeIds = [],
     preferNearestCharger = false,
     avoidParkingFee = false,
+    requireWheelchairAccessible = false,
+    favoriteChargerIds = [],
+    maxDetourKm = 0,
+    maxDistanceBetweenStopsKm = 0,
+    defaultChargePauseMin = 0,
   } = opts;
   const pendingForced = [...forcedStops].sort((a, b) => a.routeKm - b.routeKm);
   const excluded = new Set(excludeIds);
@@ -597,13 +630,13 @@ export function calculateChargingStops(
   if (route.coordinates.length < 2) {
     return { stops: [], arrivalPercent: batteryPercent, unreachable: false };
   }
-
   let filtered = chargers.filter(c => {
     const lifecycle = c.status ?? 'operational';
     if (c.published === false) return false;
     if ((c.id && excluded.has(c.id)) || excluded.has(c.name)) return false;
     if (lifecycle !== 'operational' && lifecycle !== 'works' && lifecycle !== 'expanding' && lifecycle !== 'unknown') return false;
     if (c.isAvailable === false) return false;
+    if (requireWheelchairAccessible && !c.construction?.wheelchairAccessible) return false;
     // Een locatie met 0 bruikbare laadplekken is nooit een laadstop.
     if (getTotalStalls(c) > 0 && getOpenStalls(c) <= 0) return false;
     if (avoidLowSpeed && c.lowSpeed) return false;
@@ -698,7 +731,7 @@ export function calculateChargingStops(
           ? (v2SpeedKw(nextForced.charger) ?? parseMaxSpeed(nextForced.charger.stallTypes, nextForced.charger.maxSpeedKw, nextForced.charger.chargerConfigs))
           : parseMaxSpeed(nextForced.charger.stallTypes, nextForced.charger.maxSpeedKw, nextForced.charger.chargerConfigs);
         const chargingLimitKw = Math.min(nextForced.kw, stationMaxKw);
-        const dur = calculateChargeDuration(before, after, kWhNow, chargingLimitKw, modelName, carMaxKwOverride);
+        const dur = calculateChargeDuration(before, after, kWhNow, chargingLimitKw, modelName, carMaxKwOverride) + defaultChargePauseMin;
         stops.push({
           charger: nextForced.charger,
           batteryBefore: before,
@@ -745,6 +778,8 @@ export function calculateChargingStops(
       if (nextForced && chargerRouteKm >= nextForced.routeKm) continue;
       const travelKm = (chargerRouteKm - currentPositionKm) + distFromRoute;
       if (travelKm > usableRange) continue;
+      if (maxDetourKm > 0 && distFromRoute * 2 > maxDetourKm) continue;
+      if (maxDistanceBetweenStopsKm > 0 && travelKm > maxDistanceBetweenStopsKm) continue;
 
       const travelMin = travelKm / kmPerMin;
       const estArrival = new Date(departureTime.getTime() + (elapsedMin + travelMin) * 60000);
@@ -845,9 +880,11 @@ export function calculateChargingStops(
       // Eén euro laadkosten telt mee als circa 1,2 km routevoorkeur.
       // Onbekende tarieven krijgen alleen een kleine voorkeurssanctie wanneer er wél prijzen bekend zijn.
       const tariffPenaltyKm = estimatedCost !== null ? estimatedCost * 1.2 : hasKnownCandidateCosts && (c.charger.priceCurrency || "EUR").toUpperCase() === "EUR" ? 6 : 0;
+      const favoriteBonusKm = c.charger.id && favoriteChargerIds.includes(c.charger.id) ? 30 : 0;
       return c.detourKm * 2
         + crowdPenaltyKm
         + tariffPenaltyKm
+        - favoriteBonusKm
         + (preferTrailerFriendly && c.charger.trailerFriendly ? -15 : 0)
         + (c.charger.inParkingGarage ? 10 : 0);
     };
@@ -912,7 +949,7 @@ export function calculateChargingStops(
       chargerSpeedKw,
       modelName,
       carMaxKwOverride
-    );
+    ) + defaultChargePauseMin;
 
 
     const batteryBeforeRounded = Math.round(Math.max(minSafetyPercent, best.batteryAtCharger));

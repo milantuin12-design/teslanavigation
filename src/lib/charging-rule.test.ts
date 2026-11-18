@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateChargingStops, projectOntoRoute } from './tesla-utils';
+import { calculateChargingStops, calculateChargingStopsWithAccessibilityPreference, projectOntoRoute } from './tesla-utils';
 import type { RouteResult, Supercharger } from './tesla-types';
 
 // Rechte lijn langs de evenaar: 1 graad lengte ≈ 111,2 km.
@@ -72,5 +72,43 @@ describe('route geometry cache', () => {
     const projected = projectOntoRoute(0, 50 / KM_PER_DEG, route.coordinates);
     expect(projected.km).toBeCloseTo(50, 0);
     expect(projected.index).toBe(10);
+  });
+});
+
+describe('invalidenplekken in routeberekening', () => {
+  it('kiest alleen een Supercharger met een bevestigde invalidenplek wanneer dit is ingeschakeld', () => {
+    const inaccessible = charger(350);
+    const accessible = { ...charger(300), construction: { wheelchairAccessible: true } };
+    const result = calculateChargingStops(line(500), {
+      ...base,
+      chargers: [inaccessible, accessible],
+      requireWheelchairAccessible: true,
+    });
+    expect(result.unreachable).toBe(false);
+    expect(result.stops).toHaveLength(1);
+    expect(result.stops[0].charger.id).toBe(accessible.id);
+  });
+
+
+  it('valt terug op een gewone Supercharger als geen invalidenplek de route haalbaar maakt', () => {
+    const regular = charger(350);
+    const result = calculateChargingStopsWithAccessibilityPreference(line(500), {
+      ...base,
+      chargers: [regular],
+      requireWheelchairAccessible: true,
+    });
+    expect(result.unreachable).toBe(false);
+    expect(result.stops).toHaveLength(1);
+    expect(result.stops[0].charger.id).toBe(regular.id);
+  });
+
+  it('markeert de route als niet haalbaar als geen geschikte invalidenplek bereikbaar is', () => {
+    const result = calculateChargingStops(line(500), {
+      ...base,
+      chargers: [charger(350)],
+      requireWheelchairAccessible: true,
+    });
+    expect(result.unreachable).toBe(true);
+    expect(result.stops).toHaveLength(0);
   });
 });

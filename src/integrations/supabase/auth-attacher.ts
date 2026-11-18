@@ -2,10 +2,16 @@
 import { createMiddleware } from '@tanstack/react-start'
 import { supabase } from './client'
 
-// Must be registered as a global `functionMiddleware` in `src/start.ts`; otherwise
-// the browser never attaches the bearer token to serverFn RPCs.
+const hasSupabaseBrowserConfig = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+)
+
+// Must be registered as a global functionMiddleware in src/start.ts.
+// When the legacy auth provider is not configured, public server functions
+// must still work without trying to instantiate the Supabase client.
 export const attachSupabaseAuth = createMiddleware({ type: 'function' }).client(
   async ({ next }) => {
+    if (!hasSupabaseBrowserConfig) return next({ headers: {} })
     const { data } = await supabase.auth.getSession()
     const token = data.session?.access_token
     return next({

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { listMyReports, listMyNotifications, markMyNotificationRead } from "@/lib/account.functions";
 import { ReportChat } from "@/components/ReportChat";
 
 export const Route = createFileRoute("/_authenticated/mijn-meldingen")({
@@ -27,6 +27,8 @@ export const Route = createFileRoute("/_authenticated/mijn-meldingen")({
   ),
 });
 
+type PersonalNotification = { id: string; title: string; body: string; event_type: string; delivery_status: string; created_at: string; };
+
 type MyReport = {
   id: string;
   charger_name: string | null;
@@ -42,18 +44,17 @@ const statusLabels: Record<string, string> = { new: "Nieuw", seen: "Gezien", in_
 function MyReportsPage() {
   const [reports, setReports] = useState<MyReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<PersonalNotification[]>([]);
 
   const load = useCallback(async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    const uid = userData.user?.id;
-    if (!uid) { setLoading(false); return; }
-    const { data } = await supabase
-      .from("charger_reports")
-      .select("id,charger_name,category,message,status,admin_note,created_at")
-      .eq("user_id", uid)
-      .order("created_at", { ascending: false });
-    setReports((data as MyReport[]) || []);
-    setLoading(false);
+    try {
+      const [data, inbox] = await Promise.all([listMyReports(), listMyNotifications()]);
+      setReports(data as MyReport[]);
+      setNotifications(inbox as PersonalNotification[]);
+    } catch (error) {
+      console.error("Meldingen laden mislukt:", error);
+      setReports([]);
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -65,6 +66,17 @@ function MyReportsPage() {
           <Link to="/" className="text-sm text-slate-400 hover:text-white">← Terug naar kaart</Link>
           <h1 className="text-2xl md:text-3xl font-bold mt-1">Mijn meldingen</h1>
         </div>
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Persoonlijke meldingen</h2>
+          {notifications.length === 0 ? <p className="text-sm text-slate-400">Er zijn nog geen persoonlijke meldingen.</p> : notifications.map((n) => (
+            <div key={n.id} className="rounded-lg border border-slate-700 bg-slate-800 p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div><div className="font-medium">{n.title}</div><p className="mt-1 text-sm text-slate-300">{n.body}</p><div className="mt-1 text-xs text-slate-500">{new Date(n.created_at).toLocaleString("nl-NL")}</div></div>
+                {n.delivery_status !== "read" && <button className="shrink-0 text-xs text-blue-300 hover:text-white" onClick={async () => { try { await markMyNotificationRead({ data: { id: n.id } }); setNotifications(old => old.map(x => x.id === n.id ? { ...x, delivery_status: "read" } : x)); } catch { /* keep inbox visible */ } }}>Gelezen</button>}
+              </div>
+            </div>
+          ))}
+        </section>
         {loading ? (
           <div>Laden…</div>
         ) : reports.length === 0 ? (

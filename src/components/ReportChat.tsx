@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { listReportMessages, sendReportMessage } from "@/lib/account.functions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -22,28 +22,16 @@ export function ReportChat({ reportId, asAdmin }: { reportId: string; asAdmin: b
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("report_messages")
-      .select("id,report_id,sender_id,is_admin,body,created_at")
-      .eq("report_id", reportId)
-      .order("created_at", { ascending: true });
-    if (error) return;
-    setMessages((data as ReportMessage[]) || []);
+    try {
+      const data = await listReportMessages({ data: { reportId } });
+      setMessages(data as ReportMessage[]);
+    } catch { /* geen toegang of tijdelijk offline */ }
   }, [reportId]);
 
   useEffect(() => {
-    load();
-    const channel = supabase
-      .channel(`report-messages-${reportId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "report_messages", filter: `report_id=eq.${reportId}` },
-        () => load(),
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    void load();
+    const refresh = window.setInterval(() => { void load(); }, 10000);
+    return () => window.clearInterval(refresh);
   }, [reportId, load]);
 
   useEffect(() => {
@@ -54,24 +42,14 @@ export function ReportChat({ reportId, asAdmin }: { reportId: string; asAdmin: b
     const body = text.trim();
     if (!body) return;
     setSending(true);
-    const { data: userData } = await supabase.auth.getUser();
-    const uid = userData.user?.id;
-    if (!uid) {
-      toast.error("Je bent niet ingelogd.");
+    try {
+      await sendReportMessage({ data: { reportId, body } });
+    } catch (error) {
       setSending(false);
+      toast.error(error instanceof Error ? error.message : "Bericht versturen mislukt");
       return;
     }
-    const { error } = await supabase.from("report_messages").insert({
-      report_id: reportId,
-      sender_id: uid,
-      is_admin: asAdmin,
-      body,
-    });
     setSending(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
     setText("");
     load();
   };

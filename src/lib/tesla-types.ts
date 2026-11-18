@@ -134,6 +134,10 @@ export interface ConstructionInfo {
   trailerStallsPerSpace?: number;
   /** On-site amenities manually verified by the admin. */
   siteAmenities?: string[];
+  /** Admin-geverifieerde invalidenparkeerplek bij de Supercharger. */
+  wheelchairAccessible?: boolean;
+  /** Vrij eigen label voor deze Supercharger; opgeslagen in construction JSON. */
+  customLabel?: string;
 }
 
 

@@ -6,7 +6,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, getOpenStalls, formatStallAvailability, isChargerUsable, normalizeChargerConfigs, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
-import { estimateFreeStalls, estimateQueueCars, getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
+import { getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
 import { estimateChargingCost } from '@/lib/charging-cost';
 
 
@@ -53,6 +53,10 @@ interface EvMapProps {
   favoriteChargerIds?: string[];
   winterSportsMode?: boolean;
   holidayPeriodMode?: boolean;
+  mapType?: "road" | "satellite";
+  mapZoom?: number;
+  statusColors?: Record<string, string>;
+  markerSize?: number;
 }
 
 
@@ -77,7 +81,28 @@ const waypointIcon = L.divIcon({
   iconAnchor: [14, 14],
 });
 
-function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = false, routeUsed = false) {
+function estimateFreeStalls(charger: Supercharger, at: Date = new Date()) {
+  const status = charger.status ?? "operational";
+  if (!["operational", "expanding", "works"].includes(status)) return null;
+  const total = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
+  if (!Number.isFinite(total) || total <= 0) return null;
+  const capacity = getOpenStalls(charger, at);
+  const forecast = getTrafficForecastAt(
+    charger.trafficForecast,
+    at,
+    charger.province ?? undefined,
+    !!charger.holidayPeriodMode,
+    !!charger.winterSportsMode,
+  );
+  if (!forecast) return null;
+  const count = Math.max(0, Math.min(capacity, Math.round(capacity * (1 - forecast.level / 100))));
+  return { count, total, occupancy: forecast.level, confidence: forecast.confidence, source: forecast.source };
+}
+
+function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = false, routeUsed = false, statusColorOverride?: string, markerSize = 30) {
+  const accessibleBadge = charger.construction?.wheelchairAccessible
+    ? `<span title="Invalidenplek aanwezig" aria-label="Invalidenplek aanwezig" style="position:absolute;right:-6px;top:-6px;width:18px;height:18px;border-radius:50%;background:#2563eb;border:1.5px solid #fff;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:3;">♿</span>`
+    : '';
   // Kleurlogica ongewijzigd: groen = open, rood = gesloten (openingstijden/sluiting), grijs = niet beschikbaar.
   let color = '#22c55e'; // groen = open/beschikbaar
   if (status === 'Niet beschikbaar' || status === 'Langdurig gesloten') color = '#94a3b8'; // grijs
@@ -90,17 +115,18 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   else if (status === 'Permanent gesloten') color = '#0f172a';
   else if (status === 'Tijdelijk gesloten') color = '#cbd5e1';
   else if (status !== 'Beschikbaar' && status !== 'In bedrijf') color = '#ef4444'; // rood: gesloten varianten
+  if (statusColorOverride) color = statusColorOverride;
   if (routeUsed) color = '#7dd3fc'; // lichtblauw = geselecteerde laadstop
 
   if (status === 'Voting' || status === 'Plan') {
-    const dotColor = status === 'Voting' ? '#3b82f6' : '#a855f7';
+    const dotColor = statusColorOverride || (status === 'Voting' ? '#3b82f6' : '#a855f7');
     const dotSize = status === 'Voting' ? 12 : 10;
     const snowBadge = charger.winterSportsMode && isSnowRegion(charger)
       ? `<span title="Wintersportgebied" style="position:absolute;right:-5px;top:-5px;width:14px;height:14px;border-radius:50%;background:#e0f2fe;border:1px solid #fff;color:#0369a1;font-size:9px;display:flex;align-items:center;justify-content:center;">❄</span>`
       : '';
     return L.divIcon({
       className: 'custom-marker',
-      html: `<div style="position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center;"><div style="width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:${dotColor};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>${snowBadge}</div>`,
+      html: `<div style="position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center;"><div style="width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:${dotColor};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>${snowBadge}${accessibleBadge}</div>`,
       iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9],
     });
   }
@@ -123,31 +149,32 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
     ? `<svg width="12" height="13" viewBox="0 0 24 24" fill="none" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);" xmlns="http://www.w3.org/2000/svg"><path d="M6 2h9l5 5v15H6z" fill="#fff"/><path d="M15 2v5h5" fill="#e9d5ff"/><path d="M9 12h8M9 15h8M9 18h5" stroke="#a855f7" stroke-width="1.6"/></svg>`
     : '';
 
-  const size = 30;
-  // Toon het aantal laadplekken dat volgens de admin daadwerkelijk beschikbaar is.
+  const size = Math.max(20, Math.min(48, markerSize));
+  // Toon een transparante schatting op basis van het drukteprofiel, nooit een verzonnen live bezettingsgetal.
   const totalStalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
-  const availableStalls = getOpenStalls(charger);
+  const estimatedFree = estimateFreeStalls(charger);
+  const markerAvailability = estimatedFree ? `~${estimatedFree.count}` : '';
   const badges: string[] = [];
   if (hasOpenWorks) {
-    badges.push(`<div style="position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&#10003;</div>`);
+    badges.push(`<div style="position:absolute;top:-3px;left:-3px;width:14px;height:14px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&#10003;</div>`);
   }
   if (hasClosedWorks) {
-    badges.push(`<div style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#dc2626;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&times;</div>`);
+    badges.push(`<div style="position:absolute;top:-3px;left:-3px;width:13px;height:13px;border-radius:50%;background:#dc2626;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&times;</div>`);
   }
   if (charger.winterSportsMode && isSnowRegion(charger)) {
     badges.push(`<div title="Wintersportgebied" style="position:absolute;top:-5px;left:-5px;width:15px;height:15px;border-radius:50%;background:#e0f2fe;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#0369a1;font-size:10px;line-height:1;">❄</div>`);
   }
   if (isLowSpeed) {
-    badges.push(`<div style="position:absolute;bottom:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#0f172a;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fbbf24;font-size:9px;line-height:1;">&#9660;</div>`);
+    badges.push(`<div style="position:absolute;bottom:-3px;left:-3px;width:13px;height:13px;border-radius:50%;background:#0f172a;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fbbf24;font-size:9px;line-height:1;">&#9660;</div>`);
   }
 
   return L.divIcon({
     className: 'custom-marker',
     html: `<div style="position:relative;width:${size}px;height:${size}px;">
       <div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};${ringStyle}${isFavorite ? "outline:3px solid #fbbf24;outline-offset:3px;" : ""}box-shadow:0 3px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
-        <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${wrenchGlyph || (totalStalls > 0 ? availableStalls : '')}</div>
+        <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${wrenchGlyph || (totalStalls > 0 ? markerAvailability : '')}</div>
       </div>
-      ${badges.join('')}
+      ${badges.join('')}${accessibleBadge}
     </div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
@@ -179,9 +206,11 @@ function groupChargerConfigs(configs: ChargerConfig[]): string[] {
   });
 }
 
-export default function EvMap({ startCoord, destCoord, superchargers, chargingStops = [], departure, modelName = 'Model 3 Long Range AWD', packKWh, carMaxKwOverride, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false, holidayPeriodMode = false }: EvMapProps) {
+export default function EvMap({ startCoord, destCoord, superchargers, chargingStops = [], departure, modelName = 'Model 3 Long Range AWD', packKWh, carMaxKwOverride, route, routeVariants, selectedRouteType, currentPosition, isNavigating, heading, headingUp, showDrafts = false, focusCoord, waypoints = [], routeChargersOnly = false, favoriteChargerIds = [], winterSportsMode = false, holidayPeriodMode = false, mapType = "satellite", mapZoom = 7, statusColors = {}, markerSize = 30 }: EvMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const baseTileRef = useRef<L.TileLayer | null>(null);
+  const labelTileRef = useRef<L.TileLayer | null>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const routeRef = useRef<L.Polyline | null>(null);
@@ -207,6 +236,21 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
     return () => window.clearTimeout(timer);
   }, [fullscreenActive]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (baseTileRef.current) map.removeLayer(baseTileRef.current);
+    if (labelTileRef.current) map.removeLayer(labelTileRef.current);
+    labelTileRef.current = null;
+    if (mapType === "satellite") {
+      baseTileRef.current = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics', maxZoom: 18 }).addTo(map);
+      labelTileRef.current = L.tileLayer('https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri Boundaries', maxZoom: 18, pane: 'overlayPane', opacity: 0.9 }).addTo(map);
+    } else {
+      baseTileRef.current = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
+    }
+    if (map.getZoom() !== mapZoom) map.setZoom(mapZoom);
+  }, [mapType, mapZoom]);
+
   // Refresh charger colours every 60s zodat openingstijden/beschikbaarheid live is.
   useEffect(() => {
     const id = setInterval(() => setStatusTick((v) => v + 1), 60000);
@@ -218,7 +262,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
     const map = L.map(mapContainerRef.current, {
       center: [52.3676, 4.9041],
-      zoom: 7,
+      zoom: mapZoom,
       zoomControl: true,
       // Soepeler zoomen: kleinere stappen en vloeiende animatie.
       zoomSnap: 0.25,
@@ -229,19 +273,12 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
       markerZoomAnimation: true,
     });
 
-    // Oorspronkelijke satellietkaart: Esri World Imagery met plaatsnamen en grenzen.
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics',
-      maxZoom: 18,
-    }).addTo(map);
-
-    // Landgrenzen en plaatsnamen boven op de satellietbeelden.
-    L.tileLayer('https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-      attribution: '&copy; Esri Boundaries',
-      maxZoom: 18,
-      pane: 'overlayPane',
-      opacity: 0.9,
-    }).addTo(map);
+    if (mapType === "satellite") {
+      baseTileRef.current = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics', maxZoom: 18 }).addTo(map);
+      labelTileRef.current = L.tileLayer('https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri Boundaries', maxZoom: 18, pane: 'overlayPane', opacity: 0.9 }).addTo(map);
+    } else {
+      baseTileRef.current = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
+    }
 
 
     const pauseFollow = () => {
@@ -337,13 +374,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
         const status = getChargerStatus(charger);
         const isRouteStop = chargingStops.some((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
-        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? ""), isRouteStop) });
+        const marker = L.marker([charger.lat, charger.lng], { icon: chargerIcon(charger, status, favoriteChargerIds.includes(charger.id ?? ""), isRouteStop, statusColors[status], markerSize) });
         const maxSpeed = parseMaxSpeed(charger.stallTypes, charger.maxSpeedKw, charger.chargerConfigs);
         const configs = getChargerConfigs(charger);
         const usable = isChargerUsable(charger);
-        const statusColor = usable
+        const statusColor = statusColors[status] || (usable
           ? (charger.status === 'works' ? '#b45309' : '#16a34a')
-          : (charger.status === 'construction' ? '#f59e0b' : charger.status === 'long_closed' || charger.isAvailable === false ? '#64748b' : '#dc2626');
+          : (charger.status === 'construction' ? '#f59e0b' : charger.status === 'long_closed' || charger.isAvailable === false ? '#64748b' : '#dc2626'));
         const place = [charger.city, charger.province, charger.country].filter(Boolean).join(', ');
         const isFavorite = favoriteChargerIds.includes(charger.id ?? "");
         let popup = `<div style="font-family:system-ui;font-size:13px;min-width:240px;color:#0f172a;">
@@ -353,6 +390,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
               ${place ? `<div style="color:#64748b;font-size:11px;">${escapeHtml(place)}</div>` : ''}
             </div>
             <button type="button" data-favorite-id="${escapeHtml(charger.id ?? '')}" aria-label="${isFavorite ? "Favoriet verwijderen" : "Favoriet maken"}" title="${isFavorite ? "Favoriet verwijderen" : "Favoriet maken"}" style="all:unset;box-sizing:border-box;flex:none;width:22px;height:22px;margin:-2px -4px 0 0;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:${isFavorite ? "#f59e0b" : "#94a3b8"};font-size:18px;line-height:1;cursor:pointer;">${isFavorite ? "★" : "☆"}</button>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:7px;">
           </div>
           <div style="margin-top:4px;color:${statusColor};font-weight:700;">${escapeHtml(status)}</div>`;
 
@@ -365,6 +404,10 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
             const photoUrl = escapeHtml(url.trim());
             return `<img data-photo="${photoUrl}" title="Dubbelklik om te vergroten" src="${photoUrl}" alt="Supercharger foto" loading="eager" referrerpolicy="no-referrer" style="cursor:zoom-in;width:110px;height:72px;object-fit:cover;border-radius:6px;flex:none;" />`;
           }).join('')}</div>`;
+        }
+
+        if (charger.construction?.customLabel) {
+          popup += `<div style="margin-top:5px;padding:3px 7px;display:inline-block;border-radius:5px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;">${escapeHtml(charger.construction.customLabel)}</div>`;
         }
 
         if (charger.ownerName) {
@@ -389,56 +432,17 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         }
 
 
+        const currentAvailability = estimateFreeStalls(charger);
+        if (currentAvailability) {
+          const confidenceLabel = currentAvailability.confidence === "high" ? "hoge" : currentAvailability.confidence === "medium" ? "gemiddelde" : "lage";
+          popup += `<div style="margin-top:7px;padding:7px 8px;border-radius:7px;background:#eff6ff;color:#1e3a8a;">
+            <div style="font-weight:800;">Waarschijnlijk vrij: ±${currentAvailability.count} van ${currentAvailability.total}</div>
+            <div style="font-size:10px;margin-top:2px;">Drukteprognose: ${currentAvailability.occupancy}% · ${confidenceLabel} betrouwbaarheid · geen live bezettingsdata</div>
+          </div>`;
+        }
+
         const routeStop = chargingStops.find((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
         const forecastAt = routeStop?.etaMinFromStart != null ? new Date((departure ?? new Date()).getTime() + routeStop.etaMinFromStart * 60000) : new Date();
-        const currentCrowd = getTrafficForecastAt(charger.trafficForecast, forecastAt, charger.province, holidayPeriodMode, winterSportsMode && isSnowRegion(charger));
-        const totalForEstimate = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
-        // Eerst de werkelijk bruikbare capaciteit bepalen (werkzaamheden en defecte/afgesloten stalls).
-        const usableCapacity = getOpenStalls(charger, forecastAt);
-        const trailerCapacity = Math.max(0, Math.floor(charger.trailerFriendlyStalls ?? (charger.trailerFriendly ? 1 : 0)));
-        // Aanhangerplekken raken tijdens vakanties vooral overdag snel bezet.
-        // Gebruik het admin-aantal plekken, met een aparte vakantiecurve voor aanhangers.
-        const trailerHour = forecastAt.getHours();
-        const holidayTrailerFloor = trailerHour < 6 ? 15
-          : trailerHour < 10 ? 65
-          : trailerHour < 16 ? 88
-          : trailerHour < 20 ? 78
-          : 42;
-        const weekendTrailerBoost = trailerHour >= 6 && trailerHour < 20 ? 15 : 3;
-        const trailerCrowdLevel = currentCrowd
-          ? Math.min(100, currentCrowd.category === "holiday"
-            ? Math.max(currentCrowd.level, holidayTrailerFloor)
-            : currentCrowd.category === "weekend"
-              ? currentCrowd.level + weekendTrailerBoost
-              : currentCrowd.level)
-          : null;
-        const estimatedTrailerFreeRaw = trailerCrowdLevel !== null && trailerCapacity > 0
-          ? trailerCapacity === 1
-            ? (trailerCrowdLevel < 50 ? 1 : 0)
-            : estimateFreeStalls(trailerCapacity, trailerCrowdLevel) ?? 0
-          : null;
-        // Aanhangerplekken zijn gewone laadplekken: als alle laadplekken bezet zijn,
-        // kan er ook geen aanhangerplek vrij zijn. Het aantal vrije aanhangerplekken
-        // kan bovendien nooit hoger zijn dan het totaal aantal vrije laadplekken.
-        const estimatedFree = currentCrowd && usableCapacity > 0
-          ? estimateFreeStalls(usableCapacity, currentCrowd.level)
-          : null;
-        const estimatedTrailerFree = estimatedTrailerFreeRaw !== null && estimatedFree !== null
-          ? Math.min(estimatedTrailerFreeRaw, estimatedFree)
-          : estimatedTrailerFreeRaw;
-        const estimatedQueue = currentCrowd && usableCapacity > 0
-          ? estimateQueueCars(usableCapacity, currentCrowd.level)
-          : 0;
-        // Toon alleen de inschatting voor het huidige moment of de aankomst; geen uurschema.
-        if (usable && totalForEstimate > 0 && usableCapacity > 0 && estimatedFree !== null) {
-          popup += `<div style="margin-top:5px;color:#0369a1;font-weight:700;">Waarschijnlijk ${estimatedFree} van de ${usableCapacity} ${routeStop ? "beschikbaar bij aankomst" : "laadplekken vrij"}</div>`;
-        }
-        if (usable && trailerCapacity > 0 && currentCrowd) {
-          const trailerText = trailerCapacity === 1
-            ? (estimatedTrailerFree === 1 ? "Waarschijnlijk vrij" : "Waarschijnlijk bezet")
-            : `Waarschijnlijk ${estimatedTrailerFree} van de ${trailerCapacity} vrij`;
-          popup += `<div style="margin-top:2px;color:#0f766e;font-size:11px;">🚙 Aanhangervriendelijk: ${trailerText}</div>`;
-        }
         const routeCost = routeStop ? estimateChargingCost(routeStop, forecastAt, modelName, packKWh, carMaxKwOverride) : null;
         if (routeCost) {
           const formattedCost = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: routeCost.currency }).format(routeCost.amount);
@@ -503,6 +507,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
         const extras: string[] = [];
         if (charger.trailerFriendly) extras.push('Aanhangervriendelijk');
+        if (charger.construction?.wheelchairAccessible) extras.push('♿ Invalidenplek aanwezig');
         if (charger.inParkingGarage) extras.push('In parkeergarage');
         if (charger.parkingFee) extras.push('Parkeergeld verplicht');
         if (extras.length > 0) {
@@ -670,7 +675,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
       nextChargerMarkers.forEach((marker) => clusterRef.current?.addLayer(marker));
     }
     nextStandaloneMarkers.forEach((marker) => markersRef.current.addLayer(marker));
-  }, [startCoord, destCoord, superchargers, chargingStops, departure, modelName, packKWh, carMaxKwOverride, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode, holidayPeriodMode]);
+  }, [startCoord, destCoord, superchargers, chargingStops, departure, modelName, packKWh, carMaxKwOverride, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode, holidayPeriodMode, statusColors, markerSize]);
 
   // Draai de kaart tijdens navigatie wanneer rijrichting boven is ingeschakeld.
   useEffect(() => {
