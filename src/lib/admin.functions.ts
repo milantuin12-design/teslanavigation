@@ -309,16 +309,25 @@ export const adminListSuperchargers = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     await requireD1Admin();
     const db = getD1();
-    // The seed function checks bundled dataset/tariff versions in app_meta.
-    // Calling it on every admin load is safe: unchanged versions skip the
-    // expensive bulk refresh, while populated databases still receive new
-    // public stations without overwriting manual admin edits.
-    const { ensureBundledD1Seed } = await import("./d1-seed.server");
-    await ensureBundledD1Seed();
+    // Refresh the bundled baseline only on the first page. A seed problem
+    // must not hide stations that are already safely stored in D1.
+    let seedError: unknown = null;
+    if (data.from === 0) {
+      try {
+        const { ensureBundledD1Seed } = await import("./d1-seed.server");
+        await ensureBundledD1Seed();
+      } catch (error) {
+        seedError = error;
+        console.error("[TeslaNavigation] Bundled D1 seed failed; continuing with existing cloud data:", error);
+      }
+    }
     const rows = await db.prepare("SELECT * FROM superchargers ORDER BY name COLLATE NOCASE LIMIT 1000 OFFSET ?")
       .bind(data.from).all<Record<string, unknown>>();
     if (!Array.isArray(rows?.results)) {
       throw new Error("Cloudflare D1 gaf geen geldige resultaten terug voor de Supercharger-lijst.");
+    }
+    if (seedError && rows.results.length === 0) {
+      throw new Error("De Cloudflare D1-lijst is leeg en de basisgegevens konden niet worden gesynchroniseerd: " + (seedError instanceof Error ? seedError.message : String(seedError)));
     }
     return rows.results.map(d1DecodeCharger);
   });
