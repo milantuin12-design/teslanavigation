@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { importSuperchargers, getWinterSportsMode, setWinterSportsMode, getHolidayPeriodMode, setHolidayPeriodMode } from "@/lib/tesla.functions";
-import { adminListSuperchargers, adminRawUpsertCharger, adminDeleteCharger, adminBulkRawUpdate, adminListOwners, adminCreateOwner } from "@/lib/admin.functions";
+import { adminListSuperchargers, adminRawUpsertCharger, adminDeleteCharger, adminBulkRawUpdate, adminListOwners, adminCreateOwner, reverseGeocodeCharger } from "@/lib/admin.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
 import localDataset from "@/data/superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
@@ -369,6 +369,8 @@ function AdminPage() {
   const deleteAdminCharger = useServerFn(adminDeleteCharger);
   const bulkUpdateAdminChargers = useServerFn(adminBulkRawUpdate);
   const listAdminOwners = useServerFn(adminListOwners);
+  const geocodeCharger = useServerFn(reverseGeocodeCharger);
+  const [geocodingCoordinates, setGeocodingCoordinates] = useState(false);
   const createAdminOwner = useServerFn(adminCreateOwner);
   const [holidayPeriodEnabled, setHolidayPeriodEnabled] = useState(false);
   const [holidayPeriodSaving, setHolidayPeriodSaving] = useState(false);
@@ -480,6 +482,21 @@ function AdminPage() {
     if (c.parking_per_euro != null && c.parking_per_minutes != null) legacyParking.push({ label: c.parking_free_minutes ? "Daarna" : "Parkeertarief", afterMinutes: c.parking_free_minutes ?? 0, durationMinutes: c.parking_per_minutes, amount: c.parking_per_euro, currency: "EUR", repeat: true });
     setEditing({ ...c, traffic_forecast: (c.construction?.trafficForecast ?? c.traffic_forecast)?.source === "admin" ? (c.construction?.trafficForecast ?? c.traffic_forecast) : createRegionalTrafficForecast({ name: c.name, city: c.city ?? undefined, province: c.province ?? undefined, country: c.country ?? undefined, totalStalls: totalFromConfigs(c.charger_configs) ?? c.total_stalls ?? undefined, lat: c.lat, lng: c.lng }), parking_blocks: c.parking_blocks?.length ? c.parking_blocks : legacyParking, charger_configs: configsForCharger(c), opening_hours: normalizeOpeningHours(c.opening_hours, c.opening_time, c.closing_time) });
     setCoordsInput(`${c.lat},${c.lng}`);
+  };
+
+  const fillLocationFromCoordinates = async () => {
+    const parts = coordsInput.split(",").map((part) => Number(part.trim()));
+    if (parts.length !== 2 || !Number.isFinite(parts[0]) || !Number.isFinite(parts[1]) || Math.abs(parts[0]) > 90 || Math.abs(parts[1]) > 180) return;
+    setGeocodingCoordinates(true);
+    try {
+      const place = await geocodeCharger({ data: { lat: parts[0], lng: parts[1] } });
+      setEditing((current) => current ? { ...current, city: place.city || current.city || "", province: place.province || current.province || "", country: place.country || current.country || "" } : current);
+      toast.success("Plaats, provincie en land automatisch ingevuld");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Locatiegegevens konden niet worden opgehaald");
+    } finally {
+      setGeocodingCoordinates(false);
+    }
   };
 
   const save = async () => {
@@ -889,7 +906,7 @@ function AdminPage() {
                 <div><Label>Provincie / regio</Label><Input value={editing.province || ""} onChange={(e) => setEditing({ ...editing, province: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
                 <div><Label>Plaats</Label><Input value={editing.city || ""} onChange={(e) => setEditing({ ...editing, city: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
               </div>
-              <div><Label>Coordinaten (lat,lng)</Label><Input value={coordsInput} onChange={(e) => setCoordsInput(e.target.value)} placeholder="52.3702,4.8952" className="bg-slate-800 border-slate-700" /></div>
+              <div><Label>Coördinaten (lat,lng)</Label><Input value={coordsInput} onChange={(e) => setCoordsInput(e.target.value)} onBlur={() => void fillLocationFromCoordinates()} placeholder="52.3702,4.8952" className="bg-slate-800 border-slate-700" /><p className="mt-1 text-[11px] text-slate-400">{geocodingCoordinates ? "Plaats, provincie en land ophalen…" : "Na het invoeren van coördinaten worden plaats, provincie en land automatisch ingevuld. De naam vul je zelf in."}</p></div>
 
               <div className="rounded-2xl border border-sky-400/20 bg-gradient-to-br from-slate-900 to-slate-950 p-4 shadow-lg space-y-3">
                 <div>
