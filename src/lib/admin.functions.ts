@@ -2,6 +2,35 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { ChargerOwner, SiteUpdate } from "./tesla-types";
 
+/* Reverse-geocode coordinates entered in Admin so new chargers get a complete location. */
+export const reverseGeocodeCharger = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+  }).parse(input))
+  .handler(async ({ data }) => {
+    const { getCurrentD1User } = await import("./auth-d1.server");
+    const user = await getCurrentD1User();
+    if (!user?.is_admin) throw new Error("Alleen een beheerder kan locaties opzoeken.");
+    const url = new URL("https://nominatim.openstreetmap.org/reverse");
+    url.searchParams.set("format", "jsonv2");
+    url.searchParams.set("lat", String(data.lat));
+    url.searchParams.set("lon", String(data.lng));
+    url.searchParams.set("zoom", "10");
+    url.searchParams.set("addressdetails", "1");
+    const response = await fetch(url, {
+      headers: { "User-Agent": "TeslaNavigation/1.0 (https://teslanavigation.milantuin12.workers.dev)" },
+    });
+    if (!response.ok) throw new Error("Locatie opzoeken is tijdelijk niet beschikbaar.");
+    const result = await response.json() as { address?: Record<string, string> };
+    const address = result.address ?? {};
+    const city = address.city ?? address.town ?? address.village ?? address.municipality ?? address.hamlet ?? address.suburb ?? "";
+    const province = address.state ?? address.province ?? address.region ?? address.county ?? "";
+    const country = address.country ?? "";
+    if (!city && !province && !country) throw new Error("Geen plaatsgegevens gevonden voor deze coördinaten.");
+    return { city, province, country };
+  });
+
 /* Public map feed: the map must read the same D1 records that the admin edits. */
 export const listPublishedSuperchargers = createServerFn({ method: "GET" }).handler(async () => {
   const { getD1 } = await import("./d1.server");
