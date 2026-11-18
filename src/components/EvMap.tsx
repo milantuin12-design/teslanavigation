@@ -100,9 +100,6 @@ function estimateFreeStalls(charger: Supercharger, at: Date = new Date()) {
 }
 
 function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = false, routeUsed = false, statusColorOverride?: string, markerSize = 30) {
-  const accessibleBadge = charger.construction?.wheelchairAccessible
-    ? `<span title="Invalidenplek aanwezig" aria-label="Invalidenplek aanwezig" style="position:absolute;right:-6px;top:-6px;width:18px;height:18px;border-radius:50%;background:#2563eb;border:1.5px solid #fff;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:3;">♿</span>`
-    : '';
   // Kleurlogica ongewijzigd: groen = open, rood = gesloten (openingstijden/sluiting), grijs = niet beschikbaar.
   let color = '#22c55e'; // groen = open/beschikbaar
   if (status === 'Niet beschikbaar' || status === 'Langdurig gesloten') color = '#94a3b8'; // grijs
@@ -135,6 +132,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   const isPermit = status === 'Vergunning aangevraagd';
   const hasOpenWorks = charger.status === 'works' || charger.status === 'expanding';
   const hasClosedWorks = charger.status === 'works_closed';
+  const isClosedStatus = hasClosedWorks || ['Niet beschikbaar', 'Gesloten', 'Dicht door werkzaamheden', 'Tijdelijk gesloten', 'Langdurig gesloten', 'Permanent gesloten'].includes(status);
   const isLowSpeed = !!charger.lowSpeed;
 
   // Geen live bezettingsaantallen op kaartmarkers tonen.
@@ -154,6 +152,9 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   const totalStalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
   const usableStalls = getOpenStalls(charger);
   const markerAvailability = usableStalls > 0 ? String(usableStalls) : '';
+  const centerGlyph = isClosedStatus
+    ? '<span style="font-size:17px;font-weight:900;line-height:1;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);">×</span>'
+    : (wrenchGlyph || (totalStalls > 0 ? markerAvailability : ''));
   const badges: string[] = [];
   if (hasOpenWorks) {
     badges.push(`<div style="position:absolute;top:-3px;left:-3px;width:14px;height:14px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&#10003;</div>`);
@@ -172,7 +173,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
     className: 'custom-marker',
     html: `<div style="position:relative;width:${size}px;height:${size}px;">
       <div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};${ringStyle}${isFavorite ? "outline:3px solid #fbbf24;outline-offset:3px;" : ""}box-shadow:0 3px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
-        <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${wrenchGlyph || (totalStalls > 0 ? markerAvailability : '')}</div>
+        <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${centerGlyph}</div>
       </div>
       ${badges.join('')}${accessibleBadge}
     </div>`,
