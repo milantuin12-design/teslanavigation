@@ -498,7 +498,7 @@ export const adminSaveVehicleModel = createServerFn({method:"POST"})
     usable_kwh:z.number().positive().max(300).nullable().optional(),range_km:z.number().int().positive().max(1500).nullable().optional(),
     consumption_kwh100:z.number().positive().max(100).nullable().optional(),winter_consumption_kwh100:z.number().positive().max(100).nullable().optional(),year_from:z.number().int().min(1990).max(2100),
     year_to:z.number().int().min(1990).max(2100),max_charge_kw:z.number().int().positive().max(1000).nullable().optional(),
-    connectors:z.array(z.string().max(30)).max(10).default(["Type 2","CCS"]),image_url:z.string().url().max(1000).nullable().optional(),
+    connectors:z.array(z.string().max(30)).max(10).default(["Type 2","CCS"]),image_url:z.string().max(500000).nullable().optional().refine((value)=>!value || /^https?:\/\//i.test(value) || /^data:image\/(?:jpeg|png|webp);base64,/i.test(value),{message:"Gebruik een http(s)-afbeeldingslink of een geüploade afbeelding."}),
     notes:z.string().max(2000).nullable().optional(),published:z.boolean().default(true)
   }).refine(v=>v.year_to>=v.year_from,{message:"Eindbouwjaar moet gelijk aan of later dan beginbouwjaar zijn."}).parse(input))
   .handler(async({data})=>{
