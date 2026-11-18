@@ -70,7 +70,7 @@ export async function ensureBundledD1Seed() {
   for (const owner of owners) {
     const fields = ["id","name","logo_url","description","website","contact","notes"];
     const vals = fields.map((field) => (owner as unknown as Record<string, unknown>)[field] ?? null);
-    await db.prepare(`INSERT INTO charger_owners (${fields.join(",")}) VALUES (${fields.map(()=>"?").join(",")}) ON CONFLICT(id) DO NOTHING`).bind(...vals).run();
+    await db.prepare(`INSERT INTO charger_owners (${fields.join(",")}) VALUES (${fields.map(()=>"?").join(",")}) ON CONFLICT DO NOTHING`).bind(...vals).run();
   }
 
   const meta = async (key: string) => db.prepare("SELECT value FROM app_meta WHERE key = ?").bind(key).first<{value:string}>();
