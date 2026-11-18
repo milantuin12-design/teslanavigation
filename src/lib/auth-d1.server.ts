@@ -86,7 +86,7 @@ export async function getCurrentD1User(): Promise<D1User | null> {
     WHERE s.token_hash = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.blocked = 0
   `).bind(tokenHash).first<{id:string;email:string;display_name:string|null;gender:string|null;is_admin:number}>();
   if (!row) return null;
-  return { ...row, is_admin: row.is_admin === 1 };
+  return { ...row, is_admin: row.is_admin === true || Number(row.is_admin) === 1 };
 }
 
 export async function registerD1User(emailInput: string, password: string) {
