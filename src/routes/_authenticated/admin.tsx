@@ -6,7 +6,7 @@ import { adminListSuperchargers, adminRawUpsertCharger, adminDeleteCharger, admi
 import { getCurrentUser } from "@/lib/auth.functions";
 import localDataset from "@/data/superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
-import { queueAdminChange, getPendingAdminChanges, clearPendingAdminChanges } from "@/lib/local-store";
+import { queueAdminChange, getPendingAdminChanges, clearPendingAdminChanges, keepPendingAdminChanges } from "@/lib/local-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -389,7 +389,7 @@ function AdminPage() {
     setLoading(true);
     const pending = getPendingAdminChanges();
     if (pending.length > 0) {
-      let failed = false;
+      let processed = 0;
       for (const change of pending) {
         try {
           if (change.type === "delete" && change.id) {
@@ -397,11 +397,19 @@ function AdminPage() {
           } else if (change.type === "upsert" && change.payload) {
             await adminRawUpsertCharger({ data: stripLegacyTrafficColumn(change.payload as Record<string, unknown>) });
           }
-        } catch { failed = true; break; }
+          processed += 1;
+        } catch {
+          break;
+        }
       }
-      if (!failed) {
+      // Bewaar uitsluitend de nog niet verwerkte wijzigingen. Zo wordt een
+      // eerder geslaagde delete niet opnieuw uitgevoerd en blijft de wachtrij
+      // niet permanent vastzitten op "Supercharger niet gevonden".
+      if (processed === pending.length) {
         clearPendingAdminChanges();
         toast.success("Wachtrij met wijzigingen verwerkt in Cloudflare D1");
+      } else if (processed > 0) {
+        keepPendingAdminChanges(pending.slice(processed));
       }
     }
 
