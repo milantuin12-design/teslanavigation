@@ -65,7 +65,8 @@ function toSupercharger(row: LocalRow, owners: Map<string, Owner>, network: Netw
     : parseChargerConfigsFromLegacy(row.stall_types, row.total_stalls, row.max_speed_kw, row.versions);
   const rawStatus = row.status ?? "";
   let status: ChargerLifecycleStatus = lifecycle.includes(rawStatus as ChargerLifecycleStatus) ? rawStatus as ChargerLifecycleStatus : "operational";
-  if (status === "temp_closed" && row.reopen_at && new Date(row.reopen_at).getTime() <= Date.now()) status = "operational";
+  // De in Admin opgeslagen status is leidend. Een verstreken reopen_at mag een
+  // nog steeds handmatig gesloten locatie niet stilzwijgend als operationeel tonen.
   const owner = row.owner_id ? owners.get(row.owner_id) : undefined;
   const totalStalls = getTotalStallsFromConfigs(configs) ?? row.total_stalls ?? undefined;
   const generated = createRegionalTrafficForecast({
