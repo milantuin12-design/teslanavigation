@@ -123,7 +123,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
       : '';
     return L.divIcon({
       className: 'custom-marker',
-      html: `<div style="position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center;"><div style="width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:${dotColor};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>${snowBadge}${accessibleBadge}</div>`,
+      html: `<div style="position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center;"><div style="width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:${dotColor};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>${snowBadge}</div>`,
       iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9],
     });
   }
@@ -175,7 +175,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
       <div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};${ringStyle}${isFavorite ? "outline:3px solid #fbbf24;outline-offset:3px;" : ""}box-shadow:0 3px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
         <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${centerGlyph}</div>
       </div>
-      ${badges.join('')}${accessibleBadge}
+      ${badges.join('')}
     </div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
