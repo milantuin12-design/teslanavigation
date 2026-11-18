@@ -152,9 +152,11 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   const totalStalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
   const usableStalls = getOpenStalls(charger);
   const markerAvailability = usableStalls > 0 ? String(usableStalls) : '';
-  const centerGlyph = isClosedStatus
-    ? '<span style="font-size:17px;font-weight:900;line-height:1;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);">×</span>'
-    : (wrenchGlyph || (totalStalls > 0 ? markerAvailability : ''));
+  const centerGlyph = status === 'Onbekend'
+    ? '<span style="font-size:19px;font-weight:900;line-height:1;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);">?</span>'
+    : isClosedStatus
+      ? '<span style="font-size:17px;font-weight:900;line-height:1;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);">×</span>'
+      : (wrenchGlyph || (totalStalls > 0 ? markerAvailability : ''));
   const badges: string[] = [];
   if (hasOpenWorks) {
     badges.push(`<div style="position:absolute;top:-3px;left:-3px;width:14px;height:14px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&#10003;</div>`);
