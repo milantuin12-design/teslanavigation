@@ -2,6 +2,32 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { ChargerOwner, SiteUpdate } from "./tesla-types";
 
+/* Public map feed: the map must read the same D1 records that the admin edits. */
+export const listPublishedSuperchargers = createServerFn({ method: "GET" }).handler(async () => {
+  const { getD1 } = await import("./d1.server");
+  const db = getD1();
+  const [chargerRows, ownerRows] = await Promise.all([
+    db.prepare("SELECT * FROM superchargers WHERE COALESCE(published,1) != 0 AND COALESCE(hidden,0) = 0 ORDER BY name COLLATE NOCASE").all<Record<string, unknown>>(),
+    db.prepare("SELECT id,name,logo_url,description,website,contact,notes FROM charger_owners ORDER BY name COLLATE NOCASE").all<OwnerRow>(),
+  ]);
+  const jsonColumns = ["opening_hours","charger_configs","parking_blocks","price_blocks","construction","works","closure","traffic_forecast","planned_upgrade","stall_states","voting","photos"];
+  const boolColumns = ["trailer_friendly","is_available","parking_fee","in_parking_garage","low_speed","published","hidden"];
+  const chargers = (chargerRows.results ?? []).map((row) => {
+    const decoded: Record<string, unknown> = { ...row };
+    for (const key of jsonColumns) {
+      if (typeof decoded[key] === "string") {
+        try { decoded[key] = JSON.parse(decoded[key] as string); } catch { /* keep malformed legacy values intact */ }
+      }
+    }
+    for (const key of boolColumns) {
+      if (decoded[key] !== undefined && decoded[key] !== null) decoded[key] = Number(decoded[key]) === 1;
+    }
+    return decoded;
+  });
+  return { chargers, owners: ownerRows.results ?? [] };
+});
+
+
 /* ---------------- Owners ---------------- */
 
 type OwnerRow = {
