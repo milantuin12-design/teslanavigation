@@ -440,13 +440,17 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
           </div>`;
         }
         if (charger.trailerFriendly) {
-          const trailerTotal = Math.max(0, Math.floor(charger.construction?.trailerFriendlyStalls ?? 1));
+          const configuredTrailerTotal = Math.max(0, Math.floor(charger.construction?.trailerFriendlyStalls ?? 1));
           const perSpace = Math.max(1, Math.floor(charger.construction?.trailerStallsPerSpace ?? 1));
+          // Gesloten/defecte gewone laadplekken beperken ook hoeveel aanhangerplekken
+          // daadwerkelijk bruikbaar zijn; toon nooit meer trailerplekken dan de open capaciteit toelaat.
+          const usableChargerCapacity = getOpenStalls(charger);
+          const trailerTotal = Math.min(configuredTrailerTotal, Math.floor(usableChargerCapacity / perSpace));
           const trailerForecast = getTrafficForecastAt(charger.construction?.trailerTrafficForecast ?? charger.trafficForecast, new Date(), charger.province ?? undefined, holidayPeriodMode, winterSportsMode && isSnowRegion(charger));
           const forecastFree = trailerForecast ? Math.floor(trailerTotal * (1 - trailerForecast.level / 100)) : null;
           const capacityFree = currentAvailability ? Math.floor(currentAvailability.count / perSpace) : null;
           const trailerFree = forecastFree === null ? capacityFree : capacityFree === null ? forecastFree : Math.min(forecastFree, capacityFree);
-          if (trailerTotal > 0) popup += `<div style="margin-top:2px;margin-left:2px;color:#64748b;font-size:13px;font-weight:500;">Aanhangerplek: ${trailerFree === null ? `beschikbaarheid onbekend · ${trailerTotal} totaal` : `waarschijnlijk ${Math.max(0, Math.min(trailerTotal, trailerFree))} van de ${trailerTotal} vrij`}</div>`;
+          if (configuredTrailerTotal > 0) popup += `<div style="margin-top:2px;margin-left:2px;color:#64748b;font-size:13px;font-weight:500;">Aanhangerplek: ${trailerTotal === 0 ? "geen bruikbare plek" : trailerFree === null ? `beschikbaarheid onbekend · ${trailerTotal} totaal` : trailerFree === 0 ? `waarschijnlijk geen plek · 0 van ${trailerTotal} vrij` : `waarschijnlijk ${Math.max(0, Math.min(trailerTotal, trailerFree))} van de ${trailerTotal} vrij`}</div>`;
         }
 
         const routeStop = chargingStops.find((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
