@@ -867,7 +867,7 @@ function AdminPage() {
                   <Label>Status</Label>
                   <select
                     value={editing.status || "operational"}
-                    onChange={(e) => { const status = e.target.value as ChargerLifecycleStatus; setEditing({ ...editing, status, is_available: status === "temp_closed" || status === "long_closed" || status === "works_closed" ? false : editing.is_available }); }}
+                    onChange={(e) => { const status = e.target.value as ChargerLifecycleStatus; setEditing({ ...editing, status, is_available: status === "unknown" ? true : status === "temp_closed" || status === "long_closed" || status === "works_closed" ? false : editing.is_available, reopen_at: ["unknown", "temp_closed", "long_closed", "works_closed"].includes(status) ? editing.reopen_at : null }); }}
                     className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm"
                   >
                     {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{lifecycleLabels[s]}</option>)}
