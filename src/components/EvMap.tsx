@@ -301,6 +301,14 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         }, { once: true });
       }
       node?.querySelectorAll<HTMLImageElement>('img[data-photo]').forEach((img) => {
+        // Laad foto's pas wanneer de popup echt wordt geopend; duizenden ongeopende
+        // popups mogen niet tegelijk netwerkverzoeken voor foto's starten.
+        const deferredPhoto = img.dataset.src;
+        if (deferredPhoto && !img.src) {
+          img.src = deferredPhoto;
+          img.loading = "eager";
+          delete img.dataset.src;
+        }
         img.addEventListener('dblclick', () => {
           const overlay = document.createElement('div');
           overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
@@ -405,7 +413,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
           // afbeeldingen onzichtbaar totdat de popup opnieuw werd geopend.
           popup += `<div style="margin-top:6px;display:flex;gap:4px;overflow-x:auto;">${photoUrls.map((url) => {
             const photoUrl = escapeHtml(url.trim());
-            return `<img data-photo="${photoUrl}" title="Dubbelklik om te vergroten" src="${photoUrl}" alt="Supercharger foto" loading="eager" referrerpolicy="no-referrer" style="cursor:zoom-in;width:110px;height:72px;object-fit:cover;border-radius:6px;flex:none;" />`;
+            return `<img data-photo="${photoUrl}" data-src="${photoUrl}" title="Dubbelklik om te vergroten" alt="Supercharger foto" loading="lazy" referrerpolicy="no-referrer" style="cursor:zoom-in;width:110px;height:72px;object-fit:cover;border-radius:6px;flex:none;background:#e2e8f0;" />`;
           }).join('')}</div>`;
         }
 
@@ -684,11 +692,13 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
     markersRef.current.clearLayers();
     clusterRef.current?.clearLayers();
     if (routeChargersOnly) {
-      nextChargerMarkers.forEach((marker) => markersRef.current.addLayer(marker));
+      markersRef.current.addLayers(nextChargerMarkers);
     } else {
-      nextChargerMarkers.forEach((marker) => clusterRef.current?.addLayer(marker));
+      // addLayers() activeert Leaflet.markercluster chunkedLoading; addLayer()
+      // in een lus omzeilt die batching en kan de hoofdthread blokkeren.
+      clusterRef.current?.addLayers(nextChargerMarkers);
     }
-    nextStandaloneMarkers.forEach((marker) => markersRef.current.addLayer(marker));
+    markersRef.current.addLayers(nextStandaloneMarkers);
   }, [startCoord, destCoord, superchargers, chargingStops, departure, modelName, packKWh, carMaxKwOverride, statusTick, showDrafts, waypoints, routeChargersOnly, favoriteChargerIds, winterSportsMode, holidayPeriodMode, statusColors, markerSize]);
 
   // Draai de kaart tijdens navigatie wanneer rijrichting boven is ingeschakeld.
