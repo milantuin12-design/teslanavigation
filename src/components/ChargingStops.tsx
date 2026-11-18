@@ -3,7 +3,7 @@ import { Zap, BatteryCharging, MapPin, Gauge, Clock, Ban, Mountain, Thermometer,
 import type { ChargingStop, RouteResult } from '@/lib/tesla-types';
 import type { RouteWeather } from '@/lib/energy';
 import { getChargeCurvePoints, parseMaxSpeed, v2SpeedKw } from '@/lib/tesla-utils';
-import { getTrafficForecastAt, isSnowRegion, trafficLevelLabel } from '@/lib/traffic-forecast';
+import { getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
 import { getOpenStalls } from '@/lib/tesla-utils';
 import { estimateChargingCost } from '@/lib/charging-cost';
 
@@ -294,6 +294,11 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
         const availabilityForecast = eta ? getTrafficForecastAt(stop.charger.trafficForecast, eta, stop.charger.province, holidayMode, winterSportsMode && isSnowRegion(stop.charger)) : null;
         const openStalls = eta ? getOpenStalls(stop.charger, eta) : 0;
         const estimatedFreeStalls = availabilityForecast ? Math.max(0, Math.min(openStalls, Math.round(openStalls * (1 - availabilityForecast.level / 100)))) : null;
+        const trailerFriendlyCapacity = Math.max(0, Math.floor(stop.charger.construction?.trailerFriendlyStalls ?? (stop.charger.trailerFriendly ? 1 : 0)));
+        const trailerStallsPerSpace = Math.max(1, Math.floor(stop.charger.construction?.trailerStallsPerSpace ?? 1));
+        const estimatedFreeTrailerSpaces = showTrailer && trailerFriendlyCapacity > 0 && estimatedFreeStalls !== null
+          ? Math.max(0, Math.min(trailerFriendlyCapacity, Math.floor(estimatedFreeStalls / trailerStallsPerSpace)))
+          : null;
         return (
           <div key={idx} className="space-y-2">
             {legEl(idx)}
@@ -316,21 +321,12 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 {estimatedFreeStalls !== null && <span className="flex items-center gap-1 text-emerald-300"><Zap size={11} />±{estimatedFreeStalls} vrij</span>}
                 <span className="flex items-center gap-1 text-green-400"><Clock size={11} />{dur(stop.chargeDurationMin)}</span>
                 {maxSpeedKw > 0 && stop.charger.totalStalls ? <span className="flex items-center gap-1 text-blue-400"><Gauge size={11} />{maxSpeedKw} kW{ccsBlocked ? ' (V2)' : ''}</span> : null}
-                {showTrailer && (stop.charger.trailerFriendly
-                  ? <span className="rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-emerald-300">🚐 Aanhangervriendelijk</span>
+                {showTrailer && (trailerFriendlyCapacity > 0
+                  ? <span className={`rounded-md px-1.5 py-0.5 ${estimatedFreeTrailerSpaces !== null && estimatedFreeTrailerSpaces > 0 ? "bg-emerald-500/10 text-emerald-300" : "bg-amber-500/10 text-amber-300"}`}>🚐 {estimatedFreeTrailerSpaces === null ? `${trailerFriendlyCapacity} geschikte plekken · beschikbaarheid onbekend` : estimatedFreeTrailerSpaces > 0 ? `±${estimatedFreeTrailerSpaces} aanhangerplek(ken) waarschijnlijk vrij` : "Waarschijnlijk geen aanhangerplek vrij"}</span>
                   : <span className="rounded-md bg-red-500/10 px-1.5 py-0.5 text-red-300">🚐 Niet aanhangervriendelijk</span>)}
                 {typeof stop.energyChargedKWh === 'number' && <span className="text-emerald-300">+{stop.energyChargedKWh} kWh</span>}
               </div>
-              {availabilityForecast && eta && (() => {
-                const forecast = availabilityForecast;
-                const color = forecast.level >= 70 ? "bg-red-500/15 text-red-300" : forecast.level <= 30 ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300";
-                return <div className="mt-2 space-y-2 text-[11px]">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-md px-2 py-1 ${color}`}>{trafficLevelLabel(forecast.level)} · {forecast.level}% drukteverwachting</span>
-                    <span className="text-slate-400">{forecast.holiday ? `vakantie: ${forecast.holiday}` : forecast.category === "weekend" ? "weekend" : "doordeweeks"}{forecast.winterSports ? " · wintersportcorrectie" : ""} · {forecast.source === "regional-estimate" ? "locatieschatting" : "beheerdersprofiel"} · {forecast.confidence === "low" ? "lage zekerheid" : forecast.confidence === "high" ? "hoge zekerheid" : "gemiddelde zekerheid"}</span>
-                  </div>
-                </div>;
-              })()}
+
       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
                 {costEstimate?.type === "minute" && (
                   <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
