@@ -352,7 +352,7 @@ export default function InputPanel({
     setStartInput(prefill.start);
     setDestInput(prefill.dest);
   }, [prefill]);
-  const selectedVariant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === selectedModel) ?? null;
+  const selectedVariant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === selectedModel && (vehicle.yearFrom == null || modelYear >= vehicle.yearFrom) && (vehicle.yearTo == null || modelYear <= vehicle.yearTo)) ?? vehicleModels.find((vehicle) => vehicleKey(vehicle) === selectedModel) ?? null;
   const minYear = selectedVariant?.yearFrom ?? minYearForModel(selectedModel);
   const maxYear = selectedVariant?.yearTo ?? 2026;
   useEffect(() => {
