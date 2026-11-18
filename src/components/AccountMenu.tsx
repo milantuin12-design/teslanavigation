@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { getCurrentUser, signOut } from "@/lib/auth.functions";
 import { getMyAccountSettings } from "@/lib/account.functions";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import { AccountSettingsDialog } from "@/components/AccountSettingsDialog";
 type AccountUser = { id: string; email: string; display_name: string | null; gender?: string | null; is_admin: boolean };
 
 export function AccountMenu() {
-  const navigate = useNavigate();
   const [user, setUser] = useState<AccountUser | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [profileGreeting, setProfileGreeting] = useState("");
@@ -64,7 +63,7 @@ export function AccountMenu() {
           <MessageSquare className="w-4 h-4 mr-2" /> Mijn meldingen
         </DropdownMenuItem>
         {user.is_admin && (
-          <DropdownMenuItem onSelect={() => { void navigate({ to: "/admin" }); }}>
+          <DropdownMenuItem onClick={() => { window.location.assign("/admin"); }}>
             <Shield className="w-4 h-4 mr-2" /> Admin
           </DropdownMenuItem>
         )}
