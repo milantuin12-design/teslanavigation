@@ -269,7 +269,8 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
         const page = await db.prepare(
           "SELECT * FROM superchargers WHERE published = 1 AND hidden = 0 ORDER BY name COLLATE NOCASE LIMIT ? OFFSET ?"
         ).bind(pageSize, from).all<Record<string, unknown>>();
-        const decoded = (page.results ?? []).map((source) => {
+        if (!Array.isArray(page?.results)) throw new Error("Cloudflare D1 gaf geen geldige resultaten terug voor de Supercharger-lijst.");
+        const decoded = page.results.map((source) => {
           const row: Record<string, unknown> = { ...source };
           for (const field of jsonFields) {
             if (typeof row[field] === "string") {
@@ -289,9 +290,10 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
       ).all<OwnerRow & { id: string }>();
       const winterSportsMode = await getD1AdminSetting("winter_sports_mode");
       const holidayPeriodMode = await getD1AdminSetting("holiday_period_mode");
+      if (!Array.isArray(ownerResult?.results)) throw new Error("Cloudflare D1 gaf geen geldige resultaten terug voor de eigenaarslijst.");
       return {
         rows,
-        ownerRows: ownerResult.results ?? [],
+        ownerRows: ownerResult.results,
         winterSportsMode,
         holidayPeriodMode,
       };
@@ -338,7 +340,7 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
     } catch (error) {
       // De kaart blijft bruikbaar als Supabase tijdelijk onbereikbaar is.
       // De lokale dataset bevat de volledige meegeleverde Superchargerbasis.
-      console.error("[TeslaNavigation] Supabase-data ophalen mislukt; toon lokale Superchargerdataset:", error);
+      console.error("[TeslaNavigation] Cloudflare D1-data ophalen mislukt; toon lokale Superchargerdataset:", error);
       if (!localRows.length) {
         throw new Error("Supabase is niet bereikbaar en de lokale Superchargerdataset is leeg.");
       }

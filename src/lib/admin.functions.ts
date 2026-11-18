@@ -308,13 +308,21 @@ export const adminListSuperchargers = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ from: z.number().int().min(0).max(100000).default(0) }).parse(input ?? {}))
   .handler(async ({ data }) => {
     await requireD1Admin();
-    const { ensureBundledD1Seed } = await import("./d1-seed.server");
-    await ensureBundledD1Seed();
     const db = getD1();
+    // Seed the bundled baseline only when D1 is genuinely empty. Re-running the
+    // full dataset/tariff synchronisation during every admin page load caused
+    // thousands of writes before the list could be shown.
+    const count = await db.prepare("SELECT COUNT(*) AS count FROM superchargers").first<{ count: number }>();
+    if (!count || Number(count.count) === 0) {
+      const { ensureBundledD1Seed } = await import("./d1-seed.server");
+      await ensureBundledD1Seed();
+    }
     const rows = await db.prepare("SELECT * FROM superchargers ORDER BY name COLLATE NOCASE LIMIT 1000 OFFSET ?")
       .bind(data.from).all<Record<string, unknown>>();
-    const resultRows = Array.isArray(rows?.results) ? rows.results : [];
-    return resultRows.map(d1DecodeCharger);
+    if (!Array.isArray(rows?.results)) {
+      throw new Error("Cloudflare D1 gaf geen geldige resultaten terug voor de Supercharger-lijst.");
+    }
+    return rows.results.map(d1DecodeCharger);
   });
 
 export const adminRawUpsertCharger = createServerFn({ method: "POST" })
@@ -370,7 +378,8 @@ export const adminBulkRawUpdate = createServerFn({ method: "POST" })
 export const adminListOwners = createServerFn({ method: "GET" }).handler(async () => {
   await requireD1Admin();
   const rows = await getD1().prepare("SELECT id,name FROM charger_owners ORDER BY name COLLATE NOCASE").all();
-  return rows.results ?? [];
+  if (!Array.isArray(rows?.results)) throw new Error("Cloudflare D1 gaf geen geldige resultaten terug voor de eigenaarslijst.");
+  return rows.results;
 });
 export const adminCreateOwner = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({name:z.string().trim().min(1).max(120)}).parse(input))

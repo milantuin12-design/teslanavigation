@@ -6,7 +6,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Supercharger, ChargingStop, RouteResult, ChargerStatus, constructionStepLabels, ConstructionStep, ChargerConfig, ParkingFeeBlock } from '@/lib/tesla-types';
 import { describeChargerStatus, formatChargerConfig, formatOpeningHoursSummary, getChargerConfigs, getChargerStatus, isVisibleOnMap, getTotalStallsFromConfigs, getOpenStalls, formatStallAvailability, isChargerUsable, normalizeChargerConfigs, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseMaxSpeed, shouldHideSpeed } from '@/lib/tesla-utils';
-import { isSnowRegion } from '@/lib/traffic-forecast';
+import { getTrafficForecastAt, isSnowRegion } from '@/lib/traffic-forecast';
 import { estimateChargingCost } from '@/lib/charging-cost';
 
 
@@ -81,6 +81,24 @@ const waypointIcon = L.divIcon({
   iconAnchor: [14, 14],
 });
 
+function estimateFreeStalls(charger: Supercharger, at: Date = new Date()) {
+  const status = charger.status ?? "operational";
+  if (!["operational", "expanding", "works"].includes(status)) return null;
+  const total = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
+  if (!Number.isFinite(total) || total <= 0) return null;
+  const capacity = getOpenStalls(charger, at);
+  const forecast = getTrafficForecastAt(
+    charger.trafficForecast,
+    at,
+    charger.province ?? undefined,
+    !!charger.holidayPeriodMode,
+    !!charger.winterSportsMode,
+  );
+  if (!forecast) return null;
+  const count = Math.max(0, Math.min(capacity, Math.round(capacity * (1 - forecast.level / 100))));
+  return { count, total, occupancy: forecast.level, confidence: forecast.confidence, source: forecast.source };
+}
+
 function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = false, routeUsed = false, statusColorOverride?: string, markerSize = 30) {
   const accessibleBadge = charger.construction?.wheelchairAccessible
     ? `<span title="Invalidenplek aanwezig" aria-label="Invalidenplek aanwezig" style="position:absolute;right:-6px;top:-6px;width:18px;height:18px;border-radius:50%;background:#2563eb;border:1.5px solid #fff;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:3;">♿</span>`
@@ -132,9 +150,10 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
     : '';
 
   const size = Math.max(20, Math.min(48, markerSize));
-  // Toon het aantal laadplekken dat volgens de admin daadwerkelijk beschikbaar is.
+  // Toon een transparante schatting op basis van het drukteprofiel, nooit een verzonnen live bezettingsgetal.
   const totalStalls = getTotalStallsFromConfigs(charger.chargerConfigs) ?? charger.totalStalls ?? 0;
-  const availableStalls = getOpenStalls(charger);
+  const estimatedFree = estimateFreeStalls(charger);
+  const markerAvailability = estimatedFree ? `~${estimatedFree.count}` : '';
   const badges: string[] = [];
   if (hasOpenWorks) {
     badges.push(`<div style="position:absolute;top:-3px;left:-3px;width:14px;height:14px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;line-height:1;">&#10003;</div>`);
@@ -153,7 +172,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
     className: 'custom-marker',
     html: `<div style="position:relative;width:${size}px;height:${size}px;">
       <div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};${ringStyle}${isFavorite ? "outline:3px solid #fbbf24;outline-offset:3px;" : ""}box-shadow:0 3px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
-        <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${wrenchGlyph || (totalStalls > 0 ? availableStalls : '')}</div>
+        <div style="transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;">${wrenchGlyph || (totalStalls > 0 ? markerAvailability : '')}</div>
       </div>
       ${badges.join('')}${accessibleBadge}
     </div>`,
@@ -413,9 +432,17 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
         }
 
 
+        const currentAvailability = estimateFreeStalls(charger);
+        if (currentAvailability) {
+          const confidenceLabel = currentAvailability.confidence === "high" ? "hoge" : currentAvailability.confidence === "medium" ? "gemiddelde" : "lage";
+          popup += `<div style="margin-top:7px;padding:7px 8px;border-radius:7px;background:#eff6ff;color:#1e3a8a;">
+            <div style="font-weight:800;">Waarschijnlijk vrij: ±${currentAvailability.count} van ${currentAvailability.total}</div>
+            <div style="font-size:10px;margin-top:2px;">Drukteprognose: ${currentAvailability.occupancy}% · ${confidenceLabel} betrouwbaarheid · geen live bezettingsdata</div>
+          </div>`;
+        }
+
         const routeStop = chargingStops.find((stop) => (stop.charger.id && charger.id ? stop.charger.id === charger.id : stop.charger.name === charger.name));
         const forecastAt = routeStop?.etaMinFromStart != null ? new Date((departure ?? new Date()).getTime() + routeStop.etaMinFromStart * 60000) : new Date();
-        // Geen prognose van vrije laadplekken of wachtrijen tonen: dit zijn geen live gegevens.
         const routeCost = routeStop ? estimateChargingCost(routeStop, forecastAt, modelName, packKWh, carMaxKwOverride) : null;
         if (routeCost) {
           const formattedCost = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: routeCost.currency }).format(routeCost.amount);
