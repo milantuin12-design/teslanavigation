@@ -563,7 +563,7 @@ function AdminPage() {
     setEditing({
       ...editing,
       status,
-      is_available: status === "unknown" ? editing.is_available !== false : false,
+      is_available: status === "unknown" ? true : false,
       reopen_at: reopen.toISOString(),
       closure: { ...(editing.closure || {}), until: reopen.toISOString().slice(0, 10) },
     });
