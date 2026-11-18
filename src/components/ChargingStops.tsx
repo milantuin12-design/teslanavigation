@@ -316,17 +316,30 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 </div>
                 <span className="rounded-md bg-blue-600/20 px-2 py-0.5 text-[10px] font-semibold text-blue-300">Stop {idx + 1}</span>
               </div>
+              <div className="mt-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2.5">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-300">Waarschijnlijk vrije Superchargers bij aankomst</div>
+                {estimatedFreeStalls !== null ? (
+                  <div className="mt-0.5 flex items-baseline gap-2">
+                    <span className="text-3xl font-extrabold leading-none tabular-nums text-emerald-200">{estimatedFreeStalls}</span>
+                    <span className="text-sm font-medium text-emerald-100">van {openStalls} bruikbare laadplekken vrij</span>
+                  </div>
+                ) : (
+                  <div className="mt-0.5 text-sm font-semibold text-amber-200">Geen betrouwbare drukteprognose beschikbaar</div>
+                )}
+                <div className="mt-1 text-[10px] text-slate-400">Schatting op basis van de verwachte drukte rond {eta ? time(eta) : "aankomst"}; geen live bezettingsmeting.</div>
+              </div>
+              {showTrailer && (
+                <div className={`mt-1 text-xs font-medium ${estimatedFreeTrailerSpaces !== null && estimatedFreeTrailerSpaces > 0 ? "text-emerald-300" : "text-amber-300"}`}>
+                  🚐 Aanhanger: {trailerFriendlyCapacity <= 0 ? "geen plek geregistreerd" : estimatedFreeTrailerSpaces === null ? "beschikbaarheid onbekend" : estimatedFreeTrailerSpaces > 0 ? `waarschijnlijk ${estimatedFreeTrailerSpaces} plek vrij` : "waarschijnlijk geen plek vrij"}
+                </div>
+              )}
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
                 <span className="flex items-center gap-1"><MapPin size={11} />{stop.distanceFromStart} km</span>
                 <span className="flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-amber-300">
                   <BatteryCharging size={11} />{stop.batteryBefore}% → {stop.batteryAfter}%
                 </span>
-                {estimatedFreeStalls !== null && <span className="flex items-center gap-1 text-emerald-300"><Zap size={11} />{estimatedFreeStalls}</span>}
                 <span className="flex items-center gap-1 text-green-400"><Clock size={11} />{dur(stop.chargeDurationMin)}</span>
                 {maxSpeedKw > 0 && stop.charger.totalStalls ? <span className="flex items-center gap-1 text-blue-400"><Gauge size={11} />{maxSpeedKw} kW{ccsBlocked ? ' (V2)' : ''}</span> : null}
-                {showTrailer && (trailerFriendlyCapacity > 0
-                  ? <span className={`rounded-md px-1.5 py-0.5 ${estimatedFreeTrailerSpaces !== null && estimatedFreeTrailerSpaces > 0 ? "bg-emerald-500/10 text-emerald-300" : "bg-amber-500/10 text-amber-300"}`}>🚐 {trailerFriendlyCapacity} aanhangerplek(ken) totaal · {estimatedFreeTrailerSpaces === null ? "beschikbaarheid onbekend" : `±${estimatedFreeTrailerSpaces} waarschijnlijk vrij`} · {estimatedFreeTrailerSpaces === null ? "niet te voorspellen" : estimatedFreeTrailerSpaces > 0 ? "waarschijnlijk plek" : "waarschijnlijk geen plek"}</span>
-                  : <span className="rounded-md bg-red-500/10 px-1.5 py-0.5 text-red-300">🚐 Geen geschikte aanhangerplek geregistreerd</span>)}
                 {typeof stop.energyChargedKWh === 'number' && <span className="text-emerald-300">+{stop.energyChargedKWh} kWh</span>}
               </div>
 
