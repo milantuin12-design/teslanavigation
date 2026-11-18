@@ -281,7 +281,9 @@ export function calculateChargeDuration(
 
 export function isChargerOperationalAt(charger: Supercharger, atDate: Date = new Date()): boolean {
   const lifecycle = charger.status ?? 'operational';
-  if (lifecycle !== 'operational' && lifecycle !== 'works' && lifecycle !== 'expanding') return false;
+  // Onbekend blijft een mogelijke laadstop: de routeplanner toont daarna
+  // expliciet een risico-keuze. Echt gesloten/bouwstatussen blijven uitgesloten.
+  if (lifecycle !== 'operational' && lifecycle !== 'works' && lifecycle !== 'expanding' && lifecycle !== 'unknown') return false;
   if (getTotalStalls(charger) > 0 && getOpenStalls(charger, atDate) <= 0) return false;
   return charger.isAvailable !== false && isChargerOpenAt(charger, atDate);
 }
