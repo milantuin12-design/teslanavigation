@@ -63,7 +63,7 @@ export function AccountMenu() {
           <MessageSquare className="w-4 h-4 mr-2" /> Mijn meldingen
         </DropdownMenuItem>
         {user.is_admin && (
-          <DropdownMenuItem onClick={() => window.location.assign("/admin")}>
+          <DropdownMenuItem onSelect={() => { window.location.href = "/admin"; }}>
             <Shield className="w-4 h-4 mr-2" /> Admin
           </DropdownMenuItem>
         )}
