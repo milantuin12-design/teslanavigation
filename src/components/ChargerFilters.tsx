@@ -4,8 +4,9 @@ import type { ChargerFilterState, ChargerLifecycleStatus, Supercharger } from "@
 import { defaultChargerFilters } from "@/lib/tesla-types";
 import { lifecycleLabels } from "@/lib/tesla-utils";
 
-// 'plan' is hier definitief verwijderd
 const STATUS_ORDER: ChargerLifecycleStatus[] = [
+  "voting",
+  "plan",
   "permit",
   "construction",
   "operational",
@@ -38,11 +39,11 @@ export default function ChargerFilters({ filters, onChange, chargers, visibleCou
     [chargers],
   );
 
-  // Tellen per status: alleen statussen tonen die minimaal 1 lader hebben (en geen 'plan')
+  // Tellen per status: alle statussen tonen die minimaal 1 locatie hebben.
   const availableStatuses = useMemo(() => {
     const counts: Partial<Record<ChargerLifecycleStatus, number>> = {};
     for (const c of chargers) {
-      if (c.status && c.status !== "plan" && c.status !== "voting") {
+      if (c.status) {
         counts[c.status] = (counts[c.status] || 0) + 1;
       }
     }
@@ -118,7 +119,7 @@ export default function ChargerFilters({ filters, onChange, chargers, visibleCou
             className="w-full bg-slate-950/70 border border-slate-700/60 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/80 transition-colors"
           />
 
-          {/* Statussen (alleen actieve en zonder Plan) */}
+          {/* Alle statussen, inclusief Plan, Vergunning en Voting */}
           <div>
             <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Status</div>
             <div className="grid grid-cols-2 gap-1.5 max-h-44 overflow-y-auto pr-1">
