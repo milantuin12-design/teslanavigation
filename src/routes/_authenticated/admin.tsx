@@ -511,7 +511,7 @@ function AdminPage() {
       ...(editing.status === "permanent_closed" && editing.permanently_closed_at ? { permanently_closed_at: editing.permanently_closed_at } : {}),
       low_speed: !!editing.low_speed,
       published: editing.published !== false,
-      reopen_at: editing.status === "temp_closed" ? (editing.reopen_at || null) : null,
+      reopen_at: ["temp_closed", "long_closed", "works_closed", "unknown"].includes(editing.status || "") ? (editing.reopen_at || null) : null,
       planned_upgrade: (editing.planned_upgrade || {}) as Json,
       stall_states: (editing.stall_states || []).filter((x) => x.condition !== "available") as unknown as Json,
       data_source: editing.data_source === "automatic" ? "automatic" : "manual",
@@ -559,10 +559,11 @@ function AdminPage() {
   const setTemporaryClosureDays = (days: number) => {
     if (!editing) return;
     const reopen = new Date(Date.now() + Math.max(1, days) * 86400000);
+    const status = editing.status || "temp_closed";
     setEditing({
       ...editing,
-      status: "temp_closed",
-      is_available: false,
+      status,
+      is_available: status === "unknown" ? editing.is_available !== false : false,
       reopen_at: reopen.toISOString(),
       closure: { ...(editing.closure || {}), until: reopen.toISOString().slice(0, 10) },
     });
@@ -837,8 +838,18 @@ function AdminPage() {
       </div>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing?.id ? "Supercharger bewerken" : "Nieuwe supercharger"}</DialogTitle></DialogHeader>
+        <DialogContent className="bg-slate-950 border-slate-700/80 text-white max-w-4xl max-h-[92vh] overflow-y-auto shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">{editing?.id ? "Supercharger bewerken" : "Nieuwe Supercharger"}</DialogTitle>
+            <p className="text-xs text-slate-400">Beheer locatie, status en laadgegevens op één plek</p>
+          </DialogHeader>
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800 via-slate-900 to-black">
+            {editing.photos?.[0] ? <img src={editing.photos[0]} alt="" className="h-36 w-full object-cover opacity-75" /> : <div className="flex h-28 items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-950 via-slate-900 to-slate-950"><div className="text-center"><div className="text-3xl">⚡</div><div className="mt-1 text-xs text-slate-400">Tesla Supercharger</div></div></div>}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/95 to-transparent p-3 pt-8">
+              <div className="text-sm font-semibold">{editing.name || "Nieuwe locatie"}</div>
+              <div className="text-[11px] text-slate-300">{[editing.city, editing.country].filter(Boolean).join(", ") || "Locatie nog niet ingevuld"}</div>
+            </div>
+          </div>
           {editing && (
             <div className="space-y-3">
               <div><Label>Naam</Label><Input value={editing.name || ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="bg-slate-800 border-slate-700" /></div>
@@ -851,7 +862,7 @@ function AdminPage() {
               </div>
               <div><Label>Coordinaten (lat,lng)</Label><Input value={coordsInput} onChange={(e) => setCoordsInput(e.target.value)} placeholder="52.3702,4.8952" className="bg-slate-800 border-slate-700" /></div>
 
-              <div className="rounded-lg border border-slate-700 p-3 space-y-3">
+              <div className="rounded-2xl border border-sky-400/20 bg-gradient-to-br from-slate-900 to-slate-950 p-4 shadow-lg space-y-3">
                 <div>
                   <Label>Status</Label>
                   <select
@@ -968,14 +979,14 @@ function AdminPage() {
                   {editing.status === "permanent_closed" && <p className="text-xs text-slate-400">Permanent gesloten blijft 14 dagen zichtbaar (zwart) en verdwijnt daarna van de kaart; de gegevens blijven bewaard.</p>}
                 </div>
 
-                {(editing.status === "temp_closed" || editing.status === "long_closed") && (
+                {(["temp_closed", "long_closed", "works_closed", "unknown"].includes(editing.status || "")) && (
                   <div className="space-y-2">
                     <div>
                       <Label className="text-xs">Reden van sluiting</Label>
                       <Input value={editing.closure?.reason ?? ""} onChange={(e) => setEditing({ ...editing, closure: { ...(editing.closure || {}), reason: e.target.value } })} className="bg-slate-800 border-slate-700" />
                     </div>
-                    {editing.status === "temp_closed" && <div>
-                      <Label className="text-xs">Automatisch heropenen (alleen admin)</Label>
+                    {["temp_closed", "long_closed", "works_closed", "unknown"].includes(editing.status || "") && <div>
+                      <Label className="text-xs">Automatisch status herstellen (alleen admin)</Label>
                       <div className="grid grid-cols-4 gap-2 mt-1">
                         {[1, 3, 7, 14].map((days) => <Button key={days} type="button" size="sm" variant="outline" onClick={() => setTemporaryClosureDays(days)}>{days} {days === 1 ? "dag" : "dagen"}</Button>)}
                       </div>
