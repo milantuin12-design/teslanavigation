@@ -686,33 +686,25 @@ export default function InputPanel({
               <Car size={13} className="text-slate-300" />
               Model <span className="text-slate-500">(dubbelklik = volgende)</span>
             </label>
-            <select
-              value={selectedModel}
-              onChange={e => {
-                const nextModel = e.target.value;
-                onModelChange(nextModel);
-                const variant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === nextModel);
-                if (variant?.yearFrom) onModelYearChange(variant.yearFrom);
-              }}
-              onDoubleClick={() => {
-                const keys = Object.keys(teslaModels);
-                const idx = keys.indexOf(selectedModel);
-                const next = keys[(idx + 1) % keys.length];
-                onModelChange(next);
-              }}
-              className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all appearance-none cursor-pointer"
-            >
-              {Object.keys(teslaModels).map(model => (
-                <option key={model} value={model}>
-                  {model}
-                </option>
-              ))}
-              {vehicleModels.filter((vehicle) => vehicle.brand.toLowerCase() === "tesla").map((vehicle) => {
-                const key = vehicleKey(vehicle);
-                return <option key={vehicle.id} value={key}>{vehicle.brand} {key} · {vehicle.yearFrom ?? "?"}–{vehicle.yearTo ?? "heden"}</option>;
+            <div className="grid grid-cols-2 gap-2">
+              {Array.from(new Set([...Object.keys(teslaModels), ...vehicleModels.filter((vehicle) => vehicle.brand.toLowerCase() === "tesla").map((vehicle) => vehicleKey(vehicle))])).map((model) => {
+                const variant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === model);
+                const selected = selectedModel === model;
+                return (
+                  <button key={model} type="button" onClick={() => { onModelChange(model); if (variant?.yearFrom) onModelYearChange(variant.yearFrom); }}
+                    className={`group overflow-hidden rounded-xl border text-left transition-all ${selected ? "border-red-400 bg-red-500/10 ring-2 ring-red-500/30" : "border-slate-700 bg-slate-800/60 hover:border-slate-500"}`}>
+                    <div className="relative flex h-20 items-center justify-center bg-gradient-to-br from-slate-700/70 to-slate-950">
+                      {variant?.imageUrl ? <img src={variant.imageUrl} alt={model} loading="lazy" className="h-full w-full object-contain p-1 transition-transform group-hover:scale-105" /> : <Car className="h-9 w-9 text-slate-500" />}
+                      {selected && <span className="absolute right-2 top-2 rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-semibold text-white">Gekozen</span>}
+                    </div>
+                    <div className="px-2 py-2"><div className="truncate text-xs font-semibold text-white">{model}</div>{variant?.yearFrom && <div className="text-[10px] text-slate-400">{variant.yearFrom}–{variant.yearTo ?? "heden"}</div>}</div>
+                  </button>
+                );
               })}
-              <option value="Handmatig">Handmatig (eigen instellingen)</option>
-            </select>
+              <button type="button" onClick={() => onModelChange("Handmatig")} className={`rounded-xl border p-3 text-left transition-all ${selectedModel === "Handmatig" ? "border-red-400 bg-red-500/10" : "border-slate-700 bg-slate-800/60 hover:border-slate-500"}`}>
+                <div className="flex h-20 items-center justify-center"><Car className="h-9 w-9 text-slate-500" /></div><div className="text-xs font-semibold text-white">Handmatig</div><div className="text-[10px] text-slate-400">Eigen instellingen</div>
+              </button>
+            </div>
 
             <div className="mt-2">
               <label className="text-[11px] text-slate-400">Bouwjaar (optioneel)</label>
