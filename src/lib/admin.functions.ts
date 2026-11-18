@@ -173,6 +173,7 @@ const bulkInput = z.object({
   ids: z.array(z.string().min(1).max(120)).min(1).max(5000),
   changes: z.object({
     trailerFriendly: z.boolean().optional(),
+    wheelchairAccessible: z.boolean().optional(),
     isAvailable: z.boolean().optional(),
     parkingFee: z.boolean().optional(),
     inParkingGarage: z.boolean().optional(),
@@ -227,7 +228,7 @@ export const bulkUpdateSuperchargers = createServerFn({ method: "POST" })
     if (c.parkingPerMinutes !== undefined) payload.parking_per_minutes = c.parkingPerMinutes;
     if (c.parkingPerEuro !== undefined) payload.parking_per_euro = c.parkingPerEuro;
 
-    if (Object.keys(payload).length === 0 && !c.expectedOpenMonth && !c.plannedUpgradeLabel) return { updated: 0 };
+    if (Object.keys(payload).length === 0 && !c.expectedOpenMonth && !c.plannedUpgradeLabel && c.wheelchairAccessible === undefined) return { updated: 0 };
     const db = getD1();
     const ids = data.ids;
     for (let offset = 0; offset < ids.length; offset += 300) {
@@ -239,7 +240,7 @@ export const bulkUpdateSuperchargers = createServerFn({ method: "POST" })
         await db.prepare("UPDATE superchargers SET " + assignments + ",data_source='manual',updated_at=CURRENT_TIMESTAMP WHERE id IN (" + placeholders + ")")
           .bind(...Object.values(payload), ...chunk).run();
       }
-      if (c.expectedOpenMonth || c.plannedUpgradeLabel) {
+      if (c.expectedOpenMonth || c.plannedUpgradeLabel || c.wheelchairAccessible !== undefined) {
         const rows = await db.prepare("SELECT id,construction,planned_upgrade FROM superchargers WHERE id IN (" + placeholders + ")")
           .bind(...chunk).all<Record<string, unknown>>();
         for (const row of rows.results ?? []) {
@@ -251,6 +252,7 @@ export const bulkUpdateSuperchargers = createServerFn({ method: "POST" })
           const plannedUpgrade = parseObject(row.planned_upgrade);
           if (c.expectedOpenMonth) construction.expectedOpenMonth = c.expectedOpenMonth;
           if (c.plannedUpgradeLabel) plannedUpgrade.label = c.plannedUpgradeLabel;
+          if (c.wheelchairAccessible !== undefined) construction.wheelchairAccessible = c.wheelchairAccessible;
           await db.prepare("UPDATE superchargers SET construction=?,planned_upgrade=?,data_source='manual',updated_at=CURRENT_TIMESTAMP WHERE id=?")
             .bind(JSON.stringify(construction), JSON.stringify(plannedUpgrade), String(row.id)).run();
         }
