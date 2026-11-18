@@ -684,7 +684,7 @@ export default function InputPanel({
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
               <Car size={13} className="text-slate-300" />
-              Model <span className="text-slate-500">(dubbelklik = volgende)</span>
+              Kies je Tesla
             </label>
             <div className="grid grid-cols-2 gap-2">
               {Array.from(new Set([...Object.keys(teslaModels), ...vehicleModels.filter((vehicle) => vehicle.brand.toLowerCase() === "tesla").map((vehicle) => vehicleKey(vehicle))])).map((model) => {
