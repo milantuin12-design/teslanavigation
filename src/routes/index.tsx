@@ -1150,7 +1150,13 @@ function Index() {
       modelRangeKm: modelRange,
       batteryPercent: fromBattery,
       trailerReductionPercent: trailerReductionEffective,
-      chargers: superchargers,
+      // Onbekende locaties worden pas als laatste redmiddel geprobeerd.
+      // Als een route zonder onbekende status niet haalbaar is, volgt hieronder een risicokeuze.
+      chargers: superchargers.filter((charger) =>
+        charger.status !== "unknown" ||
+        acceptedUnknownIds.includes(charger.id ?? "") ||
+        acceptedUnknownIds.includes(charger.name)
+      ),
       modelName: selectedModel,
       targetArrivalPercent,
       weatherMode,
@@ -1180,6 +1186,16 @@ function Index() {
       departureTime: departureDate,
     };
     let result = calculateChargingStopsWithAccessibilityPreference(base.route, calcOpts);
+    // Alleen wanneer er zonder onbekende locaties geen haalbare route bestaat,
+    // proberen we onbekende Superchargers. De gebruiker krijgt dan eerst een keuze.
+    if (result.unreachable) {
+      const riskFallbackOpts = { ...calcOpts, chargers: superchargers };
+      const riskFallback = calculateChargingStopsWithAccessibilityPreference(base.route, riskFallbackOpts);
+      if (!riskFallback.unreachable) {
+        Object.assign(calcOpts, riskFallbackOpts);
+        result = riskFallback;
+      }
+    }
     // "Liever niet hier laden": kan het niet anders, dan toch die lader gebruiken.
     if (result.unreachable && excludedChargerIds.length > 0 && !strictUnknownExclusionRef.current) {
       const retry = calculateChargingStopsWithAccessibilityPreference(base.route, { ...calcOpts, excludeIds: [] });
@@ -1269,7 +1285,7 @@ function Index() {
       arrivalPercent: Math.round(Math.max(0, runningBattery - (finalLegKm / fullRange) * 100)),
       whatIf,
     };
-  }, [departureDate, excludedChargerIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, maxDetourKm, maxDistanceBetweenStopsKm, defaultChargePauseMin, requireAccessibleStalls, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode, activeVehicle]);
+  }, [departureDate, excludedChargerIds, acceptedUnknownIds, ccsBlocked, consumptionMode, manualConsumptionKWh100, tripDate, manualWeather, packKWh, avoidLowSpeed, avoidParkingFee, batteryCapacityOverride, carMaxKwOverride, chargeTargetPercent, chargerArrivalTarget, fetchRouteWithInstructions, minChargerSpeedKw, maxDetourKm, maxDistanceBetweenStopsKm, defaultChargePauseMin, requireAccessibleStalls, modelRange, preferTrailerFriendly, selectedModel, superchargers, targetArrivalPercent, timeMode, trailerReductionEffective, weatherMode, activeVehicle]);
 
   const applyPlan = useCallback((index: number, plan: RoutePlan) => {
     setSelectedRouteIndex(index);
@@ -1391,7 +1407,12 @@ function Index() {
 
     if (plans.length === 0) return { ok: false, error: "Deze route is niet mogelijk met deze instellingen." };
 
-    plans.sort((a, b) => a.route.totalDistanceKm - b.route.totalDistanceKm);
+    // Geef routes zonder onbekende Superchargers altijd voorrang.
+    plans.sort((a, b) => {
+      const unknownA = a.stops.filter((stop) => stop.charger.status === "unknown").length;
+      const unknownB = b.stops.filter((stop) => stop.charger.status === "unknown").length;
+      return unknownA - unknownB || a.route.totalDistanceKm - b.route.totalDistanceKm;
+    });
     const limited = plans.slice(0, 5);
     setRouteOptions(limited);
     applyPlan(0, limited[0]);
@@ -2152,8 +2173,8 @@ function Index() {
             </div>
           </div>
           <div className="space-y-3 p-4">
-            <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="size-5 text-amber-400" />Onbekende status — risico?</DialogTitle></DialogHeader>
-            <p className="text-sm leading-relaxed text-slate-300">Van deze Supercharger is niet bevestigd of hij open is en laden mogelijk is. Je kunt hem toch als laadstop gebruiken, maar mogelijk kom je voor een gesloten of onbruikbare locatie te staan.</p>
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="size-5 text-amber-400" />Deze Supercharger is mogelijk noodzakelijk</DialogTitle></DialogHeader>
+            <p className="text-sm leading-relaxed text-slate-300">De route is zonder deze Supercharger niet haalbaar met je huidige accu- en route-instellingen. De status is onbekend: het is dus niet bevestigd of je hier kunt laden. Wil je het risico nemen?</p>
             <DialogFooter className="flex-col gap-2 sm:flex-col">
               <Button variant="outline" className="w-full border-slate-700" onClick={() => {
                 const key = riskCharger?.id ?? riskCharger?.name;
