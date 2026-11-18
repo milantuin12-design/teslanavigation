@@ -61,7 +61,7 @@ import {
 import { fetchTrafficRoutes } from "@/lib/traffic.functions";
 import { getTrafficForecastAt, isSnowRegion } from "@/lib/traffic-forecast";
 
-import { mapCloudSuperchargers } from "@/lib/local-superchargers";
+import { mapCloudSuperchargers, readCachedPublicSuperchargers, writeCachedPublicSuperchargers } from "@/lib/local-superchargers";
 import { lookupThirdPartyCharger } from "@/lib/third-party";
 
 
@@ -703,13 +703,31 @@ function Index() {
     const mapped = await mapCloudSuperchargers(feed.chargers, Array.isArray(feed.owners) ? feed.owners : []);
     setSuperchargers(mapped);
     setChargerLoadError(null);
+    // D1 blijft leidend; IndexedDB is uitsluitend een lokale startcache.
+    void writeCachedPublicSuperchargers(mapped);
   }, [loadPublicChargerFeed]);
 
   useEffect(() => {
     let mounted = true;
-    refreshSuperchargers()
+    let liveFeedLoaded = false;
+    // Toon de laatst bekende kaart direct vanuit IndexedDB terwijl D1 op de
+    // achtergrond ververst. Een late cache-read mag nooit nieuwere D1-data overschrijven.
+    const cachePromise = readCachedPublicSuperchargers();
+    void cachePromise.then((cached) => {
+      if (!mounted || liveFeedLoaded || !cached?.length) return;
+      setSuperchargers(cached);
+      setIsLoadingChargers(false);
+    });
+
+    void refreshSuperchargers()
+      .then(() => { liveFeedLoaded = true; })
       .catch(async (error) => {
-        console.error("[TeslaNavigation] Live D1-feed laden mislukt; noodweergave wordt gebruikt:", error);
+        console.error("[TeslaNavigation] Live D1-feed laden mislukt:", error);
+        const cached = await cachePromise;
+        if (cached?.length) {
+          if (mounted) setChargerLoadError("Live D1 is tijdelijk niet bereikbaar; de laatst opgeslagen Superchargerdata wordt getoond.");
+          return;
+        }
         try {
           const { loadBundledSuperchargers } = await import("@/lib/local-superchargers");
           const fallback = await loadBundledSuperchargers();
