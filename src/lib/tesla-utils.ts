@@ -1134,7 +1134,10 @@ const PERMANENT_VISIBLE_MS = 14 * 24 * 3600 * 1000;
 
 /** Hoort deze lader op de normale kaart? (verborgen of >14 dagen permanent gesloten = nee) */
 export function isVisibleOnMap(charger: Supercharger, now: number = Date.now()): boolean {
-  if (charger.hidden) return false;
+  // Plan-, Voting- en Vergunninglocaties moeten altijd op de kaart blijven,
+  // ook als oude admin-imports ze per ongeluk als verborgen markeerden.
+  const developmentLocation = charger.status === 'plan' || charger.status === 'voting' || charger.status === 'permit';
+  if (charger.hidden && !developmentLocation) return false;
   if (charger.status === 'permanent_closed') {
     const t = charger.permanentlyClosedAt ? new Date(charger.permanentlyClosedAt).getTime() : NaN;
     if (!isNaN(t) && now - t > PERMANENT_VISIBLE_MS) return false;
