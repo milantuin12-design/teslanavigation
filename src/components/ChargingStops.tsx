@@ -322,8 +322,8 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 <span className="flex items-center gap-1 text-green-400"><Clock size={11} />{dur(stop.chargeDurationMin)}</span>
                 {maxSpeedKw > 0 && stop.charger.totalStalls ? <span className="flex items-center gap-1 text-blue-400"><Gauge size={11} />{maxSpeedKw} kW{ccsBlocked ? ' (V2)' : ''}</span> : null}
                 {showTrailer && (trailerFriendlyCapacity > 0
-                  ? <span className={`rounded-md px-1.5 py-0.5 ${estimatedFreeTrailerSpaces !== null && estimatedFreeTrailerSpaces > 0 ? "bg-emerald-500/10 text-emerald-300" : "bg-amber-500/10 text-amber-300"}`}>🚐 {estimatedFreeTrailerSpaces === null ? `${trailerFriendlyCapacity} geschikte plekken · beschikbaarheid onbekend` : estimatedFreeTrailerSpaces > 0 ? `±${estimatedFreeTrailerSpaces} aanhangerplek(ken) waarschijnlijk vrij` : "Waarschijnlijk geen aanhangerplek vrij"}</span>
-                  : <span className="rounded-md bg-red-500/10 px-1.5 py-0.5 text-red-300">🚐 Niet aanhangervriendelijk</span>)}
+                  ? <span className={`rounded-md px-1.5 py-0.5 ${estimatedFreeTrailerSpaces !== null && estimatedFreeTrailerSpaces > 0 ? "bg-emerald-500/10 text-emerald-300" : "bg-amber-500/10 text-amber-300"}`}>🚐 {trailerFriendlyCapacity} aanhangerplek(ken) totaal · {estimatedFreeTrailerSpaces === null ? "beschikbaarheid onbekend" : `±${estimatedFreeTrailerSpaces} waarschijnlijk vrij`} · {estimatedFreeTrailerSpaces === null ? "niet te voorspellen" : estimatedFreeTrailerSpaces > 0 ? "waarschijnlijk plek" : "waarschijnlijk geen plek"}</span>
+                  : <span className="rounded-md bg-red-500/10 px-1.5 py-0.5 text-red-300">🚐 Geen geschikte aanhangerplek geregistreerd</span>)}
                 {typeof stop.energyChargedKWh === 'number' && <span className="text-emerald-300">+{stop.energyChargedKWh} kWh</span>}
               </div>
 
