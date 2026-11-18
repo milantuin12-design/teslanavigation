@@ -62,9 +62,13 @@ export function AccountMenu() {
         <DropdownMenuItem onClick={() => window.location.assign("/mijn-meldingen")}>
           <MessageSquare className="w-4 h-4 mr-2" /> Mijn meldingen
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => { window.location.assign("/admin"); }}>
-          <Shield className="w-4 h-4 mr-2" /> Admin
-        </DropdownMenuItem>
+        {user.is_admin && (
+          <DropdownMenuItem asChild>
+            <Link to="/admin">
+              <Shield className="w-4 h-4 mr-2" /> Admin
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator className="bg-slate-700" />
         <DropdownMenuItem onClick={async () => { await signOut(); window.location.assign("/"); }}>
           <LogOut className="w-4 h-4 mr-2" /> Uitloggen
