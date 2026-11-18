@@ -744,6 +744,35 @@ function Index() {
     return () => { mounted = false; };
   }, [refreshSuperchargers]);
 
+  // Houd de kaart van openstaande gebruikers actueel wanneer een beheerder
+  // een status, beschikbaarheid of laadplekken wijzigt. Alleen pollen op een
+  // zichtbaar tabblad en nooit twee D1-verzoeken tegelijk uitvoeren.
+  useEffect(() => {
+    let refreshing = false;
+    const refreshLiveMap = async () => {
+      if (refreshing || document.visibilityState !== "visible") return;
+      refreshing = true;
+      try {
+        await refreshSuperchargers();
+      } catch (error) {
+        // Laat de laatst bekende kaart staan; een tijdelijke netwerkfout mag
+        // de kaart niet leegmaken of de gebruiker steeds waarschuwen.
+        console.warn("[TeslaNavigation] Live kaartupdate tijdelijk mislukt:", error);
+      } finally {
+        refreshing = false;
+      }
+    };
+    const timer = window.setInterval(() => { void refreshLiveMap(); }, 15000);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void refreshLiveMap();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [refreshSuperchargers]);
+
   useEffect(() => {
     setLastAvailabilityUpdate(new Date().toISOString());
   }, []);
