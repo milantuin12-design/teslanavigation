@@ -408,7 +408,14 @@ function Index() {
   const [chargerFilters, setChargerFilters] = useState<ChargerFilterState>(() => {
     try {
       const saved = typeof window !== "undefined" ? localStorage.getItem("teslanavigation:charger-filters") : null;
-      return saved ? { ...defaultChargerFilters, ...(JSON.parse(saved) as Partial<ChargerFilterState>) } : { ...defaultChargerFilters };
+      if (!saved) return { ...defaultChargerFilters };
+      const parsed = JSON.parse(saved) as Partial<ChargerFilterState>;
+      return {
+        ...defaultChargerFilters,
+        ...parsed,
+        // Herstel ontwikkellocaties die in oudere opgeslagen filterinstellingen ontbraken.
+        statuses: Array.from(new Set([...(parsed.statuses ?? defaultChargerFilters.statuses), "plan", "permit", "voting"])),
+      };
     } catch { return { ...defaultChargerFilters }; }
   });
   useEffect(() => {
