@@ -166,7 +166,28 @@ const emptyCharger = {
 };
 
 
-function TrafficForecastEditor({ value, onChange, title = "Druktevoorspelling" }: { value: TrafficForecast; onChange: (value: TrafficForecast) => void; title?: string }) {
+function createDefaultTrailerTrafficForecast(trailerFriendlyStalls: number): TrafficForecast {
+  const lowCapacity = Math.max(0, Number(trailerFriendlyStalls) || 0) < 6;
+  const zeroSlots = TRAFFIC_PERIODS.map((period) => ({ from: period.from, to: period.to, level: 0 }));
+  const holidaySlots = TRAFFIC_PERIODS.map((period, hour) => ({
+    from: period.from,
+    to: period.to,
+    level: lowCapacity
+      ? hour < 6 ? 25 : hour < 20 ? 100 : 50
+      : hour < 6 || hour >= 20 ? 20 : 50,
+  }));
+  return {
+    source: "admin",
+    confidence: "medium",
+    note: "Standaardinschatting voor aanhangerplekken; pas de percentages handmatig aan waar nodig.",
+    weekdaySlots: zeroSlots.map((slot) => ({ ...slot })),
+    weekendSlots: zeroSlots.map((slot) => ({ ...slot })),
+    holidaySlots,
+    holidayPeriods: [],
+  };
+}
+
+function TrafficForecastEditor({ value, onChange, title = "Druktevoorspelling", defaultLevel = 25 }: { value: TrafficForecast; onChange: (value: TrafficForecast) => void; title?: string; defaultLevel?: number }) {
   const formatHolidayPeriods = (periods: TrafficForecast["holidayPeriods"] = []) =>
     periods.map((period) => [period.label, period.from, period.to].join("|")).join("\n");
   const [holidayText, setHolidayText] = useState(() => formatHolidayPeriods(value.holidayPeriods));
@@ -194,7 +215,7 @@ function TrafficForecastEditor({ value, onChange, title = "Druktevoorspelling" }
         const [th] = slot.to.split(":").map(Number);
         return i >= fh && i < (slot.to === "24:00" ? 24 : th);
       });
-      return { from: period.from, to: period.to, level: legacy?.level ?? 25 };
+      return { from: period.from, to: period.to, level: legacy?.level ?? defaultLevel };
     });
     onChange({ ...value, source: "admin", confidence: "medium", [key]: current.map((slot, i) => i === index ? { ...slot, level: Math.max(0, Math.min(100, level)) } : slot) });
   };
@@ -218,7 +239,7 @@ function TrafficForecastEditor({ value, onChange, title = "Druktevoorspelling" }
                   <span className="block text-[9px] text-slate-400">{period.label}</span>
                   <input
                     type="number" min="0" max="100" step="5"
-                    value={slot?.level ?? 25}
+                    value={slot?.level ?? defaultLevel}
                     onChange={(event) => update(group.key, index, Number(event.target.value) || 0)}
                     className="mt-1 w-full min-w-0 rounded-md border border-slate-700 bg-slate-800 px-1 py-2 text-center text-xs text-white"
                   />
@@ -1021,7 +1042,8 @@ function AdminPage() {
 
               <TrafficForecastEditor
                 title="Drukte aanhangerplekken"
-                value={editing.construction?.trailerTrafficForecast ?? createEmptyTrafficForecast()}
+                value={editing.construction?.trailerTrafficForecast ?? createDefaultTrailerTrafficForecast(editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0))}
+                defaultLevel={0}
                 onChange={(trailerTrafficForecast) => setEditing({ ...editing, construction: { ...(editing.construction ?? {}), trailerTrafficForecast } })}
               />
 
