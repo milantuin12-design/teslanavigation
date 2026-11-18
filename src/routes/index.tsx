@@ -14,6 +14,7 @@ import { LanguageSwitcher, changeLanguage } from "@/components/LanguageProvider"
 import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, createMyNotificationEvent, listMyVehicles } from "@/lib/account.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
 import { listPublishedVehicleModels, listPublishedSuperchargers } from "@/lib/admin.functions";
+import { getWinterSportsMode, getHolidayPeriodMode } from "@/lib/tesla.functions";
 import { vehicleKey, type VehicleModel } from "@/lib/vehicle-types";
 
 const hasSupabaseBrowserConfig = Boolean(
@@ -247,9 +248,22 @@ function Index() {
   }, []);
 
   const loadPublicChargerFeed = useServerFn(listPublishedSuperchargers);
+  const readGlobalWinterSportsMode = useServerFn(getWinterSportsMode);
+  const readGlobalHolidayPeriodMode = useServerFn(getHolidayPeriodMode);
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
   const [holidayPeriodMode, setHolidayPeriodModeState] = useState(false);
   const [winterSportsMode, setWinterSportsModeState] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void Promise.all([readGlobalWinterSportsMode(), readGlobalHolidayPeriodMode()])
+      .then(([winter, holiday]) => {
+        if (!active) return;
+        setWinterSportsModeState(!!winter);
+        setHolidayPeriodModeState(!!holiday);
+      })
+      .catch(() => { /* Admin map modes are optional if the settings endpoint is unavailable. */ });
+    return () => { active = false; };
+  }, [readGlobalWinterSportsMode, readGlobalHolidayPeriodMode]);
   const [isLoadingChargers, setIsLoadingChargers] = useState(true);
   const [chargerLoadError, setChargerLoadError] = useState<string | null>(null);
   const previousChargerSnapshotRef = useRef<Map<string, string>>(new Map());
