@@ -92,10 +92,10 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>, network: Network
     ? normalizeChargerConfigs(row.charger_configs)
     : parseChargerConfigsFromLegacy(row.stall_types, row.total_stalls, row.max_speed_kw, row.versions);
   let status = (LIFECYCLE as string[]).includes(row.status ?? '') ? (row.status as ChargerLifecycleStatus) : 'operational';
-  // Tijdelijk gesloten laders gaan automatisch weer open zodra de einddatum voorbij is.
-  if (status === 'temp_closed' && row.reopen_at && new Date(row.reopen_at).getTime() <= Date.now()) {
-    status = 'operational';
-  }
+  // Tijdelijke admin-statussen lopen automatisch af op het ingestelde moment.
+  const temporaryStatus = status === 'temp_closed' || status === 'long_closed' || status === 'works_closed' || status === 'unknown';
+  const autoReopened = temporaryStatus && !!row.reopen_at && new Date(row.reopen_at).getTime() <= Date.now();
+  if (autoReopened) status = 'operational';
   const owner = row.owner_id ? owners?.get(row.owner_id) : undefined;
   return {
     id: row.id,
@@ -120,7 +120,7 @@ function rowToCharger(row: Row, owners?: Map<string, OwnerRow>, network: Network
     trailerFriendlyStalls: row.construction?.trailerFriendlyStalls != null
       ? Math.max(0, Math.floor(Number(row.construction.trailerFriendlyStalls) || 0))
       : (row.trailer_friendly ? 1 : 0),
-    isAvailable: row.is_available !== false,
+    isAvailable: autoReopened ? true : row.is_available !== false,
     parkingFee: !!row.parking_fee,
     parkingFeeAmount: row.parking_fee_amount ?? null,
     parkingFreeMinutes: row.parking_free_minutes ?? null,
