@@ -434,10 +434,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
         const currentAvailability = estimateFreeStalls(charger);
         if (currentAvailability) {
-          const confidenceLabel = currentAvailability.confidence === "high" ? "hoge" : currentAvailability.confidence === "medium" ? "gemiddelde" : "lage";
           popup += `<div style="margin-top:7px;padding:7px 8px;border-radius:7px;background:#eff6ff;color:#1e3a8a;">
             <div style="font-weight:800;">Geschat beschikbaar: ±${currentAvailability.count} laadplekken</div>
-            <div style="font-size:10px;margin-top:2px;">Drukteprognose: ${currentAvailability.occupancy}% · ${confidenceLabel} betrouwbaarheid · geen live bezettingsdata</div>
           </div>`;
         }
 
