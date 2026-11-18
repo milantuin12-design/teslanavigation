@@ -426,6 +426,8 @@ function Index() {
   }, [chargerFilters, rememberFilters]);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
+  // Ontwikkellocaties (Plan, Vergunning, Voting en In aanbouw) standaard zichtbaar.
+  const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(true);
   const [showAllChargers, setShowAllChargers] = useState(false);
   const [mapType, setMapType] = useState<"road" | "satellite">("satellite");
   const [mapZoom, setMapZoom] = useState(7);
@@ -536,11 +538,14 @@ function Index() {
       .sort((a, b) => a.currency.localeCompare(b.currency) || a.average - b.average);
   }, [countryPricesOpen, superchargers, departureDate, selectedModel, packKWh, carMaxKwOverride]);
 
-  // Plan-, vergunning-, bouw- en votinglocaties horen altijd zichtbaar te zijn.
-  // Ze worden niet meer afhankelijk gemaakt van een oude gebruikersvoorkeur.
+  // Ontwikkellocaties blijven standaard zichtbaar; de knop "Alles tonen" kan ze verbergen/terugzetten.
+  const isDevelopmentCharger = (charger: Supercharger) =>
+    charger.status === "construction" || charger.status === "permit" || charger.status === "plan" || charger.status === "voting";
   const visibleChargers = useMemo(
-    () => superchargers.filter((charger) => matchesChargerFilters(charger, chargerFilters)),
-    [superchargers, chargerFilters],
+    () => superchargers.filter((charger) =>
+      matchesChargerFilters(charger, chargerFilters) && (showDevelopmentChargers || !isDevelopmentCharger(charger))
+    ),
+    [superchargers, chargerFilters, showDevelopmentChargers],
   );
   const favoriteChargers = useMemo(
     () => superchargers.filter((charger) => !!charger.id && favoriteChargerIds.includes(charger.id)),
@@ -1995,6 +2000,9 @@ function Index() {
           )}
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowDevelopmentChargers((v) => !v)}>
+                {showDevelopmentChargers ? "Verberg plannen & bouwlocaties" : "Alles tonen"}
+              </Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setFiltersOpen((v) => !v)} title="Filters">
                 <SlidersHorizontal className="size-4" aria-hidden="true" /><span className="hidden sm:inline">Filters</span>
               </Button>
