@@ -13,7 +13,7 @@ import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher, changeLanguage } from "@/components/LanguageProvider";
 import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, createMyNotificationEvent, listMyVehicles } from "@/lib/account.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
-import { listPublishedVehicleModels } from "@/lib/admin.functions";
+import { listPublishedVehicleModels, listPublishedSuperchargers } from "@/lib/admin.functions";
 import { vehicleKey, type VehicleModel } from "@/lib/vehicle-types";
 
 const hasSupabaseBrowserConfig = Boolean(
@@ -60,7 +60,7 @@ import {
 import { fetchTrafficRoutes } from "@/lib/traffic.functions";
 import { getTrafficForecastAt, isSnowRegion } from "@/lib/traffic-forecast";
 
-import { loadBundledSuperchargers } from "@/lib/local-superchargers";
+import { mapCloudSuperchargers } from "@/lib/local-superchargers";
 import { lookupThirdPartyCharger } from "@/lib/third-party";
 
 
@@ -246,6 +246,7 @@ function Index() {
     return () => window.removeEventListener("tn-profile-updated", handler);
   }, []);
 
+  const loadPublicChargerFeed = useServerFn(listPublishedSuperchargers);
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
   const [holidayPeriodMode, setHolidayPeriodModeState] = useState(false);
   const [winterSportsMode, setWinterSportsModeState] = useState(false);
@@ -680,26 +681,36 @@ function Index() {
   const availableRange = fullEnergyRangeKm * batteryPercent / 100;
 
 
-  // De kaart gebruikt de dataset die met de website is meegeleverd.
-  // Dit pad draait volledig in de browser en heeft geen Lovable Cloud-credits nodig.
+  // De kaart leest live uit dezelfde Cloudflare D1-database als het Admin-paneel.
+  // De ingebouwde JSON wordt alleen als noodweergave gebruikt als D1 tijdelijk niet bereikbaar is.
+  const refreshSuperchargers = useCallback(async () => {
+    const feed = await loadPublicChargerFeed();
+    if (!Array.isArray(feed?.chargers)) throw new Error("Cloudflare D1 gaf geen geldige openbare Superchargerlijst terug.");
+    const mapped = await mapCloudSuperchargers(feed.chargers, Array.isArray(feed.owners) ? feed.owners : []);
+    setSuperchargers(mapped);
+    setChargerLoadError(null);
+  }, [loadPublicChargerFeed]);
+
   useEffect(() => {
     let mounted = true;
-    loadBundledSuperchargers()
-      .then((data) => {
-        if (!mounted) return;
-        setSuperchargers(data);
-        setChargerLoadError(data.length ? null : "De ingebouwde Superchargerdata bevat geen locaties.");
+    refreshSuperchargers()
+      .catch(async (error) => {
+        console.error("[TeslaNavigation] Live D1-feed laden mislukt; noodweergave wordt gebruikt:", error);
+        try {
+          const { loadBundledSuperchargers } = await import("@/lib/local-superchargers");
+          const fallback = await loadBundledSuperchargers();
+          if (mounted) {
+            setSuperchargers(fallback);
+            setChargerLoadError("Live D1 is niet bereikbaar; je ziet mogelijk verouderde Superchargerdata.");
+          }
+        } catch (fallbackError) {
+          if (mounted) setChargerLoadError(error instanceof Error ? error.message : "Superchargers konden niet worden geladen.");
+          console.error("[TeslaNavigation] Ook de lokale noodlijst kon niet worden geladen:", fallbackError);
+        }
       })
-      .catch((error) => {
-        console.error("[TeslaNavigation] Lokale Superchargerdata laden mislukt:", error);
-        if (mounted) setChargerLoadError(error instanceof Error ? error.message : "De ingebouwde Superchargerdata kon niet worden geladen.");
-      })
-      .finally(() => {
-        if (mounted) setIsLoadingChargers(false);
-      });
+      .finally(() => { if (mounted) setIsLoadingChargers(false); });
     return () => { mounted = false; };
-  }, []);
-
+  }, [refreshSuperchargers]);
 
   useEffect(() => {
     setLastAvailabilityUpdate(new Date().toISOString());
@@ -1888,7 +1899,7 @@ function Index() {
                 onClick={() => {
                   setChargerLoadError(null);
                   setIsLoadingChargers(true);
-                  listSuperchargers()
+                  refreshSuperchargers()
                     .then((data) => {
                       setSuperchargers(data);
                       setChargerLoadError(data.length ? null : "Er zijn geen Superchargers ontvangen.");
