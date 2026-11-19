@@ -413,8 +413,8 @@ function Index() {
       return {
         ...defaultChargerFilters,
         ...parsed,
-        // Herstel ontwikkellocaties die in oudere opgeslagen filterinstellingen ontbraken.
-        statuses: Array.from(new Set([...(parsed.statuses ?? defaultChargerFilters.statuses), "plan", "permit", "voting"])),
+        // Oude opgeslagen filters mogen verwijderde Plan- en Voting-statussen niet terugzetten.
+        statuses: (parsed.statuses ?? defaultChargerFilters.statuses).filter((status) => status !== "plan" && status !== "voting"),
       };
     } catch { return { ...defaultChargerFilters }; }
   });
@@ -426,7 +426,7 @@ function Index() {
   }, [chargerFilters, rememberFilters]);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
-  // Ontwikkellocaties (Plan, Vergunning, Voting en In aanbouw) standaard zichtbaar.
+  // Vergunning- en bouwlocaties standaard zichtbaar.
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(true);
   const [showAllChargers, setShowAllChargers] = useState(false);
   const [mapType, setMapType] = useState<"road" | "satellite">("satellite");
@@ -540,7 +540,7 @@ function Index() {
 
   // Ontwikkellocaties blijven standaard zichtbaar; de knop "Alles tonen" kan ze verbergen/terugzetten.
   const isDevelopmentCharger = (charger: Supercharger) =>
-    charger.status === "construction" || charger.status === "permit" || charger.status === "plan" || charger.status === "voting";
+    charger.status === "construction" || charger.status === "permit";
   const visibleChargers = useMemo(
     () => superchargers.filter((charger) =>
       matchesChargerFilters(charger, chargerFilters) && (showDevelopmentChargers || !isDevelopmentCharger(charger))
@@ -1804,10 +1804,10 @@ function Index() {
     }));
   }, [batteryCapacityOverride, carMaxKwOverride, fullRangeKmActive, packKWh, selectedModel]);
 
-  // Na een berekende route blijven ontwikkel-, vergunning-, plan- en votinglocaties
-  // zichtbaar; daarnaast tonen we de laadstations die voor de route zijn geselecteerd.
+  // Na een berekende route blijven vergunning- en bouwlocaties zichtbaar,
+  // naast de laadstations die voor de route zijn geselecteerd.
   const mapChargers = useMemo(() => {
-    const isDevelopment = (c: Supercharger) => c.status === "construction" || c.status === "permit" || c.status === "plan" || c.status === "voting";
+    const isDevelopment = (c: Supercharger) => c.status === "construction" || c.status === "permit";
     if (!route || showAllChargers || chargingStops.length === 0) return visibleChargers;
     const used = new Set(chargingStops.map((s) => s.charger.id ?? s.charger.name));
     return visibleChargers.filter((c) => isDevelopment(c) || used.has(c.id ?? c.name));
