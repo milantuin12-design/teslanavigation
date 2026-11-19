@@ -118,7 +118,9 @@ export async function mapCloudSuperchargers(rows: LocalRow[], ownerRows: Owner[]
   const owners = new Map(ownerRows.map((owner) => [owner.id, owner]));
   const network: NetworkSite[] = rows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
   const tariffs = (tariffFile as unknown as { tariffs: any[] }).tariffs ?? [];
-  return rows.map((row) => toSupercharger(withBundledTariff(row, tariffs), owners, network));
+  const visibleRows = rows.filter((row) => !["plan", "planned", "voting"].includes(String(row.status ?? "").trim().toLowerCase()));
+  const visibleNetwork: NetworkSite[] = visibleRows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
+  return visibleRows.map((row) => toSupercharger(withBundledTariff(row, tariffs), owners, visibleNetwork));
 }
 
 /** Laadt de volledige meegeleverde dataset rechtstreeks in de browser; geen Lovable Cloud of Supabase nodig. */
@@ -130,9 +132,10 @@ export async function loadBundledSuperchargers(): Promise<Supercharger[]> {
   const data = dataset as unknown as Dataset;
   const owners = new Map((data.owners ?? []).map((owner) => [owner.id, owner]));
   const rows = Array.isArray(data.chargers) ? data.chargers : [];
-  const network: NetworkSite[] = rows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
+  const visibleRows = rows.filter((row) => !["plan", "planned", "voting"].includes(String(row.status ?? "").trim().toLowerCase()));
+  const network: NetworkSite[] = visibleRows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
   const tariffs = (tariffFile as unknown as { tariffs: any[] }).tariffs ?? [];
-  return rows.map((row) => toSupercharger(withBundledTariff(row, tariffs), owners, network));
+  return visibleRows.map((row) => toSupercharger(withBundledTariff(row, tariffs), owners, network));
 }
 
 
