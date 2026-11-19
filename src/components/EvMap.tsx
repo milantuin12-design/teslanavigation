@@ -114,19 +114,6 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   if (statusColorOverride) color = statusColorOverride;
   if (routeUsed) color = '#7dd3fc'; // lichtblauw = geselecteerde laadstop
 
-  if (false) {
-    const dotColor = statusColorOverride || '#a855f7';
-    const dotSize = 10;
-    const snowBadge = charger.winterSportsMode && isSnowRegion(charger)
-      ? `<span title="Wintersportgebied" style="position:absolute;right:-5px;top:-5px;width:14px;height:14px;border-radius:50%;background:#e0f2fe;border:1px solid #fff;color:#0369a1;font-size:9px;display:flex;align-items:center;justify-content:center;">❄</span>`
-      : '';
-    return L.divIcon({
-      className: 'custom-marker',
-      html: `<div style="position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center;"><div style="width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:${dotColor};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>${snowBadge}</div>`,
-      iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9],
-    });
-  }
-
   const isConstruction = status === 'In aanbouw';
   const isPermit = status === 'Vergunning aangevraagd';
   const hasOpenWorks = charger.status === 'works' || charger.status === 'expanding';
