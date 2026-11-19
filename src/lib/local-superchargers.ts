@@ -32,7 +32,7 @@ type Owner = { id: string; name: string; logo_url?: string | null; description?:
 type Dataset = { chargers: LocalRow[]; owners?: Owner[] };
 type NetworkSite = Pick<Supercharger, "id" | "lat" | "lng">;
 
-const lifecycle: ChargerLifecycleStatus[] = ["operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed", "unknown"];
+const lifecycle: ChargerLifecycleStatus[] = ["operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "permit", "expanding", "permanent_closed", "unknown"];
 
 function normalizeTariffMatch(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
