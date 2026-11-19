@@ -44,7 +44,7 @@ export const listPublishedSuperchargers = createServerFn({ method: "GET" }).hand
   const { getD1 } = await import("./d1.server");
   const db = getD1();
   const [chargerRows, ownerRows] = await Promise.all([
-    db.prepare("SELECT * FROM superchargers WHERE COALESCE(hidden,0) = 0 AND (COALESCE(published,1) != 0 OR LOWER(TRIM(COALESCE(status, ''))) IN ('plan','planned','voting','permit','vergunning','vergunning verleend','vergunning_verleend')) ORDER BY name COLLATE NOCASE").all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM superchargers WHERE COALESCE(hidden,0) = 0 AND LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') AND (COALESCE(published,1) != 0 OR LOWER(TRIM(COALESCE(status, ''))) IN ('permit','vergunning','vergunning verleend','vergunning_verleend')) ORDER BY name COLLATE NOCASE").all<Record<string, unknown>>(),
     db.prepare("SELECT id,name,logo_url,description,website,contact,notes FROM charger_owners ORDER BY name COLLATE NOCASE").all<OwnerRow>(),
   ]);
   const jsonColumns = ["opening_hours","charger_configs","parking_blocks","price_blocks","construction","works","closure","traffic_forecast","planned_upgrade","stall_states","voting","photos"];
@@ -188,7 +188,7 @@ const bulkInput = z.object({
     lowSpeed: z.boolean().optional(),
     published: z.boolean().optional(),
     ownerId: z.string().min(1).max(120).nullable().optional(),
-    status: z.enum(["operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "voting", "plan", "permit", "expanding", "permanent_closed", "unknown"]).optional(),
+    status: z.enum(["operational", "construction", "works", "works_closed", "temp_closed", "long_closed", "permit", "expanding", "permanent_closed", "unknown"]).optional(),
     country: z.string().max(100).optional(),
     province: z.string().max(100).optional(),
     maxSpeedKw: z.number().int().min(0).max(1000).optional(),
@@ -386,7 +386,7 @@ export const adminListSuperchargers = createServerFn({ method: "GET" })
         console.error("[TeslaNavigation] Bundled D1 seed failed; continuing with existing cloud data:", error);
       }
     }
-    const rows = await db.prepare("SELECT * FROM superchargers ORDER BY name COLLATE NOCASE LIMIT 1000 OFFSET ?")
+    const rows = await db.prepare("SELECT * FROM superchargers WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') ORDER BY name COLLATE NOCASE LIMIT 1000 OFFSET ?")
       .bind(data.from).all<Record<string, unknown>>();
     if (!Array.isArray(rows?.results)) {
       throw new Error("Cloudflare D1 gaf geen geldige resultaten terug voor de Supercharger-lijst.");
