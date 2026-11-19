@@ -709,9 +709,29 @@ function Index() {
   // De kaart leest live uit dezelfde Cloudflare D1-database als het Admin-paneel.
   // De ingebouwde JSON wordt alleen als noodweergave gebruikt als D1 tijdelijk niet bereikbaar is.
   const refreshSuperchargers = useCallback(async () => {
-    const feed = await loadPublicChargerFeed();
-    if (!Array.isArray(feed?.chargers)) throw new Error("Cloudflare D1 gaf geen geldige openbare Superchargerlijst terug.");
-    const mapped = await mapCloudSuperchargers(feed.chargers, Array.isArray(feed.owners) ? feed.owners : []);
+    const response = await loadPublicChargerFeed();
+    // Accepteer zowel de directe serverfunctie-uitkomst als gangbare
+    // transportwrappers. Zo wordt een geldige D1-lijst niet onterecht als leeg
+    // afgewezen wanneer de Start/Worker-transportlaag de payload omhult.
+    const payload = response as unknown as Record<string, unknown>;
+    const nestedData = payload?.data as Record<string, unknown> | undefined;
+    const candidates = [
+      payload,
+      payload?.result as Record<string, unknown> | undefined,
+      nestedData,
+      nestedData?.result as Record<string, unknown> | undefined,
+    ];
+    const feed = candidates.find((candidate): candidate is Record<string, unknown> =>
+      !!candidate && Array.isArray(candidate.chargers)
+    );
+    if (!feed) {
+      const keys = payload && typeof payload === "object" ? Object.keys(payload).join(", ") : typeof response;
+      throw new Error("Cloudflare D1 gaf geen geldige openbare Superchargerlijst terug (ontvangen: " + keys + ").");
+    }
+    const mapped = await mapCloudSuperchargers(
+      feed.chargers as Parameters<typeof mapCloudSuperchargers>[0],
+      Array.isArray(feed.owners) ? feed.owners as Parameters<typeof mapCloudSuperchargers>[1] : [],
+    );
     setSuperchargers(mapped);
     setChargerLoadError(null);
     // D1 blijft leidend; IndexedDB is uitsluitend een lokale startcache.
