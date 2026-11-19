@@ -448,10 +448,26 @@ function AdminPage() {
     try {
       for (let from = 0; ; from += 1000) {
         const response = await listAdminSuperchargers({ data: { from } });
-        if (!Array.isArray(response)) {
-          throw new Error("Cloudflare D1 gaf geen geldige lijst terug (verwachtte een array).");
+        // TanStack Start kan serverfunctie-resultaten afhankelijk van de
+        // transportlaag direct of verpakt teruggeven. Pak in beide gevallen
+        // de array uit, zonder de lokale nooddataset als clouddata te zien.
+        const unwrapArray = (value: unknown, depth = 0): unknown[] | null => {
+          if (Array.isArray(value)) return value;
+          if (!value || typeof value !== "object" || depth >= 3) return null;
+          const record = value as Record<string, unknown>;
+          for (const key of ["data", "result", "value"]) {
+            const found = unwrapArray(record[key], depth + 1);
+            if (found) return found;
+          }
+          return null;
+        };
+        const pageRows = unwrapArray(response) as Charger[] | null;
+        if (!pageRows) {
+          const received = response && typeof response === "object"
+            ? Object.keys(response as Record<string, unknown>).join(", ")
+            : typeof response;
+          throw new Error("Cloudflare D1 gaf geen geldige lijst terug (ontvangen: " + received + ").");
         }
-        const pageRows = response as Charger[];
         rows.push(...pageRows.map((row) => addAdminTariff(row)));
         if (pageRows.length < 1000) break;
       }
