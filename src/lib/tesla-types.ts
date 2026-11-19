@@ -24,8 +24,6 @@ export type ChargerLifecycleStatus =
   | 'works_closed'
   | 'temp_closed'
   | 'long_closed'
-  | 'voting'
-  | 'plan'
   | 'permit'
   | 'expanding'
   | 'permanent_closed'
@@ -346,8 +344,6 @@ export type ChargerStatus =
   | 'Dicht door werkzaamheden'
   | 'Tijdelijk gesloten'
   | 'Langdurig gesloten'
-  | 'Voting'
-  | 'Plan'
   | 'Vergunning aangevraagd'
   | 'Wordt uitgebreid'
   | 'Permanent gesloten';
@@ -370,7 +366,7 @@ export interface ChargerFilterState {
 }
 
 export const defaultChargerFilters: ChargerFilterState = {
-  statuses: ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed', 'voting', 'plan', 'permit', 'expanding', 'permanent_closed', 'unknown'],
+  statuses: ['operational', 'construction', 'works', 'works_closed', 'temp_closed', 'long_closed', 'permit', 'expanding', 'permanent_closed', 'unknown'],
   minSpeedKw: 0,
   versions: [],
   trailerOnly: false,
