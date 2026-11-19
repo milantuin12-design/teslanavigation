@@ -106,8 +106,7 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   else if (status === 'In aanbouw') color = '#f59e0b'; // oranje voor in aanbouw
   else if (status === 'Werkzaamheden' || status === 'Druk') color = '#f59e0b'; // oranje
   else if (status === 'Onbekend') color = '#64748b';
-  else if (status === 'Voting') color = '#3b82f6';
-  else if (status === 'Plan' || status === 'Vergunning aangevraagd') color = '#a855f7';
+  else if (status === 'Vergunning aangevraagd') color = '#a855f7';
   else if (status === 'Wordt uitgebreid') color = '#22c55e';
   else if (status === 'Permanent gesloten') color = '#0f172a';
   else if (status === 'Tijdelijk gesloten') color = '#cbd5e1';
@@ -115,9 +114,9 @@ function chargerIcon(charger: Supercharger, status: ChargerStatus, isFavorite = 
   if (statusColorOverride) color = statusColorOverride;
   if (routeUsed) color = '#7dd3fc'; // lichtblauw = geselecteerde laadstop
 
-  if (status === 'Voting' || status === 'Plan') {
-    const dotColor = statusColorOverride || (status === 'Voting' ? '#3b82f6' : '#a855f7');
-    const dotSize = status === 'Voting' ? 12 : 10;
+  if (false) {
+    const dotColor = statusColorOverride || '#a855f7';
+    const dotSize = 10;
     const snowBadge = charger.winterSportsMode && isSnowRegion(charger)
       ? `<span title="Wintersportgebied" style="position:absolute;right:-5px;top:-5px;width:14px;height:14px;border-radius:50%;background:#e0f2fe;border:1px solid #fff;color:#0369a1;font-size:9px;display:flex;align-items:center;justify-content:center;">❄</span>`
       : '';
@@ -380,7 +379,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
     superchargers.forEach(charger => {
       try {
-        const isDevelopmentLocation = charger.status === 'plan' || charger.status === 'voting' || charger.status === 'permit';
+        const isDevelopmentLocation = charger.status === 'permit';
         if (charger.published === false && !showDrafts && !isDevelopmentLocation) return;
         if (!isVisibleOnMap(charger)) return;
 
@@ -519,7 +518,7 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
           popup += `<div style="margin-top:6px;color:#2563eb;font-weight:600;">Max ${maxSpeed} kW</div>`;
         }
 
-        const hideOpeningHours = status === 'In aanbouw' || status === 'Plan' || status === 'Vergunning aangevraagd';
+        const hideOpeningHours = status === 'In aanbouw' || status === 'Vergunning aangevraagd';
         if (!hideOpeningHours) {
           popup += `<div style="margin-top:3px;color:#475569;">${escapeHtml(formatOpeningHoursSummary(charger))}</div>`;
         }
