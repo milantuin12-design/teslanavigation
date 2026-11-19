@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { getRequest } from "@tanstack/react-start/server";
 
 export interface D1Result<T = Record<string, unknown>> {
   results: T[];
@@ -17,12 +18,26 @@ export interface D1Database {
 }
 
 /**
- * Cloudflare injects Worker bindings through the cloudflare:workers module.
- * Do not read them from TanStack's Request object: internal server-function
- * requests do not reliably preserve custom Request properties.
+ * Prefer Cloudflare's request-scoped env binding. The Worker entry also
+ * attaches the bindings to the TanStack request as a compatibility fallback
+ * for server-function requests. Keep the module binding as the final fallback
+ * for contexts where getRequest() is not available.
  */
 export function getCloudflareEnv(): Record<string, unknown> {
-  return env as unknown as Record<string, unknown>;
+  const moduleEnv = env as unknown as Record<string, unknown>;
+  if (moduleEnv.DB) return moduleEnv;
+
+  try {
+    const request = getRequest() as Request & {
+      runtime?: { cloudflare?: { env?: Record<string, unknown> } };
+    };
+    const requestEnv = request.runtime?.cloudflare?.env;
+    if (requestEnv && typeof requestEnv === "object") return requestEnv;
+  } catch {
+    // getRequest() is unavailable outside an active TanStack request context.
+  }
+
+  return moduleEnv;
 }
 
 export function getD1(): D1Database {
