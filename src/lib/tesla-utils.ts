@@ -295,8 +295,6 @@ export function getChargerStatus(charger: Supercharger, atDate: Date = new Date(
   if (lifecycle === 'temp_closed') return 'Tijdelijk gesloten';
   if (lifecycle === 'long_closed') return 'Langdurig gesloten';
   if (lifecycle === 'permanent_closed') return 'Permanent gesloten';
-  if (lifecycle === 'voting') return 'Voting';
-  if (lifecycle === 'plan') return 'Plan';
   if (lifecycle === 'permit') return 'Vergunning aangevraagd';
   if (lifecycle === 'unknown') return 'Onbekend';
   if (getTotalStalls(charger) > 0 && getOpenStalls(charger, atDate) <= 0) return 'Niet beschikbaar';
@@ -1075,8 +1073,7 @@ export function getStatusColor(status: ChargerStatus): string {
     case 'Onbekend': return '#64748b';
     case 'Niet beschikbaar': return '#94a3b8';
     case 'Langdurig gesloten': return '#94a3b8';
-    case 'Voting': return '#3b82f6';
-    case 'Plan': case 'Vergunning aangevraagd': return '#a855f7';
+    case 'Vergunning aangevraagd': return '#a855f7';
     case 'Wordt uitgebreid': return '#22c55e';
     case 'Permanent gesloten': return '#0f172a';
     default: return '#ef4444';
@@ -1090,8 +1087,6 @@ export const lifecycleLabels: Record<ChargerLifecycleStatus, string> = {
   works_closed: 'Dicht door werkzaamheden',
   temp_closed: 'Tijdelijk gesloten',
   long_closed: 'Langdurig gesloten',
-  voting: 'Voting',
-  plan: 'Plan',
   permit: 'Vergunning aangevraagd',
   expanding: 'Wordt uitgebreid',
   permanent_closed: 'Permanent gesloten',
@@ -1134,9 +1129,8 @@ const PERMANENT_VISIBLE_MS = 14 * 24 * 3600 * 1000;
 
 /** Hoort deze lader op de normale kaart? (verborgen of >14 dagen permanent gesloten = nee) */
 export function isVisibleOnMap(charger: Supercharger, now: number = Date.now()): boolean {
-  // Plan-, Voting- en Vergunninglocaties moeten altijd op de kaart blijven,
-  // ook als oude admin-imports ze per ongeluk als verborgen markeerden.
-  const developmentLocation = charger.status === 'plan' || charger.status === 'voting' || charger.status === 'permit';
+  // Vergunningslocaties blijven zichtbaar, ook als oude imports ze als verborgen markeerden.
+  const developmentLocation = charger.status === 'permit';
   if (charger.hidden && !developmentLocation) return false;
   if (charger.status === 'permanent_closed') {
     const t = charger.permanentlyClosedAt ? new Date(charger.permanentlyClosedAt).getTime() : NaN;
@@ -1227,12 +1221,8 @@ export function describeChargerStatus(charger: Supercharger): string[] {
     if (w.reason) lines.push(`Reden: ${w.reason}`);
     if (w.expectedEnd) lines.push(`Klaar rond: ${formatDateNl(w.expectedEnd)}`);
     if (w.notes) lines.push(w.notes);
-  } else if (status === 'voting') {
-    lines.push('Tesla Voting');
-    if (charger.voting?.votes) lines.push(`Stemmen: ${charger.voting.votes}`);
-    if (charger.voting?.rank) lines.push(`Rang: #${charger.voting.rank}`);
-  } else if (status === 'plan' || status === 'permit') {
-    lines.push(status === 'plan' ? 'Gepland' : 'Vergunning aangevraagd');
+  } else if (status === 'permit') {
+    lines.push('Vergunning aangevraagd');
   } else if (status === 'permanent_closed') {
     lines.push('Permanent gesloten');
     if (charger.permanentlyClosedAt) lines.push(`Gesloten sinds ${formatDateNl(charger.permanentlyClosedAt)}`);
