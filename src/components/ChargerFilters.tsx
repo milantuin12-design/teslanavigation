@@ -5,8 +5,6 @@ import { defaultChargerFilters } from "@/lib/tesla-types";
 import { lifecycleLabels } from "@/lib/tesla-utils";
 
 const STATUS_ORDER: ChargerLifecycleStatus[] = [
-  "voting",
-  "plan",
   "permit",
   "construction",
   "operational",
@@ -119,7 +117,7 @@ export default function ChargerFilters({ filters, onChange, chargers, visibleCou
             className="w-full bg-slate-950/70 border border-slate-700/60 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/80 transition-colors"
           />
 
-          {/* Alle statussen, inclusief Plan, Vergunning en Voting */}
+          {/* Beschikbare statussen */}
           <div>
             <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Status</div>
             <div className="grid grid-cols-2 gap-1.5 max-h-44 overflow-y-auto pr-1">
