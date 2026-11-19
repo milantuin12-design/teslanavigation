@@ -33,10 +33,14 @@ export const reverseGeocodeCharger = createServerFn({ method: "POST" })
 
 /* Public map feed: the map must read the same D1 records that the admin edits. */
 export const listPublishedSuperchargers = createServerFn({ method: "GET" }).handler(async () => {
-  // Ensure the restored bundled baseline is present before the public map reads D1.
-  // This only refreshes bundled/automatic rows; manual admin rows are preserved.
-  const { ensureBundledD1Seed } = await import("./d1-seed.server");
-  await ensureBundledD1Seed();
+  // Seed refresh is best-effort: a sync failure must never block the existing
+  // live D1 records from reaching the public map.
+  try {
+    const { ensureBundledD1Seed } = await import("./d1-seed.server");
+    await ensureBundledD1Seed();
+  } catch (error) {
+    console.error("[TeslaNavigation] Bundled D1 seed failed; continuing with existing cloud data:", error);
+  }
   const { getD1 } = await import("./d1.server");
   const db = getD1();
   const [chargerRows, ownerRows] = await Promise.all([
