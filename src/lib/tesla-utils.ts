@@ -1178,7 +1178,10 @@ export function getOpenStalls(charger: Supercharger, atDate: Date = new Date()):
     const base = openConfigs !== undefined ? Math.min(total, openConfigs) : Math.max(0, total - getOutOfServiceStalls(charger));
     return Math.max(0, base - issues);
   }
-  if (status === 'operational' || status === 'expanding') return Math.max(0, total - issues);
+  // Onbekend mag als risicovolle laadstop worden gebruikt na expliciete
+  // bevestiging in de routeplanner. Tel de opgegeven laadplekken daarom mee;
+  // anders blokkeert deze functie de onbekende locatie alsnog volledig.
+  if (status === 'operational' || status === 'expanding' || status === 'unknown') return Math.max(0, total - issues);
   return 0;
 }
 
