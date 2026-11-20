@@ -2,6 +2,25 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { ChargerOwner, SiteUpdate } from "./tesla-types";
 
+/** Normalize Cloudflare D1/TanStack response envelopes without treating a missing result as an empty list. */
+function requireD1Rows<T>(response: unknown, label: string): T[] {
+  const visit = (value: unknown, depth = 0, seen = new Set<unknown>()): T[] | null => {
+    if (Array.isArray(value)) return value as T[];
+    if (!value || typeof value !== "object" || depth >= 6 || seen.has(value)) return null;
+    seen.add(value);
+    const record = value as Record<string, unknown>;
+    for (const key of ["results", "rows", "data", "result", "value", "response", "body"]) {
+      if (!(key in record)) continue;
+      const found = visit(record[key], depth + 1, seen);
+      if (found) return found;
+    }
+    return null;
+  };
+  const rows = visit(response);
+  if (!rows) throw new Error(`Cloudflare D1 gaf geen geldige lijst terug voor ${label}.`);
+  return rows;
+}
+
 /* Reverse-geocode coordinates entered in Admin so new chargers get a complete location. */
 export const reverseGeocodeCharger = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({
@@ -386,15 +405,15 @@ export const adminListSuperchargers = createServerFn({ method: "GET" })
         console.error("[TeslaNavigation] Bundled D1 seed failed; continuing with existing cloud data:", error);
       }
     }
-    const rows = await db.prepare("SELECT * FROM superchargers WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') ORDER BY name COLLATE NOCASE LIMIT 1000 OFFSET ?")
+    const response = await db.prepare("SELECT * FROM superchargers WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') ORDER BY name COLLATE NOCASE LIMIT 1000 OFFSET ?")
       .bind(data.from).all<Record<string, unknown>>();
-    if (!Array.isArray(rows?.results)) {
-      throw new Error("Cloudflare D1 gaf geen geldige resultaten terug voor de Supercharger-lijst.");
-    }
-    if (seedError && rows.results.length === 0) {
+    const rows = requireD1Rows<Record<string, unknown>>(response, "Supercharger-lijst");
+    if (seedError && rows.length === 0) {
       throw new Error("De Cloudflare D1-lijst is leeg en de basisgegevens konden niet worden gesynchroniseerd: " + (seedError instanceof Error ? seedError.message : String(seedError)));
     }
-    return rows.results.map(d1DecodeCharger);
+    // Return a named object: TanStack server-function transport may wrap bare
+    // arrays differently across Worker runtimes. The admin unwraps this shape.
+    return { chargers: rows.map(d1DecodeCharger) };
   });
 
 export const adminRawUpsertCharger = createServerFn({ method: "POST" })
@@ -449,9 +468,9 @@ export const adminBulkRawUpdate = createServerFn({ method: "POST" })
 
 export const adminListOwners = createServerFn({ method: "GET" }).handler(async () => {
   await requireD1Admin();
-  const rows = await getD1().prepare("SELECT id,name FROM charger_owners ORDER BY name COLLATE NOCASE").all();
-  if (!Array.isArray(rows?.results)) throw new Error("Cloudflare D1 gaf geen geldige resultaten terug voor de eigenaarslijst.");
-  return rows.results;
+  const response = await getD1().prepare("SELECT id,name FROM charger_owners ORDER BY name COLLATE NOCASE").all();
+  const owners = requireD1Rows<{id:string;name:string}>(response, "eigenaarslijst");
+  return { owners };
 });
 export const adminCreateOwner = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({name:z.string().trim().min(1).max(120)}).parse(input))
