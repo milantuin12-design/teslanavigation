@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { importSuperchargers, getWinterSportsMode, setWinterSportsMode, getHolidayPeriodMode, setHolidayPeriodMode } from "@/lib/tesla.functions";
-import { adminListSuperchargers, adminRawUpsertCharger, adminDeleteCharger, adminBulkRawUpdate, adminListOwners, adminCreateOwner, reverseGeocodeCharger } from "@/lib/admin.functions";
+import { adminRawUpsertCharger, adminDeleteCharger, adminBulkRawUpdate, adminListOwners, adminCreateOwner, reverseGeocodeCharger } from "@/lib/admin.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
 import localDataset from "@/data/superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
@@ -365,7 +365,25 @@ function AdminPage() {
   const saveWinterSportsMode = useServerFn(setWinterSportsMode);
   const readHolidayPeriodMode = useServerFn(getHolidayPeriodMode);
   const saveHolidayPeriodMode = useServerFn(setHolidayPeriodMode);
-  const listAdminSuperchargers = useServerFn(adminListSuperchargers);
+  const listAdminSuperchargers = useCallback(async (): Promise<Charger[]> => {
+    const response = await fetch("/api/admin/superchargers", {
+      method: "GET",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    const payload = await response.json().catch(() => null) as unknown;
+    if (!response.ok) {
+      const message = payload && typeof payload === "object" && "error" in payload
+        ? String((payload as { error: unknown }).error)
+        : `Adminverbinding mislukt (HTTP ${response.status}).`;
+      throw new Error(message);
+    }
+    if (!Array.isArray(payload)) {
+      throw new Error("De Worker gaf geen geldige Supercharger-lijst terug.");
+    }
+    return payload as Charger[];
+  }, []);
   const upsertAdminCharger = useServerFn(adminRawUpsertCharger);
   const deleteAdminCharger = useServerFn(adminDeleteCharger);
   const bulkUpdateAdminChargers = useServerFn(adminBulkRawUpdate);
@@ -442,7 +460,7 @@ function AdminPage() {
     try {
       // Eerst alleen-lezen controleren of D1 werkelijk bereikbaar is.
       // Pas daarna mogen eventueel lokaal bewaarde wijzigingen worden verstuurd.
-      const healthResponse = await listAdminSuperchargers({ data: {} });
+      const healthResponse = await listAdminSuperchargers();
       const healthRows = unwrapArray(healthResponse) as Charger[] | null;
       if (!healthRows) {
         let received = typeof healthResponse;
