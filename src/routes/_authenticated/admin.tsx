@@ -448,31 +448,43 @@ function AdminPage() {
     try {
       for (let from = 0; ; from += 1000) {
         const response = await listAdminSuperchargers({ data: { from } });
-        // TanStack Start kan serverfunctie-resultaten afhankelijk van de
-        // transportlaag direct of verpakt teruggeven. Pak in beide gevallen
-        // de array uit, zonder de lokale nooddataset als clouddata te zien.
-        const unwrapArray = (value: unknown, depth = 0): unknown[] | null => {
+        // TanStack Start/server-function transport can add more than one
+        // envelope around the handler result. Search known envelope keys first,
+        // then nested values, instead of treating a valid D1 response as offline.
+        const unwrapArray = (value: unknown, depth = 0, seen = new Set<unknown>()): unknown[] | null => {
           if (Array.isArray(value)) return value;
-          if (!value || typeof value !== "object" || depth >= 3) return null;
+          if (!value || typeof value !== "object" || depth >= 8 || seen.has(value)) return null;
+          seen.add(value);
           const record = value as Record<string, unknown>;
-          for (const key of ["data", "result", "value"]) {
-            const found = unwrapArray(record[key], depth + 1);
+          const keys = ["chargers", "rows", "results", "items", "data", "result", "value", "payload", "response", "body", "json"];
+          for (const key of keys) {
+            if (!(key in record)) continue;
+            const found = unwrapArray(record[key], depth + 1, seen);
+            if (found) return found;
+          }
+          for (const nested of Object.values(record)) {
+            const found = unwrapArray(nested, depth + 1, seen);
             if (found) return found;
           }
           return null;
         };
         const pageRows = unwrapArray(response) as Charger[] | null;
         if (!pageRows) {
-          const received = response && typeof response === "object"
-            ? Object.keys(response as Record<string, unknown>).join(", ")
-            : typeof response;
-          throw new Error("Cloudflare D1 gaf geen geldige lijst terug (ontvangen: " + received + ").");
+          let received = typeof response;
+          try {
+            received = JSON.stringify(response).slice(0, 700);
+          } catch {
+            if (response && typeof response === "object") received = Object.keys(response as Record<string, unknown>).join(", ");
+          }
+          throw new Error("Cloudflare D1 gaf geen herkenbare Supercharger-lijst terug: " + received);
         }
         rows.push(...pageRows.map((row) => addAdminTariff(row)));
         if (pageRows.length < 1000) break;
       }
-      const ownerRows = await listAdminOwners();
-      setOwners(Array.isArray(ownerRows) ? ownerRows as Owner[] : []);
+      const ownerResponse = await listAdminOwners();
+      const ownerRows = unwrapArray(ownerResponse);
+      if (!ownerRows) throw new Error("De eigenaarslijst uit Cloudflare D1 heeft een onbekend antwoordformaat.");
+      setOwners(ownerRows as Owner[]);
       setCloudConnected(true);
     } catch (error) {
       setCloudConnected(false);
