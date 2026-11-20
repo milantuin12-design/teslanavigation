@@ -418,74 +418,82 @@ function AdminPage() {
   const load = useCallback(async () => {
     setLoading(true);
     setCloudConnected(false);
-    const pending = getPendingAdminChanges();
-    if (pending.length > 0) {
-      let processed = 0;
-      for (const change of pending) {
-        try {
-          if (change.type === "delete" && change.id) {
-            await deleteAdminCharger({ data: { id: change.id } });
-          } else if (change.type === "upsert" && change.payload) {
-            await upsertAdminCharger({ data: stripLegacyTrafficColumn(change.payload as Record<string, unknown>) });
-          }
-          processed += 1;
-        } catch {
-          break;
-        }
-      }
-      // Bewaar uitsluitend de nog niet verwerkte wijzigingen. Zo wordt een
-      // eerder geslaagde delete niet opnieuw uitgevoerd en blijft de wachtrij
-      // niet permanent vastzitten op "Supercharger niet gevonden".
-      if (processed === pending.length) {
-        clearPendingAdminChanges();
-        toast.success("Wachtrij met wijzigingen verwerkt in Cloudflare D1");
-      } else if (processed > 0) {
-        keepPendingAdminChanges(pending.slice(processed));
-      }
-    }
-
     const rows: Charger[] = [];
+    const unwrapArray = (value: unknown, depth = 0, seen = new Set<unknown>()): unknown[] | null => {
+      if (Array.isArray(value)) return value;
+      if (!value || typeof value !== "object" || depth >= 8 || seen.has(value)) return null;
+      seen.add(value);
+      const record = value as Record<string, unknown>;
+      const keys = ["chargers", "owners", "rows", "results", "items", "data", "result", "value", "payload", "response", "body", "json"];
+      for (const key of keys) {
+        if (!(key in record)) continue;
+        const found = unwrapArray(record[key], depth + 1, seen);
+        if (found) return found;
+      }
+      for (const nested of Object.values(record)) {
+        const found = unwrapArray(nested, depth + 1, seen);
+        if (found) return found;
+      }
+      return null;
+    };
+
     try {
-      for (let from = 0; ; from += 1000) {
-        const response = await listAdminSuperchargers({ data: { from } });
-        // TanStack Start/server-function transport can add more than one
-        // envelope around the handler result. Search known envelope keys first,
-        // then nested values, instead of treating a valid D1 response as offline.
-        const unwrapArray = (value: unknown, depth = 0, seen = new Set<unknown>()): unknown[] | null => {
-          if (Array.isArray(value)) return value;
-          if (!value || typeof value !== "object" || depth >= 8 || seen.has(value)) return null;
-          seen.add(value);
-          const record = value as Record<string, unknown>;
-          const keys = ["chargers", "rows", "results", "items", "data", "result", "value", "payload", "response", "body", "json"];
-          for (const key of keys) {
-            if (!(key in record)) continue;
-            const found = unwrapArray(record[key], depth + 1, seen);
-            if (found) return found;
-          }
-          for (const nested of Object.values(record)) {
-            const found = unwrapArray(nested, depth + 1, seen);
-            if (found) return found;
-          }
-          return null;
-        };
-        const pageRows = unwrapArray(response) as Charger[] | null;
-        if (!pageRows) {
-          let received = typeof response;
+      // Eerst alleen-lezen controleren of D1 werkelijk bereikbaar is.
+      // Pas daarna mogen eventueel lokaal bewaarde wijzigingen worden verstuurd.
+      const healthResponse = await listAdminSuperchargers({ data: { from: 0 } });
+      const healthRows = unwrapArray(healthResponse) as Charger[] | null;
+      if (!healthRows) {
+        let received = typeof healthResponse;
+        try { received = JSON.stringify(healthResponse).slice(0, 700); } catch { /* keep type */ }
+        throw new Error("Cloudflare D1 gaf geen herkenbare Supercharger-lijst terug: " + received);
+      }
+
+      const pending = getPendingAdminChanges();
+      if (pending.length > 0) {
+        let processed = 0;
+        for (const change of pending) {
           try {
-            received = JSON.stringify(response).slice(0, 700);
-          } catch {
-            if (response && typeof response === "object") received = Object.keys(response as Record<string, unknown>).join(", ");
+            if (change.type === "delete" && change.id) {
+              await deleteAdminCharger({ data: { id: change.id } });
+            } else if (change.type === "upsert" && change.payload) {
+              await upsertAdminCharger({ data: stripLegacyTrafficColumn(change.payload as Record<string, unknown>) });
+            }
+            processed += 1;
+          } catch (error) {
+            console.error("[TeslaNavigation] Lokaal bewaarde adminwijziging niet verwerkt; wijziging blijft bewaard:", error);
+            break;
           }
-          throw new Error("Cloudflare D1 gaf geen herkenbare Supercharger-lijst terug: " + received);
         }
+        if (processed === pending.length) {
+          clearPendingAdminChanges();
+          toast.success("Wachtrij met wijzigingen verwerkt in Cloudflare D1");
+        } else if (processed > 0) {
+          keepPendingAdminChanges(pending.slice(processed));
+        }
+      }
+
+      // Na het verwerken van de wachtrij de volledige actuele lijst opnieuw lezen.
+      for (let from = 0; ; from += 1000) {
+        const response = from === 0 ? await listAdminSuperchargers({ data: { from } }) : await listAdminSuperchargers({ data: { from } });
+        const pageRows = unwrapArray(response) as Charger[] | null;
+        if (!pageRows) throw new Error("Cloudflare D1 gaf geen herkenbare Supercharger-lijst terug.");
         rows.push(...pageRows.map((row) => addAdminTariff(row)));
         if (pageRows.length < 1000) break;
       }
-      const ownerResponse = await listAdminOwners();
-      const ownerRows = unwrapArray(ownerResponse);
-      if (!ownerRows) throw new Error("De eigenaarslijst uit Cloudflare D1 heeft een onbekend antwoordformaat.");
-      setOwners(ownerRows as Owner[]);
+
+      // Een storing in de aparte eigenaarslijst mag de volledige Supercharger-admin
+      // niet onterecht offline zetten of opslaan blokkeren.
       setCloudConnected(true);
+      try {
+        const ownerResponse = await listAdminOwners();
+        const ownerRows = unwrapArray(ownerResponse);
+        if (!ownerRows) throw new Error("Onbekend antwoordformaat voor de eigenaarslijst.");
+        setOwners(ownerRows as Owner[]);
+      } catch (ownerError) {
+        console.error("[TeslaNavigation] Eigenaarslijst niet beschikbaar; Superchargerbeheer blijft actief:", ownerError);
+        setOwners([]);
+        toast.error("Superchargers zijn verbonden met D1, maar de eigenaarslijst kon niet worden geladen.");
+      }
     } catch (error) {
       setCloudConnected(false);
       console.error("[TeslaNavigation] D1-adminlijst niet bereikbaar; toon lokale dataset:", error);
