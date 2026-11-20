@@ -388,31 +388,22 @@ function d1Value(key: string, value: unknown) {
   return value;
 }
 
-export const adminListSuperchargers = createServerFn({ method: "GET" })
-  .inputValidator((input: unknown) => z.object({ from: z.number().int().min(0).max(100000).default(0) }).parse(input ?? {}))
-  .handler(async ({ data }) => {
-    await requireD1Admin();
-    const db = getD1();
-    // Seed is best-effort only. A bundled-baseline problem must never turn a
-    // working D1 connection into "offline" or disable admin writes.
-    let seedWarning: string | null = null;
-    if (data.from === 0) {
-      try {
-        const { ensureBundledD1Seed } = await import("./d1-seed.server");
-        await ensureBundledD1Seed();
-      } catch (error) {
-        seedWarning = error instanceof Error ? error.message : String(error);
-        console.error("[TeslaNavigation] Bundled D1 seed failed; reading existing D1 rows anyway:", error);
-      }
-    }
-    const response = await db.prepare("SELECT * FROM superchargers WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') ORDER BY name COLLATE NOCASE LIMIT 1000 OFFSET ?")
-      .bind(data.from).all<Record<string, unknown>>();
-    const rows = requireD1Rows<Record<string, unknown>>(response, "Supercharger-lijst");
-    // Empty D1 data and a seed warning are reported separately from connection
-    // health. The client can show its bundled baseline while keeping D1 writes
-    // enabled, because authentication and the live D1 query both succeeded.
-    return { chargers: rows.map(d1DecodeCharger), seedWarning };
-  });
+export const adminListSuperchargers = createServerFn({ method: "GET" }).handler(async () => {
+  await requireD1Admin();
+  const db = getD1();
+  // Seed remains best-effort; it must never block reading existing manual rows.
+  try {
+    const { ensureBundledD1Seed } = await import("./d1-seed.server");
+    await ensureBundledD1Seed();
+  } catch (error) {
+    console.error("[TeslaNavigation] Bundled D1 seed failed; reading existing D1 rows anyway:", error);
+  }
+  const response = await db.prepare("SELECT * FROM superchargers WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') ORDER BY name COLLATE NOCASE LIMIT 5000")
+    .all<Record<string, unknown>>();
+  const rows = requireD1Rows<Record<string, unknown>>(response, "Supercharger-lijst");
+  // Return the array directly, matching the other working GET catalogue functions.
+  return rows.map(d1DecodeCharger);
+});
 
 export const adminRawUpsertCharger = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.record(z.unknown()).parse(input))
