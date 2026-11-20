@@ -351,6 +351,7 @@ function AdminPage() {
   const [coordsInput, setCoordsInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [cloudConnected, setCloudConnected] = useState(false);
+  const [cloudConnectionError, setCloudConnectionError] = useState<string | null>(null);
   const [qualityOpen, setQualityOpen] = useState(false);
   const [owners, setOwners] = useState<Owner[]>([]);
   const [newOwnerName, setNewOwnerName] = useState("");
@@ -418,6 +419,7 @@ function AdminPage() {
   const load = useCallback(async () => {
     setLoading(true);
     setCloudConnected(false);
+    setCloudConnectionError(null);
     const rows: Charger[] = [];
     const unwrapArray = (value: unknown, depth = 0, seen = new Set<unknown>()): unknown[] | null => {
       if (Array.isArray(value)) return value;
@@ -507,14 +509,16 @@ function AdminPage() {
       }
     } catch (error) {
       setCloudConnected(false);
+      const connectionMessage = error instanceof Error ? error.message : String(error);
+      setCloudConnectionError(connectionMessage);
       console.error("[TeslaNavigation] D1-adminlijst niet bereikbaar; toon lokale dataset:", error);
       const localRows = (localDataset as { chargers?: Charger[] }).chargers ?? [];
       if (rows.length === 0 && localRows.length > 0) {
         rows.push(...localRows.map((row) => addAdminTariff(row)));
-        toast.error("Cloudflare D1 kon de beheerlijst niet laden: " + (error instanceof Error ? error.message : String(error)));
+        toast.error("Cloudflare D1 kon de beheerlijst niet laden: " + connectionMessage);
         toast.info("De lokale Superchargerlijst wordt alleen als noodweergave getoond. Opslaan is uitgeschakeld totdat de cloudverbinding werkt.");
       } else {
-        toast.error("Superchargers konden niet uit Cloudflare D1 worden geladen: " + (error instanceof Error ? error.message : String(error)));
+        toast.error("Superchargers konden niet uit Cloudflare D1 worden geladen: " + connectionMessage);
       }
     }
     setChargers(rows);
@@ -795,6 +799,14 @@ function AdminPage() {
   return (
     <div className="min-h-screen bg-slate-900 text-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
+        {cloudConnectionError && (
+          <div role="alert" className="mb-4 rounded-lg border border-red-500/60 bg-red-950/50 p-4 text-sm text-red-100">
+            <div className="font-semibold">Cloudflare D1-verbinding mislukt — opslaan staat uit</div>
+            <p className="mt-2 break-words font-mono text-xs whitespace-pre-wrap">{cloudConnectionError}</p>
+            <p className="mt-2 text-xs text-red-200">Deze fout komt rechtstreeks uit de serveraanroep. De lokale lijst is alleen-lezen; er worden geen wijzigingen weggegooid.</p>
+            <Button variant="outline" size="sm" className="mt-3 border-red-300/40" onClick={() => load()} disabled={loading}>Opnieuw proberen</Button>
+          </div>
+        )}
         <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
           <div>
             <Link to="/" className="text-sm text-slate-400 hover:text-white">← Terug naar kaart</Link>
