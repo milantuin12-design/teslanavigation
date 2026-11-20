@@ -493,7 +493,7 @@ function AdminPage() {
       }
 
       // Na het verwerken van de wachtrij de volledige actuele lijst opnieuw lezen.
-      const response = await listAdminSuperchargers({ data: {} });
+      const response = await listAdminSuperchargers();
       const pageRows = unwrapArray(response) as Charger[] | null;
       if (!pageRows) {
         let received = typeof response;
