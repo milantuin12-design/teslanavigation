@@ -442,7 +442,7 @@ function AdminPage() {
     try {
       // Eerst alleen-lezen controleren of D1 werkelijk bereikbaar is.
       // Pas daarna mogen eventueel lokaal bewaarde wijzigingen worden verstuurd.
-      const healthResponse = await listAdminSuperchargers();
+      const healthResponse = await listAdminSuperchargers({ data: {} });
       const healthRows = unwrapArray(healthResponse) as Charger[] | null;
       if (!healthRows) {
         let received = typeof healthResponse;
@@ -475,7 +475,7 @@ function AdminPage() {
       }
 
       // Na het verwerken van de wachtrij de volledige actuele lijst opnieuw lezen.
-      const response = await listAdminSuperchargers();
+      const response = await listAdminSuperchargers({ data: {} });
       const pageRows = unwrapArray(response) as Charger[] | null;
       if (!pageRows) {
         let received = typeof response;
