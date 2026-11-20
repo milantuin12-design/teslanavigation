@@ -442,7 +442,7 @@ function AdminPage() {
     try {
       // Eerst alleen-lezen controleren of D1 werkelijk bereikbaar is.
       // Pas daarna mogen eventueel lokaal bewaarde wijzigingen worden verstuurd.
-      const healthResponse = await listAdminSuperchargers({ data: { from: 0 } });
+      const healthResponse = await listAdminSuperchargers();
       const healthRows = unwrapArray(healthResponse) as Charger[] | null;
       if (!healthRows) {
         let received = typeof healthResponse;
@@ -475,13 +475,14 @@ function AdminPage() {
       }
 
       // Na het verwerken van de wachtrij de volledige actuele lijst opnieuw lezen.
-      for (let from = 0; ; from += 1000) {
-        const response = from === 0 ? await listAdminSuperchargers({ data: { from } }) : await listAdminSuperchargers({ data: { from } });
-        const pageRows = unwrapArray(response) as Charger[] | null;
-        if (!pageRows) throw new Error("Cloudflare D1 gaf geen herkenbare Supercharger-lijst terug.");
-        rows.push(...pageRows.map((row) => addAdminTariff(row)));
-        if (pageRows.length < 1000) break;
+      const response = await listAdminSuperchargers();
+      const pageRows = unwrapArray(response) as Charger[] | null;
+      if (!pageRows) {
+        let received = typeof response;
+        try { received = JSON.stringify(response).slice(0, 700); } catch { /* keep type */ }
+        throw new Error("Cloudflare D1 gaf geen herkenbare Supercharger-lijst terug: " + received);
       }
+      rows.push(...pageRows.map((row) => addAdminTariff(row)));
 
       // Als de D1-query zelf succesvol is maar de tabel nog leeg is,
       // toon dan de meegeleverde basislijst. D1 is in dat geval wél bereikbaar:
