@@ -481,6 +481,17 @@ function AdminPage() {
         if (pageRows.length < 1000) break;
       }
 
+      // Als de D1-query zelf succesvol is maar de tabel nog leeg is,
+      // toon dan de meegeleverde basislijst. D1 is in dat geval wél bereikbaar:
+      // wijzigingen kunnen veilig naar D1 worden opgeslagen.
+      if (rows.length === 0) {
+        const localRows = (localDataset as { chargers?: Charger[] }).chargers ?? [];
+        if (localRows.length > 0) {
+          rows.push(...localRows.map((row) => addAdminTariff(row)));
+          toast.info("Cloudflare D1 is bereikbaar. De database bevat nog geen Superchargers; de basislijst wordt getoond en wijzigingen worden naar D1 opgeslagen.");
+        }
+      }
+
       // Een storing in de aparte eigenaarslijst mag de volledige Supercharger-admin
       // niet onterecht offline zetten of opslaan blokkeren.
       setCloudConnected(true);
