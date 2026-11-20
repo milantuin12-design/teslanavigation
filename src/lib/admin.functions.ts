@@ -388,22 +388,22 @@ function d1Value(key: string, value: unknown) {
   return value;
 }
 
-export const adminListSuperchargers = createServerFn({ method: "GET" }).handler(async () => {
-  await requireD1Admin();
-  const db = getD1();
-  // Seed remains best-effort; it must never block reading existing manual rows.
-  try {
-    const { ensureBundledD1Seed } = await import("./d1-seed.server");
-    await ensureBundledD1Seed();
-  } catch (error) {
-    console.error("[TeslaNavigation] Bundled D1 seed failed; reading existing D1 rows anyway:", error);
-  }
-  const response = await db.prepare("SELECT * FROM superchargers WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') ORDER BY name COLLATE NOCASE LIMIT 5000")
-    .all<Record<string, unknown>>();
-  const rows = requireD1Rows<Record<string, unknown>>(response, "Supercharger-lijst");
-  // Return the array directly, matching the other working GET catalogue functions.
-  return rows.map(d1DecodeCharger);
-});
+export const adminListSuperchargers = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({}).parse(input ?? {}))
+  .handler(async () => {
+    await requireD1Admin();
+    const db = getD1();
+    try {
+      const { ensureBundledD1Seed } = await import("./d1-seed.server");
+      await ensureBundledD1Seed();
+    } catch (error) {
+      console.error("[TeslaNavigation] Bundled D1 seed failed; reading existing D1 rows anyway:", error);
+    }
+    const response = await db.prepare("SELECT * FROM superchargers WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') ORDER BY name COLLATE NOCASE LIMIT 5000")
+      .all<Record<string, unknown>>();
+    const rows = requireD1Rows<Record<string, unknown>>(response, "Supercharger-lijst");
+    return { chargers: rows.map(d1DecodeCharger) };
+  });
 
 export const adminRawUpsertCharger = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.record(z.unknown()).parse(input))
