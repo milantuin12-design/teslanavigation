@@ -99,7 +99,9 @@ export async function ensureBundledD1Seed() {
       const insert = db.prepare(`INSERT INTO superchargers (${fields.join(",")}) VALUES (${fields.map(()=>"?").join(",")}) ON CONFLICT(id) DO NOTHING`)
         .bind(...fields.map((field) => row[field]));
       const updateValues = baseFields.map((field) => valueFor(field, charger[field]));
-      const update = db.prepare(`UPDATE superchargers SET ${baseFields.map((field) => `${field} = ?`).join(",")}, data_source = 'automatic' WHERE id = ? AND (data_source IS NULL OR data_source = 'automatic')`)
+      // Only refresh rows explicitly marked as automatic. Legacy rows with a
+      // NULL source may contain older manual edits, so never overwrite them.
+      const update = db.prepare(`UPDATE superchargers SET ${baseFields.map((field) => `${field} = ?`).join(",")}, data_source = 'automatic' WHERE id = ? AND data_source = 'automatic'`)
         .bind(...updateValues, charger.id);
       return [insert, update];
     });
