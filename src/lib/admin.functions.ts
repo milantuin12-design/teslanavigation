@@ -388,7 +388,7 @@ function d1Value(key: string, value: unknown) {
   return value;
 }
 
-export const adminListSuperchargers = createServerFn({ method: "POST" })
+export const adminListSuperchargers = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ from: z.number().int().min(0).max(100000).default(0) }).parse(input ?? {}))
   .handler(async ({ data }) => {
     await requireD1Admin();
@@ -464,7 +464,7 @@ export const adminBulkRawUpdate = createServerFn({ method: "POST" })
     return {updated:data.ids.length};
   });
 
-export const adminListOwners = createServerFn({ method: "POST" }).handler(async () => {
+export const adminListOwners = createServerFn({ method: "GET" }).handler(async () => {
   await requireD1Admin();
   const response = await getD1().prepare("SELECT id,name FROM charger_owners ORDER BY name COLLATE NOCASE").all();
   const owners = requireD1Rows<{id:string;name:string}>(response, "eigenaarslijst");
