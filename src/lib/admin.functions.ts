@@ -393,27 +393,25 @@ export const adminListSuperchargers = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     await requireD1Admin();
     const db = getD1();
-    // Refresh the bundled baseline only on the first page. A seed problem
-    // must not hide stations that are already safely stored in D1.
-    let seedError: unknown = null;
+    // Seed is best-effort only. A bundled-baseline problem must never turn a
+    // working D1 connection into "offline" or disable admin writes.
+    let seedWarning: string | null = null;
     if (data.from === 0) {
       try {
         const { ensureBundledD1Seed } = await import("./d1-seed.server");
         await ensureBundledD1Seed();
       } catch (error) {
-        seedError = error;
-        console.error("[TeslaNavigation] Bundled D1 seed failed; continuing with existing cloud data:", error);
+        seedWarning = error instanceof Error ? error.message : String(error);
+        console.error("[TeslaNavigation] Bundled D1 seed failed; reading existing D1 rows anyway:", error);
       }
     }
     const response = await db.prepare("SELECT * FROM superchargers WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') ORDER BY name COLLATE NOCASE LIMIT 1000 OFFSET ?")
       .bind(data.from).all<Record<string, unknown>>();
     const rows = requireD1Rows<Record<string, unknown>>(response, "Supercharger-lijst");
-    if (seedError && rows.length === 0) {
-      throw new Error("De Cloudflare D1-lijst is leeg en de basisgegevens konden niet worden gesynchroniseerd: " + (seedError instanceof Error ? seedError.message : String(seedError)));
-    }
-    // Return a named object: TanStack server-function transport may wrap bare
-    // arrays differently across Worker runtimes. The admin unwraps this shape.
-    return { chargers: rows.map(d1DecodeCharger) };
+    // Empty D1 data and a seed warning are reported separately from connection
+    // health. The client can show its bundled baseline while keeping D1 writes
+    // enabled, because authentication and the live D1 query both succeeded.
+    return { chargers: rows.map(d1DecodeCharger), seedWarning };
   });
 
 export const adminRawUpsertCharger = createServerFn({ method: "POST" })
