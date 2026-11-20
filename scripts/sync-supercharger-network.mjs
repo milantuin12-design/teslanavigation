@@ -92,9 +92,18 @@ for (const site of source.sites) {
 
   if (match) {
     used.add(match.id);
+
+    // Only rows explicitly created by the automatic importer may be changed by
+    // this scheduled job. Legacy rows (NULL/undefined source) may contain
+    // hand-entered data and are treated as protected just like manual rows.
+    if (match.data_source !== "automatic") {
+      matches.push({ id: match.id, name: match.name, status: match.status, sourceStatus: site.status, meters: Math.round(bestDistance), protected: true });
+      continue;
+    }
+
     match.source_ref = sourceRef;
     match.source_updated_at = source.exportedAt;
-    if (match.data_source !== "manual") {
+    if (match.data_source === "automatic") {
       const previousStatus = match.status;
       let nextStatus = statusMap[site.status] ?? match.status;
       const override = manualStatusOverrides.get(normalize(match.name));
