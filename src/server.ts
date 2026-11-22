@@ -38,15 +38,13 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 }
 
 
-type AdminD1Database = {
-  prepare(query: string): {
-    bind(...values: unknown[]): {
-      first<T = Record<string, unknown>>(): Promise<T | null>;
-      all<T = Record<string, unknown>>(): Promise<{ results?: T[]; success?: boolean }>;
-    };
-    all<T = Record<string, unknown>>(): Promise<{ results?: T[]; success?: boolean }>;
-  };
+type AdminD1Statement = {
+  bind(...values: unknown[]): AdminD1Statement;
+  first<T = Record<string, unknown>>(): Promise<T | null>;
+  all<T = Record<string, unknown>>(): Promise<{ results?: T[]; success?: boolean }>;
+  run(): Promise<{ success?: boolean; meta?: { changes?: number } }>;
 };
+type AdminD1Database = { prepare(query: string): AdminD1Statement };
 
 async function authorizeAdmin(request: Request, db: AdminD1Database): Promise<{ id: string } | Response> {
   const cookieHeader = request.headers.get("cookie") ?? "";
@@ -145,6 +143,64 @@ export default {
       } catch (error) {
         console.error("[TeslaNavigation] Admin session check failed:", error);
         return jsonResponse({ error: error instanceof Error ? error.message : "Sessiecontrole mislukt." }, 500);
+      }
+    }
+
+    if (pathname === "/api/admin/superchargers" && request.method === "POST") {
+      try {
+        const db = (env as { DB?: AdminD1Database } | null)?.DB;
+        if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
+        const admin = await authorizeAdmin(request, db);
+        if (admin instanceof Response) return admin;
+        const input = await request.json() as Record<string, unknown>;
+        if (!input || typeof input !== "object" || Array.isArray(input)) return jsonResponse({ error: "Ongeldige Supercharger-gegevens." }, 400);
+        const allowed = new Set(["id","name","lat","lng","country","province","city","total_stalls","stall_types","max_speed_kw","versions","opening_time","closing_time","opening_hours","trailer_friendly","is_available","charger_configs","parking_fee","parking_fee_amount","parking_free_minutes","parking_per_minutes","parking_per_euro","parking_blocks","price_currency","price_per_kwh","price_per_kwh_peak","peak_hours","in_parking_garage","status","construction","traffic_forecast","works","closure","owner_id","owner_name","low_speed","published","notes","reopen_at","planned_upgrade","stall_states","data_source","hidden","photos","permanently_closed_at","price_blocks","occupied_stalls","last_updated","updated_at","voting"]);
+        const jsonFields = new Set(["versions","opening_hours","charger_configs","parking_blocks","construction","planned_upgrade","stall_states","traffic_forecast","works","closure","photos","price_blocks","voting"]);
+        const boolFields = new Set(["trailer_friendly","is_available","parking_fee","in_parking_garage","low_speed","published","hidden"]);
+        const row = Object.fromEntries(Object.entries(input).filter(([key, value]) => allowed.has(key) && value !== undefined));
+        if (typeof row.name !== "string" || !row.name.trim() || typeof row.country !== "string" || !row.country.trim()
+          || typeof row.lat !== "number" || !Number.isFinite(row.lat) || row.lat < -90 || row.lat > 90
+          || typeof row.lng !== "number" || !Number.isFinite(row.lng) || row.lng < -180 || row.lng > 180) {
+          return jsonResponse({ error: "Naam, land en geldige GPS-coördinaten zijn verplicht." }, 400);
+        }
+        if (!row.id) row.id = crypto.randomUUID();
+        row.data_source = "manual";
+        const columns = Object.keys(row);
+        const values = columns.map((key) => {
+          const value = row[key];
+          if (jsonFields.has(key) && value !== null && value !== undefined) return typeof value === "string" ? value : JSON.stringify(value);
+          if (boolFields.has(key) && typeof value === "boolean") return value ? 1 : 0;
+          return value;
+        });
+        const updates = columns.filter((key) => key !== "id" && key !== "data_source" && key !== "updated_at")
+          .map((key) => key + "=excluded." + key).concat(["data_source='manual'","updated_at=CURRENT_TIMESTAMP"]).join(",");
+        const sql = "INSERT INTO superchargers (" + columns.join(",") + ") VALUES (" + columns.map(() => "?").join(",") + ") ON CONFLICT(id) DO UPDATE SET " + (updates || "id=excluded.id");
+        const result = await db.prepare(sql).bind(...values).run();
+        if (result.success === false) throw new Error("Cloudflare D1 heeft de wijziging niet opgeslagen.");
+        await db.prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
+          .bind(crypto.randomUUID(), admin.id, "supercharger_upsert", 1, JSON.stringify({ id: row.id, name: row.name })).run();
+        return jsonResponse({ ok: true, id: row.id });
+      } catch (error) {
+        console.error("[TeslaNavigation] Direct admin D1 upsert failed:", error);
+        return jsonResponse({ error: error instanceof Error ? error.message : "Opslaan in D1 mislukt." }, 500);
+      }
+    }
+    if (pathname === "/api/admin/superchargers" && request.method === "DELETE") {
+      try {
+        const db = (env as { DB?: AdminD1Database } | null)?.DB;
+        if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
+        const admin = await authorizeAdmin(request, db);
+        if (admin instanceof Response) return admin;
+        const id = new URL(request.url).searchParams.get("id");
+        if (!id || id.length > 120) return jsonResponse({ error: "Ongeldig Supercharger-ID." }, 400);
+        const result = await db.prepare("DELETE FROM superchargers WHERE id = ?").bind(id).run();
+        if (!result.meta?.changes) return jsonResponse({ error: "Supercharger niet gevonden." }, 404);
+        await db.prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
+          .bind(crypto.randomUUID(), admin.id, "supercharger_delete", 1, JSON.stringify({ id })).run();
+        return jsonResponse({ ok: true });
+      } catch (error) {
+        console.error("[TeslaNavigation] Direct admin D1 delete failed:", error);
+        return jsonResponse({ error: error instanceof Error ? error.message : "Verwijderen uit D1 mislukt." }, 500);
       }
     }
     if (pathname === "/api/admin/superchargers") {
