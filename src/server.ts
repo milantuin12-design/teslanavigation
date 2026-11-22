@@ -44,7 +44,7 @@ type AdminD1Statement = {
   all<T = Record<string, unknown>>(): Promise<{ results?: T[]; success?: boolean }>;
   run(): Promise<{ success?: boolean; meta?: { changes?: number } }>;
 };
-type AdminD1Database = { prepare(query: string): AdminD1Statement };
+type AdminD1Database = { prepare(query: string): AdminD1Statement; batch(statements: AdminD1Statement[]): Promise<unknown[]> };
 
 async function authorizeAdmin(request: Request, db: AdminD1Database): Promise<{ id: string } | Response> {
   const cookieHeader = request.headers.get("cookie") ?? "";
@@ -183,6 +183,46 @@ export default {
       } catch (error) {
         console.error("[TeslaNavigation] Direct admin D1 upsert failed:", error);
         return jsonResponse({ error: error instanceof Error ? error.message : "Opslaan in D1 mislukt." }, 500);
+      }
+    }
+    if (pathname === "/api/admin/superchargers/bulk" && request.method === "POST") {
+      try {
+        const db = (env as { DB?: AdminD1Database } | null)?.DB;
+        if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
+        const admin = await authorizeAdmin(request, db);
+        if (admin instanceof Response) return admin;
+        const input = await request.json() as { ids?: unknown; changes?: unknown };
+        if (!Array.isArray(input.ids) || input.ids.length < 1 || input.ids.length > 5000
+          || input.ids.some((id) => typeof id !== "string" || !id || id.length > 120)
+          || !input.changes || typeof input.changes !== "object" || Array.isArray(input.changes)) {
+          return jsonResponse({ error: "Ongeldige bulk-wijziging." }, 400);
+        }
+        const allowed = new Set(["country","province","max_speed_kw","versions","trailer_friendly","is_available","parking_fee","in_parking_garage","low_speed","published","notes","reopen_at","status","owner_id","owner_name","price_blocks","price_currency","parking_fee_amount","parking_free_minutes","parking_per_minutes","parking_per_euro"]);
+        const jsonFields = new Set(["versions","price_blocks"]);
+        const boolFields = new Set(["trailer_friendly","is_available","parking_fee","in_parking_garage","low_speed","published"]);
+        const changes = Object.fromEntries(Object.entries(input.changes as Record<string, unknown>).filter(([key, value]) => allowed.has(key) && value !== undefined));
+        const keys = Object.keys(changes);
+        if (!keys.length) return jsonResponse({ error: "Geen geldige velden om bij te werken." }, 400);
+        const values = keys.map((key) => {
+          const value = changes[key];
+          if (jsonFields.has(key) && value !== null && value !== undefined) return typeof value === "string" ? value : JSON.stringify(value);
+          if (boolFields.has(key) && typeof value === "boolean") return value ? 1 : 0;
+          return value;
+        });
+        const statements: AdminD1Statement[] = [];
+        const ids = input.ids as string[];
+        for (let i = 0; i < ids.length; i += 100) {
+          const group = ids.slice(i, i + 100);
+          const set = keys.map((key) => key + "=?").join(",");
+          statements.push(db.prepare("UPDATE superchargers SET " + set + ", data_source='manual', updated_at=CURRENT_TIMESTAMP WHERE id IN (" + group.map(() => "?").join(",") + ")").bind(...values, ...group));
+        }
+        await db.batch(statements);
+        await db.prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
+          .bind(crypto.randomUUID(), admin.id, "supercharger_bulk_update", ids.length, JSON.stringify({ fields: keys })).run();
+        return jsonResponse({ ok: true, updated: ids.length });
+      } catch (error) {
+        console.error("[TeslaNavigation] Direct admin D1 bulk update failed:", error);
+        return jsonResponse({ error: error instanceof Error ? error.message : "Bulk bijwerken in D1 mislukt." }, 500);
       }
     }
     if (pathname === "/api/admin/superchargers" && request.method === "DELETE") {
