@@ -3,10 +3,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { importSuperchargers, getWinterSportsMode, setWinterSportsMode, getHolidayPeriodMode, setHolidayPeriodMode } from "@/lib/tesla.functions";
 import { adminRawUpsertCharger, adminDeleteCharger, adminBulkRawUpdate, adminListOwners, adminCreateOwner, reverseGeocodeCharger } from "@/lib/admin.functions";
-import { getCurrentUser } from "@/lib/auth.functions";
 import localDataset from "@/data/superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
-import { queueAdminChange, getPendingAdminChanges } from "@/lib/local-store";
+import { getPendingAdminChanges } from "@/lib/local-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -384,8 +383,6 @@ function AdminPage() {
     }
     return payload as Charger[];
   }, []);
-  const upsertAdminCharger = useServerFn(adminRawUpsertCharger);
-  const deleteAdminCharger = useServerFn(adminDeleteCharger);
   const bulkUpdateAdminChargers = useServerFn(adminBulkRawUpdate);
   const listAdminOwners = useServerFn(adminListOwners);
   const geocodeCharger = useServerFn(reverseGeocodeCharger);
@@ -398,17 +395,23 @@ function AdminPage() {
 
   useEffect(() => {
     let active = true;
-    void getCurrentUser().then(async (user) => {
-      if (!active) return;
-      const admin = !!user?.is_admin;
-      setIsAdmin(admin);
-      if (admin) {
-        try {
-          const [winter, holiday] = await Promise.all([readWinterSportsMode(), readHolidayPeriodMode()]);
-          if (active) { setWinterSportsEnabled(winter); setHolidayPeriodEnabled(holiday); }
-        } catch { if (active) { setWinterSportsEnabled(false); setHolidayPeriodEnabled(false); } }
-      }
-    }).catch(() => { if (active) setIsAdmin(false); });
+    void fetch("/api/admin/me", { method: "GET", credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => null) as { is_admin?: boolean; error?: string } | null;
+        if (!response.ok) throw new Error(payload?.error || "Admincontrole mislukt (HTTP " + response.status + ").");
+        if (!active) return;
+        const admin = payload?.is_admin === true;
+        setIsAdmin(admin);
+        if (admin) {
+          try {
+            const [winter, holiday] = await Promise.all([readWinterSportsMode(), readHolidayPeriodMode()]);
+            if (active) { setWinterSportsEnabled(winter); setHolidayPeriodEnabled(holiday); }
+          } catch { if (active) { setWinterSportsEnabled(false); setHolidayPeriodEnabled(false); } }
+        }
+      }).catch((error) => {
+        console.error("[TeslaNavigation] Direct admin session check failed:", error);
+        if (active) setIsAdmin(false);
+      });
     return () => { active = false; };
   }, [readWinterSportsMode, readHolidayPeriodMode]);
 
@@ -619,22 +622,19 @@ function AdminPage() {
       photos: (editing.photos || []).map((u) => u.trim()).filter(Boolean),
     };
     try {
-      await upsertAdminCharger({ data: stripLegacyTrafficColumn({ ...(editing.id ? { id: editing.id } : {}), ...payload } as Record<string, unknown>) });
-      toast.success(editing.id ? "Bijgewerkt" : "Toegevoegd");
+      const response = await fetch("/api/admin/superchargers", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(stripLegacyTrafficColumn({ ...(editing.id ? { id: editing.id } : {}), ...payload } as Record<string, unknown>)),
+      });
+      const result = await response.json().catch(() => null) as { error?: string; id?: string } | null;
+      if (!response.ok || !result?.id) throw new Error(result?.error || "Opslaan mislukt (HTTP " + response.status + ").");
+      toast.success(editing.id ? "Bijgewerkt in Cloudflare D1" : "Toegevoegd aan Cloudflare D1");
     } catch (error) {
-      // Bewaar de wijziging lokaal, maar toon ook de echte databasefout zodat schema-
-      // of validatiefouten niet onterecht als alleen een cloudstoring worden gemeld.
       const message = error instanceof Error ? error.message : String(error);
       console.error("[TeslaNavigation] Supercharger opslaan mislukt:", error);
-      // Een ontbrekende JSONB-kolom kan niet met een lokale wachtrij worden opgelost.
-      // Laat het formulier open zodat de gebruiker geen ingevoerde tarieven verliest.
-      if (/parking_blocks/i.test(message) && /(column|schema cache|does not exist|could not find)/i.test(message)) {
-        toast.error("Parkeertarieven niet opgeslagen: controleer of de D1-migratie parking_blocks is toegepast. Je ingevoerde gegevens blijven in het formulier staan.");
-        return;
-      }
-      queueAdminChange({ type: "upsert", id: editing.id, payload: stripLegacyTrafficColumn(editing.id ? { id: editing.id, ...payload } : payload) });
-      if (editing.id) setChargers((prev) => prev.map((c) => (c.id === editing.id ? ({ ...c, ...payload } as Charger) : c)));
-      toast.error(`Opslaan mislukt: ${message}`);
+      toast.error("Niet opgeslagen in Cloudflare D1: " + message + ". Je formulier blijft open; er is geen lokale schijnopslag uitgevoerd.");
       return;
     }
     setEditing(null);
@@ -645,12 +645,14 @@ function AdminPage() {
     if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Verwijderen is uitgeschakeld."); return; }
     if (!confirm("Weet je zeker dat je deze supercharger wilt verwijderen?")) return;
     try {
-      await deleteAdminCharger({ data: { id } });
-      toast.success("Verwijderd");
-    } catch {
-      queueAdminChange({ type: "delete", id });
-      setChargers((prev) => prev.filter((c) => c.id !== id));
-      toast.warning("Cloud onbereikbaar — verwijdering in wachtrij gezet");
+      const response = await fetch("/api/admin/superchargers?id=" + encodeURIComponent(id), {
+        method: "DELETE", credentials: "same-origin", headers: { Accept: "application/json" },
+      });
+      const result = await response.json().catch(() => null) as { error?: string } | null;
+      if (!response.ok) throw new Error(result?.error || "Verwijderen mislukt (HTTP " + response.status + ").");
+      toast.success("Verwijderd uit Cloudflare D1");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Verwijderen uit Cloudflare D1 mislukt.");
       return;
     }
     load();
