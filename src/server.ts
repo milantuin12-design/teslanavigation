@@ -66,6 +66,20 @@ async function authorizeAdmin(request: Request, db: AdminD1Database): Promise<{ 
   return { id: user.id };
 }
 
+function withBuildHeaders(response: Response, env: unknown): Response {
+  const headers = new Headers(response.headers);
+  const buildSha = (env as { BUILD_SHA?: string } | null)?.BUILD_SHA ?? "unknown";
+  headers.set("x-teslanavigation-build", buildSha);
+  if ((headers.get("content-type") ?? "").includes("text/html")) {
+    // Never let a browser or intermediary keep an old app shell after a deployment.
+    headers.set("cache-control", "no-store, no-cache, must-revalidate, max-age=0");
+    headers.set("cdn-cache-control", "no-store");
+    headers.set("pragma", "no-cache");
+    headers.set("expires", "0");
+  }
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
 function jsonResponse(value: unknown, status = 200): Response {
   return new Response(JSON.stringify(value), {
     status,
@@ -132,6 +146,13 @@ async function handleAdminSuperchargerList(request: Request, workerEnv: unknown)
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const pathname = new URL(request.url).pathname;
+    if (pathname === "/__version") {
+      return jsonResponse({
+        app: "TeslaNavigation",
+        build: (env as { BUILD_SHA?: string } | null)?.BUILD_SHA ?? "unknown",
+        deployedAt: new Date().toISOString(),
+      });
+    }
     if (pathname === "/api/auth/login") {
       if (request.method !== "POST") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
       try {
@@ -364,7 +385,7 @@ export default {
       });
       const handler = await getServerEntry();
       const response = await handler.fetch(workerRequest, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return withBuildHeaders(await normalizeCatastrophicSsrResponse(response), env);
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
