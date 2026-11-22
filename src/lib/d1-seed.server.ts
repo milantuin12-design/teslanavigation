@@ -114,5 +114,5 @@ export async function ensureBundledD1Seed() {
   if (tariffState?.value !== tariffVersion) await setMeta("bundled_tariff_version", tariffVersion);
 
   const count = await db.prepare("SELECT COUNT(*) AS count FROM superchargers").first<{count:number}>();
-  return { seeded: inserted > 0 && (count?.count ?? 0) === inserted, count: count?.count ?? 0, refreshed, tariffsRefreshed };
+  return { seeded: inserted > 0 && (count?.count ?? 0) === inserted, inserted, count: count?.count ?? 0 };
 }
