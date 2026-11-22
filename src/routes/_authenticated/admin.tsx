@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { importSuperchargers, getWinterSportsMode, setWinterSportsMode, getHolidayPeriodMode, setHolidayPeriodMode } from "@/lib/tesla.functions";
-import { adminRawUpsertCharger, adminDeleteCharger, adminBulkRawUpdate, adminListOwners, adminCreateOwner, reverseGeocodeCharger } from "@/lib/admin.functions";
+import { adminListOwners, adminCreateOwner, reverseGeocodeCharger } from "@/lib/admin.functions";
 import localDataset from "@/data/superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
 import { getPendingAdminChanges } from "@/lib/local-store";
@@ -383,7 +383,6 @@ function AdminPage() {
     }
     return payload as Charger[];
   }, []);
-  const bulkUpdateAdminChargers = useServerFn(adminBulkRawUpdate);
   const listAdminOwners = useServerFn(adminListOwners);
   const geocodeCharger = useServerFn(reverseGeocodeCharger);
   const [geocodingCoordinates, setGeocodingCoordinates] = useState(false);
@@ -481,15 +480,8 @@ function AdminPage() {
         toast.warning(`${pending.length} oude lokale wijziging(en) staan nog in de wachtrij. Ze zijn NIET automatisch toegepast om nieuwere D1-gegevens te beschermen.`);
       }
 
-      // Na het verwerken van de wachtrij de volledige actuele lijst opnieuw lezen.
-      const response = await listAdminSuperchargers();
-      const pageRows = unwrapArray(response) as Charger[] | null;
-      if (!pageRows) {
-        let received = typeof response;
-        try { received = JSON.stringify(response).slice(0, 700); } catch { /* keep type */ }
-        throw new Error("Cloudflare D1 gaf geen herkenbare Supercharger-lijst terug: " + received);
-      }
-      rows.push(...pageRows.map((row) => addAdminTariff(row)));
+      // Gebruik dezelfde geverifieerde D1-respons; er is geen tweede, afwijkende read nodig.
+      rows.push(...healthRows.map((row) => addAdminTariff(row)));
 
       // Als de D1-query zelf succesvol is maar de tabel nog leeg is,
       // toon dan de meegeleverde basislijst. D1 is in dat geval wél bereikbaar:
@@ -676,7 +668,7 @@ function AdminPage() {
     const drafts = chargers.filter((c) => c.published === false);
     if (drafts.length === 0) { toast.info("Geen concepten om te publiceren"); return; }
     if (!confirm(`${drafts.length} concepten publiceren?`)) return;
-    try { await bulkUpdateAdminChargers({ data: { ids: drafts.map((draft) => draft.id), changes: { published: true } } }); }
+    try { await sendAdminBulkUpdate(drafts.map((draft) => draft.id), { published: true }); }
     catch (error) { toast.error(error instanceof Error ? error.message : "Publiceren mislukt"); return; }
     toast.success(`${drafts.length} concepten gepubliceerd`);
     load();
@@ -725,11 +717,24 @@ function AdminPage() {
     return data.id;
   };
 
+  const sendAdminBulkUpdate = async (ids: string[], changes: Record<string, unknown>) => {
+    const response = await fetch("/api/admin/superchargers/bulk", {
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ ids, changes }),
+    });
+    const result = await response.json().catch(() => null) as { error?: string; updated?: number } | null;
+    if (!response.ok || typeof result?.updated !== "number") {
+      throw new Error(result?.error || "Bulk opslaan in Cloudflare D1 mislukt (HTTP " + response.status + ").");
+    }
+    return result;
+  };
+
   const bulkUpdate = async (changes: Record<string, unknown>) => {
     if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Bulk wijzigen is uitgeschakeld."); return; }
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
-    try { await bulkUpdateAdminChargers({ data: { ids, changes } }); }
+    try { await sendAdminBulkUpdate(ids, changes); }
     catch (error) { toast.error(error instanceof Error ? error.message : "Bijwerken mislukt"); return; }
     toast.success(`${ids.length} Superchargers bijgewerkt`);
     setSelectedIds(new Set());
