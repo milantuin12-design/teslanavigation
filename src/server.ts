@@ -132,6 +132,74 @@ async function handleAdminSuperchargerList(request: Request, workerEnv: unknown)
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const pathname = new URL(request.url).pathname;
+    if (pathname === "/api/auth/login") {
+      if (request.method !== "POST") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
+      try {
+        const db = (env as { DB?: AdminD1Database } | null)?.DB;
+        if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
+        const input = await request.json() as { email?: unknown; password?: unknown };
+        const email = typeof input.email === "string" ? input.email.trim().toLowerCase() : "";
+        const password = typeof input.password === "string" ? input.password : "";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 1 || password.length > 200) {
+          return jsonResponse({ error: "Vul een geldig e-mailadres en wachtwoord in." }, 400);
+        }
+        const user = await db.prepare("SELECT id,email,password_hash,blocked FROM users WHERE email=? LIMIT 1")
+          .bind(email).first<{ id: string; email: string; password_hash: string; blocked: number }>();
+        if (!user || user.blocked) return jsonResponse({ error: "E-mailadres of wachtwoord is onjuist." }, 401);
+        const stored = user.password_hash;
+        let algorithm = "";
+        let rounds = "";
+        let saltText = "";
+        let expectedText = "";
+        if (stored.includes("$")) {
+          [algorithm, rounds, saltText, expectedText] = stored.split("$");
+        } else {
+          algorithm = stored.slice(0, 13);
+          rounds = stored.slice(13, 19);
+          saltText = stored.slice(19, 43);
+          expectedText = stored.slice(43);
+        }
+        const iterations = Number(rounds);
+        if (algorithm !== "pbkdf2-sha256" || !/^\d+$/.test(rounds) || !Number.isInteger(iterations) || iterations < 1 || iterations > 100000 || !saltText || !expectedText) {
+          return jsonResponse({ error: "E-mailadres of wachtwoord is onjuist." }, 401);
+        }
+        const decodeBase64 = (value: string) => Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
+        const salt = decodeBase64(saltText);
+        const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+        const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations }, key, 256);
+        const actual = new Uint8Array(bits);
+        const expected = decodeBase64(expectedText);
+        if (actual.length !== expected.length) return jsonResponse({ error: "E-mailadres of wachtwoord is onjuist." }, 401);
+        let mismatch = 0;
+        for (let i = 0; i < actual.length; i++) mismatch |= actual[i] ^ expected[i];
+        if (mismatch !== 0) return jsonResponse({ error: "E-mailadres of wachtwoord is onjuist." }, 401);
+
+        const random = new Uint8Array(32);
+        crypto.getRandomValues(random);
+        let tokenBinary = "";
+        for (const byte of random) tokenBinary += String.fromCharCode(byte);
+        const token = btoa(tokenBinary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+        const digestBytes = new Uint8Array(digest);
+        let digestBinary = "";
+        for (const byte of digestBytes) digestBinary += String.fromCharCode(byte);
+        const tokenHash = btoa(digestBinary);
+        const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace("T", " ");
+        await db.prepare("INSERT INTO sessions (id,user_id,token_hash,expires_at) VALUES (?,?,?,?)")
+          .bind(crypto.randomUUID(), user.id, tokenHash, expiresAt).run();
+        return new Response(JSON.stringify({ ok: true, id: user.id, email: user.email }), {
+          status: 200,
+          headers: {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, max-age=0",
+            "set-cookie": "__Host-tn-session=" + token + "; Path=/; Max-Age=1209600; HttpOnly; Secure; SameSite=Lax",
+          },
+        });
+      } catch (error) {
+        console.error("[TeslaNavigation] Direct D1 login failed:", error);
+        return jsonResponse({ error: error instanceof Error ? error.message : "Inloggen bij Cloudflare D1 mislukt." }, 500);
+      }
+    }
     if (pathname === "/api/auth/me") {
       if (request.method !== "GET") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
       try {
