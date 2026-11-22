@@ -132,6 +132,28 @@ async function handleAdminSuperchargerList(request: Request, workerEnv: unknown)
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const pathname = new URL(request.url).pathname;
+    if (pathname === "/api/auth/me") {
+      if (request.method !== "GET") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
+      try {
+        const db = (env as { DB?: AdminD1Database } | null)?.DB;
+        if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
+        const cookieHeader = request.headers.get("cookie") ?? "";
+        const cookie = cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith("__Host-tn-session="));
+        const token = cookie?.slice("__Host-tn-session=".length);
+        if (!token) return jsonResponse({ error: "Je bent niet ingelogd." }, 401);
+        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+        const bytes = new Uint8Array(digest);
+        let binary = "";
+        for (const byte of bytes) binary += String.fromCharCode(byte);
+        const row = await db.prepare("SELECT u.id,u.email,u.display_name,u.gender,EXISTS(SELECT 1 FROM user_roles r WHERE r.user_id=u.id AND r.role='admin') AS is_admin FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>CURRENT_TIMESTAMP AND u.blocked=0 LIMIT 1")
+          .bind(btoa(binary)).first<{ id: string; email: string; display_name: string | null; gender: string | null; is_admin: number | boolean }>();
+        if (!row) return jsonResponse({ error: "Je sessie is verlopen. Log opnieuw in." }, 401);
+        return jsonResponse({ ...row, is_admin: row.is_admin === true || Number(row.is_admin) === 1 });
+      } catch (error) {
+        console.error("[TeslaNavigation] Direct session lookup failed:", error);
+        return jsonResponse({ error: error instanceof Error ? error.message : "Sessiecontrole mislukt." }, 500);
+      }
+    }
     if (pathname === "/api/admin/me") {
       if (request.method !== "GET") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
       try {
