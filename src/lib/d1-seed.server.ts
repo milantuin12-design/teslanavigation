@@ -80,9 +80,13 @@ export async function ensureBundledD1Seed() {
 
   const datasetState = await meta("bundled_dataset_version");
   let inserted = 0;
-  let refreshed = 0;
+
+  // The bundled dataset is a source for missing public locations, NOT a source
+  // of truth for records already present in D1. Existing rows may contain admin
+  // edits even when an old deployment left data_source='automatic'. Therefore
+  // never update an existing Supercharger from this seed, regardless of source.
+  // This prevents a changed exportedAt/dataset version from reverting settings.
   if (datasetState?.value !== datasetVersion) {
-    const baseFields = ["name","lat","lng","total_stalls","stall_types","country","province","city","max_speed_kw","versions","status","construction","works","closure","opening_time","closing_time","opening_hours","is_available","charger_configs","parking_fee","in_parking_garage","low_speed","reopen_at","planned_upgrade"];
     const statements = chargers.flatMap((charger) => {
       if (!charger.id || !charger.name || typeof charger.lat !== "number" || typeof charger.lng !== "number") return [];
       const row = Object.fromEntries(CHARGER_FIELDS.filter((field) => field in charger).map((field) => [field, valueFor(field, charger[field])]));
@@ -96,36 +100,17 @@ export async function ensureBundledD1Seed() {
         row.peak_hours = null;
       }
       const fields = Object.keys(row);
-      const insert = db.prepare(`INSERT INTO superchargers (${fields.join(",")}) VALUES (${fields.map(()=>"?").join(",")}) ON CONFLICT(id) DO NOTHING`)
-        .bind(...fields.map((field) => row[field]));
-      const updateValues = baseFields.map((field) => valueFor(field, charger[field]));
-      // Only refresh rows explicitly marked as automatic. Legacy rows with a
-      // NULL source may contain older manual edits, so never overwrite them.
-      const update = db.prepare(`UPDATE superchargers SET ${baseFields.map((field) => `${field} = ?`).join(",")}, data_source = 'automatic' WHERE id = ? AND data_source = 'automatic'`)
-        .bind(...updateValues, charger.id);
-      return [insert, update];
+      return [db.prepare(`INSERT INTO superchargers (${fields.join(",")}) VALUES (${fields.map(() => "?").join(",")}) ON CONFLICT(id) DO NOTHING`)
+        .bind(...fields.map((field) => row[field]))];
     });
     for (let i = 0; i < statements.length; i += 50) await db.batch(statements.slice(i, i + 50));
-    inserted = chargers.length;
-    refreshed = statements.length / 2;
+    inserted = statements.length;
     await setMeta("bundled_dataset_version", datasetVersion);
   }
 
+  // Never backfill tariffs into existing D1 records. An empty tariff can be an
+  // intentional admin choice, and all existing rows are protected from seed writes.
   const tariffState = await meta("bundled_tariff_version");
-  // Only run the tariff backfill when the bundled charger or tariff data changes.
-  // Running thousands of UPDATE statements on every admin page request made the
-  // admin screen slow and could exhaust a request before the list was returned.
-  const tariffNeedsRefresh = datasetState?.value !== datasetVersion || tariffState?.value !== tariffVersion;
-  const tariffUpdates = tariffNeedsRefresh ? chargers.flatMap((row) => {
-    const price = getBundledPrice(row);
-    return price && row.id ? [db.prepare(`UPDATE superchargers
-      SET price_currency = ?, price_blocks = ?, price_per_kwh = NULL,
-          price_per_kwh_peak = NULL, peak_hours = NULL
-      WHERE id = ? AND (price_blocks IS NULL OR price_blocks = '' OR price_blocks = '[]')`)
-      .bind(price.currency, JSON.stringify(price.blocks), row.id)] : [];
-  }) : [];
-  for (let i = 0; i < tariffUpdates.length; i += 50) await db.batch(tariffUpdates.slice(i, i + 50));
-  const tariffsRefreshed = tariffUpdates.length;
   if (tariffState?.value !== tariffVersion) await setMeta("bundled_tariff_version", tariffVersion);
 
   const count = await db.prepare("SELECT COUNT(*) AS count FROM superchargers").first<{count:number}>();
