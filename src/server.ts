@@ -48,6 +48,26 @@ type AdminD1Database = {
   };
 };
 
+async function authorizeAdmin(request: Request, db: AdminD1Database): Promise<{ id: string } | Response> {
+  const cookieHeader = request.headers.get("cookie") ?? "";
+  const cookie = cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith("__Host-tn-session="));
+  const token = cookie?.slice("__Host-tn-session=".length);
+  if (!token) return jsonResponse({ error: "Je bent niet ingelogd. Log opnieuw in." }, 401);
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  const digestBytes = new Uint8Array(digest);
+  let binary = "";
+  for (const byte of digestBytes) binary += String.fromCharCode(byte);
+  const tokenHash = btoa(binary);
+  const user = await db.prepare(`
+    SELECT u.id, EXISTS(SELECT 1 FROM user_roles r WHERE r.user_id = u.id AND r.role = 'admin') AS is_admin
+    FROM sessions s JOIN users u ON u.id = s.user_id
+    WHERE s.token_hash = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.blocked = 0 LIMIT 1
+  `).bind(tokenHash).first<{ id: string; is_admin: number | boolean }>();
+  if (!user) return jsonResponse({ error: "Je sessie is verlopen. Log opnieuw in." }, 401);
+  if (!(user.is_admin === true || Number(user.is_admin) === 1)) return jsonResponse({ error: "Je account heeft geen beheerdersrechten." }, 403);
+  return { id: user.id };
+}
+
 function jsonResponse(value: unknown, status = 200): Response {
   return new Response(JSON.stringify(value), {
     status,
@@ -73,29 +93,13 @@ async function handleAdminSuperchargerList(request: Request, workerEnv: unknown)
   const db = bindings?.DB;
   if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
 
-  const cookieHeader = request.headers.get("cookie") ?? "";
-  const cookie = cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith("__Host-tn-session="));
-  const token = cookie?.slice("__Host-tn-session=".length);
-  if (!token) return jsonResponse({ error: "Je bent niet ingelogd. Log opnieuw in." }, 401);
-
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
-  const digestBytes = new Uint8Array(digest);
-  let binary = "";
-  for (const byte of digestBytes) binary += String.fromCharCode(byte);
-  const tokenHash = btoa(binary);
-
-  const user = await db.prepare(`
-    SELECT u.id,
-      EXISTS(SELECT 1 FROM user_roles r WHERE r.user_id = u.id AND r.role = 'admin') AS is_admin
-    FROM sessions s
-    JOIN users u ON u.id = s.user_id
-    WHERE s.token_hash = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.blocked = 0
-    LIMIT 1
-  `).bind(tokenHash).first<{ id: string; is_admin: number | boolean }>();
-
-  if (!user) return jsonResponse({ error: "Je sessie is verlopen. Log opnieuw in." }, 401);
-  if (!(user.is_admin === true || Number(user.is_admin) === 1)) {
-    return jsonResponse({ error: "Je account heeft geen beheerdersrechten." }, 403);
+  const admin = await authorizeAdmin(request, db);
+  if (admin instanceof Response) return admin;
+  try {
+    const { ensureBundledD1Seed } = await import("./lib/d1-seed.server");
+    await ensureBundledD1Seed();
+  } catch (error) {
+    console.error("[TeslaNavigation] Safe missing-row seed skipped; reading existing D1 rows:", error);
   }
 
   const result = await db.prepare(`
@@ -130,6 +134,19 @@ async function handleAdminSuperchargerList(request: Request, workerEnv: unknown)
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const pathname = new URL(request.url).pathname;
+    if (pathname === "/api/admin/me") {
+      if (request.method !== "GET") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
+      try {
+        const db = (env as { DB?: AdminD1Database } | null)?.DB;
+        if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
+        const admin = await authorizeAdmin(request, db);
+        if (admin instanceof Response) return admin;
+        return jsonResponse({ is_admin: true });
+      } catch (error) {
+        console.error("[TeslaNavigation] Admin session check failed:", error);
+        return jsonResponse({ error: error instanceof Error ? error.message : "Sessiecontrole mislukt." }, 500);
+      }
+    }
     if (pathname === "/api/admin/superchargers") {
       try {
         return await handleAdminSuperchargerList(request, env);
