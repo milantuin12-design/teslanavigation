@@ -6,7 +6,7 @@ import { adminRawUpsertCharger, adminDeleteCharger, adminBulkRawUpdate, adminLis
 import { getCurrentUser } from "@/lib/auth.functions";
 import localDataset from "@/data/superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
-import { queueAdminChange, getPendingAdminChanges, clearPendingAdminChanges, keepPendingAdminChanges } from "@/lib/local-store";
+import { queueAdminChange, getPendingAdminChanges } from "@/lib/local-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -468,28 +468,14 @@ function AdminPage() {
         throw new Error("Cloudflare D1 gaf geen herkenbare Supercharger-lijst terug: " + received);
       }
 
+      // Oude lokale wachtrij-items nooit automatisch opnieuw afspelen.
+      // Ze kunnen ouder zijn dan de actuele D1-records en anders nieuwere
+      // instellingen/stations overschrijven zodra de verbinding terugkomt.
+      // Bewaar de wachtrij ongewijzigd zodat niets verloren gaat; nieuwe
+      // wijzigingen worden alleen na een expliciete handmatige opslag verstuurd.
       const pending = getPendingAdminChanges();
       if (pending.length > 0) {
-        let processed = 0;
-        for (const change of pending) {
-          try {
-            if (change.type === "delete" && change.id) {
-              await deleteAdminCharger({ data: { id: change.id } });
-            } else if (change.type === "upsert" && change.payload) {
-              await upsertAdminCharger({ data: stripLegacyTrafficColumn(change.payload as Record<string, unknown>) });
-            }
-            processed += 1;
-          } catch (error) {
-            console.error("[TeslaNavigation] Lokaal bewaarde adminwijziging niet verwerkt; wijziging blijft bewaard:", error);
-            break;
-          }
-        }
-        if (processed === pending.length) {
-          clearPendingAdminChanges();
-          toast.success("Wachtrij met wijzigingen verwerkt in Cloudflare D1");
-        } else if (processed > 0) {
-          keepPendingAdminChanges(pending.slice(processed));
-        }
+        toast.warning(`${pending.length} oude lokale wijziging(en) staan nog in de wachtrij. Ze zijn NIET automatisch toegepast om nieuwere D1-gegevens te beschermen.`);
       }
 
       // Na het verwerken van de wachtrij de volledige actuele lijst opnieuw lezen.
