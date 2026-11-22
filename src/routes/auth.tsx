@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { claimAdmin, getCurrentUser, signIn, signUp, resetPassword } from "@/lib/auth.functions";
+import { claimAdmin, signUp, resetPassword } from "@/lib/auth.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,18 +32,18 @@ function AuthPage() {
 
   useEffect(() => {
     let active = true;
-    void getCurrentUser().then((user) => {
-      if (!active || !user) return;
-      setCurrentUser(user);
-      if (user.is_admin) {
-        window.location.assign("/");
-      } else {
-        // A signed-in normal user must stay here to claim the first admin role.
-        setAdminSetup(true);
-      }
-    }).catch(() => {
-      if (active) setAuthError("De Cloudflare-inlogserver is nog niet beschikbaar. Probeer het later opnieuw.");
-    });
+    void fetch("/api/auth/me", { method: "GET", credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return await response.json() as { id: string; email: string; display_name: string | null; is_admin: boolean };
+      }).then((user) => {
+        if (!active || !user) return;
+        setCurrentUser(user);
+        if (user.is_admin) window.location.assign("/");
+        else setAdminSetup(true);
+      }).catch(() => {
+        if (active) setAuthError("De Cloudflare-inlogserver is nog niet beschikbaar. Probeer het later opnieuw.");
+      });
     return () => { active = false; };
   }, []);
 
@@ -85,7 +85,14 @@ function AuthPage() {
     setAuthError("");
     try {
       if (mode === "login") {
-        await signIn({ data: { email: email.trim(), password } });
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ email: email.trim(), password }),
+        });
+        const result = await response.json().catch(() => null) as { error?: string } | null;
+        if (!response.ok) throw new Error(result?.error || "Inloggen mislukt (HTTP " + response.status + ").");
         toast.success("Ingelogd");
         window.location.assign("/");
       } else {
