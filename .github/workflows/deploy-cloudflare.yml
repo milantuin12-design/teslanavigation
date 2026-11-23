@@ -87,8 +87,23 @@ jobs:
             echo "Admin D1 check $attempt: HTTP $admin_status $admin_body"
             test "$admin_status" = "401"
             ! echo "$admin_body" | grep -Fq 'Cloudflare D1-binding DB ontbreekt'
+
+            # Exercise both auth endpoints without using or changing any account.
+            # A no-cookie session lookup must return the normal JSON 401 response.
+            session_status="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/session-probe.json -w '%{http_code}' "$base/api/auth/me")"
+            session_body="$(cat /tmp/session-probe.json)"
+            echo "Auth session route check $attempt: HTTP $session_status $session_body"
+            test "$session_status" = "401"
+            echo "$session_body" | grep -Fq 'Je bent niet ingelogd.'
+
+            # Invalid credentials are rejected before any account lookup or write.
+            login_status="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' --data '{"email":"invalid","password":"x"}' -o /tmp/login-probe.json -w '%{http_code}' "$base/api/auth/login")"
+            login_body="$(cat /tmp/login-probe.json)"
+            echo "Auth login route check $attempt: HTTP $login_status $login_body"
+            test "$login_status" = "400"
+            echo "$login_body" | grep -Fq 'Vul een geldig e-mailadres en wachtwoord in.'
           done
 
           page="$(curl --retry 3 --retry-all-errors --retry-delay 1 --fail --silent --show-error -o /dev/null -w '%{http_code}' "$base/")"
           test "$page" = "200"
-          echo "Verified: all 12 live checks executed SQL successfully on the expected deployed build."
+          echo "Verified: all 12 live checks executed SQL and exercised both auth routes on the expected deployed build."
