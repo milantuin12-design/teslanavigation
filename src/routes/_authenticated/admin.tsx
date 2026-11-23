@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { importSuperchargers, getWinterSportsMode, setWinterSportsMode, getHolidayPeriodMode, setHolidayPeriodMode } from "@/lib/tesla.functions";
+import { getCurrentUser } from "@/lib/auth.functions";
 import { adminListOwners, adminCreateOwner, reverseGeocodeCharger } from "@/lib/admin.functions";
 import localDataset from "@/data/superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
@@ -394,14 +395,12 @@ function AdminPage() {
 
   useEffect(() => {
     let active = true;
-    // Use the same D1-backed identity endpoint as the authenticated app shell.
-    // It also renews the rolling session cookie, so active admins stay signed in.
-    void fetch("/api/auth/me", { method: "GET", credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
-      .then(async (response) => {
-        const payload = await response.json().catch(() => null) as { is_admin?: boolean; error?: string } | null;
-        if (!response.ok) throw new Error(payload?.error || "Admin-sessiecontrole mislukt (HTTP " + response.status + ").");
+    // Match AccountMenu and the authenticated route: use the shared D1 identity
+    // server function rather than a second, separately implemented cookie probe.
+    void getCurrentUser()
+      .then(async (user) => {
         if (!active) return;
-        const admin = payload?.is_admin === true;
+        const admin = user?.is_admin === true;
         setIsAdmin(admin);
         if (admin) {
           try {
@@ -410,7 +409,7 @@ function AdminPage() {
           } catch { if (active) { setWinterSportsEnabled(false); setHolidayPeriodEnabled(false); } }
         }
       }).catch((error) => {
-        console.error("[TeslaNavigation] Direct admin session check failed:", error);
+        console.error("[TeslaNavigation] Shared admin identity check failed:", error);
         if (active) setIsAdmin(false);
       });
     return () => { active = false; };
