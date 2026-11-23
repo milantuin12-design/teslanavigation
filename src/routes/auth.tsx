@@ -85,10 +85,18 @@ function AuthPage() {
     setAuthError("");
     try {
       if (mode === "login") {
-        // Use the same TanStack server-function path as registration.
-        // This avoids the separate /api/auth/login fetch endpoint that was
-        // producing a browser-level "Failed to fetch" instead of an auth response.
-        await signIn({ data: { email: email.trim(), password } });
+        // Authenticate through the Worker-owned same-origin endpoint. It
+        // writes the __Host-tn-session cookie directly and returns a normal
+        // JSON error for invalid credentials or database failures.
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ email: email.trim(), password }),
+        });
+        const result = await response.json().catch(() => null) as { error?: string } | null;
+        if (!response.ok) throw new Error(result?.error || "Inloggen mislukt (HTTP " + response.status + ").");
         toast.success("Ingelogd");
         window.location.assign("/");
       } else {
