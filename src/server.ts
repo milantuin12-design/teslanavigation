@@ -53,24 +53,36 @@ type AdminD1Database = { prepare(query: string): AdminD1Statement; batch(stateme
  * every supported request/runtime location, with Cloudflare's module env
  * as the authoritative fallback.
  */
-function getWorkerBindings(input: unknown): Record<string, unknown> {
+function getWorkerBindingValue(input: unknown, key: string): unknown {
   const value = input && typeof input === "object" ? input as Record<string, unknown> : {};
   const runtime = value.runtime && typeof value.runtime === "object" ? value.runtime as Record<string, unknown> : {};
   const cloudflare = value.cloudflare && typeof value.cloudflare === "object" ? value.cloudflare as Record<string, unknown> : {};
   const runtimeCloudflare = runtime.cloudflare && typeof runtime.cloudflare === "object" ? runtime.cloudflare as Record<string, unknown> : {};
   const nestedEnv = value.env && typeof value.env === "object" ? value.env as Record<string, unknown> : {};
+
+  // Cloudflare's module-scoped env is the stable Workers binding source.
+  // Check it first; framework wrappers may pass request metadata as the
+  // second argument instead of the raw binding object on some code paths.
   const candidates = [
+    cloudflareEnv as unknown as Record<string, unknown>,
     value,
     nestedEnv,
     cloudflare.env && typeof cloudflare.env === "object" ? cloudflare.env as Record<string, unknown> : {},
     runtimeCloudflare.env && typeof runtimeCloudflare.env === "object" ? runtimeCloudflare.env as Record<string, unknown> : {},
-    cloudflareEnv as unknown as Record<string, unknown>,
   ];
-  return candidates.find((candidate) => candidate.DB != null) ?? candidates.find((candidate) => Object.keys(candidate).length > 0) ?? {};
+  for (const candidate of candidates) {
+    const found = candidate[key];
+    if (found !== undefined && found !== null) return found;
+  }
+  return undefined;
 }
 
 function getD1Binding(input: unknown): AdminD1Database | undefined {
-  return getWorkerBindings(input).DB as AdminD1Database | undefined;
+  const candidate = getWorkerBindingValue(input, "DB");
+  if (!candidate || typeof candidate !== "object" || typeof (candidate as AdminD1Database).prepare !== "function") {
+    return undefined;
+  }
+  return candidate as AdminD1Database;
 }
 
 async function authorizeAdmin(request: Request, db: AdminD1Database): Promise<{ id: string } | Response> {
@@ -95,7 +107,7 @@ async function authorizeAdmin(request: Request, db: AdminD1Database): Promise<{ 
 
 function withBuildHeaders(response: Response, env: unknown): Response {
   const headers = new Headers(response.headers);
-  const buildSha = (getWorkerBindings(env).BUILD_SHA as string | undefined) ?? "unknown";
+  const buildSha = (getWorkerBindingValue(env, "BUILD_SHA") as string | undefined) ?? "unknown";
   headers.set("x-teslanavigation-build", buildSha);
   if ((headers.get("content-type") ?? "").includes("text/html")) {
     // Never let a browser or intermediary keep an old app shell after a deployment.
@@ -175,7 +187,8 @@ export default {
     if (pathname === "/__version") {
       return jsonResponse({
         app: "TeslaNavigation",
-        build: (getWorkerBindings(env).BUILD_SHA as string | undefined) ?? "unknown",
+        build: (getWorkerBindingValue(env, "BUILD_SHA") as string | undefined) ?? "unknown",
+        d1Bound: getD1Binding(env) !== undefined,
         deployedAt: new Date().toISOString(),
       });
     }
