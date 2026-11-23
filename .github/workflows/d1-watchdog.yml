@@ -24,10 +24,10 @@ jobs:
           base="https://teslanavigation.milantuin12.workers.dev"
           healthy=false
           for attempt in $(seq 1 5); do
-            code="$(curl --retry 2 --retry-all-errors --retry-delay 2 --silent --show-error -o /tmp/d1.json -w '%{http_code}' "$base/__health/d1" || true)"
+            code="$(curl --retry 2 --retry-all-errors --retry-delay 2 --silent --show-error -o /tmp/d1.json -w '%{http_code}' "$base/__health/admin-d1" || true)"
             body="$(cat /tmp/d1.json 2>/dev/null || true)"
-            echo "Live D1 probe $attempt: HTTP $code $body"
-            if [ "$code" = "200" ] && echo "$body" | grep -Fq '"ok":true'; then
+            echo "Live admin D1 probe $attempt: HTTP $code $body"
+            if [ "$code" = "200" ] && echo "$body" | grep -Fq '"adminQuery":true'; then
               healthy=true
               break
             fi
@@ -73,13 +73,13 @@ jobs:
           verified=false
           for attempt in $(seq 1 18); do
             version="$(curl --retry 2 --retry-all-errors --retry-delay 1 --fail --silent --show-error "$base/__version" || true)"
-            code="$(curl --retry 2 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/d1-after.json -w '%{http_code}' "$base/__health/d1" || true)"
+            code="$(curl --retry 2 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/d1-after.json -w '%{http_code}' "$base/__health/admin-d1" || true)"
             body="$(cat /tmp/d1-after.json 2>/dev/null || true)"
             echo "Recovery check $attempt: version=$version D1=HTTP $code $body"
             if echo "$version" | grep -Fq "\"build\":\"$expected\"" &&
                echo "$version" | grep -Fq '"d1Bound":true' &&
                [ "$code" = "200" ] &&
-               echo "$body" | grep -Fq '"ok":true'; then
+               echo "$body" | grep -Fq '"adminQuery":true'; then
               verified=true
               break
             fi
