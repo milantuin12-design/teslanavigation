@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: teslanavigation-d1-watchdog
+  group: teslanavigation-cloudflare-deploy
   cancel-in-progress: false
 
 jobs:
@@ -69,11 +69,20 @@ jobs:
         run: |
           set -euo pipefail
           base="https://teslanavigation.milantuin12.workers.dev"
-          for attempt in $(seq 1 12); do
-            code="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/d1-after.json -w '%{http_code}' "$base/__health/d1")"
-            body="$(cat /tmp/d1-after.json)"
-            echo "Post-recovery D1 probe $attempt: HTTP $code $body"
-            test "$code" = "200"
-            echo "$body" | grep -Fq '"ok":true'
-            sleep 2
+          expected="$(git rev-parse HEAD)"
+          verified=false
+          for attempt in $(seq 1 18); do
+            version="$(curl --retry 2 --retry-all-errors --retry-delay 1 --fail --silent --show-error "$base/__version" || true)"
+            code="$(curl --retry 2 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/d1-after.json -w '%{http_code}' "$base/__health/d1" || true)"
+            body="$(cat /tmp/d1-after.json 2>/dev/null || true)"
+            echo "Recovery check $attempt: version=$version D1=HTTP $code $body"
+            if echo "$version" | grep -Fq "\"build\":\"$expected\"" &&
+               echo "$version" | grep -Fq '"d1Bound":true' &&
+               [ "$code" = "200" ] &&
+               echo "$body" | grep -Fq '"ok":true'; then
+              verified=true
+              break
+            fi
+            sleep 5
           done
+          test "$verified" = "true"
