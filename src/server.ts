@@ -175,7 +175,7 @@ export default {
     if (pathname === "/__version") {
       return jsonResponse({
         app: "TeslaNavigation",
-        build: (env as { BUILD_SHA?: string } | null)?.BUILD_SHA ?? "unknown",
+        build: (getWorkerBindings(env).BUILD_SHA as string | undefined) ?? "unknown",
         deployedAt: new Date().toISOString(),
       });
     }
@@ -250,7 +250,7 @@ export default {
     if (pathname === "/api/auth/me") {
       if (request.method !== "GET") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
       try {
-        const db = (env as { DB?: AdminD1Database } | null)?.DB;
+        const db = getD1Binding(env);
         if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
         const cookieHeader = request.headers.get("cookie") ?? "";
         const cookie = cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith("__Host-tn-session="));
@@ -283,7 +283,7 @@ export default {
     if (pathname === "/api/admin/me") {
       if (request.method !== "GET") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
       try {
-        const db = (env as { DB?: AdminD1Database } | null)?.DB;
+        const db = getD1Binding(env);
         if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
         const admin = await authorizeAdmin(request, db);
         if (admin instanceof Response) return admin;
@@ -313,7 +313,7 @@ export default {
 
     if (pathname === "/api/admin/superchargers" && request.method === "POST") {
       try {
-        const db = (env as { DB?: AdminD1Database } | null)?.DB;
+        const db = getD1Binding(env);
         if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
         const admin = await authorizeAdmin(request, db);
         if (admin instanceof Response) return admin;
@@ -352,7 +352,7 @@ export default {
     }
     if (pathname === "/api/admin/superchargers/bulk" && request.method === "POST") {
       try {
-        const db = (env as { DB?: AdminD1Database } | null)?.DB;
+        const db = getD1Binding(env);
         if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
         const admin = await authorizeAdmin(request, db);
         if (admin instanceof Response) return admin;
@@ -392,7 +392,7 @@ export default {
     }
     if (pathname === "/api/admin/superchargers" && request.method === "DELETE") {
       try {
-        const db = (env as { DB?: AdminD1Database } | null)?.DB;
+        const db = getD1Binding(env);
         if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
         const admin = await authorizeAdmin(request, db);
         if (admin instanceof Response) return admin;
