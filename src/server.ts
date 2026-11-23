@@ -320,6 +320,44 @@ export default {
         return jsonResponse({ error: error instanceof Error ? error.message : "Sessiecontrole mislukt." }, 500);
       }
     }
+    if (pathname === "/api/auth/claim-admin") {
+      if (request.method !== "POST") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
+      try {
+        const db = getD1Binding(env);
+        if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
+        const cookieHeader = request.headers.get("cookie") ?? "";
+        const cookie = cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith("__Host-tn-session="));
+        const sessionToken = cookie?.slice("__Host-tn-session=".length);
+        if (!sessionToken) return jsonResponse({ error: "Log eerst in met je account." }, 401);
+        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(sessionToken));
+        const digestBytes = new Uint8Array(digest);
+        let digestBinary = "";
+        for (const byte of digestBytes) digestBinary += String.fromCharCode(byte);
+        const user = await db.prepare("SELECT u.id FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>CURRENT_TIMESTAMP AND u.blocked=0 LIMIT 1")
+          .bind(btoa(digestBinary)).first<{ id: string }>();
+        if (!user) return jsonResponse({ error: "Je sessie is verlopen. Log opnieuw in." }, 401);
+        const input = await request.json().catch(() => null) as { token?: unknown } | null;
+        const supplied = typeof input?.token === "string" ? input.token : "";
+        const configured = (getWorkerBindingValue(env, "ADMIN_BOOTSTRAP_TOKEN") as string | undefined) ?? "";
+        if (configured.length < 32) return jsonResponse({ error: "De eenmalige beheerderscode is nog niet ingesteld in Cloudflare." }, 503);
+        const a = new TextEncoder().encode(supplied);
+        const b = new TextEncoder().encode(configured);
+        if (a.length !== b.length) return jsonResponse({ error: "De beheerderscode is onjuist." }, 403);
+        let mismatch = 0;
+        for (let i = 0; i < a.length; i++) mismatch |= a[i] ^ b[i];
+        if (mismatch !== 0) return jsonResponse({ error: "De beheerderscode is onjuist." }, 403);
+        const result = await db.prepare("INSERT INTO user_roles (id,user_id,role) SELECT ?, ?, 'admin' WHERE NOT EXISTS (SELECT 1 FROM user_roles WHERE role='admin')")
+          .bind(crypto.randomUUID(), user.id).run();
+        if (!result.meta?.changes) {
+          const existing = await db.prepare("SELECT id FROM user_roles WHERE user_id=? AND role='admin' LIMIT 1").bind(user.id).first();
+          if (!existing) return jsonResponse({ error: "De eerste beheerder is al ingesteld voor een ander account." }, 409);
+        }
+        return jsonResponse({ ok: true, is_admin: true });
+      } catch (error) {
+        console.error("[TeslaNavigation] Direct admin bootstrap failed:", error);
+        return jsonResponse({ error: error instanceof Error ? error.message : "Beheerder activeren mislukt." }, 500);
+      }
+    }
     if (pathname === "/api/admin/me") {
       if (request.method !== "GET") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
       try {
