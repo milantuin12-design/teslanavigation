@@ -1,3 +1,4 @@
+import { env as cloudflareEnv } from "cloudflare:workers";
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
@@ -46,6 +47,32 @@ type AdminD1Statement = {
 };
 type AdminD1Database = { prepare(query: string): AdminD1Statement; batch(statements: AdminD1Statement[]): Promise<unknown[]> };
 
+/**
+ * Nitro/TanStack may call the custom server entry with a platform wrapper
+ * instead of the raw Workers env argument. Resolve the real binding from
+ * every supported request/runtime location, with Cloudflare's module env
+ * as the authoritative fallback.
+ */
+function getWorkerBindings(input: unknown): Record<string, unknown> {
+  const value = input && typeof input === "object" ? input as Record<string, unknown> : {};
+  const runtime = value.runtime && typeof value.runtime === "object" ? value.runtime as Record<string, unknown> : {};
+  const cloudflare = value.cloudflare && typeof value.cloudflare === "object" ? value.cloudflare as Record<string, unknown> : {};
+  const runtimeCloudflare = runtime.cloudflare && typeof runtime.cloudflare === "object" ? runtime.cloudflare as Record<string, unknown> : {};
+  const nestedEnv = value.env && typeof value.env === "object" ? value.env as Record<string, unknown> : {};
+  const candidates = [
+    value,
+    nestedEnv,
+    cloudflare.env && typeof cloudflare.env === "object" ? cloudflare.env as Record<string, unknown> : {},
+    runtimeCloudflare.env && typeof runtimeCloudflare.env === "object" ? runtimeCloudflare.env as Record<string, unknown> : {},
+    cloudflareEnv as unknown as Record<string, unknown>,
+  ];
+  return candidates.find((candidate) => candidate.DB != null) ?? candidates.find((candidate) => Object.keys(candidate).length > 0) ?? {};
+}
+
+function getD1Binding(input: unknown): AdminD1Database | undefined {
+  return getWorkerBindings(input).DB as AdminD1Database | undefined;
+}
+
 async function authorizeAdmin(request: Request, db: AdminD1Database): Promise<{ id: string } | Response> {
   const cookieHeader = request.headers.get("cookie") ?? "";
   const cookie = cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith("__Host-tn-session="));
@@ -68,7 +95,7 @@ async function authorizeAdmin(request: Request, db: AdminD1Database): Promise<{ 
 
 function withBuildHeaders(response: Response, env: unknown): Response {
   const headers = new Headers(response.headers);
-  const buildSha = (env as { BUILD_SHA?: string } | null)?.BUILD_SHA ?? "unknown";
+  const buildSha = (getWorkerBindings(env).BUILD_SHA as string | undefined) ?? "unknown";
   headers.set("x-teslanavigation-build", buildSha);
   if ((headers.get("content-type") ?? "").includes("text/html")) {
     // Never let a browser or intermediary keep an old app shell after a deployment.
@@ -101,8 +128,7 @@ async function handleAdminSuperchargerList(request: Request, workerEnv: unknown)
     return jsonResponse({ error: "Methode niet toegestaan." }, 405);
   }
 
-  const bindings = workerEnv as { DB?: AdminD1Database } | null;
-  const db = bindings?.DB;
+  const db = getD1Binding(workerEnv);
   if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
 
   const admin = await authorizeAdmin(request, db);
@@ -156,7 +182,7 @@ export default {
     if (pathname === "/api/auth/login") {
       if (request.method !== "POST") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
       try {
-        const db = (env as { DB?: AdminD1Database } | null)?.DB;
+        const db = getD1Binding(env);
         if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
         const input = await request.json() as { email?: unknown; password?: unknown };
         const email = typeof input.email === "string" ? input.email.trim().toLowerCase() : "";
