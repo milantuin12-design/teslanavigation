@@ -16,66 +16,86 @@ jobs:
   monitor-and-recover:
     runs-on: ubuntu-latest
     steps:
-      - name: Check live D1 before taking action
+      - name: Checkout latest migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: cloudflare-migratie
+
+      - name: Check current Worker version and real admin D1 query
         id: health
         shell: bash
         run: |
           set -euo pipefail
           base="https://teslanavigation.milantuin12.workers.dev"
-          healthy=false
+          expected="$(git rev-parse HEAD)"
+          version=""
           for attempt in $(seq 1 5); do
-            code="$(curl --retry 2 --retry-all-errors --retry-delay 2 --silent --show-error -o /tmp/d1.json -w '%{http_code}' "$base/__health/admin-d1" || true)"
-            body="$(cat /tmp/d1.json 2>/dev/null || true)"
-            echo "Live admin D1 probe $attempt: HTTP $code $body"
+            version="$(curl --retry 2 --retry-all-errors --retry-delay 2 --silent --show-error "$base/__version" || true)"
+            echo "Live Worker version check $attempt: $version"
+            if [ -n "$version" ]; then break; fi
+            sleep 10
+          done
+
+          # Only redeploy if the Worker is unreachable, has no D1 binding,
+          # or is not running the latest migration-branch build.
+          if [ -z "$version" ] ||
+             ! echo "$version" | grep -Fq "\"build\":\"$expected\"" ||
+             ! echo "$version" | grep -Fq '"d1Bound":true'; then
+            echo "needs_deploy=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # A failing SQL query with the correct Worker and binding is a D1
+          # service/query problem, not a code-deployment problem. Do NOT keep
+          # rolling Worker versions in response to a database outage.
+          for attempt in $(seq 1 5); do
+            code="$(curl --retry 2 --retry-all-errors --retry-delay 2 --silent --show-error -o /tmp/admin-d1.json -w '%{http_code}' "$base/__health/admin-d1" || true)"
+            body="$(cat /tmp/admin-d1.json 2>/dev/null || true)"
+            echo "Live admin D1 query $attempt: HTTP $code $body"
             if [ "$code" = "200" ] && echo "$body" | grep -Fq '"adminQuery":true'; then
-              healthy=true
-              break
+              echo "needs_deploy=false" >> "$GITHUB_OUTPUT"
+              exit 0
             fi
             sleep 10
           done
-          echo "healthy=$healthy" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout latest migration branch
-        if: steps.health.outputs.healthy != 'true'
-        uses: actions/checkout@v4
-        with:
-          ref: cloudflare-migratie
+          echo "::error::The latest Worker is running and has its D1 binding, but the admin table query is failing. No redeploy was attempted because redeploying cannot repair D1 itself."
+          exit 1
 
       - name: Set up Node.js
-        if: steps.health.outputs.healthy != 'true'
+        if: steps.health.outputs.needs_deploy == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
       - name: Install dependencies
-        if: steps.health.outputs.healthy != 'true'
+        if: steps.health.outputs.needs_deploy == 'true'
         run: npm install --no-audit --no-fund
 
       - name: Build production app
-        if: steps.health.outputs.healthy != 'true'
+        if: steps.health.outputs.needs_deploy == 'true'
         run: npm run build
 
-      - name: Re-deploy Worker without touching D1 data
-        if: steps.health.outputs.healthy != 'true'
+      - name: Redeploy latest Worker without touching D1 data
+        if: steps.health.outputs.needs_deploy == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx wrangler@4 deploy --var "BUILD_SHA:$(git rev-parse HEAD)"
 
-      - name: Verify recovery
-        if: steps.health.outputs.healthy != 'true'
+      - name: Verify deployment and admin D1 query after propagation
+        if: steps.health.outputs.needs_deploy == 'true'
         shell: bash
         run: |
           set -euo pipefail
           base="https://teslanavigation.milantuin12.workers.dev"
           expected="$(git rev-parse HEAD)"
           verified=false
-          for attempt in $(seq 1 18); do
-            version="$(curl --retry 2 --retry-all-errors --retry-delay 1 --fail --silent --show-error "$base/__version" || true)"
-            code="$(curl --retry 2 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/d1-after.json -w '%{http_code}' "$base/__health/admin-d1" || true)"
-            body="$(cat /tmp/d1-after.json 2>/dev/null || true)"
-            echo "Recovery check $attempt: version=$version D1=HTTP $code $body"
+          for attempt in $(seq 1 24); do
+            version="$(curl --retry 2 --retry-all-errors --retry-delay 1 --silent --show-error "$base/__version" || true)"
+            code="$(curl --retry 2 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/admin-d1-after.json -w '%{http_code}' "$base/__health/admin-d1" || true)"
+            body="$(cat /tmp/admin-d1-after.json 2>/dev/null || true)"
+            echo "Recovery check $attempt: version=$version admin-D1=HTTP $code $body"
             if echo "$version" | grep -Fq "\"build\":\"$expected\"" &&
                echo "$version" | grep -Fq '"d1Bound":true' &&
                [ "$code" = "200" ] &&
