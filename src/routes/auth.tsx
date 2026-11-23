@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { claimAdmin, signUp, resetPassword } from "@/lib/auth.functions";
+import { signUp, resetPassword } from "@/lib/auth.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,7 +51,15 @@ function AuthPage() {
     setBusy(true);
     setAuthError("");
     try {
-      await claimAdmin({ data: { token: adminToken } });
+      const response = await fetch("/api/auth/claim-admin", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ token: adminToken }),
+      });
+      const result = await response.json().catch(() => null) as { error?: string } | null;
+      if (!response.ok) throw new Error(result?.error || "Beheerder activeren mislukt (HTTP " + response.status + ").");
       toast.success("Beheerdersrechten geactiveerd");
       window.location.assign("/");
     } catch (err) {
