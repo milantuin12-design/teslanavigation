@@ -15,6 +15,7 @@ concurrency:
 jobs:
   monitor-and-recover:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout latest migration branch
         uses: actions/checkout@v4
@@ -30,7 +31,7 @@ jobs:
           expected="$(git rev-parse HEAD)"
           version=""
           for attempt in $(seq 1 5); do
-            version="$(curl --retry 2 --retry-all-errors --retry-delay 2 --silent --show-error "$base/__version" || true)"
+            version="$(curl --connect-timeout 5 --max-time 15 --retry 2 --retry-all-errors --retry-delay 2 --silent --show-error "$base/__version" || true)"
             echo "Live Worker version check $attempt: $version"
             if [ -n "$version" ]; then break; fi
             sleep 10
@@ -49,7 +50,7 @@ jobs:
           # service/query problem, not a code-deployment problem. Do NOT keep
           # rolling Worker versions in response to a database outage.
           for attempt in $(seq 1 5); do
-            code="$(curl --retry 2 --retry-all-errors --retry-delay 2 --silent --show-error -o /tmp/admin-d1.json -w '%{http_code}' "$base/__health/admin-d1" || true)"
+            code="$(curl --connect-timeout 5 --max-time 15 --retry 2 --retry-all-errors --retry-delay 2 --silent --show-error -o /tmp/admin-d1.json -w '%{http_code}' "$base/__health/admin-d1" || true)"
             body="$(cat /tmp/admin-d1.json 2>/dev/null || true)"
             echo "Live admin D1 query $attempt: HTTP $code $body"
             if [ "$code" = "200" ] && echo "$body" | grep -Fq '"adminQuery":true'; then
@@ -92,8 +93,8 @@ jobs:
           expected="$(git rev-parse HEAD)"
           verified=false
           for attempt in $(seq 1 24); do
-            version="$(curl --retry 2 --retry-all-errors --retry-delay 1 --silent --show-error "$base/__version" || true)"
-            code="$(curl --retry 2 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/admin-d1-after.json -w '%{http_code}' "$base/__health/admin-d1" || true)"
+            version="$(curl --connect-timeout 5 --max-time 15 --retry 2 --retry-all-errors --retry-delay 1 --silent --show-error "$base/__version" || true)"
+            code="$(curl --connect-timeout 5 --max-time 15 --retry 2 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/admin-d1-after.json -w '%{http_code}' "$base/__health/admin-d1" || true)"
             body="$(cat /tmp/admin-d1-after.json 2>/dev/null || true)"
             echo "Recovery check $attempt: version=$version admin-D1=HTTP $code $body"
             if echo "$version" | grep -Fq "\"build\":\"$expected\"" &&
