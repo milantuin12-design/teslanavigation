@@ -11,7 +11,8 @@ permissions:
 
 concurrency:
   group: teslanavigation-cloudflare-deploy-v2
-  cancel-in-progress: false
+  # A newer push must supersede an older build, never deploy stale app code afterward.
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -21,7 +22,8 @@ jobs:
       - name: Checkout migration branch
         uses: actions/checkout@v4
         with:
-          ref: cloudflare-migratie
+          # Build exactly the commit that triggered this run; never float to a newer/older branch head.
+          ref: ${{ github.sha }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
