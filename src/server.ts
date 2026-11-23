@@ -199,11 +199,17 @@ export default {
         if (pathname === "/__health/admin-d1") {
           // Exercise the same table and read path used by the admin list, without
           // returning station names, IDs, or any other database contents.
-          const probe = await db.prepare("SELECT COUNT(*) AS count FROM superchargers").first<{ count: number }>();
-          if (!probe || !Number.isFinite(Number(probe.count))) {
+          const probe = await db.prepare(`
+            SELECT * FROM superchargers
+            WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting')
+            ORDER BY name COLLATE NOCASE
+            LIMIT 5000
+          `).all<Record<string, unknown>>();
+          if (!Array.isArray(probe.results)) {
             return jsonResponse({ ok: false, error: "Admin D1 query returned unexpected result" }, 503);
           }
-          return jsonResponse({ ok: true, adminQuery: true, count: Number(probe.count) });
+          // Return only the row count; never expose station data from this probe.
+          return jsonResponse({ ok: true, adminQuery: true, count: probe.results.length });
         }
         const probe = await db.prepare("SELECT 1 AS ok").first<{ ok: number }>();
         if (Number(probe?.ok) !== 1) return jsonResponse({ ok: false, error: "D1 query returned unexpected result" }, 503);
