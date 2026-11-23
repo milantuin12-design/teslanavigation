@@ -397,10 +397,10 @@ function AdminPage() {
     // Use the exact same session endpoint as the authenticated app shell.
     // A separate admin-session probe caused the admin screen to disagree with
     // the already-authenticated application about the current login.
-    void fetch("/api/auth/me", { method: "GET", credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
+    void fetch("/api/admin/me", { method: "GET", credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
       .then(async (response) => {
         const payload = await response.json().catch(() => null) as { is_admin?: boolean; error?: string } | null;
-        if (!response.ok) throw new Error(payload?.error || "Sessiecontrole mislukt (HTTP " + response.status + ").");
+        if (!response.ok) throw new Error(payload?.error || "Admin-sessiecontrole mislukt (HTTP " + response.status + ").");
         if (!active) return;
         const admin = payload?.is_admin === true;
         setIsAdmin(admin);
