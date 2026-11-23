@@ -66,4 +66,13 @@ jobs:
           echo "$version" | grep -Fq '"app":"TeslaNavigation"'
           page="$(curl --fail --silent --show-error -o /dev/null -w '%{http_code}' "$base/")"
           test "$page" = "200"
-          echo "Verified: Cloudflare Worker is responding and the app shell returns HTTP 200."
+          test "$page" = "200"
+          # Probe the exact admin D1 endpoint without a session. With DB bound,
+          # the expected response is 401 (authentication required), never 503
+          # (missing D1 binding). This catches broken bindings before release.
+          admin_status="$(curl --silent --show-error -o /tmp/admin-probe.json -w '%{http_code}' "$base/api/admin/superchargers")"
+          admin_body="$(cat /tmp/admin-probe.json)"
+          echo "Admin D1 probe: HTTP $admin_status $admin_body"
+          test "$admin_status" = "401"
+          ! echo "$admin_body" | grep -Fq 'Cloudflare D1-binding DB ontbreekt'
+          echo "Verified: Worker is healthy and the admin endpoint can see its D1 binding."
