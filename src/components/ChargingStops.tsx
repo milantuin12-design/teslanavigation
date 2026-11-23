@@ -49,19 +49,24 @@ function batteryPreheatMinutes(tempC: number | null | undefined): number | null 
   return 5;
 }
 
-export function parkingCost(stop: ChargingStop, at?: Date): number | null {
+export function parkingCost(stop: ChargingStop, at?: Date, rates: EuroRates = {}): number | null {
   const c = stop.charger;
   if (!c.parkingFee) return null;
   if (Array.isArray(c.parkingBlocks) && c.parkingBlocks.length > 0) {
-    const currencies = new Set(c.parkingBlocks.filter((block) => block.amount > 0).map((block) => (block.currency || "EUR").toUpperCase()));
-    if (currencies.size > 1 || (currencies.size === 1 && !currencies.has("EUR"))) return null;
     const duration = Math.max(0, stop.chargeDurationMin);
-    return c.parkingBlocks.reduce((sum, block) => {
-      if (block.amount <= 0 || duration <= block.afterMinutes) return sum;
-      if (block.durationMinutes <= 0) return sum + block.amount;
-      const billable = Math.max(0, duration - block.afterMinutes);
-      return sum + (block.repeat ? Math.ceil(billable / block.durationMinutes) * block.amount : block.amount);
-    }, 0);
+    let totalEuro = 0;
+    for (const block of c.parkingBlocks) {
+      if (block.amount <= 0 || duration <= block.afterMinutes) continue;
+      const raw = block.durationMinutes <= 0
+        ? block.amount
+        : block.repeat
+          ? Math.ceil(Math.max(0, duration - block.afterMinutes) / block.durationMinutes) * block.amount
+          : block.amount;
+      const converted = convertToEuro(raw, block.currency || "EUR", rates);
+      if (converted === null) return null;
+      totalEuro += converted;
+    }
+    return totalEuro;
   }
   // "alleen weekend" in de notitie/piekuren: doordeweeks gratis.
   const weekendOnly = /weekend/i.test(`${c.peakHours ?? ''} ${c.notes ?? ''}`) && /park/i.test(`${c.peakHours ?? ''} ${c.notes ?? ''}`);
@@ -111,12 +116,17 @@ function chargingCost(stop: ChargingStop, at?: Date): number | null {
 }
 
 const euro = (n: number) => `€ ${n.toFixed(2).replace('.', ',')}`;
-const CHF_TO_EUR_FALLBACK = 1 / 0.9234; // ECB-referentiekoers 11-11-2026; live koers wordt opgehaald.
-const convertToEuro = (amount: number, currency: string | undefined, chfToEur: number): number | null => {
-  const code = (currency || 'EUR').toUpperCase();
+type EuroRates = Record<string, number>;
+const convertToEuro = (amount: number, currency: string | undefined, rates: EuroRates): number | null => {
+  const code = (currency || 'EUR').trim().toUpperCase();
+  if (!Number.isFinite(amount)) return null;
   if (code === 'EUR') return amount;
-  if (code === 'CHF') return amount * chfToEur;
-  return null;
+  const rate = rates[code];
+  return Number.isFinite(rate) && rate > 0 ? amount * rate : null;
+};
+const euroEquivalent = (amount: number, currency: string | undefined, rates: EuroRates) => {
+  const converted = convertToEuro(amount, currency, rates);
+  return converted === null || (currency || 'EUR').toUpperCase() === 'EUR' ? '' : ` → ${euro(converted)}`;
 };
 const localCurrency = (n: number, currency?: string) => new Intl.NumberFormat('nl-NL', { style: 'currency', currency: currency ?? 'EUR' }).format(n);
 const dur = (min: number) => (min >= 60 ? `${Math.floor(min / 60)}u${min % 60 ? ` ${min % 60}m` : ''}` : `${min}m`);
@@ -159,18 +169,28 @@ function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo, tem
 }
 
 export default function ChargingStops({ stops, holidayMode = false, winterSportsMode = false, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic, ccsBlocked, showTrailer, restMin = 0, modelName = 'Model 3 Long Range AWD', carMaxKwOverride, whatIf }: ChargingStopsProps) {
-  const [chfToEur, setChfToEur] = useState(CHF_TO_EUR_FALLBACK);
+  const [eurRates, setEurRates] = useState<EuroRates>({});
   useEffect(() => {
     let active = true;
-    fetch('https://api.frankfurter.app/latest?from=CHF&to=EUR')
-      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Wisselkoers niet beschikbaar')))
-      .then((data) => {
+    const currencies = [...new Set(stops.flatMap((stop) => [
+      stop.charger.priceCurrency || 'EUR',
+      ...(stop.charger.priceBlocks ?? []).map((block) => stop.charger.priceCurrency || 'EUR'),
+      ...(stop.charger.parkingBlocks ?? []).map((block) => block.currency || 'EUR'),
+    ]).map((code) => code.trim().toUpperCase()).filter((code) => /^[A-Z]{3}$/.test(code) && code !== 'EUR'))];
+    if (currencies.length === 0) { setEurRates({}); return () => { active = false; }; }
+    Promise.all(currencies.map(async (code) => {
+      try {
+        const response = await fetch(`https://api.frankfurter.app/latest?from=${encodeURIComponent(code)}&to=EUR`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Koers ${code} niet beschikbaar`);
+        const data = await response.json() as { rates?: { EUR?: number } };
         const rate = Number(data?.rates?.EUR);
-        if (active && Number.isFinite(rate) && rate > 0) setChfToEur(rate);
-      })
-      .catch(() => { /* Gebruik de laatst ingebouwde ECB-referentiekoers als fallback. */ });
+        return Number.isFinite(rate) && rate > 0 ? [code, rate] as const : null;
+      } catch { return null; }
+    })).then((entries) => {
+      if (active) setEurRates(Object.fromEntries(entries.filter((entry): entry is readonly [string, number] => entry !== null)));
+    });
     return () => { active = false; };
-  }, []);
+  }, [stops]);
   const start = departure ?? new Date();
   const total = route?.totalDistanceKm ?? totalDistanceKm ?? 0;
   const k100 = consumptionKWh100 && consumptionKWh100 > 0 ? consumptionKWh100 : null;
@@ -183,8 +203,8 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
     const estimate = estimateChargingCost(stop, at, modelName, packKWh, carMaxKwOverride);
     const chargeCurrency = estimate?.currency ?? stop.charger.priceCurrency ?? 'EUR';
     const chargeAmount = estimate?.amount ?? chargingCost(stop, at);
-    const charge = chargeAmount !== null ? convertToEuro(chargeAmount, chargeCurrency, chfToEur) : null;
-    const parking = parkingCost(stop, at);
+    const charge = chargeAmount !== null ? convertToEuro(chargeAmount, chargeCurrency, eurRates) : null;
+    const parking = parkingCost(stop, at, eurRates);
     const parkingKnown = !stop.charger.parkingFee || parking !== null;
     return { charge, parking, known: charge !== null && parkingKnown, originalCharge: chargeAmount, chargeCurrency };
   });
@@ -287,7 +307,7 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
       {stops.map((stop, idx) => {
         const maxSpeedKw = ccsBlocked ? (v2SpeedKw(stop.charger) ?? 0) : parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
         const eta = typeof stop.etaMinFromStart === 'number' ? new Date(start.getTime() + stop.etaMinFromStart * 60000) : null;
-        const park = parkingCost(stop, eta ?? undefined);
+        const park = parkingCost(stop, eta ?? undefined, eurRates);
         const charge = chargingCost(stop, eta ?? undefined);
         const activePrice = activePricePerKwh(stop, eta ?? undefined);
         const costEstimate = eta ? estimateChargingCost(stop, eta, modelName, packKWh ?? undefined, carMaxKwOverride) : null;
@@ -346,16 +366,16 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
                 {costEstimate?.type === "minute" && (
                   <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
-                    {localCurrency(costEstimate.amount, costEstimate.currency)}{costEstimate.currency.toUpperCase() === 'CHF' ? ` → ${euro(convertToEuro(costEstimate.amount, costEstimate.currency, chfToEur) ?? 0)}` : ''} · per minuut ({Math.round(costEstimate.initialPowerKw ?? 0)} kW start)
+                    {localCurrency(costEstimate.amount, costEstimate.currency)}{euroEquivalent(costEstimate.amount, costEstimate.currency, eurRates)} · per minuut ({Math.round(costEstimate.initialPowerKw ?? 0)} kW start)
                   </span>
                 )}
                 {costEstimate?.type === "kwh" && (
                   <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
-                    {localCurrency(costEstimate.amount, costEstimate.currency)}{costEstimate.currency.toUpperCase() === 'CHF' ? ` → ${euro(convertToEuro(costEstimate.amount, costEstimate.currency, chfToEur) ?? 0)}` : ''}
+                    {localCurrency(costEstimate.amount, costEstimate.currency)}{euroEquivalent(costEstimate.amount, costEstimate.currency, eurRates)}
                   </span>
                 )}
                 {!costEstimate && activePrice !== null && (
-                  <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">{localCurrency(activePrice, stop.charger.priceCurrency)}/kWh{charge !== null ? ` · ${localCurrency(charge, stop.charger.priceCurrency)}` : ''}</span>
+                  <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300">{localCurrency(activePrice, stop.charger.priceCurrency)}{euroEquivalent(activePrice, stop.charger.priceCurrency, eurRates)}/kWh{charge !== null ? ` · ${localCurrency(charge, stop.charger.priceCurrency)}${euroEquivalent(charge, stop.charger.priceCurrency, eurRates)}` : ''}</span>
                 )}
                 {stop.charger.parkingFee && (
                   <span className="rounded-md bg-orange-500/10 px-2 py-0.5 text-orange-300">🅿️ {park === 0 ? 'nu gratis' : park !== null ? euro(park) : 'parkeergeld'}</span>
@@ -365,7 +385,7 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 <div className="font-semibold text-slate-300">Kosten van deze laadstop</div>
                 <div className="flex justify-between gap-3"><span className="text-slate-400">Bijgeladen</span><strong className="text-white">{typeof stop.energyChargedKWh === 'number' ? `${stop.energyChargedKWh.toFixed(1)} kWh` : 'onbekend'}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-slate-400">Laadtarief</span><strong className="text-white">{costEstimate?.type === 'minute' ? `${localCurrency(costEstimate.amount, costEstimate.currency)} totaal · per minuut` : activePrice !== null ? `${localCurrency(activePrice, stop.charger.priceCurrency)}/kWh` : 'tarief onbekend'}</strong></div>
-                <div className="flex justify-between gap-3"><span className="text-slate-400">Elektriciteit</span><strong className="text-white">{costEstimate ? `${localCurrency(costEstimate.amount, costEstimate.currency)}${costEstimate.currency.toUpperCase() === 'CHF' ? ` (${euro(convertToEuro(costEstimate.amount, costEstimate.currency, chfToEur) ?? 0)})` : ''}` : charge !== null ? euro(charge) : 'tarief onbekend'}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-slate-400">Elektriciteit</span><strong className="text-white">{costEstimate ? `${localCurrency(costEstimate.amount, costEstimate.currency)}${euroEquivalent(costEstimate.amount, costEstimate.currency, eurRates)}` : charge !== null ? euro(charge) : 'tarief onbekend'}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-slate-400">Parkeren</span><strong className="text-white">{!stop.charger.parkingFee ? 'Geen parkeerkosten' : park !== null ? euro(park) : 'tarief onbekend'}</strong></div>
                 <div className="flex justify-between gap-3 border-t border-white/10 pt-1"><span className="font-semibold text-slate-300">Totaal stop</span><strong className="text-emerald-300">{stopCosts[idx].known ? euro((stopCosts[idx].charge ?? 0) + (stopCosts[idx].parking ?? 0)) : 'niet volledig bekend'}</strong></div>
               </div>
