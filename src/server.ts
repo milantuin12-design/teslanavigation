@@ -64,11 +64,14 @@ function getWorkerBindingValue(input: unknown, key: string): unknown {
   // Check it first; framework wrappers may pass request metadata as the
   // second argument instead of the raw binding object on some code paths.
   const candidates = [
-    cloudflareEnv as unknown as Record<string, unknown>,
+    // The env argument supplied to this exact fetch invocation is authoritative.
+    // Never prefer a module-scoped binding over the request's live Worker env:
+    // doing so can select a stale/empty binding during isolate reuse or rollout.
     value,
     nestedEnv,
     cloudflare.env && typeof cloudflare.env === "object" ? cloudflare.env as Record<string, unknown> : {},
     runtimeCloudflare.env && typeof runtimeCloudflare.env === "object" ? runtimeCloudflare.env as Record<string, unknown> : {},
+    cloudflareEnv as unknown as Record<string, unknown>,
   ];
   for (const candidate of candidates) {
     const found = candidate[key];
@@ -145,13 +148,8 @@ async function handleAdminSuperchargerList(request: Request, workerEnv: unknown)
 
   const admin = await authorizeAdmin(request, db);
   if (admin instanceof Response) return admin;
-  try {
-    const { ensureBundledD1Seed } = await import("./lib/d1-seed.server");
-    await ensureBundledD1Seed();
-  } catch (error) {
-    console.error("[TeslaNavigation] Safe missing-row seed skipped; reading existing D1 rows:", error);
-  }
-
+  // This endpoint is strictly read-only. Baseline seeding is intentionally
+  // excluded from admin reads so every reload is a single bounded D1 query.
   const result = await db.prepare(`
     SELECT * FROM superchargers
     WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting')
@@ -194,10 +192,19 @@ export default {
     }
     // Public, read-only diagnostic: prove D1 accepts a real query, not merely
     // that a binding-shaped object exists. Never expose database contents.
-    if (pathname === "/__health/d1") {
+    if (pathname === "/__health/d1" || pathname === "/__health/admin-d1") {
       try {
         const db = getD1Binding(env);
-        if (!db) return jsonResponse({ ok: false, error: "D1 binding missing" }, 503);
+        if (!db) return jsonResponse({ ok: false, error: "D1 binding missing", source: "request-env" }, 503);
+        if (pathname === "/__health/admin-d1") {
+          // Exercise the same table and read path used by the admin list, without
+          // returning station names, IDs, or any other database contents.
+          const probe = await db.prepare("SELECT COUNT(*) AS count FROM superchargers").first<{ count: number }>();
+          if (!probe || !Number.isFinite(Number(probe.count))) {
+            return jsonResponse({ ok: false, error: "Admin D1 query returned unexpected result" }, 503);
+          }
+          return jsonResponse({ ok: true, adminQuery: true, count: Number(probe.count) });
+        }
         const probe = await db.prepare("SELECT 1 AS ok").first<{ ok: number }>();
         if (Number(probe?.ok) !== 1) return jsonResponse({ ok: false, error: "D1 query returned unexpected result" }, 503);
         return jsonResponse({ ok: true });
