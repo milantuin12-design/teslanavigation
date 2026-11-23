@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { getCurrentUser, signOut } from "@/lib/auth.functions";
+import { signOut } from "@/lib/auth.functions";
 import { getMyAccountSettings } from "@/lib/account.functions";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
