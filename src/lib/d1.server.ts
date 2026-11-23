@@ -25,14 +25,17 @@ export interface D1Database {
  */
 export function getCloudflareEnv(): Record<string, unknown> {
   const moduleEnv = env as unknown as Record<string, unknown>;
-  if (moduleEnv.DB) return moduleEnv;
 
+  // For request-bound server functions, prefer the bindings attached to this
+  // exact Worker request. The module-scoped env is only a fallback for contexts
+  // where TanStack has no active request; preferring it can select an empty or
+  // stale binding during Worker version propagation.
   try {
     const request = getRequest() as Request & {
       runtime?: { cloudflare?: { env?: Record<string, unknown> } };
     };
     const requestEnv = request.runtime?.cloudflare?.env;
-    if (requestEnv && typeof requestEnv === "object") return requestEnv;
+    if (requestEnv && typeof requestEnv === "object" && requestEnv.DB) return requestEnv;
   } catch {
     // getRequest() is unavailable outside an active TanStack request context.
   }
