@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { claimAdmin, signUp, resetPassword } from "@/lib/auth.functions";
+import { claimAdmin, signIn, signUp, resetPassword } from "@/lib/auth.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -85,14 +85,10 @@ function AuthPage() {
     setAuthError("");
     try {
       if (mode === "login") {
-        const response = await fetch("/api/auth/login", {
-          method: "POST",
-          credentials: "same-origin",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify({ email: email.trim(), password }),
-        });
-        const result = await response.json().catch(() => null) as { error?: string } | null;
-        if (!response.ok) throw new Error(result?.error || "Inloggen mislukt (HTTP " + response.status + ").");
+        // Use the same TanStack server-function path as registration.
+        // This avoids the separate /api/auth/login fetch endpoint that was
+        // producing a browser-level "Failed to fetch" instead of an auth response.
+        await signIn({ data: { email: email.trim(), password } });
         toast.success("Ingelogd");
         window.location.assign("/");
       } else {
