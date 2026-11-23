@@ -192,6 +192,20 @@ export default {
         deployedAt: new Date().toISOString(),
       });
     }
+    // Public, read-only diagnostic: prove D1 accepts a real query, not merely
+    // that a binding-shaped object exists. Never expose database contents.
+    if (pathname === "/__health/d1") {
+      try {
+        const db = getD1Binding(env);
+        if (!db) return jsonResponse({ ok: false, error: "D1 binding missing" }, 503);
+        const probe = await db.prepare("SELECT 1 AS ok").first<{ ok: number }>();
+        if (Number(probe?.ok) !== 1) return jsonResponse({ ok: false, error: "D1 query returned unexpected result" }, 503);
+        return jsonResponse({ ok: true });
+      } catch (error) {
+        console.error("[TeslaNavigation] D1 health probe failed:", error);
+        return jsonResponse({ ok: false, error: error instanceof Error ? error.message : "D1 query failed" }, 503);
+      }
+    }
     if (pathname === "/api/auth/login") {
       if (request.method !== "POST") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
       try {
