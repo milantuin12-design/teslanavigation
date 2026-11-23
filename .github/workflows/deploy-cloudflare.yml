@@ -74,6 +74,14 @@ jobs:
             echo "$version" | grep -Fq "\"build\":\"$EXPECTED_BUILD\""
             echo "$version" | grep -Fq '"d1Bound":true'
 
+            # Actually execute a harmless SQL statement on D1. d1Bound alone
+            # only proves that a binding object exists, not that D1 responds.
+            d1_status="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/d1-probe.json -w '%{http_code}' "$base/__health/d1")"
+            d1_body="$(cat /tmp/d1-probe.json)"
+            echo "D1 SQL check $attempt: HTTP $d1_status $d1_body"
+            test "$d1_status" = "200"
+            echo "$d1_body" | grep -Fq '"ok":true'
+
             admin_status="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/admin-probe.json -w '%{http_code}' "$base/api/admin/superchargers")"
             admin_body="$(cat /tmp/admin-probe.json)"
             echo "Admin D1 check $attempt: HTTP $admin_status $admin_body"
@@ -83,4 +91,4 @@ jobs:
 
           page="$(curl --retry 3 --retry-all-errors --retry-delay 1 --fail --silent --show-error -o /dev/null -w '%{http_code}' "$base/")"
           test "$page" = "200"
-          echo "Verified: all 12 live checks saw the expected build and working D1 binding."
+          echo "Verified: all 12 live checks executed SQL successfully on the expected deployed build."
