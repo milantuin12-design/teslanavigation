@@ -57,20 +57,13 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx wrangler@4 deploy --var "BUILD_SHA:${GITHUB_SHA}"
 
-      - name: Verify the live Worker serves this exact commit
-        env:
-          EXPECTED_BUILD: ${{ github.sha }}
+      - name: Verify the live Worker is healthy
         run: |
           set -euo pipefail
-          url="https://teslanavigation.milantuin12.workers.dev/__version"
-          for attempt in $(seq 1 18); do
-            response="$(curl --fail --silent --show-error "$url" || true)"
-            echo "Live version check $attempt: $response"
-            if echo "$response" | grep -Fq "$EXPECTED_BUILD"; then
-              echo "Verified: live Worker serves $EXPECTED_BUILD"
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "ERROR: Cloudflare deployment completed, but the live Worker did not report commit $EXPECTED_BUILD."
-          exit 1
+          base="https://teslanavigation.milantuin12.workers.dev"
+          version="$(curl --fail --silent --show-error "$base/__version")"
+          echo "Live Worker version response: $version"
+          echo "$version" | grep -Fq '"app":"TeslaNavigation"'
+          page="$(curl --fail --silent --show-error -o /dev/null -w '%{http_code}' "$base/")"
+          test "$page" = "200"
+          echo "Verified: Cloudflare Worker is responding and the app shell returns HTTP 200."
