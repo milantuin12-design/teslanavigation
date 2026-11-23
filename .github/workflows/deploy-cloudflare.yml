@@ -10,12 +10,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: teslanavigation-cloudflare-deploy
+  group: teslanavigation-cloudflare-deploy-v2
   cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout migration branch
         uses: actions/checkout@v4
