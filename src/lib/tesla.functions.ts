@@ -267,7 +267,7 @@ export const listSuperchargers = createServerFn({ method: "GET" }).handler(
       ]);
       for (let from = 0; ; from += pageSize) {
         const page = await db.prepare(
-          "SELECT * FROM superchargers WHERE published = 1 AND hidden = 0 ORDER BY name COLLATE NOCASE LIMIT ? OFFSET ?"
+          "SELECT * FROM superchargers WHERE COALESCE(published, 1) != 0 AND COALESCE(hidden, 0) = 0 ORDER BY name COLLATE NOCASE LIMIT ? OFFSET ?"
         ).bind(pageSize, from).all<Record<string, unknown>>();
         if (!Array.isArray(page?.results)) throw new Error("Cloudflare D1 gaf geen geldige resultaten terug voor de Supercharger-lijst.");
         const decoded = page.results.map((source) => {
@@ -550,7 +550,7 @@ export const upsertSupercharger = createServerFn({ method: "POST" })
       closure: JSON.stringify(data.closure),
       owner_id: data.ownerId ?? null,
       low_speed: data.lowSpeed ? 1 : 0,
-      published: data.published ? 1 : 0,
+      published: data.published === false ? 0 : 1,
       notes: data.notes ?? null,
       reopen_at: data.reopenAt || null,
       planned_upgrade: JSON.stringify(data.plannedUpgrade),
