@@ -18,8 +18,18 @@ export function AccountMenu() {
 
   useEffect(() => {
     let active = true;
-    void getCurrentUser().then((value) => {
-      if (active) setUser(value as AccountUser | null);
+    // Read the same Worker session endpoint used by the login screen.
+    // This keeps the account menu and admin visibility on one cookie/session path.
+    void fetch("/api/auth/me", {
+      method: "GET",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    }).then(async (response) => {
+      if (!response.ok) return null;
+      return await response.json() as AccountUser;
+    }).then((value) => {
+      if (active) setUser(value);
     }).catch(() => { if (active) setUser(null); });
     return () => { active = false; };
   }, []);
