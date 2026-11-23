@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { importSuperchargers, getWinterSportsMode, setWinterSportsMode, getHolidayPeriodMode, setHolidayPeriodMode } from "@/lib/tesla.functions";
-import { getCurrentUser } from "@/lib/auth.functions";
 import { adminListOwners, adminCreateOwner, reverseGeocodeCharger } from "@/lib/admin.functions";
 import localDataset from "@/data/superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
@@ -395,23 +394,30 @@ function AdminPage() {
 
   useEffect(() => {
     let active = true;
-    // Match AccountMenu and the authenticated route: use the shared D1 identity
-    // server function rather than a second, separately implemented cookie probe.
-    void getCurrentUser()
-      .then(async (user) => {
-        if (!active) return;
-        const admin = user?.is_admin === true;
-        setIsAdmin(admin);
-        if (admin) {
-          try {
-            const [winter, holiday] = await Promise.all([readWinterSportsMode(), readHolidayPeriodMode()]);
-            if (active) { setWinterSportsEnabled(winter); setHolidayPeriodEnabled(holiday); }
-          } catch { if (active) { setWinterSportsEnabled(false); setHolidayPeriodEnabled(false); } }
-        }
-      }).catch((error) => {
-        console.error("[TeslaNavigation] Shared admin identity check failed:", error);
-        if (active) setIsAdmin(false);
-      });
+    // Use the same Worker-owned D1 session endpoint as login, AccountMenu,
+    // and the authenticated route guard so admin visibility cannot disagree.
+    void fetch("/api/auth/me", {
+      method: "GET",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    }).then(async (response) => {
+      const user = response.ok
+        ? await response.json() as { is_admin?: boolean }
+        : null;
+      if (!active) return;
+      const admin = user?.is_admin === true;
+      setIsAdmin(admin);
+      if (admin) {
+        try {
+          const [winter, holiday] = await Promise.all([readWinterSportsMode(), readHolidayPeriodMode()]);
+          if (active) { setWinterSportsEnabled(winter); setHolidayPeriodEnabled(holiday); }
+        } catch { if (active) { setWinterSportsEnabled(false); setHolidayPeriodEnabled(false); } }
+      }
+    }).catch((error) => {
+      console.error("[TeslaNavigation] Worker admin identity check failed:", error);
+      if (active) setIsAdmin(false);
+    });
     return () => { active = false; };
   }, [readWinterSportsMode, readHolidayPeriodMode]);
 
