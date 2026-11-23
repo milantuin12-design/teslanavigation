@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: teslanavigation-cloudflare-deploy
+  group: teslanavigation-cloudflare-deploy-v2
   cancel-in-progress: false
 
 jobs:
