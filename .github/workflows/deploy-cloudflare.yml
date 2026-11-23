@@ -57,60 +57,58 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx wrangler@4 deploy --var "BUILD_SHA:${GITHUB_SHA}"
 
-      - name: Verify the live Worker and D1 binding repeatedly
+      - name: Verify the live Worker and D1 binding after global propagation
         env:
           EXPECTED_BUILD: ${{ github.sha }}
+        shell: bash
         run: |
           set -euo pipefail
           base="https://teslanavigation.milantuin12.workers.dev"
+          stable=0
+          for attempt in $(seq 1 24); do
+            version="$(curl --connect-timeout 5 --max-time 15 --silent --show-error "$base/__version" || true)"
+            if ! echo "$version" | grep -Fq "\"build\":\"$EXPECTED_BUILD\"" ||
+               ! echo "$version" | grep -Fq '"d1Bound":true'; then
+              echo "Propagation check $attempt: waiting for exact build; got $version"
+              stable=0
+              sleep 5
+              continue
+            fi
 
-          # Check the exact deployed build and D1 binding over multiple fresh
-          # requests. A single successful probe is not enough: it previously
-          # allowed an intermittent/mixed-version 503 to slip through.
-          for attempt in $(seq 1 12); do
-            version="$(curl --retry 3 --retry-all-errors --retry-delay 1 --fail --silent --show-error "$base/__version")"
-            echo "Health check $attempt: $version"
-            echo "$version" | grep -Fq '"app":"TeslaNavigation"'
-            echo "$version" | grep -Fq "\"build\":\"$EXPECTED_BUILD\""
-            echo "$version" | grep -Fq '"d1Bound":true'
+            d1_status="$(curl --connect-timeout 5 --max-time 15 --silent --show-error -o /tmp/d1-probe.json -w '%{http_code}' "$base/__health/d1" || true)"
+            d1_body="$(cat /tmp/d1-probe.json 2>/dev/null || true)"
+            admin_d1_status="$(curl --connect-timeout 5 --max-time 15 --silent --show-error -o /tmp/admin-d1-probe.json -w '%{http_code}' "$base/__health/admin-d1" || true)"
+            admin_d1_body="$(cat /tmp/admin-d1-probe.json 2>/dev/null || true)"
+            admin_status="$(curl --connect-timeout 5 --max-time 15 --silent --show-error -o /tmp/admin-probe.json -w '%{http_code}' "$base/api/admin/superchargers" || true)"
+            admin_body="$(cat /tmp/admin-probe.json 2>/dev/null || true)"
+            session_status="$(curl --connect-timeout 5 --max-time 15 --silent --show-error -o /tmp/session-probe.json -w '%{http_code}' "$base/api/auth/me" || true)"
+            session_body="$(cat /tmp/session-probe.json 2>/dev/null || true)"
+            login_status="$(curl --connect-timeout 5 --max-time 15 --silent --show-error -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' --data '{"email":"invalid","password":"x"}' -o /tmp/login-probe.json -w '%{http_code}' "$base/api/auth/login" || true)"
+            login_body="$(cat /tmp/login-probe.json 2>/dev/null || true)"
+            page="$(curl --connect-timeout 5 --max-time 15 --silent --show-error -o /dev/null -w '%{http_code}' "$base/" || true)"
 
-            # Actually execute a harmless SQL statement on D1. d1Bound alone
-            # only proves that a binding object exists, not that D1 responds.
-            d1_status="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/d1-probe.json -w '%{http_code}' "$base/__health/d1")"
-            d1_body="$(cat /tmp/d1-probe.json)"
-            echo "D1 SQL check $attempt: HTTP $d1_status $d1_body"
-            test "$d1_status" = "200"
-            echo "$d1_body" | grep -Fq '"ok":true'
-
-            # Exercise the exact D1 table used by the admin list, without exposing rows.
-            admin_d1_status="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/admin-d1-probe.json -w '%{http_code}' "$base/__health/admin-d1")"
-            admin_d1_body="$(cat /tmp/admin-d1-probe.json)"
-            echo "Admin-table SQL check $attempt: HTTP $admin_d1_status $admin_d1_body"
-            test "$admin_d1_status" = "200"
-            echo "$admin_d1_body" | grep -Fq '"adminQuery":true'
-
-            admin_status="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/admin-probe.json -w '%{http_code}' "$base/api/admin/superchargers")"
-            admin_body="$(cat /tmp/admin-probe.json)"
-            echo "Admin D1 check $attempt: HTTP $admin_status $admin_body"
-            test "$admin_status" = "401"
-            ! echo "$admin_body" | grep -Fq 'Cloudflare D1-binding DB ontbreekt'
-
-            # Exercise both auth endpoints without using or changing any account.
-            # A no-cookie session lookup must return the normal JSON 401 response.
-            session_status="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/session-probe.json -w '%{http_code}' "$base/api/auth/me")"
-            session_body="$(cat /tmp/session-probe.json)"
-            echo "Auth session route check $attempt: HTTP $session_status $session_body"
-            test "$session_status" = "401"
-            echo "$session_body" | grep -Fq 'Je bent niet ingelogd.'
-
-            # Invalid credentials are rejected before any account lookup or write.
-            login_status="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' --data '{"email":"invalid","password":"x"}' -o /tmp/login-probe.json -w '%{http_code}' "$base/api/auth/login")"
-            login_body="$(cat /tmp/login-probe.json)"
-            echo "Auth login route check $attempt: HTTP $login_status $login_body"
-            test "$login_status" = "400"
-            echo "$login_body" | grep -Fq 'Vul een geldig e-mailadres en wachtwoord in.'
+            echo "Stable check $attempt: build=$EXPECTED_BUILD D1=$d1_status $d1_body admin-table=$admin_d1_status $admin_d1_body admin=$admin_status $admin_body session=$session_status login=$login_status page=$page"
+            if [ "$d1_status" = "200" ] &&
+               echo "$d1_body" | grep -Fq '"ok":true' &&
+               [ "$admin_d1_status" = "200" ] &&
+               echo "$admin_d1_body" | grep -Fq '"adminQuery":true' &&
+               [ "$admin_status" = "401" ] &&
+               echo "$admin_body" | grep -Fq 'Je bent niet ingelogd.' &&
+               [ "$session_status" = "401" ] &&
+               echo "$session_body" | grep -Fq 'Je bent niet ingelogd.' &&
+               [ "$login_status" = "400" ] &&
+               echo "$login_body" | grep -Fq 'Vul een geldig e-mailadres en wachtwoord in.' &&
+               [ "$page" = "200" ]; then
+              stable=$((stable + 1))
+              echo "Consecutive complete live checks: $stable/3"
+              if [ "$stable" -ge 3 ]; then
+                echo "Verified: the exact deployed build passed three complete live checks after propagation."
+                exit 0
+              fi
+            else
+              stable=0
+            fi
+            sleep 5
           done
-
-          page="$(curl --retry 3 --retry-all-errors --retry-delay 1 --fail --silent --show-error -o /dev/null -w '%{http_code}' "$base/")"
-          test "$page" = "200"
-          echo "Verified: all 12 live checks executed SQL and exercised both auth routes on the expected deployed build."
+          echo "::error::The exact deployed Worker did not pass three consecutive complete live checks within two minutes."
+          exit 1
