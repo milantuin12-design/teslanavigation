@@ -49,19 +49,24 @@ function batteryPreheatMinutes(tempC: number | null | undefined): number | null 
   return 5;
 }
 
-export function parkingCost(stop: ChargingStop, at?: Date): number | null {
+export function parkingCost(stop: ChargingStop, at?: Date, rates: EuroRates = {}): number | null {
   const c = stop.charger;
   if (!c.parkingFee) return null;
   if (Array.isArray(c.parkingBlocks) && c.parkingBlocks.length > 0) {
-    const currencies = new Set(c.parkingBlocks.filter((block) => block.amount > 0).map((block) => (block.currency || "EUR").toUpperCase()));
-    if (currencies.size > 1 || (currencies.size === 1 && !currencies.has("EUR"))) return null;
     const duration = Math.max(0, stop.chargeDurationMin);
-    return c.parkingBlocks.reduce((sum, block) => {
-      if (block.amount <= 0 || duration <= block.afterMinutes) return sum;
-      if (block.durationMinutes <= 0) return sum + block.amount;
-      const billable = Math.max(0, duration - block.afterMinutes);
-      return sum + (block.repeat ? Math.ceil(billable / block.durationMinutes) * block.amount : block.amount);
-    }, 0);
+    let totalEuro = 0;
+    for (const block of c.parkingBlocks) {
+      if (block.amount <= 0 || duration <= block.afterMinutes) continue;
+      const raw = block.durationMinutes <= 0
+        ? block.amount
+        : block.repeat
+          ? Math.ceil(Math.max(0, duration - block.afterMinutes) / block.durationMinutes) * block.amount
+          : block.amount;
+      const converted = convertToEuro(raw, block.currency || "EUR", rates);
+      if (converted === null) return null;
+      totalEuro += converted;
+    }
+    return totalEuro;
   }
   // "alleen weekend" in de notitie/piekuren: doordeweeks gratis.
   const weekendOnly = /weekend/i.test(`${c.peakHours ?? ''} ${c.notes ?? ''}`) && /park/i.test(`${c.peakHours ?? ''} ${c.notes ?? ''}`);
@@ -199,7 +204,7 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
     const chargeCurrency = estimate?.currency ?? stop.charger.priceCurrency ?? 'EUR';
     const chargeAmount = estimate?.amount ?? chargingCost(stop, at);
     const charge = chargeAmount !== null ? convertToEuro(chargeAmount, chargeCurrency, eurRates) : null;
-    const parking = parkingCost(stop, at);
+    const parking = parkingCost(stop, at, eurRates);
     const parkingKnown = !stop.charger.parkingFee || parking !== null;
     return { charge, parking, known: charge !== null && parkingKnown, originalCharge: chargeAmount, chargeCurrency };
   });
@@ -302,7 +307,7 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
       {stops.map((stop, idx) => {
         const maxSpeedKw = ccsBlocked ? (v2SpeedKw(stop.charger) ?? 0) : parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
         const eta = typeof stop.etaMinFromStart === 'number' ? new Date(start.getTime() + stop.etaMinFromStart * 60000) : null;
-        const park = parkingCost(stop, eta ?? undefined);
+        const park = parkingCost(stop, eta ?? undefined, eurRates);
         const charge = chargingCost(stop, eta ?? undefined);
         const activePrice = activePricePerKwh(stop, eta ?? undefined);
         const costEstimate = eta ? estimateChargingCost(stop, eta, modelName, packKWh ?? undefined, carMaxKwOverride) : null;
