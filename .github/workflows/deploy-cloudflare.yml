@@ -57,22 +57,30 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx wrangler@4 deploy --var "BUILD_SHA:${GITHUB_SHA}"
 
-      - name: Verify the live Worker is healthy
+      - name: Verify the live Worker and D1 binding repeatedly
+        env:
+          EXPECTED_BUILD: ${{ github.sha }}
         run: |
           set -euo pipefail
           base="https://teslanavigation.milantuin12.workers.dev"
-          version="$(curl --fail --silent --show-error "$base/__version")"
-          echo "Live Worker version response: $version"
-          echo "$version" | grep -Fq '"app":"TeslaNavigation"'
-          page="$(curl --fail --silent --show-error -o /dev/null -w '%{http_code}' "$base/")"
+
+          # Check the exact deployed build and D1 binding over multiple fresh
+          # requests. A single successful probe is not enough: it previously
+          # allowed an intermittent/mixed-version 503 to slip through.
+          for attempt in $(seq 1 12); do
+            version="$(curl --retry 3 --retry-all-errors --retry-delay 1 --fail --silent --show-error "$base/__version")"
+            echo "Health check $attempt: $version"
+            echo "$version" | grep -Fq '"app":"TeslaNavigation"'
+            echo "$version" | grep -Fq "\"build\":\"$EXPECTED_BUILD\""
+            echo "$version" | grep -Fq '"d1Bound":true'
+
+            admin_status="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/admin-probe.json -w '%{http_code}' "$base/api/admin/superchargers")"
+            admin_body="$(cat /tmp/admin-probe.json)"
+            echo "Admin D1 check $attempt: HTTP $admin_status $admin_body"
+            test "$admin_status" = "401"
+            ! echo "$admin_body" | grep -Fq 'Cloudflare D1-binding DB ontbreekt'
+          done
+
+          page="$(curl --retry 3 --retry-all-errors --retry-delay 1 --fail --silent --show-error -o /dev/null -w '%{http_code}' "$base/")"
           test "$page" = "200"
-          test "$page" = "200"
-          # Probe the exact admin D1 endpoint without a session. With DB bound,
-          # the expected response is 401 (authentication required), never 503
-          # (missing D1 binding). This catches broken bindings before release.
-          admin_status="$(curl --silent --show-error -o /tmp/admin-probe.json -w '%{http_code}' "$base/api/admin/superchargers")"
-          admin_body="$(cat /tmp/admin-probe.json)"
-          echo "Admin D1 probe: HTTP $admin_status $admin_body"
-          test "$admin_status" = "401"
-          ! echo "$admin_body" | grep -Fq 'Cloudflare D1-binding DB ontbreekt'
-          echo "Verified: Worker is healthy and the admin endpoint can see its D1 binding."
+          echo "Verified: all 12 live checks saw the expected build and working D1 binding."
