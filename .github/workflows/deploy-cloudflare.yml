@@ -82,6 +82,13 @@ jobs:
             test "$d1_status" = "200"
             echo "$d1_body" | grep -Fq '"ok":true'
 
+            # Exercise the exact D1 table used by the admin list, without exposing rows.
+            admin_d1_status="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/admin-d1-probe.json -w '%{http_code}' "$base/__health/admin-d1")"
+            admin_d1_body="$(cat /tmp/admin-d1-probe.json)"
+            echo "Admin-table SQL check $attempt: HTTP $admin_d1_status $admin_d1_body"
+            test "$admin_d1_status" = "200"
+            echo "$admin_d1_body" | grep -Fq '"adminQuery":true'
+
             admin_status="$(curl --retry 3 --retry-all-errors --retry-delay 1 --silent --show-error -o /tmp/admin-probe.json -w '%{http_code}' "$base/api/admin/superchargers")"
             admin_body="$(cat /tmp/admin-probe.json)"
             echo "Admin D1 check $attempt: HTTP $admin_status $admin_body"
