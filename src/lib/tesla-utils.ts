@@ -1270,7 +1270,7 @@ export function matchesChargerFilters(charger: Supercharger, filters: ChargerFil
   if (filters.trailerOnly && !charger.trailerFriendly) return false;
   if (filters.lowSpeedOnly && !charger.lowSpeed) return false;
   if (filters.ownerId) {
-    const ownerKey = (charger.ownerName ?? "").normalize("NFKC").trim().replace(/\\s+/g, " ").toLocaleLowerCase("nl-NL");
+    const ownerKey = (charger.ownerName ?? "").normalize("NFKC").trim().replace(/\s+/g, " ").toLocaleLowerCase("nl-NL");
     if (ownerKey !== filters.ownerId) return false;
   }
   const stalls = getTotalStalls(charger);
