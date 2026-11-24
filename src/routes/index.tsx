@@ -761,7 +761,7 @@ function Index() {
   const savedSeasonalConsumption = activeVehicle ? (weatherMode === "winter" ? activeVehicle.winter_consumption_kwh100 : activeVehicle.summer_consumption_kwh100) : null;
   const effectiveKWh100 = consumptionMode === 'manual' && manualConsumptionKWh100 > 0
     ? manualConsumptionKWh100
-    : ((savedSeasonalConsumption && savedSeasonalConsumption > 0 ? savedSeasonalConsumption : catalogueSeasonalConsumption) || (autoConsumptionKWh100State ?? Math.max(13, (packKWh / Math.max(1, modelRange)) * 100 * 1.1) * (1 + trailerReductionEffective / 100)));
+    : ((savedSeasonalConsumption && savedSeasonalConsumption > 0 ? savedSeasonalConsumption : catalogueSeasonalConsumptionEffective) || (autoConsumptionKWh100State ?? Math.max(13, (packKWh / Math.max(1, modelRange)) * 100 * 1.1) * (1 + trailerReductionEffective / 100)));
   const fullEnergyRangeKm = Math.max(50, (packKWh / effectiveKWh100) * 100);
   const availableRange = fullEnergyRangeKm * batteryPercent / 100;
 
