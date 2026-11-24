@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { listPublicChargerHistory } from "@/lib/admin.functions";
 import type { Supercharger } from "@/lib/tesla-types";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +41,16 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
   const [firstId, setFirstId] = useState("");
   const [secondId, setSecondId] = useState("");
   const [scenarioId, setScenarioId] = useState("");
+  const [history, setHistory] = useState<Array<{id:string;chargerName:string;action:string;changedFields:Record<string,unknown>;createdAt:string}>>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const loadHistory = useServerFn(listPublicChargerHistory);
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    setHistoryLoading(true);
+    void loadHistory({ data: { limit: 60 } }).then(rows => { if (active) setHistory(rows); }).catch(() => { if (active) setHistory([]); }).finally(() => { if (active) setHistoryLoading(false); });
+    return () => { active = false; };
+  }, [open, loadHistory]);
 
   const operational = useMemo(() => chargers.filter(c => c.status === "operational"), [chargers]);
   const countries = useMemo(() => {
@@ -141,6 +153,12 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
           <section className="rounded-2xl border border-slate-200 p-4">
             <div className="mb-3 flex items-center gap-2"><BarChart3 className="h-5 w-5 text-blue-600"/><h3 className="font-bold">Europa in cijfers</h3></div>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{countries.slice(0,12).map(c=><div key={c.country} className="rounded-xl bg-slate-50 p-3"><div className="flex justify-between gap-2 text-sm font-semibold"><span>{c.country}</span><span>{c.total}</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-blue-600" style={{width:Math.max(2,c.total/Math.max(1,countries[0]?.total ?? 1)*100)+"%"}}/></div><div className="mt-1 text-xs text-slate-500">{c.active} in bedrijf · {c.building} in ontwikkeling</div></div>)}</div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 p-4">
+            <div className="mb-3 flex items-center gap-2"><History className="h-5 w-5 text-blue-600"/><h3 className="font-bold">Tijdmachine · echte wijzigingen</h3><Badge variant="secondary">{history.length} gebeurtenissen</Badge></div>
+            <p className="mb-3 text-sm text-slate-500">Hier zie je geregistreerde wijzigingen uit de TeslaNavigation-beheergeschiedenis. Dit is geen volledige historische kaart: alleen wijzigingen die daadwerkelijk zijn vastgelegd verschijnen.</p>
+            {historyLoading ? <p className="text-sm text-slate-500">Geschiedenis laden…</p> : history.length ? <div className="max-h-72 space-y-2 overflow-y-auto">{history.map(item => <div key={item.id} className="flex items-start justify-between gap-3 rounded-xl bg-slate-50 p-3"><div className="min-w-0"><div className="truncate text-sm font-semibold">{item.chargerName}</div><div className="text-xs text-slate-500">{item.action === "create" ? "Locatie toegevoegd" : item.action === "delete" ? "Locatie verwijderd" : "Locatiegegevens gewijzigd"}</div></div><time className="shrink-0 text-xs text-slate-500">{item.createdAt ? new Date(item.createdAt.replace(" ", "T") + (item.createdAt.endsWith("Z") ? "" : "Z")).toLocaleString("nl-NL") : "Datum onbekend"}</time></div>)}</div> : <p className="text-sm text-slate-500">Er zijn nog geen historische wijzigingen beschikbaar. Nieuwe geregistreerde updates verschijnen hier vanzelf.</p>}
           </section>
 
           <section className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
