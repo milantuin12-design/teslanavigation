@@ -352,7 +352,7 @@ export default function InputPanel({
     setStartInput(prefill.start);
     setDestInput(prefill.dest);
   }, [prefill]);
-  const selectedVariant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === selectedModel && (vehicle.yearFrom == null || modelYear >= vehicle.yearFrom) && (vehicle.yearTo == null || modelYear <= vehicle.yearTo)) ?? vehicleModels.find((vehicle) => vehicleKey(vehicle) === selectedModel) ?? null;
+  const selectedVariant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === selectedModel && (vehicle.yearFrom == null || modelYear >= vehicle.yearFrom) && (vehicle.yearTo == null || modelYear <= vehicle.yearTo)) ?? null;
   // Het bouwjaar is altijd een aparte invoer. Het gekozen jaar bepaalt welke
   // voertuigvariant/thema actief is; een modelkeuze mag het jaar nooit wijzigen.
   const minYear = minYearForModel(selectedModel);
