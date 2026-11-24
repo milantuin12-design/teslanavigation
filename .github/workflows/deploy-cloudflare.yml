@@ -1,4 +1,4 @@
-name: Deploy TeslaNavigation to Cloudflare # production deployment follows the latest migration-branch commit, including refreshed data and the latest validated V2 power correction
+name: Deploy TeslaNavigation to Cloudflare # production deployment follows the latest migration-branch commit, including refreshed data, V2 correction, and defensive vehicle-year validation
 
 on:
   push:
