@@ -366,8 +366,8 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
 
     superchargers.forEach(charger => {
       try {
-        const isDevelopmentLocation = charger.status === 'permit';
-        if (charger.published === false && !showDrafts && !isDevelopmentLocation) return;
+        // The public D1 feed already excludes only explicitly hidden rows.
+        // Match the Admin list: unpublished records must still be visible on the map.
         if (!isVisibleOnMap(charger)) return;
 
         const status = getChargerStatus(charger);
