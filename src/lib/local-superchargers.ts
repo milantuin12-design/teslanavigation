@@ -80,7 +80,7 @@ function toSupercharger(row: LocalRow, owners: Map<string, Owner>, network: Netw
     id: row.id, name: row.name, lat: row.lat, lng: row.lng, totalStalls,
     occupiedStalls: row.occupied_stalls ?? undefined, stallTypes: row.stall_types ?? undefined,
     country: row.country ?? undefined, province: row.province ?? undefined, city: row.city ?? undefined,
-    maxSpeedKw: row.max_speed_kw ?? getMaxSpeedFromConfigs(configs) ?? undefined,
+    maxSpeedKw: parseMaxSpeed(row.stall_types ?? undefined, row.max_speed_kw ?? undefined, configs),
     versions: getVersionsFromConfigs(configs).length ? getVersionsFromConfigs(configs) : row.versions ?? [],
     chargerConfigs: configs,
     openingHours: normalizeOpeningHours(row.opening_hours, row.opening_time, row.closing_time),
