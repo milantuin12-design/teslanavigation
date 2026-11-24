@@ -1280,7 +1280,7 @@ export function matchesChargerFilters(charger: Supercharger, filters: ChargerFil
   if (filters.noGarage && charger.inParkingGarage) return false;
   if (filters.noParkingFee && charger.parkingFee) return false;
   if (filters.openNow && !isChargerUsable(charger)) return false;
-  if (filters.country && (charger.country || '').toLowerCase() !== filters.country.toLowerCase()) return false;
+  if (filters.country && (charger.country || "").trim().toLocaleLowerCase("nl-NL") !== filters.country.trim().toLocaleLowerCase("nl-NL")) return false;
   if (filters.search) {
     const needle = filters.search.toLowerCase();
     const haystack = `${charger.name} ${charger.city ?? ''} ${charger.province ?? ''} ${charger.country ?? ''} ${charger.ownerName ?? ''}`.toLowerCase();
