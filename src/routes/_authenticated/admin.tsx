@@ -17,7 +17,7 @@ import { CONSTRUCTION_STEPS, constructionStepLabels, type OpeningDayKey, type Ch
 import type { Json } from "@/integrations/supabase/types";
 import type { ParkingFeeBlock } from "@/lib/tesla-types";
 import { constructionProgressLabels, defaultOpeningHours, lifecycleLabels, normalizeOpeningHours, openingDayKeys, openingDayLabels, parseChargerConfigsFromLegacy } from "@/lib/tesla-utils";
-import { TRAFFIC_DAYS, TRAFFIC_PERIODS, createRegionalTrafficForecast, createEmptyTrafficForecast } from "@/lib/traffic-forecast";
+import { TRAFFIC_PERIODS, createRegionalTrafficForecast, createEmptyTrafficForecast } from "@/lib/traffic-forecast";
 import type { TrafficForecast, TrafficForecastPeriodSlot } from "@/lib/tesla-types";
 
 
