@@ -63,7 +63,7 @@ export const listPublishedSuperchargers = createServerFn({ method: "GET" }).hand
   const { getD1 } = await import("./d1.server");
   const db = getD1();
   const [chargerRows, ownerRows] = await Promise.all([
-    db.prepare("SELECT * FROM superchargers WHERE COALESCE(hidden,0) = 0 AND LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') AND (COALESCE(published,1) != 0 OR LOWER(TRIM(COALESCE(status, ''))) IN ('permit','vergunning','vergunning verleend','vergunning_verleend')) ORDER BY name COLLATE NOCASE").all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM superchargers WHERE COALESCE(hidden,0) = 0 ORDER BY name COLLATE NOCASE").all<Record<string, unknown>>(),
     db.prepare("SELECT id,name,logo_url,description,website,contact,notes FROM charger_owners ORDER BY name COLLATE NOCASE").all<OwnerRow>(),
   ]);
   const jsonColumns = ["opening_hours","charger_configs","parking_blocks","price_blocks","construction","works","closure","traffic_forecast","planned_upgrade","stall_states","voting","photos"];
