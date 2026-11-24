@@ -165,27 +165,6 @@ const emptyCharger = {
 };
 
 
-function createDefaultTrailerTrafficForecast(trailerFriendlyStalls: number): TrafficForecast {
-  const lowCapacity = Math.max(0, Number(trailerFriendlyStalls) || 0) < 6;
-  const zeroSlots = TRAFFIC_PERIODS.map((period) => ({ from: period.from, to: period.to, level: 0 }));
-  const holidaySlots = TRAFFIC_PERIODS.map((period, hour) => ({
-    from: period.from,
-    to: period.to,
-    level: lowCapacity
-      ? hour < 6 ? 25 : hour < 20 ? 100 : 50
-      : hour < 6 || hour >= 20 ? 20 : 50,
-  }));
-  return {
-    source: "admin",
-    confidence: "medium",
-    note: "Standaardinschatting voor aanhangerplekken; pas de percentages handmatig aan waar nodig.",
-    weekdaySlots: zeroSlots.map((slot) => ({ ...slot })),
-    weekendSlots: zeroSlots.map((slot) => ({ ...slot })),
-    holidaySlots,
-    holidayPeriods: [],
-  };
-}
-
 function TrafficForecastEditor({ value, onChange, title = "Druktevoorspelling", defaultLevel = 25 }: { value: TrafficForecast; onChange: (value: TrafficForecast) => void; title?: string; defaultLevel?: number }) {
   const formatHolidayPeriods = (periods: TrafficForecast["holidayPeriods"] = []) =>
     periods.map((period) => [period.label, period.from, period.to].join("|")).join("\n");
@@ -1130,12 +1109,7 @@ function AdminPage() {
                 onChange={(traffic_forecast) => setEditing({ ...editing, traffic_forecast })}
               />
 
-              <TrafficForecastEditor
-                title="Drukte aanhangerplekken"
-                value={editing.construction?.trailerTrafficForecast ?? createDefaultTrailerTrafficForecast(editing.construction?.trailerFriendlyStalls ?? (editing.trailer_friendly ? 1 : 0))}
-                defaultLevel={0}
-                onChange={(trailerTrafficForecast) => setEditing({ ...editing, construction: { ...(editing.construction ?? {}), trailerTrafficForecast } })}
-              />
+
 
               <div>
                 <Label>Eigenaar</Label>
