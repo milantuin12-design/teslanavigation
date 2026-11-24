@@ -736,14 +736,18 @@ function Index() {
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
   const catalogueBatteryForRange = selectedCatalogueVehicle?.usableKWh ?? selectedCatalogueVehicle?.batteryKWh ?? packKWh;
+  const catalogueSeasonalConsumption = weatherMode === "winter"
+    ? (selectedCatalogueVehicle?.winterConsumptionKWh100 ?? null)
+    : (selectedCatalogueVehicle?.consumptionKWh100 ?? null);
   const catalogueSeasonalRange = weatherMode === "winter"
     ? (selectedCatalogueVehicle?.winterRangeKm ?? selectedCatalogueVehicle?.rangeKm)
     : (selectedCatalogueVehicle?.summerRangeKm ?? selectedCatalogueVehicle?.rangeKm);
   const catalogueRangeFromConsumption = selectedCatalogueVehicle?.consumptionKWh100 && selectedCatalogueVehicle.consumptionKWh100 > 0
     ? Math.round(catalogueBatteryForRange / selectedCatalogueVehicle.consumptionKWh100 * 100)
     : null;
-  const modelRange = activeVehicle?.battery_kwh && activeVehicle?.summer_consumption_kwh100
-    ? Math.round(activeVehicle.battery_kwh / activeVehicle.summer_consumption_kwh100 * 100)
+  const activeSeasonalConsumption = weatherMode === "winter" ? activeVehicle?.winter_consumption_kwh100 : activeVehicle?.summer_consumption_kwh100;
+  const modelRange = activeVehicle?.battery_kwh && activeSeasonalConsumption
+    ? Math.round(activeVehicle.battery_kwh / activeSeasonalConsumption * 100)
     : (catalogueSeasonalRange ?? catalogueRangeFromConsumption ?? (selectedModel === "Handmatig" ? manualRangeKm : (teslaModels[selectedModel] ?? 450)));
   const catalogueHasCcs = selectedCatalogueVehicle?.connectors?.some((connector) => /ccs|combo/i.test(connector)) ?? false;
   const ccsBlocked = selectedCatalogueVehicle
@@ -751,9 +755,9 @@ function Index() {
     : (needsCcsAdapter(selectedModel, modelYear) && !hasCcsAdapter);
   const [autoConsumptionKWh100State, setAutoConsumptionState] = useState<number | null>(null);
   // Seizoensbereik per bouwjaar heeft voorrang; oudere verbruikswaarden blijven als terugval beschikbaar.
-  const catalogueSeasonalConsumption = catalogueSeasonalRange && catalogueSeasonalRange > 0
-    ? (catalogueBatteryForRange / catalogueSeasonalRange) * 100
-    : (weatherMode === "winter" ? selectedCatalogueVehicle?.winterConsumptionKWh100 : selectedCatalogueVehicle?.consumptionKWh100);
+  const catalogueSeasonalConsumptionEffective = catalogueSeasonalConsumption && catalogueSeasonalConsumption > 0
+    ? catalogueSeasonalConsumption
+    : (catalogueSeasonalRange && catalogueSeasonalRange > 0 ? (catalogueBatteryForRange / catalogueSeasonalRange) * 100 : null);
   const savedSeasonalConsumption = activeVehicle ? (weatherMode === "winter" ? activeVehicle.winter_consumption_kwh100 : activeVehicle.summer_consumption_kwh100) : null;
   const effectiveKWh100 = consumptionMode === 'manual' && manualConsumptionKWh100 > 0
     ? manualConsumptionKWh100
