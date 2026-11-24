@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
 import type { Supercharger } from "@/lib/tesla-types";
-import { getChargerConfigs } from "@/lib/tesla-utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart3, Clock3, Compass, Gauge, GitCompareArrows, History, Lightbulb, MapPinned, Medal, Radar, ShieldCheck, Sparkles, TrendingUp, Trophy, WandSparkles } from "lucide-react";
+import { BarChart3, Compass, Gauge, GitCompareArrows, History, Lightbulb, Radar, Sparkles, TrendingUp, Trophy, WandSparkles } from "lucide-react";
 
 type Props = { open: boolean; onOpenChange: (open: boolean) => void; chargers: Supercharger[] };
 
@@ -57,9 +56,9 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
 
   const biggest = useMemo(() => [...operational].sort((a,b) => (b.totalStalls ?? 0)-(a.totalStalls ?? 0)).slice(0,5), [operational]);
   const fastest = useMemo(() => [...operational].sort((a,b) => (b.maxSpeedKw ?? 0)-(a.maxSpeedKw ?? 0)).slice(0,5), [operational]);
-  const selectedA = chargers.find(c => c.id === firstId);
-  const selectedB = chargers.find(c => c.id === secondId);
-  const scenario = chargers.find(c => c.id === scenarioId);
+  const selectedA = chargers.find(c => (c.id ?? c.name) === firstId);
+  const selectedB = chargers.find(c => (c.id ?? c.name) === secondId);
+  const scenario = chargers.find(c => (c.id ?? c.name) === scenarioId);
   const alternatives = useMemo(() => {
     if (!scenario) return [];
     return operational.filter(c => c.id !== scenario.id).map(c => ({
