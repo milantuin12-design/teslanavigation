@@ -8,6 +8,7 @@ export interface VehicleModel {
   rangeKm?: number | null;
   summerRangeKm?: number | null;
   winterRangeKm?: number | null;
+  summerConsumptionKWh100?: number | null;
   consumptionKWh100?: number | null;
   winterConsumptionKWh100?: number | null;
   yearFrom?: number | null;
