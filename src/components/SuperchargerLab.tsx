@@ -20,6 +20,7 @@ const statusLabel: Record<string, string> = {
 
 
 const fmt = (n?: number) => typeof n === "number" && Number.isFinite(n) ? n.toLocaleString("nl-NL") : "—";
+const chargerKey = (charger: Supercharger) => charger.id || `${charger.name}|${charger.lat}|${charger.lng}`;
 
 export default function SuperchargerLab({ open, onOpenChange, chargers }: Props) {
   const [firstId, setFirstId] = useState("");
@@ -58,9 +59,10 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
   }, [open, loadHistory]);
 
   const matchesSearch = (charger: Supercharger, query: string) => {
-    const needle = query.trim().toLocaleLowerCase("nl-NL");
+    const normalize = (value?: string | null) => (value ?? "").normalize("NFKC").trim().toLocaleLowerCase("nl-NL");
+    const needle = normalize(query);
     if (!needle) return true;
-    return [charger.name, charger.country, charger.city, charger.province].some(value => value?.toLocaleLowerCase("nl-NL").includes(needle));
+    return [charger.name, charger.country, charger.city, charger.province].some(value => normalize(value).includes(needle));
   };
   const operational = useMemo(() => chargers.filter(c => c.status === "operational"), [chargers]);
   const countries = useMemo(() => {
@@ -78,9 +80,9 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
 
   const biggest = useMemo(() => [...operational].sort((a,b) => (b.totalStalls ?? 0)-(a.totalStalls ?? 0)).slice(0,5), [operational]);
   const fastest = useMemo(() => [...operational].sort((a,b) => (b.maxSpeedKw ?? 0)-(a.maxSpeedKw ?? 0)).slice(0,5), [operational]);
-  const selectedA = chargers.find(c => (c.id ?? c.name) === firstId);
-  const selectedB = chargers.find(c => (c.id ?? c.name) === secondId);
-  const scenario = chargers.find(c => (c.id ?? c.name) === scenarioId);
+  const selectedA = chargers.find(c => chargerKey(c) === firstId);
+  const selectedB = chargers.find(c => chargerKey(c) === secondId);
+  const scenario = chargers.find(c => chargerKey(c) === scenarioId);
   const alternatives = useMemo(() => {
     if (!scenario) return [];
     return operational.filter(c => c.id !== scenario.id).map(c => ({
@@ -137,7 +139,7 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
             <div className="rounded-2xl border border-slate-200 p-4">
               <div className="mb-3 flex items-center gap-2"><GitCompareArrows className="h-5 w-5 text-blue-600"/><h3 className="font-bold">Supercharger-duel</h3></div>
               <div className="grid gap-2 sm:grid-cols-2">
-                <div className="space-y-2"><input value={firstSearch} onChange={e=>setFirstSearch(e.target.value)} placeholder="Zoek op naam, land, stad of provincie…" className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"/><Select value={firstId} onValueChange={setFirstId}><SelectTrigger><SelectValue placeholder="Eerste locatie"/></SelectTrigger><SelectContent>{chargers.filter(c=>matchesSearch(c,firstSearch)).map(c => <SelectItem key={c.id ?? c.name} value={c.id ?? c.name}>{c.name} · {[c.city,c.province,c.country].filter(Boolean).join(", ")}</SelectItem>)}</SelectContent></Select></div>
+                <div className="space-y-2"><input value={firstSearch} onChange={e=>setFirstSearch(e.target.value)} placeholder="Zoek op naam, land, stad of provincie…" className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"/><Select value={firstId} onValueChange={setFirstId}><SelectTrigger><SelectValue placeholder="Eerste locatie"/></SelectTrigger><SelectContent>{chargers.filter(c=>matchesSearch(c,firstSearch)).map(c => <SelectItem key={chargerKey(c)} value={chargerKey(c)}>{c.name} · {[c.city,c.province,c.country].filter(Boolean).join(", ")}</SelectItem>)}</SelectContent></Select></div>
                 <div className="space-y-2"><input value={secondSearch} onChange={e=>setSecondSearch(e.target.value)} placeholder="Zoek op naam, land, stad of provincie…" className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"/><Select value={secondId} onValueChange={setSecondId}><SelectTrigger><SelectValue placeholder="Tweede locatie"/></SelectTrigger><SelectContent>{chargers.filter(c=>matchesSearch(c,secondSearch)).map(c => <SelectItem key={c.id ?? c.name} value={c.id ?? c.name}>{c.name} · {[c.city,c.province,c.country].filter(Boolean).join(", ")}</SelectItem>)}</SelectContent></Select></div>
               </div>
               {compareRows.length > 0 ? <div className="mt-4 overflow-x-auto"><table className="w-full text-sm"><thead><tr><th className="p-2 text-left text-slate-500">Eigenschap</th><th className="p-2 text-left">{selectedA?.name}</th><th className="p-2 text-left">{selectedB?.name}</th></tr></thead><tbody>{compareRows.map(row=><tr key={row[0]} className="border-t border-slate-100"><td className="p-2 text-slate-500">{row[0]}</td><td className="p-2 font-medium">{row[1]}</td><td className="p-2 font-medium">{row[2]}</td></tr>)}</tbody></table></div> : <p className="mt-3 text-sm text-slate-500">Kies twee locaties om ze direct te vergelijken.</p>}
@@ -172,10 +174,10 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
               <input value={collectionSearch} onChange={e=>setCollectionSearch(e.target.value)} placeholder="Zoek op naam, land, stad of provincie…" className="mb-3 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"/>
               <div className="max-h-64 space-y-2 overflow-y-auto">
                 {chargers.filter(c => c.status === "operational" && matchesSearch(c,collectionSearch)).sort((a,b) => a.name.localeCompare(b.name)).map(c => {
-                  const id = c.id ?? c.name;
+                  const id = chargerKey(c);
                   const visited = visitedIds.includes(id);
                   return <button key={id} type="button" onClick={() => toggleVisited(id)} className={`flex w-full items-center justify-between gap-3 rounded-xl border p-3 text-left text-sm transition-colors ${visited ? "border-amber-300 bg-amber-50" : "border-slate-200 bg-white hover:bg-slate-50"}`}>
-                    <span className="min-w-0"><span className="block truncate font-semibold">{c.name}</span><span className="text-xs text-slate-500">{c.country || "Land onbekend"}</span></span>
+                    <span className="min-w-0"><span className="block truncate font-semibold">{c.name}</span><span className="text-xs text-slate-500">{[c.city, c.province, c.country].filter(Boolean).join(", ") || "Plaats onbekend"}</span></span>
                     <span className="shrink-0 font-semibold">{visited ? "✓ Bezocht" : "+ Bezocht"}</span>
                   </button>;
                 })}
