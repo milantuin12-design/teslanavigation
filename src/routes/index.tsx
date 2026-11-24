@@ -122,16 +122,28 @@ interface RoutePlan {
   };
 }
 
-function estimateRouteCost(plan: RoutePlan, departure: Date, modelName: string, packKWh: number, carMaxKwOverride?: number): number | null {
+type EuroRates = Record<string, number>;
+
+function convertToEuro(amount: number, currency: string | undefined, rates: EuroRates): number | null {
+  const code = (currency || "EUR").trim().toUpperCase();
+  if (!Number.isFinite(amount)) return null;
+  if (code === "EUR") return amount;
+  const rate = rates[code];
+  return Number.isFinite(rate) && rate > 0 ? amount * rate : null;
+}
+
+function estimateRouteCost(plan: RoutePlan, departure: Date, modelName: string, packKWh: number, carMaxKwOverride: number | undefined, eurRates: EuroRates): number | null {
   if (plan.stops.length === 0) return null;
   let total = 0;
   for (const stop of plan.stops) {
     const eta = new Date(departure.getTime() + (stop.etaMinFromStart ?? 0) * 60000);
     const charge = estimateChargingCost(stop, eta, modelName, packKWh, carMaxKwOverride);
-    if (!charge || charge.currency !== "EUR") return null;
-    const parking = parkingCost(stop, eta);
+    if (!charge) return null;
+    const chargingEuro = convertToEuro(charge.amount, charge.currency, eurRates);
+    if (chargingEuro === null) return null;
+    const parking = parkingCost(stop, eta, eurRates);
     if (stop.charger.parkingFee && parking === null) return null;
-    total += charge.amount + (parking ?? 0);
+    total += chargingEuro + (parking ?? 0);
   }
   return Number.isFinite(total) ? total : null;
 }
@@ -585,13 +597,37 @@ function Index() {
   const [showRouteInputs, setShowRouteInputs] = useState(true);
   const [routeOptions, setRouteOptions] = useState<RoutePlan[]>([]);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState(0);
+  const [eurRates, setEurRates] = useState<EuroRates>({});
+  useEffect(() => {
+    let active = true;
+    const currencies = [...new Set(routeOptions.flatMap((plan) => plan.stops.flatMap((stop) => [
+      stop.charger.priceCurrency || "EUR",
+      ...(stop.charger.parkingBlocks ?? []).map((block) => block.currency || "EUR"),
+    ])).map((code) => code.trim().toUpperCase()).filter((code) => /^[A-Z]{3}$/.test(code) && code !== "EUR"))];
+    if (currencies.length === 0) {
+      setEurRates({});
+      return () => { active = false; };
+    }
+    Promise.all(currencies.map(async (code) => {
+      try {
+        const response = await fetch(`https://api.frankfurter.app/latest?from=${encodeURIComponent(code)}&to=EUR`, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Koers ${code} niet beschikbaar`);
+        const data = await response.json() as { rates?: { EUR?: number } };
+        const rate = Number(data?.rates?.EUR);
+        return Number.isFinite(rate) && rate > 0 ? [code, rate] as const : null;
+      } catch { return null; }
+    })).then((entries) => {
+      if (active) setEurRates(Object.fromEntries(entries.filter((entry): entry is readonly [string, number] => entry !== null)));
+    });
+    return () => { active = false; };
+  }, [routeOptions]);
   const fastestRouteIndex = routeOptions.length ? routeOptions.reduce((best, plan, i) => {
     const total = plan.route.totalTimeMin + plan.stops.reduce((sum, stop) => sum + stop.chargeDurationMin, 0);
     const bestTotal = routeOptions[best].route.totalTimeMin + routeOptions[best].stops.reduce((sum, stop) => sum + stop.chargeDurationMin, 0);
     return total < bestTotal ? i : best;
   }, 0) : -1;
   const fewestStopsIndex = routeOptions.length ? routeOptions.reduce((best, plan, i) => plan.stops.length < routeOptions[best].stops.length ? i : best, 0) : -1;
-  const routeCosts = routeOptions.map((plan) => estimateRouteCost(plan, departureDate, selectedModel, packKWh, carMaxKwOverride));
+  const routeCosts = routeOptions.map((plan) => estimateRouteCost(plan, departureDate, selectedModel, packKWh, carMaxKwOverride, eurRates));
   const pricedRoutes = routeCosts.map((cost, index) => ({ cost, index })).filter((item): item is { cost: number; index: number } => item.cost !== null);
   const cheapestRouteIndex = pricedRoutes.length ? pricedRoutes.reduce((best, item) => item.cost < best.cost ? item : best).index : -1;
   useEffect(() => {
@@ -625,7 +661,7 @@ function Index() {
       .map((offset) => {
         const departure = new Date(departureDate.getTime() + offset * 60000);
         if (departure.getTime() < Date.now() - 60000) return null;
-        const cost = estimateRouteCost(plan, departure, selectedModel, packKWh, carMaxKwOverride);
+        const cost = estimateRouteCost(plan, departure, selectedModel, packKWh, carMaxKwOverride, eurRates);
         if (cost === null) return null;
         const crowdLevels = plan.stops
           .map((stop) => getTrafficForecastAt(
