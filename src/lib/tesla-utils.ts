@@ -34,7 +34,10 @@ export function normalizeChargerConfigs(configs?: ChargerConfig[] | null): Charg
     .map((config) => ({
       count: Number(config.count),
       version: String(config.version || '').toUpperCase(),
-      speedKw: Number(config.speedKw),
+      // V2 Supercharger stalls are 150 kW hardware; never label them as V3-level 250 kW.
+      speedKw: String(config.version || '').toUpperCase() === 'V2'
+        ? Math.min(150, Number(config.speedKw))
+        : Number(config.speedKw),
     }))
     .filter((config) => config.count > 0 && config.speedKw > 0 && config.version.length > 0);
 }
