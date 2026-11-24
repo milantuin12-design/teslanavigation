@@ -19,7 +19,7 @@ export interface VehicleModel {
 
 /** Verwijder jaartallen uit model-/uitvoeringsnamen; het aparte bouwjaarveld bepaalt de variant. */
 export function cleanVehicleName(value: string | null | undefined): string {
-  return (value ?? "").replace(/\\b(?:19|20)\\d{2}\\b/g, "").replace(/\\s+/g, " ").trim();
+  return (value ?? "").replace(/\b(?:19|20)\d{2}\b/g, "").replace(/\s+/g, " ").trim();
 }
 
 /** Sleutel zoals gebruikt in de routeplanner (zonder jaartallen in de naam). */
