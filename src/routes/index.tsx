@@ -755,7 +755,7 @@ function Index() {
       }
     }
     throw lastError instanceof Error ? lastError : new Error("Live Superchargerdata laden uit Cloudflare D1 is mislukt.");
-  }, []););
+  }, []);
 
   useEffect(() => {
     let mounted = true;
