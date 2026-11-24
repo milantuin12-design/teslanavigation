@@ -65,16 +65,17 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
   };
   const operational = useMemo(() => chargers.filter(c => c.status === "operational"), [chargers]);
   const countries = useMemo(() => {
-    const map = new Map<string, { total: number; active: number; building: number }>();
+    const map = new Map<string, { country: string; total: number; active: number; building: number }>();
     chargers.forEach(c => {
-      const country = c.country?.trim() || "Onbekend";
-      const row = map.get(country) ?? { total: 0, active: 0, building: 0 };
+      const country = (c.country?.trim() || "Onbekend").replace(/\\s+/g, " ");
+      const key = country.normalize("NFKC").toLocaleLowerCase("nl-NL");
+      const row = map.get(key) ?? { country, total: 0, active: 0, building: 0 };
       row.total++;
       if (c.status === "operational") row.active++;
       if (c.status === "construction" || c.status === "permit" || c.status === "expanding") row.building++;
-      map.set(country, row);
+      map.set(key, row);
     });
-    return [...map.entries()].map(([country, value]) => ({ country, ...value })).sort((a,b) => b.total-a.total);
+    return [...map.values()].sort((a,b) => b.total-a.total);
   }, [chargers]);
 
   const biggest = useMemo(() => [...operational].sort((a,b) => (b.totalStalls ?? 0)-(a.totalStalls ?? 0)).slice(0,5), [operational]);
