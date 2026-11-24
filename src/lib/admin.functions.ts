@@ -489,45 +489,79 @@ export const adminSetUserBlocked = createServerFn({ method: "POST" })
     return {ok:true};
   });
 
-/* Public read-only catalogue used by the route planner; edits remain admin-only. */
+/* Vehicle catalogue: one parent variant with independently stored year specifications. */
+const decodeConnectors = (value: unknown): string[] => {
+  if (Array.isArray(value)) return value.map(String);
+  if (typeof value === "string") { try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed.map(String) : ["Type 2","CCS"]; } catch { return ["Type 2","CCS"]; } }
+  return ["Type 2","CCS"];
+};
 export const listPublishedVehicleModels = createServerFn({method:"GET"}).handler(async()=>{
-  const rows=await getD1().prepare("SELECT id,brand,model,trim,battery_kwh,usable_kwh,range_km,summer_range_km,winter_range_km,consumption_kwh100,winter_consumption_kwh100,year_from,year_to,max_charge_kw,connectors,image_url,notes,published FROM vehicle_models WHERE published=1 ORDER BY brand,model,year_from,trim").all<Record<string,unknown>>();
-  return (rows.results??[]).map((row)=>({
-    id:String(row.id),brand:String(row.brand??"Tesla"),model:String(row.model),trim:row.trim==null?null:String(row.trim),
-    batteryKWh:row.battery_kwh==null?null:Number(row.battery_kwh),usableKWh:row.usable_kwh==null?null:Number(row.usable_kwh),
-    rangeKm:row.range_km==null?null:Number(row.range_km),summerRangeKm:row.summer_range_km==null?null:Number(row.summer_range_km),winterRangeKm:row.winter_range_km==null?null:Number(row.winter_range_km),consumptionKWh100:row.consumption_kwh100==null?null:Number(row.consumption_kwh100),
-    winterConsumptionKWh100:row.winter_consumption_kwh100==null?null:Number(row.winter_consumption_kwh100),
-    yearFrom:row.year_from==null?null:Number(row.year_from),yearTo:row.year_to==null?null:Number(row.year_to),
-    maxChargeKw:row.max_charge_kw==null?null:Number(row.max_charge_kw),
-    connectors:Array.isArray(row.connectors)?row.connectors:(typeof row.connectors==="string"?JSON.parse(row.connectors):["Type 2","CCS"]),
-    imageUrl:row.image_url==null?null:String(row.image_url),notes:row.notes==null?null:String(row.notes),published:true,
-  }));
+  const db=getD1();
+  const [parents,specs]=await Promise.all([
+    db.prepare("SELECT * FROM vehicle_models WHERE published=1 ORDER BY brand,model,trim").all<Record<string,unknown>>(),
+    db.prepare("SELECT s.* FROM vehicle_year_specs s INNER JOIN vehicle_models m ON m.id=s.vehicle_model_id WHERE m.published=1 ORDER BY s.year").all<Record<string,unknown>>()
+  ]);
+  const byParent=new Map<string,Record<string,unknown>[]>();
+  for(const spec of specs.results??[]){const key=String(spec.vehicle_model_id);byParent.set(key,[...(byParent.get(key)??[]),spec]);}
+  return (parents.results??[]).flatMap((parent)=>{
+    const parentId=String(parent.id), saved=byParent.get(parentId)??[];
+    const years=saved.length?saved:(parent.year_from!=null?[{year:parent.year_from,battery_kwh:parent.battery_kwh,usable_kwh:parent.usable_kwh,range_km:parent.range_km,summer_range_km:parent.summer_range_km,winter_range_km:parent.winter_range_km,max_charge_kw:parent.max_charge_kw,connectors:parent.connectors}]:[]);
+    return years.map((spec)=>({
+      id:parentId,brand:String(parent.brand??"Tesla"),model:String(parent.model),trim:parent.trim==null?null:String(parent.trim),
+      batteryKWh:spec.battery_kwh==null?null:Number(spec.battery_kwh),usableKWh:spec.usable_kwh==null?null:Number(spec.usable_kwh),
+      rangeKm:spec.range_km==null?null:Number(spec.range_km),summerRangeKm:spec.summer_range_km==null?null:Number(spec.summer_range_km),winterRangeKm:spec.winter_range_km==null?null:Number(spec.winter_range_km),
+      consumptionKWh100:parent.consumption_kwh100==null?null:Number(parent.consumption_kwh100),winterConsumptionKWh100:parent.winter_consumption_kwh100==null?null:Number(parent.winter_consumption_kwh100),
+      yearFrom:Number(spec.year),yearTo:Number(spec.year),maxChargeKw:spec.max_charge_kw==null?null:Number(spec.max_charge_kw),
+      connectors:decodeConnectors(spec.connectors),imageUrl:parent.image_url==null?null:String(parent.image_url),notes:parent.notes==null?null:String(parent.notes),published:true
+    }));
+  });
 });
-/* Admin-managed vehicle catalogue: year-specific variants drive the user's vehicle defaults. */
 export const adminListVehicleModels = createServerFn({method:"GET"}).handler(async()=>{
-  await requireD1Admin();
-  const rows=await getD1().prepare("SELECT * FROM vehicle_models ORDER BY brand,model,year_from,trim").all();
-  return rows.results??[];
+  await requireD1Admin(); const db=getD1();
+  const [parents,specs]=await Promise.all([
+    db.prepare("SELECT * FROM vehicle_models ORDER BY brand,model,trim").all<Record<string,unknown>>(),
+    db.prepare("SELECT * FROM vehicle_year_specs ORDER BY year").all<Record<string,unknown>>()
+  ]);
+  const byParent=new Map<string,Record<string,unknown>[]>();
+  for(const spec of specs.results??[]){const key=String(spec.vehicle_model_id);byParent.set(key,[...(byParent.get(key)??[]),spec]);}
+  return (parents.results??[]).map(parent=>({...parent,year_specs:byParent.get(String(parent.id))??[]}));
 });
 export const adminSaveVehicleModel = createServerFn({method:"POST"})
   .inputValidator((input:unknown)=>z.object({
     id:z.string().optional(),brand:z.string().trim().min(1).max(80),model:z.string().trim().min(1).max(120),
-    trim:z.string().max(120).nullable().optional(),battery_kwh:z.number().positive().max(300).nullable().optional(),
-    usable_kwh:z.number().positive().max(300).nullable().optional(),range_km:z.number().int().positive().max(1500).nullable().optional(),summer_range_km:z.number().int().positive().max(1500).nullable().optional(),winter_range_km:z.number().int().positive().max(1500).nullable().optional(),
-    consumption_kwh100:z.number().positive().max(100).nullable().optional(),winter_consumption_kwh100:z.number().positive().max(100).nullable().optional(),year_from:z.number().int().min(1990).max(2100),
-    year_to:z.number().int().min(1990).max(2100),max_charge_kw:z.number().int().positive().max(1000).nullable().optional(),
-    connectors:z.array(z.string().max(30)).max(10).default(["Type 2","CCS"]),image_url:z.string().max(500000).nullable().optional().refine((value)=>!value || /^https?:\/\//i.test(value) || /^data:image\/(?:jpeg|png|webp);base64,/i.test(value),{message:"Gebruik een http(s)-afbeeldingslink of een geüploade afbeelding."}),
+    trim:z.string().max(120).nullable().optional(),year_from:z.number().int().min(1990).max(2100),
+    image_url:z.string().max(500000).nullable().optional().refine(value=>!value||/^https?:\\/\\//i.test(value)||/^data:image\\/(?:jpeg|png|webp);base64,/i.test(value),{message:"Gebruik een http(s)-afbeeldingslink of een geüploade afbeelding."}),
     notes:z.string().max(2000).nullable().optional(),published:z.boolean().default(true)
-  }).refine(v=>v.year_to>=v.year_from,{message:"Eindbouwjaar moet gelijk aan of later dan beginbouwjaar zijn."}).parse(input))
+  }).parse(input))
   .handler(async({data})=>{
-    const user=await requireD1Admin(); const id=data.id??crypto.randomUUID();
-    await getD1().prepare(`INSERT INTO vehicle_models (id,brand,model,trim,battery_kwh,usable_kwh,range_km,summer_range_km,winter_range_km,consumption_kwh100,winter_consumption_kwh100,year_from,year_to,max_charge_kw,connectors,image_url,notes,published,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
-      ON CONFLICT(id) DO UPDATE SET brand=excluded.brand,model=excluded.model,trim=excluded.trim,battery_kwh=excluded.battery_kwh,usable_kwh=excluded.usable_kwh,range_km=excluded.range_km,summer_range_km=excluded.summer_range_km,winter_range_km=excluded.winter_range_km,consumption_kwh100=excluded.consumption_kwh100,winter_consumption_kwh100=excluded.winter_consumption_kwh100,year_from=excluded.year_from,year_to=excluded.year_to,max_charge_kw=excluded.max_charge_kw,connectors=excluded.connectors,image_url=excluded.image_url,notes=excluded.notes,published=excluded.published,updated_at=CURRENT_TIMESTAMP`)
-      .bind(id,data.brand,data.model,data.trim??null,data.battery_kwh??null,data.usable_kwh??null,data.range_km??null,data.summer_range_km??null,data.winter_range_km??null,data.consumption_kwh100??null,data.winter_consumption_kwh100??null,data.year_from,data.year_to,data.max_charge_kw??null,JSON.stringify(data.connectors),data.image_url??null,data.notes??null,data.published?1:0).run();
-    await d1Audit(user.id,"vehicle_model_save",1,{id,brand:data.brand,model:data.model,years:[data.year_from,data.year_to]});
+    const user=await requireD1Admin(), id=data.id??crypto.randomUUID();
+    await getD1().prepare(`INSERT INTO vehicle_models (id,brand,model,trim,year_from,year_to,image_url,notes,published,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+      ON CONFLICT(id) DO UPDATE SET brand=excluded.brand,model=excluded.model,trim=excluded.trim,year_from=excluded.year_from,year_to=excluded.year_to,image_url=excluded.image_url,notes=excluded.notes,published=excluded.published,updated_at=CURRENT_TIMESTAMP`)
+      .bind(id,data.brand,data.model,data.trim??null,data.year_from,data.year_from,data.image_url??null,data.notes??null,data.published?1:0).run();
+    await d1Audit(user.id,"vehicle_model_save",1,{id,brand:data.brand,model:data.model});
     return {id};
   });
+export const adminSaveVehicleYearSpec = createServerFn({method:"POST"})
+  .inputValidator((input:unknown)=>z.object({
+    id:z.string().optional(),vehicle_model_id:z.string().min(1).max(120),year:z.number().int().min(1990).max(2100),
+    battery_kwh:z.number().positive().max(300).nullable().optional(),usable_kwh:z.number().positive().max(300).nullable().optional(),
+    range_km:z.number().int().positive().max(1500).nullable().optional(),summer_range_km:z.number().int().positive().max(1500).nullable().optional(),
+    winter_range_km:z.number().int().positive().max(1500).nullable().optional(),max_charge_kw:z.number().int().positive().max(1000).nullable().optional(),
+    connectors:z.array(z.string().max(30)).max(10).default(["Type 2","CCS"])
+  }).parse(input))
+  .handler(async({data})=>{
+    const user=await requireD1Admin(), id=data.id??crypto.randomUUID();
+    await getD1().prepare(`INSERT INTO vehicle_year_specs (id,vehicle_model_id,year,battery_kwh,usable_kwh,range_km,summer_range_km,winter_range_km,max_charge_kw,connectors,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+      ON CONFLICT(vehicle_model_id,year) DO UPDATE SET battery_kwh=excluded.battery_kwh,usable_kwh=excluded.usable_kwh,range_km=excluded.range_km,summer_range_km=excluded.summer_range_km,winter_range_km=excluded.winter_range_km,max_charge_kw=excluded.max_charge_kw,connectors=excluded.connectors,updated_at=CURRENT_TIMESTAMP`)
+      .bind(id,data.vehicle_model_id,data.year,data.battery_kwh??null,data.usable_kwh??null,data.range_km??null,data.summer_range_km??null,data.winter_range_km??null,data.max_charge_kw??null,JSON.stringify(data.connectors)).run();
+    await d1Audit(user.id,"vehicle_year_spec_save",1,{vehicle_model_id:data.vehicle_model_id,year:data.year});
+    return {ok:true};
+  });
+export const adminDeleteVehicleYearSpec = createServerFn({method:"POST"})
+  .inputValidator((input:unknown)=>z.object({id:z.string().min(1).max(120)}).parse(input))
+  .handler(async({data})=>{const user=await requireD1Admin();await getD1().prepare("DELETE FROM vehicle_year_specs WHERE id=?").bind(data.id).run();await d1Audit(user.id,"vehicle_year_spec_delete",1,{id:data.id});return {ok:true};});
 export const adminDeleteVehicleModel = createServerFn({method:"POST"})
   .inputValidator((input:unknown)=>z.object({id:z.string().min(1).max(120)}).parse(input))
   .handler(async({data})=>{
