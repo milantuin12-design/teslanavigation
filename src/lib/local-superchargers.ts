@@ -1,6 +1,5 @@
 import type { ChargerConfig, ChargerLifecycleStatus, Supercharger, TrafficForecast } from "./tesla-types";
 import {
-  getMaxSpeedFromConfigs,
   getTotalStallsFromConfigs,
   getVersionsFromConfigs,
   normalizeChargerConfigs,
