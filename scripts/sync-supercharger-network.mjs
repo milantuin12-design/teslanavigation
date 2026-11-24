@@ -52,6 +52,25 @@ const nameSimilar = (source, existing) => {
 const chargerVersions = (site) => Object.entries(site.stalls ?? {})
   .filter(([key, count]) => ["v2", "v3", "v4", "urban"].includes(key.toLowerCase()) && Number(count) > 0)
   .map(([version, count]) => ({ version: version.toUpperCase(), count: Number(count) }));
+const chargerPower = (version, sourcePower) => {
+  const reported = Number(sourcePower);
+  if (version === "V2") return 150;
+  if (reported > 0) return reported;
+  if (version === "V4") return 325;
+  if (version === "V3") return 250;
+  return null;
+};
+const siteConfigs = (versions, sourcePower) => versions.map((item) => ({
+  ...item,
+  speedKw: chargerPower(item.version, sourcePower),
+}));
+const siteMaxPower = (configs, sourcePower) => {
+  const speeds = configs.map((item) => Number(item.speedKw)).filter((speed) => speed > 0);
+  return speeds.length ? Math.max(...speeds) : (Number(sourcePower) > 0 ? Number(sourcePower) : null);
+};
+const describeConfigs = (configs) => configs.length
+  ? configs.map((item) => `${item.count} ${item.version} ${item.speedKw}kW`).join(" + ")
+  : null;
 
 const existingBySourceRef = new Map(
   dataset.chargers.filter((row) => row.source_ref).map((row) => [row.source_ref, row])
@@ -118,17 +137,14 @@ for (const site of source.sites) {
       if (Number(site.stallCount) > 0 && !["planned", "permit", "voting"].includes(nextStatus)) {
         match.total_stalls = Number(site.stallCount);
       }
-      if (Number(site.powerKilowatt) > 0) match.max_speed_kw = Number(site.powerKilowatt);
       const versions = chargerVersions(site);
+      const configs = siteConfigs(versions, site.powerKilowatt);
+      const maxPower = siteMaxPower(configs, site.powerKilowatt);
+      if (maxPower) match.max_speed_kw = maxPower;
       if (versions.length) {
         match.versions = versions.map((item) => item.version);
-        match.charger_configs = versions.map((item) => ({
-          count: item.count,
-          speedKw: Number(site.powerKilowatt) || null,
-          version: item.version,
-        }));
-        match.stall_types = versions.map((item) => `${item.count} ${item.version}`).join(" + ")
-          + (Number(site.powerKilowatt) > 0 ? ` laders ${site.powerKilowatt}kW` : " laders");
+        match.charger_configs = configs;
+        match.stall_types = describeConfigs(configs) ?? versions.map((item) => `${item.count} ${item.version}`).join(" + ");
       }
       if (!match.city && site.address?.city) match.city = site.address.city;
       if (!match.province && site.address?.state) match.province = site.address.state;
@@ -153,14 +169,13 @@ for (const site of source.sites) {
   if (site.status === "CLOSED_PERM") continue;
 
   const versions = chargerVersions(site);
+  const configs = siteConfigs(versions, site.powerKilowatt);
+  const maxPower = siteMaxPower(configs, site.powerKilowatt);
   const status = statusMap[site.status] ?? "planned";
   const country = site.address?.country === "Turkey" ? "Türkiye" : site.address?.country;
   const id = `00000000-0000-4000-8000-${String(site.id).padStart(12, "0")}`;
   if (existing.some((row) => row.id === id)) continue;
-  const stallTypes = versions.length
-    ? versions.map((item) => `${item.count} ${item.version}`).join(" + ")
-      + (Number(site.powerKilowatt) > 0 ? ` laders ${site.powerKilowatt}kW` : " laders")
-    : null;
+  const stallTypes = describeConfigs(configs);
 
   additions.push({
     id,
@@ -172,7 +187,7 @@ for (const site of source.sites) {
     country,
     province: site.address?.state ?? null,
     city: site.address?.city ?? null,
-    max_speed_kw: Number(site.powerKilowatt) > 0 ? Number(site.powerKilowatt) : null,
+    max_speed_kw: maxPower,
     versions: versions.map((item) => item.version),
     status,
     construction: {},
@@ -181,15 +196,11 @@ for (const site of source.sites) {
     planned_upgrade: {},
     opening_hours: null,
     is_available: ["operational", "works"].includes(status),
-    charger_configs: versions.map((item) => ({
-      count: item.count,
-      speedKw: Number(site.powerKilowatt) || null,
-      version: item.version,
-    })),
+    charger_configs: configs,
     trailer_friendly: Number(site.stalls?.trailerFriendly) > 0,
     owner_id: null,
     owner_name: site.facilityName ?? null,
-    low_speed: Number(site.powerKilowatt) > 0 && Number(site.powerKilowatt) < 150,
+    low_speed: !!maxPower && maxPower < 150,
     published: true,
     notes: site.accessNotes ?? site.addressNotes ?? null,
     source_ref: sourceRef,
