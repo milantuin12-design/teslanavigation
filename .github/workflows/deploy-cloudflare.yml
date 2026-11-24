@@ -88,9 +88,12 @@ jobs:
             session_body="$(cat /tmp/session-probe.json 2>/dev/null || true)"
             login_status="$(curl --connect-timeout 5 --max-time 15 --silent --show-error -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' --data '{"email":"invalid","password":"x"}' -o /tmp/login-probe.json -w '%{http_code}' "$base/api/auth/login" || true)"
             login_body="$(cat /tmp/login-probe.json 2>/dev/null || true)"
+            map_status="$(curl --connect-timeout 5 --max-time 30 --silent --show-error -o /tmp/public-map.json -w '%{http_code}' "$base/api/public/superchargers" || true)"
+            map_count="$(jq -r 'if (.chargers | type) == "array" then (.chargers | length) else -1 end' /tmp/public-map.json 2>/dev/null || echo -1)"
+            map_cache="$(curl --connect-timeout 5 --max-time 30 --silent --show-error -D /tmp/public-map.headers -o /dev/null "$base/api/public/superchargers" && grep -i '^x-teslanavigation-map-cache:' /tmp/public-map.headers | tr -d '\r' || true)"
             page="$(curl --connect-timeout 5 --max-time 15 --silent --show-error -o /dev/null -w '%{http_code}' "$base/" || true)"
 
-            echo "Stable check $attempt: build=$EXPECTED_BUILD D1=$d1_status $d1_body admin-table=$admin_d1_status $admin_d1_body admin=$admin_status $admin_body session=$session_status login=$login_status page=$page"
+            echo "Stable check $attempt: build=$EXPECTED_BUILD D1=$d1_status $d1_body admin-table=$admin_d1_status $admin_d1_body admin=$admin_status $admin_body session=$session_status login=$login_status map=$map_status rows=$map_count cache=$map_cache page=$page"
             if [ "$d1_status" = "200" ] &&
                echo "$d1_body" | grep -Fq '"ok":true' &&
                [ "$admin_d1_status" = "200" ] &&
@@ -101,6 +104,8 @@ jobs:
                echo "$session_body" | grep -Fq 'Je bent niet ingelogd.' &&
                [ "$login_status" = "400" ] &&
                echo "$login_body" | grep -Fq 'Vul een geldig e-mailadres en wachtwoord in.' &&
+               [ "$map_status" = "200" ] &&
+               [ "$map_count" -gt 0 ] &&
                [ "$page" = "200" ]; then
               stable=$((stable + 1))
               echo "Consecutive complete live checks: $stable/3"
