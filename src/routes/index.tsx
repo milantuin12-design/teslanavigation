@@ -425,8 +425,8 @@ function Index() {
   }, [chargerFilters, rememberFilters]);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
-  // Vergunning- en bouwlocaties standaard zichtbaar.
-  const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(true);
+  // Bouw- en vergunningslocaties zijn standaard verborgen.
+  const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
   const [showAllChargers, setShowAllChargers] = useState(false);
   const [mapType, setMapType] = useState<"road" | "satellite">("satellite");
   const [mapZoom, setMapZoom] = useState(7);
@@ -708,30 +708,54 @@ function Index() {
   // De kaart leest live uit dezelfde Cloudflare D1-database als het Admin-paneel.
   // De ingebouwde JSON wordt alleen als noodweergave gebruikt als D1 tijdelijk niet bereikbaar is.
   const refreshSuperchargers = useCallback(async () => {
-    const response = await fetch("/api/public/superchargers", {
-      method: "GET",
-      credentials: "same-origin",
-      cache: "no-store",
-      headers: { Accept: "application/json" },
-    });
-    const feed = await response.json().catch(() => null) as
-      | { chargers?: unknown; owners?: unknown; error?: string }
-      | null;
-    if (!response.ok) {
-      throw new Error(feed?.error || "Live Superchargerdata kon niet uit Cloudflare D1 worden geladen.");
+    let lastError: unknown = null;
+    // Een tijdelijke Worker/D1-storing mag niet betekenen dat de gebruiker
+    // handmatig meerdere keren moet herladen. Probeer kort en begrensd opnieuw.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 12000);
+        let response: Response;
+        try {
+          response = await fetch("/api/public/superchargers", {
+            method: "GET",
+            credentials: "same-origin",
+            cache: "no-store",
+            headers: { Accept: "application/json" },
+            signal: controller.signal,
+          });
+        } finally {
+          window.clearTimeout(timeout);
+        }
+        const feed = await response.json().catch(() => null) as
+          | { chargers?: unknown; owners?: unknown; error?: string }
+          | null;
+        if (!response.ok) {
+          const error = new Error(feed?.error || "Live Superchargerdata kon niet uit Cloudflare D1 worden geladen.");
+          if (![502, 503, 504].includes(response.status)) throw error;
+          lastError = error;
+        } else if (!feed || !Array.isArray(feed.chargers)) {
+          lastError = new Error("Cloudflare D1 gaf geen geldige openbare Superchargerlijst terug.");
+        } else {
+          const mapped = await mapCloudSuperchargers(
+            feed.chargers as Parameters<typeof mapCloudSuperchargers>[0],
+            Array.isArray(feed.owners) ? feed.owners as Parameters<typeof mapCloudSuperchargers>[1] : [],
+          );
+          setSuperchargers(mapped);
+          setChargerLoadError(null);
+          // D1 blijft leidend; IndexedDB is uitsluitend een lokale startcache.
+          void writeCachedPublicSuperchargers(mapped);
+          return mapped;
+        }
+      } catch (error) {
+        lastError = error;
+      }
+      if (attempt < 3) {
+        await new Promise((resolve) => window.setTimeout(resolve, 400 * (2 ** attempt)));
+      }
     }
-    if (!feed || !Array.isArray(feed.chargers)) {
-      throw new Error("Cloudflare D1 gaf geen geldige openbare Superchargerlijst terug.");
-    }
-    const mapped = await mapCloudSuperchargers(
-      feed.chargers as Parameters<typeof mapCloudSuperchargers>[0],
-      Array.isArray(feed.owners) ? feed.owners as Parameters<typeof mapCloudSuperchargers>[1] : [],
-    );
-    setSuperchargers(mapped);
-    setChargerLoadError(null);
-    // D1 blijft leidend; IndexedDB is uitsluitend een lokale startcache.
-    void writeCachedPublicSuperchargers(mapped);
-  }, []);
+    throw lastError instanceof Error ? lastError : new Error("Live Superchargerdata laden uit Cloudflare D1 is mislukt.");
+  }, []););
 
   useEffect(() => {
     let mounted = true;
@@ -1819,13 +1843,12 @@ function Index() {
     }));
   }, [batteryCapacityOverride, carMaxKwOverride, fullRangeKmActive, packKWh, selectedModel]);
 
-  // Na een berekende route blijven vergunning- en bouwlocaties zichtbaar,
-  // naast de laadstations die voor de route zijn geselecteerd.
+  // Bij een route worden standaard alleen de gekozen laadstops getoond.
+  // "Alles tonen" toont alle normale Superchargers, maar nooit bouwlocaties.
   const mapChargers = useMemo(() => {
-    const isDevelopment = (c: Supercharger) => c.status === "construction" || c.status === "permit";
     if (!route || showAllChargers || chargingStops.length === 0) return visibleChargers;
     const used = new Set(chargingStops.map((s) => s.charger.id ?? s.charger.name));
-    return visibleChargers.filter((c) => isDevelopment(c) || used.has(c.id ?? c.name));
+    return visibleChargers.filter((c) => used.has(c.id ?? c.name));
   }, [route, showAllChargers, chargingStops, visibleChargers]);
 
   const handleRemoveCharger = useCallback((index: number) => {
@@ -2001,7 +2024,6 @@ function Index() {
                   setIsLoadingChargers(true);
                   refreshSuperchargers()
                     .then((data) => {
-                      setSuperchargers(data);
                       setChargerLoadError(data.length ? null : "Er zijn geen Superchargers ontvangen.");
                     })
                     .catch((error) => {
@@ -2016,7 +2038,7 @@ function Index() {
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border shadow-lg" onClick={() => setShowDevelopmentChargers((v) => !v)}>
-                {showDevelopmentChargers ? "Verberg plannen & bouwlocaties" : "Alles tonen"}
+                {showDevelopmentChargers ? "Verberg bouwlocaties" : "Toon bouwlocaties"}
               </Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setFiltersOpen((v) => !v)} title="Filters">
                 <SlidersHorizontal className="size-4" aria-hidden="true" /><span className="hidden sm:inline">Filters</span>
@@ -2066,7 +2088,7 @@ function Index() {
 
             {route && chargingStops.length > 0 && (
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setShowAllChargers((v) => !v)}>
-                {showAllChargers ? "Alleen laders van mijn route" : "Toon alle Superchargers"}
+                {showAllChargers ? "Alleen laders van mijn route" : "Alles tonen"}
               </Button>
             )}
             {route && currentUser && (
