@@ -12,6 +12,7 @@ export interface VehicleModel {
   winterConsumptionKWh100?: number | null;
   yearFrom?: number | null;
   yearTo?: number | null;
+  productionYearTo?: number | null;
   maxChargeKw?: number | null;
   connectors: string[];
   imageUrl?: string | null;
