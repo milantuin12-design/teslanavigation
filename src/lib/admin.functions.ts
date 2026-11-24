@@ -598,3 +598,33 @@ export const adminDeleteChargerChange = createServerFn({method:"POST"})
     await d1Audit(user.id,"charger_change_delete",1,{id:data.id});
     return {ok:true};
   });
+
+
+/** Public, read-only status history for the Supercharger discovery timeline. */
+export const listPublicChargerHistory = createServerFn({ method: "GET" })
+  .inputValidator((input: unknown) => z.object({ limit: z.number().int().min(1).max(100).default(60) }).parse(input))
+  .handler(async ({ data }) => {
+    const rows = await getD1().prepare(`
+      SELECT id, charger_id, charger_name, action, changed_fields, created_at
+      FROM charger_changes
+      WHERE action IN ('create','delete')
+         OR (action='update' AND (
+           LOWER(changed_fields) LIKE '%status%'
+           OR LOWER(changed_fields) LIKE '%total_stalls%'
+           OR LOWER(changed_fields) LIKE '%max_speed_kw%'
+         ))
+      ORDER BY created_at DESC LIMIT ?
+    `).bind(data.limit).all<Record<string, unknown>>();
+    return (rows.results ?? []).map((row) => {
+      let fields: Record<string, unknown> = {};
+      try { fields = typeof row.changed_fields === "string" ? JSON.parse(row.changed_fields) : (row.changed_fields as Record<string, unknown> ?? {}); } catch { fields = {}; }
+      return {
+        id: String(row.id),
+        chargerId: row.charger_id == null ? null : String(row.charger_id),
+        chargerName: String(row.charger_name ?? "Onbekende locatie"),
+        action: String(row.action ?? "update"),
+        changedFields: fields,
+        createdAt: String(row.created_at ?? ""),
+      };
+    });
+  });
