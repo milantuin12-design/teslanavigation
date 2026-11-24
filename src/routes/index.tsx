@@ -13,7 +13,7 @@ import { AccountMenu } from "@/components/AccountMenu";
 import { LanguageSwitcher, changeLanguage } from "@/components/LanguageProvider";
 import { getMySavedRoute, saveMyRoute, getMyAccountSettings, listMyChargerFavorites, setMyChargerFavorite, createMyNotificationEvent, listMyVehicles } from "@/lib/account.functions";
 import { getCurrentUser } from "@/lib/auth.functions";
-import { listPublishedVehicleModels, listPublishedSuperchargers } from "@/lib/admin.functions";
+import { listPublishedVehicleModels } from "@/lib/admin.functions";
 import { getWinterSportsMode, getHolidayPeriodMode } from "@/lib/tesla.functions";
 import { vehicleKey, type VehicleModel } from "@/lib/vehicle-types";
 
@@ -247,7 +247,6 @@ function Index() {
     return () => window.removeEventListener("tn-profile-updated", handler);
   }, []);
 
-  const loadPublicChargerFeed = useServerFn(listPublishedSuperchargers);
   const readGlobalWinterSportsMode = useServerFn(getWinterSportsMode);
   const readGlobalHolidayPeriodMode = useServerFn(getHolidayPeriodMode);
   const [superchargers, setSuperchargers] = useState<Supercharger[]>([]);
@@ -709,24 +708,20 @@ function Index() {
   // De kaart leest live uit dezelfde Cloudflare D1-database als het Admin-paneel.
   // De ingebouwde JSON wordt alleen als noodweergave gebruikt als D1 tijdelijk niet bereikbaar is.
   const refreshSuperchargers = useCallback(async () => {
-    const response = await loadPublicChargerFeed();
-    // Accepteer zowel de directe serverfunctie-uitkomst als gangbare
-    // transportwrappers. Zo wordt een geldige D1-lijst niet onterecht als leeg
-    // afgewezen wanneer de Start/Worker-transportlaag de payload omhult.
-    const payload = response as unknown as Record<string, unknown>;
-    const nestedData = payload?.data as Record<string, unknown> | undefined;
-    const candidates = [
-      payload,
-      payload?.result as Record<string, unknown> | undefined,
-      nestedData,
-      nestedData?.result as Record<string, unknown> | undefined,
-    ];
-    const feed = candidates.find((candidate): candidate is Record<string, unknown> =>
-      !!candidate && Array.isArray(candidate.chargers)
-    );
-    if (!feed) {
-      const keys = payload && typeof payload === "object" ? Object.keys(payload).join(", ") : typeof response;
-      throw new Error("Cloudflare D1 gaf geen geldige openbare Superchargerlijst terug (ontvangen: " + keys + ").");
+    const response = await fetch("/api/public/superchargers", {
+      method: "GET",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    const feed = await response.json().catch(() => null) as
+      | { chargers?: unknown; owners?: unknown; error?: string }
+      | null;
+    if (!response.ok) {
+      throw new Error(feed?.error || "Live Superchargerdata kon niet uit Cloudflare D1 worden geladen.");
+    }
+    if (!feed || !Array.isArray(feed.chargers)) {
+      throw new Error("Cloudflare D1 gaf geen geldige openbare Superchargerlijst terug.");
     }
     const mapped = await mapCloudSuperchargers(
       feed.chargers as Parameters<typeof mapCloudSuperchargers>[0],
@@ -736,7 +731,7 @@ function Index() {
     setChargerLoadError(null);
     // D1 blijft leidend; IndexedDB is uitsluitend een lokale startcache.
     void writeCachedPublicSuperchargers(mapped);
-  }, [loadPublicChargerFeed]);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
