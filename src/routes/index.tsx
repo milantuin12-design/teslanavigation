@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import EvMap from "@/components/EvMap";
 import InputPanel, { type PlannedWaypoint } from "@/components/InputPanel";
-import { estimateConsumption, needsCcsAdapter, type RouteWeather } from "@/lib/energy";
+import { estimateConsumption, defaultModelConsumptionKWh100, needsCcsAdapter, type RouteWeather } from "@/lib/energy";
 import { fetchRouteWeather } from "@/lib/weather";
 import ChargingStops, { parkingCost } from "@/components/ChargingStops";
 import { estimateChargingCost } from "@/lib/charging-cost";
@@ -736,35 +736,33 @@ function Index() {
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
   const catalogueBatteryForRange = selectedCatalogueVehicle?.usableKWh ?? selectedCatalogueVehicle?.batteryKWh ?? packKWh;
+  const activeSeasonalConsumption = weatherMode === "winter"
+    ? activeVehicle?.winter_consumption_kwh100
+    : activeVehicle?.summer_consumption_kwh100;
   const catalogueSeasonalConsumption = weatherMode === "winter"
     ? (selectedCatalogueVehicle?.winterConsumptionKWh100 ?? null)
-    : (selectedCatalogueVehicle?.consumptionKWh100 ?? null);
-  const catalogueSeasonalRange = weatherMode === "winter"
-    ? (selectedCatalogueVehicle?.winterRangeKm ?? selectedCatalogueVehicle?.rangeKm)
-    : (selectedCatalogueVehicle?.summerRangeKm ?? selectedCatalogueVehicle?.rangeKm);
-  const catalogueRangeFromConsumption = selectedCatalogueVehicle?.consumptionKWh100 && selectedCatalogueVehicle.consumptionKWh100 > 0
-    ? Math.round(catalogueBatteryForRange / selectedCatalogueVehicle.consumptionKWh100 * 100)
+    : (selectedCatalogueVehicle?.summerConsumptionKWh100 ?? selectedCatalogueVehicle?.consumptionKWh100 ?? null);
+  const savedSeasonalConsumption = activeSeasonalConsumption && activeSeasonalConsumption > 0
+    ? activeSeasonalConsumption
     : null;
-  const activeSeasonalConsumption = weatherMode === "winter" ? activeVehicle?.winter_consumption_kwh100 : activeVehicle?.summer_consumption_kwh100;
-  const modelRange = activeVehicle?.battery_kwh && activeSeasonalConsumption
-    ? Math.round(activeVehicle.battery_kwh / activeSeasonalConsumption * 100)
-    : (catalogueSeasonalRange ?? catalogueRangeFromConsumption ?? (selectedModel === "Handmatig" ? manualRangeKm : (teslaModels[selectedModel] ?? 450)));
+  const catalogueSeasonalConsumptionEffective = catalogueSeasonalConsumption && catalogueSeasonalConsumption > 0
+    ? catalogueSeasonalConsumption
+    : null;
+  const configuredBaseConsumption = savedSeasonalConsumption
+    ?? catalogueSeasonalConsumptionEffective
+    ?? (consumptionMode === "manual" && manualConsumptionKWh100 > 0 ? manualConsumptionKWh100 : defaultModelConsumptionKWh100(selectedModel));
+  // WLTP- en opgegeven bereikcijfers zijn alleen informatief; ze bepalen nooit het praktijkverbruik of de route.
+  const modelRange = Math.round(catalogueBatteryForRange / Math.max(9, configuredBaseConsumption) * 100);
   const catalogueHasCcs = selectedCatalogueVehicle?.connectors?.some((connector) => /ccs|combo/i.test(connector)) ?? false;
   const ccsBlocked = selectedCatalogueVehicle
     ? (!catalogueHasCcs && !hasCcsAdapter)
     : (needsCcsAdapter(selectedModel, modelYear) && !hasCcsAdapter);
   const [autoConsumptionKWh100State, setAutoConsumptionState] = useState<number | null>(null);
-  // Seizoensbereik per bouwjaar heeft voorrang; oudere verbruikswaarden blijven als terugval beschikbaar.
-  const catalogueSeasonalConsumptionEffective = catalogueSeasonalConsumption && catalogueSeasonalConsumption > 0
-    ? catalogueSeasonalConsumption
-    : (catalogueSeasonalRange && catalogueSeasonalRange > 0 ? (catalogueBatteryForRange / catalogueSeasonalRange) * 100 : null);
-  const savedSeasonalConsumption = activeVehicle ? (weatherMode === "winter" ? activeVehicle.winter_consumption_kwh100 : activeVehicle.summer_consumption_kwh100) : null;
   const effectiveKWh100 = consumptionMode === 'manual' && manualConsumptionKWh100 > 0
     ? manualConsumptionKWh100
-    : ((savedSeasonalConsumption && savedSeasonalConsumption > 0 ? savedSeasonalConsumption : catalogueSeasonalConsumptionEffective) || (autoConsumptionKWh100State ?? Math.max(13, (packKWh / Math.max(1, modelRange)) * 100 * 1.1) * (1 + trailerReductionEffective / 100)));
+    : (autoConsumptionKWh100State ?? configuredBaseConsumption);
   const fullEnergyRangeKm = Math.max(50, (packKWh / effectiveKWh100) * 100);
   const availableRange = fullEnergyRangeKm * batteryPercent / 100;
-
 
   // De kaart leest live uit dezelfde Cloudflare D1-database als het Admin-paneel.
   // De ingebouwde JSON wordt alleen als noodweergave gebruikt als D1 tijdelijk niet bereikbaar is.
@@ -1257,23 +1255,34 @@ function Index() {
     const avgSpeedKmh = base.route.totalTimeMin > 0
       ? (base.route.totalDistanceKm / base.route.totalTimeMin) * 60
       : 90;
+    const vehicleSeasonalConsumption = activeVehicle ? (weatherMode === "winter" ? activeVehicle.winter_consumption_kwh100 : activeVehicle.summer_consumption_kwh100) : null;
+    const vehicleExtraPercent = activeVehicle ? (activeVehicle.roof_or_rack_extra_percent ?? 0) + (activeVehicle.winter_tires_extra_percent ?? 0) : 0;
+    const catalogueBase = weatherMode === "winter"
+      ? selectedCatalogueVehicle?.winterConsumptionKWh100
+      : (selectedCatalogueVehicle?.summerConsumptionKWh100 ?? selectedCatalogueVehicle?.consumptionKWh100);
+    const selectedBaseConsumption = vehicleSeasonalConsumption && vehicleSeasonalConsumption > 0
+      ? vehicleSeasonalConsumption
+      : catalogueBase && catalogueBase > 0
+        ? catalogueBase
+        : consumptionMode === "manual" && manualConsumptionKWh100 > 0
+          ? manualConsumptionKWh100
+          : defaultModelConsumptionKWh100(selectedModel);
     const auto = estimateConsumption({
       modelName: selectedModel,
       batteryKWh: packKWh,
       rangeKm: modelRange,
+      baseConsumptionKWh100: selectedBaseConsumption,
       avgSpeedKmh,
-      weatherMode: consumptionMode === 'manual' ? weatherMode : 'summer',
-      timeMode: consumptionMode === 'manual' ? timeMode : 'day',
+      weatherMode,
+      timeMode,
       trailerReductionPercent: trailerReductionEffective,
       elevationMultiplier: elevation.multiplier,
       weather,
     });
-    const vehicleSeasonalConsumption = activeVehicle ? (weatherMode === "winter" ? activeVehicle.winter_consumption_kwh100 : activeVehicle.summer_consumption_kwh100) : null;
-    const vehicleExtraPercent = activeVehicle ? (activeVehicle.roof_or_rack_extra_percent ?? 0) + (activeVehicle.winter_tires_extra_percent ?? 0) : 0;
-    const baseConsumptionKWh100 = vehicleSeasonalConsumption && vehicleSeasonalConsumption > 0
-      ? vehicleSeasonalConsumption
-      : consumptionMode === 'manual' && manualConsumptionKWh100 > 0 ? Math.max(9, Math.min(60, manualConsumptionKWh100)) : auto.kWh100;
-    const consumptionKWh100 = baseConsumptionKWh100 * (1 + vehicleExtraPercent / 100);
+    const baseConsumptionKWh100 = auto.kWh100;
+    const consumptionKWh100 = (consumptionMode === "manual" && manualConsumptionKWh100 > 0
+      ? manualConsumptionKWh100
+      : baseConsumptionKWh100) * (1 + vehicleExtraPercent / 100);
     setAutoConsumption(auto.kWh100);
     setAutoConsumptionState(auto.kWh100);
     setRouteWeather(weather);
