@@ -510,7 +510,7 @@ export const listPublishedVehicleModels = createServerFn({method:"GET"}).handler
       id:parentId,brand:String(parent.brand??"Tesla"),model:String(parent.model),trim:parent.trim==null?null:String(parent.trim),
       batteryKWh:spec.battery_kwh==null?null:Number(spec.battery_kwh),usableKWh:spec.usable_kwh==null?null:Number(spec.usable_kwh),
       rangeKm:spec.range_km==null?null:Number(spec.range_km),summerRangeKm:spec.summer_range_km==null?null:Number(spec.summer_range_km),winterRangeKm:spec.winter_range_km==null?null:Number(spec.winter_range_km),
-      consumptionKWh100:parent.consumption_kwh100==null?null:Number(parent.consumption_kwh100),winterConsumptionKWh100:parent.winter_consumption_kwh100==null?null:Number(parent.winter_consumption_kwh100),
+      consumptionKWh100:spec.summer_consumption_kwh100==null?(parent.consumption_kwh100==null?null:Number(parent.consumption_kwh100)):Number(spec.summer_consumption_kwh100),winterConsumptionKWh100:spec.winter_consumption_kwh100==null?(parent.winter_consumption_kwh100==null?null:Number(parent.winter_consumption_kwh100)):Number(spec.winter_consumption_kwh100),
       yearFrom:Number(spec.year),yearTo:Number(spec.year),productionYearTo:parent.year_to==null?null:Number(parent.year_to),maxChargeKw:spec.max_charge_kw==null?null:Number(spec.max_charge_kw),
       connectors:decodeConnectors(spec.connectors),imageUrl:parent.image_url==null?null:String(parent.image_url),notes:parent.notes==null?null:String(parent.notes),published:true
     }));
@@ -550,21 +550,23 @@ export const adminSaveVehicleYearSpec = createServerFn({method:"POST"})
     range_km:z.preprocess(value=>value===""||(typeof value==="number"&&!Number.isFinite(value))?null:value,z.number().int().positive().max(1500).nullable().optional()),
     summer_range_km:z.preprocess(value=>value===""||(typeof value==="number"&&!Number.isFinite(value))?null:value,z.number().int().positive().max(1500).nullable().optional()),
     winter_range_km:z.preprocess(value=>value===""||(typeof value==="number"&&!Number.isFinite(value))?null:value,z.number().int().positive().max(1500).nullable().optional()),
+    summer_consumption_kwh100:z.preprocess(value=>value===""||(typeof value==="number"&&!Number.isFinite(value))?null:value,z.number().positive().max(120).nullable().optional()),
+    winter_consumption_kwh100:z.preprocess(value=>value===""||(typeof value==="number"&&!Number.isFinite(value))?null:value,z.number().positive().max(120).nullable().optional()),
     max_charge_kw:z.preprocess(value=>value===""||(typeof value==="number"&&!Number.isFinite(value))?null:value,z.number().int().positive().max(1000).nullable().optional()),
     connectors:z.array(z.string().max(30)).max(10).default(["Type 2","CCS"])
   }).parse(input))
   .handler(async({data})=>{
     const user=await requireD1Admin(), db=getD1();
-    const values=[data.battery_kwh??null,data.usable_kwh??null,data.range_km??null,data.summer_range_km??null,data.winter_range_km??null,data.max_charge_kw??null,JSON.stringify(data.connectors)];
+    const values=[data.battery_kwh??null,data.usable_kwh??null,data.range_km??null,data.summer_range_km??null,data.winter_range_km??null,data.summer_consumption_kwh100??null,data.winter_consumption_kwh100??null,data.max_charge_kw??null,JSON.stringify(data.connectors)];
     // The model + year pair is the stable identity. Never reuse a possibly stale
     // client ID for an INSERT: that can collide with another row's primary key.
     const existing=await db.prepare("SELECT id FROM vehicle_year_specs WHERE vehicle_model_id=? AND year=?")
       .bind(data.vehicle_model_id,data.year).first<{id:string}>();
     if(existing){
-      await db.prepare("UPDATE vehicle_year_specs SET battery_kwh=?,usable_kwh=?,range_km=?,summer_range_km=?,winter_range_km=?,max_charge_kw=?,connectors=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
+      await db.prepare("UPDATE vehicle_year_specs SET battery_kwh=?,usable_kwh=?,range_km=?,summer_range_km=?,winter_range_km=?,summer_consumption_kwh100=?,winter_consumption_kwh100=?,max_charge_kw=?,connectors=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
         .bind(...values,existing.id).run();
     }else{
-      await db.prepare("INSERT INTO vehicle_year_specs (id,vehicle_model_id,year,battery_kwh,usable_kwh,range_km,summer_range_km,winter_range_km,max_charge_kw,connectors,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)")
+      await db.prepare("INSERT INTO vehicle_year_specs (id,vehicle_model_id,year,battery_kwh,usable_kwh,range_km,summer_range_km,winter_range_km,summer_consumption_kwh100,winter_consumption_kwh100,max_charge_kw,connectors,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)")
         .bind(crypto.randomUUID(),data.vehicle_model_id,data.year,...values).run();
     }
     await d1Audit(user.id,"vehicle_year_spec_save",1,{vehicle_model_id:data.vehicle_model_id,year:data.year});
