@@ -353,11 +353,10 @@ export default function InputPanel({
     setDestInput(prefill.dest);
   }, [prefill]);
   const selectedVariant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === selectedModel && (vehicle.yearFrom == null || modelYear >= vehicle.yearFrom) && (vehicle.yearTo == null || modelYear <= vehicle.yearTo)) ?? vehicleModels.find((vehicle) => vehicleKey(vehicle) === selectedModel) ?? null;
-  const minYear = selectedVariant?.yearFrom ?? minYearForModel(selectedModel);
-  const maxYear = selectedVariant?.yearTo ?? 2026;
-  useEffect(() => {
-    if (modelYear < minYear) onModelYearChange(minYear);
-  }, [modelYear, minYear, onModelYearChange]);
+  // Het bouwjaar is altijd een aparte invoer. Het gekozen jaar bepaalt welke
+  // voertuigvariant/thema actief is; een modelkeuze mag het jaar nooit wijzigen.
+  const minYear = minYearForModel(selectedModel);
+  const maxYear = 2100;
   const parseOrGeocode = useCallback(async (
     input: string,
     setCoord: (c: { lat: number; lng: number } | null) => void,
@@ -708,7 +707,7 @@ export default function InputPanel({
                 const variant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === model);
                 const selected = selectedModel === model;
                 return (
-                  <button key={model} type="button" onClick={() => { onModelChange(model); if (variant?.yearFrom) onModelYearChange(variant.yearFrom); setVehiclePickerExpanded(false); }}
+                  <button key={model} type="button" onClick={() => { onModelChange(model); setVehiclePickerExpanded(false); }}
                     className={`group overflow-hidden rounded-lg border text-left transition-all ${selected ? "border-red-400 bg-red-500/10 ring-1 ring-red-500/30" : "border-slate-700 bg-slate-800/60 hover:border-slate-500"}`}>
                     <div className="relative flex h-14 items-center justify-center bg-gradient-to-br from-slate-700/70 to-slate-950">
                       {variant?.imageUrl ? <img src={variant.imageUrl} alt={model} loading="lazy" className="h-full w-full object-contain p-1 transition-transform group-hover:scale-105" /> : <Car className="h-7 w-7 text-slate-500" />}
