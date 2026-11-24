@@ -172,7 +172,7 @@ function Index() {
   const [manualRangeKm, setManualRangeKm] = useState(400);
   const [manualSpeedKw, setManualSpeedKw] = useState(250);
   const [modelYear, setModelYear] = useState<number>(2022);
-  const selectedCatalogueVehicle = catalogueVehicles.find((vehicle) => vehicle.brand.toLowerCase() === "tesla" && vehicleKey(vehicle) === selectedModel && (vehicle.yearFrom == null || modelYear >= vehicle.yearFrom) && (vehicle.yearTo == null || modelYear <= vehicle.yearTo)) ?? catalogueVehicles.find((vehicle) => vehicle.brand.toLowerCase() === "tesla" && vehicleKey(vehicle) === selectedModel) ?? null;
+  const selectedCatalogueVehicle = catalogueVehicles.find((vehicle) => vehicle.brand.toLowerCase() === "tesla" && vehicleKey(vehicle) === selectedModel && (vehicle.yearFrom == null || modelYear >= vehicle.yearFrom) && (vehicle.yearTo == null || modelYear <= vehicle.yearTo)) ?? null;
   const carMaxKwOverride = activeVehicle?.max_charge_kw ?? selectedCatalogueVehicle?.maxChargeKw ?? (selectedModel === "Handmatig" ? manualSpeedKw : undefined);
   const vehicleBatteryHealth = Math.max(40, Math.min(100, activeVehicle?.battery_health_percent ?? 100)) / 100;
   const packKWh = activeVehicle?.battery_kwh ? activeVehicle.battery_kwh * vehicleBatteryHealth : (selectedCatalogueVehicle?.usableKWh ?? selectedCatalogueVehicle?.batteryKWh ?? (selectedModel === "Handmatig" ? Math.max(40, Math.round(manualRangeKm * 0.18)) : (teslaBatteryKWh[selectedModel] || 79)));
