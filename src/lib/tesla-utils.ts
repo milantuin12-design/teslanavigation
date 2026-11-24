@@ -1269,7 +1269,10 @@ export function matchesChargerFilters(charger: Supercharger, filters: ChargerFil
   }
   if (filters.trailerOnly && !charger.trailerFriendly) return false;
   if (filters.lowSpeedOnly && !charger.lowSpeed) return false;
-  if (filters.ownerId && charger.ownerId !== filters.ownerId) return false;
+  if (filters.ownerId) {
+    const ownerKey = (charger.ownerName ?? "").normalize("NFKC").trim().replace(/\\s+/g, " ").toLocaleLowerCase("nl-NL");
+    if (ownerKey !== filters.ownerId) return false;
+  }
   const stalls = getTotalStalls(charger);
   if (filters.exactStalls !== null && filters.exactStalls > 0) {
     if (stalls !== filters.exactStalls) return false;
@@ -1282,8 +1285,9 @@ export function matchesChargerFilters(charger: Supercharger, filters: ChargerFil
   if (filters.openNow && !isChargerUsable(charger)) return false;
   if (filters.country && (charger.country || "").trim().toLocaleLowerCase("nl-NL") !== filters.country.trim().toLocaleLowerCase("nl-NL")) return false;
   if (filters.search) {
-    const needle = filters.search.toLowerCase();
-    const haystack = `${charger.name} ${charger.city ?? ''} ${charger.province ?? ''} ${charger.country ?? ''} ${charger.ownerName ?? ''}`.toLowerCase();
+    const normalize = (value: string) => value.normalize("NFKC").trim().toLocaleLowerCase("nl-NL");
+    const needle = normalize(filters.search);
+    const haystack = normalize(`${charger.name} ${charger.city ?? ""} ${charger.province ?? ""} ${charger.country ?? ""} ${charger.ownerName ?? ""}`);
     if (!haystack.includes(needle)) return false;
   }
   return true;
