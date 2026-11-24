@@ -352,7 +352,14 @@ export default function InputPanel({
     setStartInput(prefill.start);
     setDestInput(prefill.dest);
   }, [prefill]);
-  const selectedVariant = vehicleModels.find((vehicle) => vehicleKey(vehicle) === selectedModel && (vehicle.yearFrom == null || modelYear >= vehicle.yearFrom) && (vehicle.yearTo == null || modelYear <= vehicle.yearTo)) ?? null;
+  const selectedVariant = vehicleModels
+    .filter((vehicle) => vehicleKey(vehicle) === selectedModel && (vehicle.yearFrom == null || modelYear >= vehicle.yearFrom) && (vehicle.yearTo == null || modelYear <= vehicle.yearTo))
+    .sort((a, b) => {
+      const aExact = a.yearFrom === modelYear && a.yearTo === modelYear ? 1 : 0;
+      const bExact = b.yearFrom === modelYear && b.yearTo === modelYear ? 1 : 0;
+      if (aExact !== bExact) return bExact - aExact;
+      return ((a.yearTo ?? 2100) - (a.yearFrom ?? 1900)) - ((b.yearTo ?? 2100) - (b.yearFrom ?? 1900));
+    })[0] ?? null;
   // Het bouwjaar is altijd een aparte invoer. Het gekozen jaar bepaalt welke
   // voertuigvariant/thema actief is; een modelkeuze mag het jaar nooit wijzigen.
   const minYear = minYearForModel(selectedModel);
@@ -1008,7 +1015,7 @@ export default function InputPanel({
             </label>
             <div className="grid grid-cols-6 gap-1">
               {MIN_SPEEDS.map(s => {
-                const carMax = teslaMaxChargeKw[selectedModel] ?? 250;
+                const carMax = selectedVariant?.maxChargeKw ?? teslaMaxChargeKw[selectedModel] ?? 250;
                 const tooFast = s > carMax;
                 const selected = minChargerSpeedKw === s;
                 return (
@@ -1032,7 +1039,7 @@ export default function InputPanel({
               })}
             </div>
             {(() => {
-              const carMax = teslaMaxChargeKw[selectedModel] ?? 250;
+              const carMax = selectedVariant?.maxChargeKw ?? teslaMaxChargeKw[selectedModel] ?? 250;
               return carMax < 250 ? (
                 <p className="text-[10px] text-amber-400/80 mt-1">
                   ⚠ {selectedModel} laadt max {carMax}kW
