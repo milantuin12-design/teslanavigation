@@ -494,7 +494,7 @@ export default {
         const db = getD1Binding(env);
         if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
         const [chargerRows, ownerRows] = await Promise.all([
-          db.prepare("SELECT * FROM superchargers WHERE COALESCE(hidden,0) = 0 AND LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') AND (COALESCE(published,1) != 0 OR LOWER(TRIM(COALESCE(status, ''))) IN ('permit','vergunning','vergunning verleend','vergunning_verleend')) ORDER BY name COLLATE NOCASE").all<Record<string, unknown>>(),
+          db.prepare("SELECT * FROM superchargers WHERE COALESCE(hidden,0) = 0 ORDER BY name COLLATE NOCASE").all<Record<string, unknown>>(),
           db.prepare("SELECT id,name,logo_url,description,website,contact,notes FROM charger_owners ORDER BY name COLLATE NOCASE").all<Record<string, unknown>>(),
         ]);
         if (!Array.isArray(chargerRows.results) || !Array.isArray(ownerRows.results)) {
