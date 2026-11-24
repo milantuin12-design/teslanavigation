@@ -525,7 +525,7 @@ function Index() {
     if (!countryPricesOpen) return [];
     const groups = new Map<string, { country: string; currency: string; total: number; count: number }>();
     for (const charger of superchargers) {
-      if (charger.published === false || !charger.country) continue;
+      if (charger.published === false || !charger.country?.trim()) continue;
       const hasKwhPrice = typeof charger.pricePerKwh === "number" || (charger.priceBlocks ?? []).some((block) => block.type !== "power" && typeof block.pricePerKwh === "number");
       const hasMinutePrice = (charger.priceBlocks ?? []).some((block) => block.type === "power" && typeof block.pricePerMinute === "number");
       if (!hasKwhPrice && !hasMinutePrice) continue;
@@ -539,8 +539,12 @@ function Index() {
       };
       const estimate = estimateChargingCost(sampleStop, departureDate, selectedModel, packKWh, carMaxKwOverride);
       if (!estimate) continue;
-      const key = `${charger.country}|${estimate.currency}`;
-      const group = groups.get(key) ?? { country: charger.country, currency: estimate.currency, total: 0, count: 0 };
+      // Landnamen kunnen tijdens imports verschillen in hoofdletters of spaties.
+      // Normaliseer alleen de groepeerkey; de opgeslagen Superchargerdata blijft ongewijzigd.
+      const normalizedCountry = charger.country.trim().normalize("NFKC").toLocaleLowerCase("nl-NL");
+      const normalizedCurrency = estimate.currency.trim().toUpperCase();
+      const key = `${normalizedCountry}|${normalizedCurrency}`;
+      const group = groups.get(key) ?? { country: charger.country.trim(), currency: normalizedCurrency, total: 0, count: 0 };
       group.total += estimate.amount / (packKWh * 0.7);
       group.count += 1;
       groups.set(key, group);
