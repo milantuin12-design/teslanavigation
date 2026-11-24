@@ -40,7 +40,7 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
   const [secondId, setSecondId] = useState("");
   const [scenarioId, setScenarioId] = useState("");
 
-  const operational = useMemo(() => chargers.filter(c => c.status === "operational" && c.status !== "permanent_closed"), [chargers]);
+  const operational = useMemo(() => chargers.filter(c => c.status === "operational"), [chargers]);
   const countries = useMemo(() => {
     const map = new Map<string, { total: number; active: number; building: number }>();
     chargers.forEach(c => {
