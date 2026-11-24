@@ -13,11 +13,11 @@ export default function OwnerPanel({ ownerId, chargers, onClose, onSelectCharger
   if (!ownerId) return null;
 
   const selected = chargers.find((c) => c.ownerId === ownerId);
-  const normalizeOwner = (value?: string | null) => (value ?? "").normalize("NFKC").trim().replace(/\\s+/g, " ").toLocaleLowerCase("nl-NL");
+  const normalizeOwner = (value?: string | null) => (value ?? "").normalize("NFKC").trim().replace(/\s+/g, " ").toLocaleLowerCase("nl-NL");
   const selectedOwnerKey = normalizeOwner(selected?.ownerName);
   const owned = chargers.filter((c) => selectedOwnerKey ? normalizeOwner(c.ownerName) === selectedOwnerKey : c.ownerId === ownerId);
   const first = owned[0] ?? selected;
-  const name = first?.ownerName?.trim().replace(/\\s+/g, " ") ?? "Onbekende eigenaar";
+  const name = first?.ownerName?.trim().replace(/\s+/g, " ") ?? "Onbekende eigenaar";
   const logo = first?.ownerLogoUrl ?? null;
   const description = first?.ownerDescription ?? null;
   const website = first?.ownerWebsite ?? null;
