@@ -511,7 +511,7 @@ export const listPublishedVehicleModels = createServerFn({method:"GET"}).handler
       batteryKWh:spec.battery_kwh==null?null:Number(spec.battery_kwh),usableKWh:spec.usable_kwh==null?null:Number(spec.usable_kwh),
       rangeKm:spec.range_km==null?null:Number(spec.range_km),summerRangeKm:spec.summer_range_km==null?null:Number(spec.summer_range_km),winterRangeKm:spec.winter_range_km==null?null:Number(spec.winter_range_km),
       consumptionKWh100:parent.consumption_kwh100==null?null:Number(parent.consumption_kwh100),winterConsumptionKWh100:parent.winter_consumption_kwh100==null?null:Number(parent.winter_consumption_kwh100),
-      yearFrom:Number(spec.year),yearTo:Number(spec.year),maxChargeKw:spec.max_charge_kw==null?null:Number(spec.max_charge_kw),
+      yearFrom:Number(spec.year),yearTo:parent.year_to==null?null:Number(parent.year_to),maxChargeKw:spec.max_charge_kw==null?null:Number(spec.max_charge_kw),
       connectors:decodeConnectors(spec.connectors),imageUrl:parent.image_url==null?null:String(parent.image_url),notes:parent.notes==null?null:String(parent.notes),published:true
     }));
   });
@@ -529,7 +529,7 @@ export const adminListVehicleModels = createServerFn({method:"GET"}).handler(asy
 export const adminSaveVehicleModel = createServerFn({method:"POST"})
   .inputValidator((input:unknown)=>z.object({
     id:z.string().optional(),brand:z.string().trim().min(1).max(80),model:z.string().trim().min(1).max(120),
-    trim:z.string().max(120).nullable().optional(),year_from:z.number().int().min(1990).max(2100),
+    trim:z.string().max(120).nullable().optional(),year_from:z.number().int().min(1990).max(2100),year_to:z.number().int().min(1990).max(2100).nullable().optional(),
     image_url:z.string().max(500000).nullable().optional().refine(value=>!value||value.startsWith("https://")||value.startsWith("http://")||value.startsWith("data:image/jpeg;base64,")||value.startsWith("data:image/png;base64,")||value.startsWith("data:image/webp;base64,"),{message:"Gebruik een http(s)-afbeeldingslink of een geüploade afbeelding."}),
     notes:z.string().max(2000).nullable().optional(),published:z.boolean().default(true)
   }).parse(input))
@@ -538,7 +538,7 @@ export const adminSaveVehicleModel = createServerFn({method:"POST"})
     await getD1().prepare(`INSERT INTO vehicle_models (id,brand,model,trim,year_from,year_to,image_url,notes,published,updated_at)
       VALUES (?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
       ON CONFLICT(id) DO UPDATE SET brand=excluded.brand,model=excluded.model,trim=excluded.trim,year_from=excluded.year_from,year_to=excluded.year_to,image_url=excluded.image_url,notes=excluded.notes,published=excluded.published,updated_at=CURRENT_TIMESTAMP`)
-      .bind(id,data.brand,data.model,data.trim??null,data.year_from,data.year_from,data.image_url??null,data.notes??null,data.published?1:0).run();
+      .bind(id,data.brand,data.model,data.trim??null,data.year_from,data.year_to??null,data.image_url??null,data.notes??null,data.published?1:0).run();
     await d1Audit(user.id,"vehicle_model_save",1,{id,brand:data.brand,model:data.model});
     return {id};
   });
