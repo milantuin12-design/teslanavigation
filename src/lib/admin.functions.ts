@@ -530,7 +530,7 @@ export const adminSaveVehicleModel = createServerFn({method:"POST"})
   .inputValidator((input:unknown)=>z.object({
     id:z.string().optional(),brand:z.string().trim().min(1).max(80),model:z.string().trim().min(1).max(120),
     trim:z.string().max(120).nullable().optional(),year_from:z.number().int().min(1990).max(2100),
-    image_url:z.string().max(500000).nullable().optional().refine(value=>!value||/^https?:\\/\\//i.test(value)||/^data:image\\/(?:jpeg|png|webp);base64,/i.test(value),{message:"Gebruik een http(s)-afbeeldingslink of een geüploade afbeelding."}),
+    image_url:z.string().max(500000).nullable().optional().refine(value=>!value||value.startsWith("https://")||value.startsWith("http://")||value.startsWith("data:image/jpeg;base64,")||value.startsWith("data:image/png;base64,")||value.startsWith("data:image/webp;base64,"),{message:"Gebruik een http(s)-afbeeldingslink of een geüploade afbeelding."}),
     notes:z.string().max(2000).nullable().optional(),published:z.boolean().default(true)
   }).parse(input))
   .handler(async({data})=>{
