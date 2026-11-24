@@ -871,7 +871,7 @@ function Index() {
         refreshing = false;
       }
     };
-    const timer = window.setInterval(() => { void refreshLiveMap(); }, 15000);
+    const timer = window.setInterval(() => { void refreshLiveMap(); }, 30000);
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") void refreshLiveMap();
     };
