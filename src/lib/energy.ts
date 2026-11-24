@@ -19,8 +19,10 @@ export interface ConsumptionInputs {
   modelName: string;
   /** Bruikbare accucapaciteit in kWh. */
   batteryKWh: number;
-  /** WLTP-bereik in km (voor het basisverbruik). */
+  /** Bereik alleen ter compatibiliteit; nooit gebruikt als basis voor werkelijk verbruik. */
   rangeKm: number;
+  /** Gemiddeld seizoensverbruik uit de voertuigdatabase of handmatige invoer. */
+  baseConsumptionKWh100?: number;
   /** Gemiddelde snelheid van de route in km/u (wegtype-indicatie). */
   avgSpeedKmh: number;
   weatherMode: WeatherMode;
@@ -40,10 +42,17 @@ export interface ConsumptionResult {
   factors: { label: string; effectPercent: number }[];
 }
 
-/** Basisverbruik uit WLTP-bereik en accucapaciteit (kWh/100 km). */
-export function baseConsumptionKWh100(batteryKWh: number, rangeKm: number): number {
-  if (!batteryKWh || !rangeKm) return 17;
-  return Math.min(30, Math.max(11, (batteryKWh / rangeKm) * 100));
+/** Conservatieve praktijkbasis per modeltype; WLTP-bereik wordt bewust niet omgerekend naar verbruik. */
+export function defaultModelConsumptionKWh100(modelName: string): number {
+  if (/model\\s*3/i.test(modelName)) return 17;
+  if (/model\\s*y/i.test(modelName)) return 18.5;
+  if (/model\\s*(s|x)/i.test(modelName)) return 20;
+  return 18;
+}
+
+/** Legacy helper: zonder expliciete praktijkwaarde gebruiken we een neutrale basis, nooit WLTP. */
+export function baseConsumptionKWh100(_batteryKWh: number, _rangeKm: number): number {
+  return 18;
 }
 
 /**
@@ -52,7 +61,9 @@ export function baseConsumptionKWh100(batteryKWh: number, rangeKm: number): numb
  * Alle externe gegevens zijn optioneel: zonder weerdata blijft de schatting werken.
  */
 export function estimateConsumption(input: ConsumptionInputs): ConsumptionResult {
-  const base = baseConsumptionKWh100(input.batteryKWh, input.rangeKm);
+  const base = input.baseConsumptionKWh100 && input.baseConsumptionKWh100 > 0
+    ? Math.min(60, Math.max(9, input.baseConsumptionKWh100))
+    : defaultModelConsumptionKWh100(input.modelName);
   const factors: { label: string; effectPercent: number }[] = [];
   let multiplier = 1;
 
