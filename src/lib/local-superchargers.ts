@@ -60,9 +60,10 @@ function withBundledTariff(row: LocalRow, tariffs: any[]): LocalRow {
 }
 
 function toSupercharger(row: LocalRow, owners: Map<string, Owner>, network: NetworkSite[]): Supercharger {
-  const configs = normalizeChargerConfigs(row.charger_configs).length
-    ? normalizeChargerConfigs(row.charger_configs)
-    : parseChargerConfigsFromLegacy(row.stall_types, row.total_stalls, row.max_speed_kw, row.versions);
+  const storedConfigs = normalizeChargerConfigs(row.charger_configs);
+  const configs = storedConfigs.length
+    ? storedConfigs
+    : normalizeChargerConfigs(parseChargerConfigsFromLegacy(row.stall_types, row.total_stalls, row.max_speed_kw, row.versions));
   const rawStatus = row.status ?? "";
   let status: ChargerLifecycleStatus = lifecycle.includes(rawStatus as ChargerLifecycleStatus) ? rawStatus as ChargerLifecycleStatus : "operational";
   // De in Admin opgeslagen status is leidend. Een verstreken reopen_at mag een
