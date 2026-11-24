@@ -17,23 +17,7 @@ const statusLabel: Record<string, string> = {
   permanent_closed: "Permanent gesloten", unknown: "Onbekend",
 };
 
-const ideas = [
-  ["Supercharger-risicometer", "Signaleert bekende sluitingen en onzekere statussen. Een echte storingskans vraagt historische storingsdata.", "live"],
-  ["Wat-als-route", "Vergelijk laadlocaties in de buurt van een gekozen Supercharger als die uitvalt.", "live"],
-  ["Supercharger-DNA", "Een uniek locatieprofiel met laadpunten, vermogen, eigenaar, voorzieningen en status.", "live"],
-  ["Slimme laadvoorspeller", "Gebruik voertuig, weer en route-instellingen voor een energie-inschatting in de routeplanner.", "existing"],
-  ["Goedkoopste laadmoment", "Gebruik de ingestelde tijdstarieven om laadkosten per vertrektijd te vergelijken.", "existing"],
-  ["Europa groeit", "Bekijk de huidige verdeling van operationele, geplande en gebouwde locaties per land.", "live"],
-  ["Supercharger-verzamelboek", "Digitale badges voor ontdekte landen en bijzondere locaties; bezoeken worden niet automatisch verzonnen.", "planned"],
-  ["Verborgen parels", "Vind locaties met bijzondere voorzieningen of een opvallende ligging op basis van ingevulde gegevens.", "live"],
-  ["Roadtrip-statistieken", "Netwerkcijfers en landenrecords, zonder te doen alsof de app je privéritten kent.", "live"],
-  ["Supercharger-duels", "Zet twee locaties naast elkaar en vergelijk capaciteit, vermogen, prijs en status.", "live"],
-  ["Toekomstkaart", "Toon bekende vergunningen, bouwlocaties en verwachte openingsdata; geen verzonnen voorspellingen.", "live"],
-  ["Tijdmachine", "Historische kaartbeelden zijn pas mogelijk zodra dagelijkse snapshots worden opgeslagen.", "data"],
-  ["Supercharger-ranglijst", "Ranglijsten voor grootste, snelste en best uitgeruste locaties.", "live"],
-  ["Laadstop-beslisser", "Vergelijk locaties op capaciteit, snelheid, prijs en status.", "live"],
-  ["Supercharger-waakhond", "Detecteer wijzigingen zodra betrouwbare periodieke snapshots beschikbaar zijn.", "data"],
-] as const;
+
 
 const fmt = (n?: number) => typeof n === "number" && Number.isFinite(n) ? n.toLocaleString("nl-NL") : "—";
 
@@ -43,7 +27,24 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
   const [scenarioId, setScenarioId] = useState("");
   const [history, setHistory] = useState<Array<{id:string;chargerName:string;action:string;changedFields:Record<string,unknown>;createdAt:string}>>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [visitedIds, setVisitedIds] = useState<string[]>([]);
+  const [visitedLoaded, setVisitedLoaded] = useState(false);
   const loadHistory = useServerFn(listPublicChargerHistory);
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("teslanavigation-visited-superchargers-v1");
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved);
+        if (Array.isArray(parsed)) setVisitedIds(parsed.filter((id): id is string => typeof id === "string"));
+      }
+    } catch { /* Local collection remains available even if browser storage is blocked. */ }
+    setVisitedLoaded(true);
+  }, []);
+  useEffect(() => {
+    if (!visitedLoaded) return;
+    try { window.localStorage.setItem("teslanavigation-visited-superchargers-v1", JSON.stringify(visitedIds)); } catch { /* Do not interrupt discovery tools when storage is unavailable. */ }
+  }, [visitedIds, visitedLoaded]);
+  const toggleVisited = (id: string) => setVisitedIds(current => current.includes(id) ? current.filter(value => value !== id) : [...current, id]);
   useEffect(() => {
     if (!open) return;
     let active = true;
@@ -155,19 +156,38 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{countries.slice(0,12).map(c=><div key={c.country} className="rounded-xl bg-slate-50 p-3"><div className="flex justify-between gap-2 text-sm font-semibold"><span>{c.country}</span><span>{c.total}</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-blue-600" style={{width:Math.max(2,c.total/Math.max(1,countries[0]?.total ?? 1)*100)+"%"}}/></div><div className="mt-1 text-xs text-slate-500">{c.active} in bedrijf · {c.building} in ontwikkeling</div></div>)}</div>
           </section>
 
+          <section className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <div className="mb-3 flex items-center gap-2"><Trophy className="h-5 w-5 text-amber-500"/><h3 className="font-bold">Supercharger-verzamelboek</h3><Badge variant="secondary">{visitedIds.length} bezocht</Badge></div>
+              <p className="mb-3 text-sm text-slate-500">Vink zelf locaties aan die je echt hebt bezocht. Je voortgang wordt op dit apparaat bewaard; bezoeken worden nooit automatisch geregistreerd.</p>
+              <div className="max-h-64 space-y-2 overflow-y-auto">
+                {chargers.filter(c => c.status === "operational").sort((a,b) => a.name.localeCompare(b.name)).map(c => {
+                  const id = c.id ?? c.name;
+                  const visited = visitedIds.includes(id);
+                  return <button key={id} type="button" onClick={() => toggleVisited(id)} className={`flex w-full items-center justify-between gap-3 rounded-xl border p-3 text-left text-sm transition-colors ${visited ? "border-amber-300 bg-amber-50" : "border-slate-200 bg-white hover:bg-slate-50"}`}>
+                    <span className="min-w-0"><span className="block truncate font-semibold">{c.name}</span><span className="text-xs text-slate-500">{c.country || "Land onbekend"}</span></span>
+                    <span className="shrink-0 font-semibold">{visited ? "✓ Bezocht" : "+ Bezocht"}</span>
+                  </button>;
+                })}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4">
+              <div className="mb-3 flex items-center gap-2"><Radar className="h-5 w-5 text-amber-600"/><h3 className="font-bold">Supercharger-waakhond</h3><Badge variant="secondary">{chargers.filter(c => ["temp_closed","long_closed","works_closed","unknown","permanent_closed"].includes(c.status ?? "unknown")).length} aandachtspunten</Badge></div>
+              <p className="mb-3 text-sm text-slate-600">Actuele meldingen op basis van de statussen in de dataset en recent geregistreerde wijzigingen. Dit is geen voorspelde storingskans.</p>
+              <div className="max-h-64 space-y-2 overflow-y-auto">
+                {chargers.filter(c => ["temp_closed","long_closed","works_closed","unknown","permanent_closed"].includes(c.status ?? "unknown")).sort((a,b) => a.name.localeCompare(b.name)).slice(0,20).map(c => <div key={c.id ?? c.name} className="flex items-center justify-between gap-3 rounded-xl bg-white p-3 text-sm"><span className="min-w-0 truncate font-semibold">{c.name}</span><Badge variant="outline">{statusLabel[c.status ?? "unknown"]}</Badge></div>)}
+                {chargers.every(c => !["temp_closed","long_closed","works_closed","unknown","permanent_closed"].includes(c.status ?? "unknown")) && <p className="rounded-xl bg-white p-3 text-sm text-slate-600">Geen bekende sluitingen of onzekere statussen in de huidige dataset.</p>}
+              </div>
+            </div>
+          </section>
+
           <section className="rounded-2xl border border-slate-200 p-4">
             <div className="mb-3 flex items-center gap-2"><History className="h-5 w-5 text-blue-600"/><h3 className="font-bold">Tijdmachine · echte wijzigingen</h3><Badge variant="secondary">{history.length} gebeurtenissen</Badge></div>
             <p className="mb-3 text-sm text-slate-500">Hier zie je geregistreerde wijzigingen uit de TeslaNavigation-beheergeschiedenis. Dit is geen volledige historische kaart: alleen wijzigingen die daadwerkelijk zijn vastgelegd verschijnen.</p>
             {historyLoading ? <p className="text-sm text-slate-500">Geschiedenis laden…</p> : history.length ? <div className="max-h-72 space-y-2 overflow-y-auto">{history.map(item => <div key={item.id} className="flex items-start justify-between gap-3 rounded-xl bg-slate-50 p-3"><div className="min-w-0"><div className="truncate text-sm font-semibold">{item.chargerName}</div><div className="text-xs text-slate-500">{item.action === "create" ? "Locatie toegevoegd" : item.action === "delete" ? "Locatie verwijderd" : "Locatiegegevens gewijzigd"}</div></div><time className="shrink-0 text-xs text-slate-500">{item.createdAt ? new Date(item.createdAt.replace(" ", "T") + (item.createdAt.endsWith("Z") ? "" : "Z")).toLocaleString("nl-NL") : "Datum onbekend"}</time></div>)}</div> : <p className="text-sm text-slate-500">Er zijn nog geen historische wijzigingen beschikbaar. Nieuwe geregistreerde updates verschijnen hier vanzelf.</p>}
           </section>
 
-          <section className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
-            <div className="mb-3 flex items-center gap-2"><History className="h-5 w-5 text-blue-700"/><h3 className="font-bold">15 ideeën voor TeslaNavigation</h3></div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {ideas.map(([title,description,state],i)=><div key={title} className="rounded-xl border border-white bg-white p-3"><div className="flex items-start justify-between gap-2"><span className="text-sm font-semibold">{i+1}. {title}</span><Badge variant={state==="live"||state==="existing"?"default":"outline"}>{state==="live"?"Actief":state==="existing"?"Bestaand":"Data nodig"}</Badge></div><p className="mt-1 text-xs leading-relaxed text-slate-600">{description}</p></div>)}
-            </div>
-            <p className="mt-3 text-xs text-slate-500">Historische tijdmachine, automatische storingsdetectie en echte bezoekbadges vereisen nieuwe historische registraties of expliciete bezoekregistratie. Deze onderdelen tonen daarom geen gefingeerde data.</p>
-          </section>
+
         </div>
       </DialogContent>
     </Dialog>
