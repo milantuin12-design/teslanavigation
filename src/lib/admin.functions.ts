@@ -511,7 +511,7 @@ export const listPublishedVehicleModels = createServerFn({method:"GET"}).handler
       batteryKWh:spec.battery_kwh==null?null:Number(spec.battery_kwh),usableKWh:spec.usable_kwh==null?null:Number(spec.usable_kwh),
       rangeKm:spec.range_km==null?null:Number(spec.range_km),summerRangeKm:spec.summer_range_km==null?null:Number(spec.summer_range_km),winterRangeKm:spec.winter_range_km==null?null:Number(spec.winter_range_km),
       consumptionKWh100:parent.consumption_kwh100==null?null:Number(parent.consumption_kwh100),winterConsumptionKWh100:parent.winter_consumption_kwh100==null?null:Number(parent.winter_consumption_kwh100),
-      yearFrom:Number(spec.year),yearTo:parent.year_to==null?null:Number(parent.year_to),maxChargeKw:spec.max_charge_kw==null?null:Number(spec.max_charge_kw),
+      yearFrom:Number(spec.year),yearTo:Number(spec.year),productionYearTo:parent.year_to==null?null:Number(parent.year_to),maxChargeKw:spec.max_charge_kw==null?null:Number(spec.max_charge_kw),
       connectors:decodeConnectors(spec.connectors),imageUrl:parent.image_url==null?null:String(parent.image_url),notes:parent.notes==null?null:String(parent.notes),published:true
     }));
   });
