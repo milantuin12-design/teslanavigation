@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: cloudflare-migratie
       - name: Download current supercharge.info network data
         run: |
           node <<'NODE'
@@ -34,18 +34,18 @@ jobs:
             console.log('Sample:', JSON.stringify(sites.slice(0, 2)));
           })().catch(error => { console.error(error); process.exit(1); });
           NODE
-      - name: Merge public updates into TeslaNavigation dataset
+      - name: Merge public updates into the production migration branch
         run: node scripts/sync-supercharger-network.mjs
       - name: Verify application build
         run: |
           npm install --no-audit --no-fund
           npm test
           npm run build
-      - name: Commit refreshed network data
+      - name: Commit refreshed network data only to cloudflare-migratie
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/data/supercharge-info-europe.json src/data/superchargers.json
           git diff --cached --quiet && exit 0
           git commit -m "Refresh public European Supercharger network data"
-          git push origin main
+          git push origin cloudflare-migratie
