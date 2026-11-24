@@ -23,6 +23,10 @@ const fmt = (n?: number) => typeof n === "number" && Number.isFinite(n) ? n.toLo
 
 export default function SuperchargerLab({ open, onOpenChange, chargers }: Props) {
   const [firstId, setFirstId] = useState("");
+  const [firstSearch, setFirstSearch] = useState("");
+  const [secondSearch, setSecondSearch] = useState("");
+  const [scenarioSearch, setScenarioSearch] = useState("");
+  const [collectionSearch, setCollectionSearch] = useState("");
   const [secondId, setSecondId] = useState("");
   const [scenarioId, setScenarioId] = useState("");
   const [history, setHistory] = useState<Array<{id:string;chargerName:string;action:string;changedFields:Record<string,unknown>;createdAt:string}>>([]);
@@ -53,6 +57,11 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
     return () => { active = false; };
   }, [open, loadHistory]);
 
+  const matchesSearch = (charger: Supercharger, query: string) => {
+    const needle = query.trim().toLocaleLowerCase("nl-NL");
+    if (!needle) return true;
+    return [charger.name, charger.country, charger.city, charger.province].some(value => value?.toLocaleLowerCase("nl-NL").includes(needle));
+  };
   const operational = useMemo(() => chargers.filter(c => c.status === "operational"), [chargers]);
   const countries = useMemo(() => {
     const map = new Map<string, { total: number; active: number; building: number }>();
@@ -128,14 +137,14 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
             <div className="rounded-2xl border border-slate-200 p-4">
               <div className="mb-3 flex items-center gap-2"><GitCompareArrows className="h-5 w-5 text-blue-600"/><h3 className="font-bold">Supercharger-duel</h3></div>
               <div className="grid gap-2 sm:grid-cols-2">
-                <Select value={firstId} onValueChange={setFirstId}><SelectTrigger><SelectValue placeholder="Eerste locatie"/></SelectTrigger><SelectContent>{chargers.map(c => <SelectItem key={c.id ?? c.name} value={c.id ?? c.name}>{c.name}</SelectItem>)}</SelectContent></Select>
-                <Select value={secondId} onValueChange={setSecondId}><SelectTrigger><SelectValue placeholder="Tweede locatie"/></SelectTrigger><SelectContent>{chargers.map(c => <SelectItem key={c.id ?? c.name} value={c.id ?? c.name}>{c.name}</SelectItem>)}</SelectContent></Select>
+                <div className="space-y-2"><input value={firstSearch} onChange={e=>setFirstSearch(e.target.value)} placeholder="Zoek op naam, land, stad of provincie…" className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"/><Select value={firstId} onValueChange={setFirstId}><SelectTrigger><SelectValue placeholder="Eerste locatie"/></SelectTrigger><SelectContent>{chargers.filter(c=>matchesSearch(c,firstSearch)).map(c => <SelectItem key={c.id ?? c.name} value={c.id ?? c.name}>{c.name} · {[c.city,c.province,c.country].filter(Boolean).join(", ")}</SelectItem>)}</SelectContent></Select></div>
+                <div className="space-y-2"><input value={secondSearch} onChange={e=>setSecondSearch(e.target.value)} placeholder="Zoek op naam, land, stad of provincie…" className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"/><Select value={secondId} onValueChange={setSecondId}><SelectTrigger><SelectValue placeholder="Tweede locatie"/></SelectTrigger><SelectContent>{chargers.filter(c=>matchesSearch(c,secondSearch)).map(c => <SelectItem key={c.id ?? c.name} value={c.id ?? c.name}>{c.name} · {[c.city,c.province,c.country].filter(Boolean).join(", ")}</SelectItem>)}</SelectContent></Select></div>
               </div>
               {compareRows.length > 0 ? <div className="mt-4 overflow-x-auto"><table className="w-full text-sm"><thead><tr><th className="p-2 text-left text-slate-500">Eigenschap</th><th className="p-2 text-left">{selectedA?.name}</th><th className="p-2 text-left">{selectedB?.name}</th></tr></thead><tbody>{compareRows.map(row=><tr key={row[0]} className="border-t border-slate-100"><td className="p-2 text-slate-500">{row[0]}</td><td className="p-2 font-medium">{row[1]}</td><td className="p-2 font-medium">{row[2]}</td></tr>)}</tbody></table></div> : <p className="mt-3 text-sm text-slate-500">Kies twee locaties om ze direct te vergelijken.</p>}
             </div>
             <div className="rounded-2xl border border-slate-200 p-4">
               <div className="mb-3 flex items-center gap-2"><Compass className="h-5 w-5 text-blue-600"/><h3 className="font-bold">Wat-als: locatie valt uit</h3></div>
-              <Select value={scenarioId} onValueChange={setScenarioId}><SelectTrigger><SelectValue placeholder="Kies een Supercharger"/></SelectTrigger><SelectContent>{chargers.map(c => <SelectItem key={c.id ?? c.name} value={c.id ?? c.name}>{c.name}</SelectItem>)}</SelectContent></Select>
+              <div className="space-y-2"><input value={scenarioSearch} onChange={e=>setScenarioSearch(e.target.value)} placeholder="Zoek op naam, land, stad of provincie…" className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"/><Select value={scenarioId} onValueChange={setScenarioId}><SelectTrigger><SelectValue placeholder="Kies een Supercharger"/></SelectTrigger><SelectContent>{chargers.filter(c=>matchesSearch(c,scenarioSearch)).map(c => <SelectItem key={c.id ?? c.name} value={c.id ?? c.name}>{c.name} · {[c.city,c.province,c.country].filter(Boolean).join(", ")}</SelectItem>)}</SelectContent></Select></div>
               {scenario && <div className="mt-3 space-y-2"><p className="text-sm text-slate-600">Dichtstbijzijnde operationele alternatieven vanaf {scenario.name} (hemelsbrede afstand, geen routeafstand):</p>{alternatives.map(({charger,distance},i)=><div key={charger.id ?? charger.name} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-2 text-sm"><span className="min-w-0 truncate font-medium">{i+1}. {charger.name}</span><span className="shrink-0 text-slate-500">{distance.toFixed(1).replace(".",",")} km</span></div>)}</div>}
             </div>
           </section>
@@ -160,8 +169,9 @@ export default function SuperchargerLab({ open, onOpenChange, chargers }: Props)
             <div className="rounded-2xl border border-slate-200 p-4">
               <div className="mb-3 flex items-center gap-2"><Trophy className="h-5 w-5 text-amber-500"/><h3 className="font-bold">Supercharger-verzamelboek</h3><Badge variant="secondary">{visitedIds.length} bezocht</Badge></div>
               <p className="mb-3 text-sm text-slate-500">Vink zelf locaties aan die je echt hebt bezocht. Je voortgang wordt op dit apparaat bewaard; bezoeken worden nooit automatisch geregistreerd.</p>
+              <input value={collectionSearch} onChange={e=>setCollectionSearch(e.target.value)} placeholder="Zoek op naam, land, stad of provincie…" className="mb-3 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"/>
               <div className="max-h-64 space-y-2 overflow-y-auto">
-                {chargers.filter(c => c.status === "operational").sort((a,b) => a.name.localeCompare(b.name)).map(c => {
+                {chargers.filter(c => c.status === "operational" && matchesSearch(c,collectionSearch)).sort((a,b) => a.name.localeCompare(b.name)).map(c => {
                   const id = c.id ?? c.name;
                   const visited = visitedIds.includes(id);
                   return <button key={id} type="button" onClick={() => toggleVisited(id)} className={`flex w-full items-center justify-between gap-3 rounded-xl border p-3 text-left text-sm transition-colors ${visited ? "border-amber-300 bg-amber-50" : "border-slate-200 bg-white hover:bg-slate-50"}`}>
