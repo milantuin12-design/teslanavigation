@@ -132,10 +132,9 @@ export async function loadBundledSuperchargers(): Promise<Supercharger[]> {
   const data = dataset as unknown as Dataset;
   const owners = new Map((data.owners ?? []).map((owner) => [owner.id, owner]));
   const rows = Array.isArray(data.chargers) ? data.chargers : [];
-  const visibleRows = rows.filter((row) => !["plan", "planned", "voting"].includes(String(row.status ?? "").trim().toLowerCase()));
-  const network: NetworkSite[] = visibleRows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
+  const network: NetworkSite[] = rows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
   const tariffs = (tariffFile as unknown as { tariffs: any[] }).tariffs ?? [];
-  return visibleRows.map((row) => toSupercharger(withBundledTariff(row, tariffs), owners, network));
+  return rows.map((row) => toSupercharger(withBundledTariff(row, tariffs), owners, network));
 }
 
 
