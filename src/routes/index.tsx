@@ -684,7 +684,7 @@ function Index() {
     const best = pool.reduce((a, b) => b.cost < a.cost ? b : a);
     const saving = current.cost - best.cost;
     return saving >= 0.5 && best.offset !== 0 ? { ...best, saving, currentTraffic: current.traffic } : null;
-  }, [routeOptions, selectedRouteIndex, departureDate, selectedModel, packKWh, carMaxKwOverride, holidayPeriodMode, winterSportsMode]);
+  }, [routeOptions, selectedRouteIndex, departureDate, selectedModel, packKWh, carMaxKwOverride, eurRates, holidayPeriodMode, winterSportsMode]);
   const [ownerPanelId, setOwnerPanelId] = useState<string | null>(null);
   const [focusCoord, setFocusCoord] = useState<{ lat: number; lng: number } | null>(null);
 
