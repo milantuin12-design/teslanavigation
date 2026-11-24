@@ -742,6 +742,28 @@ export default function InputPanel({
                 className="w-full bg-slate-800/70 border border-slate-600/50 rounded-lg px-2 py-1.5 text-sm text-white"
               />
             </div>
+            {selectedVariant && selectedModel !== "Handmatig" && (() => {
+              const battery = selectedVariant.usableKWh ?? selectedVariant.batteryKWh ?? null;
+              const seasonalUse = weatherMode === "winter"
+                ? selectedVariant.winterConsumptionKWh100
+                : selectedVariant.summerConsumptionKWh100 ?? selectedVariant.consumptionKWh100;
+              const maxKw = selectedVariant.maxChargeKw ?? teslaMaxChargeKw[selectedModel] ?? null;
+              const practicalRange = battery && seasonalUse && seasonalUse > 0 ? Math.round(battery / seasonalUse * 100) : null;
+              const connectors = selectedVariant.connectors?.filter(Boolean).join(" · ");
+              return (
+                <div className="mt-2 rounded-lg border border-slate-700/70 bg-slate-800/50 p-2.5">
+                  <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Specificaties · {modelYear}</div>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
+                    <div><span className="text-slate-500">Accu bruikbaar</span><div className="font-semibold text-white">{battery ? `${battery} kWh` : "Onbekend"}</div></div>
+                    <div><span className="text-slate-500">Max. laadvermogen auto</span><div className="font-semibold text-white">{maxKw ? `${maxKw} kW` : "Onbekend"}</div></div>
+                    <div><span className="text-slate-500">{weatherMode === "winter" ? "Winter" : "Zomer"}verbruik</span><div className="font-semibold text-white">{seasonalUse ? `${seasonalUse} kWh/100 km` : "Nog niet ingesteld"}</div></div>
+                    <div><span className="text-slate-500">Praktijkbereik op basis van verbruik</span><div className="font-semibold text-white">{practicalRange ? `±${practicalRange.toLocaleString("nl-NL")} km` : "Nog niet te berekenen"}</div></div>
+                    {connectors && <div className="col-span-2"><span className="text-slate-500">Aansluitingen</span><div className="font-semibold text-white">{connectors}</div></div>}
+                  </div>
+                  {!seasonalUse && <p className="mt-1.5 text-[10px] text-amber-300">Stel dit seizoensverbruik in bij Admin → Voertuigmodellen voor een nauwkeurige routeberekening. WLTP wordt niet als praktijkverbruik gebruikt.</p>}
+                </div>
+              );
+            })()}
             {selectedModel === 'Handmatig' && (
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <div>
