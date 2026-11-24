@@ -491,11 +491,11 @@ export const adminSetUserBlocked = createServerFn({ method: "POST" })
 
 /* Public read-only catalogue used by the route planner; edits remain admin-only. */
 export const listPublishedVehicleModels = createServerFn({method:"GET"}).handler(async()=>{
-  const rows=await getD1().prepare("SELECT id,brand,model,trim,battery_kwh,usable_kwh,range_km,consumption_kwh100,winter_consumption_kwh100,year_from,year_to,max_charge_kw,connectors,image_url,notes,published FROM vehicle_models WHERE published=1 ORDER BY brand,model,year_from,trim").all<Record<string,unknown>>();
+  const rows=await getD1().prepare("SELECT id,brand,model,trim,battery_kwh,usable_kwh,range_km,summer_range_km,winter_range_km,consumption_kwh100,winter_consumption_kwh100,year_from,year_to,max_charge_kw,connectors,image_url,notes,published FROM vehicle_models WHERE published=1 ORDER BY brand,model,year_from,trim").all<Record<string,unknown>>();
   return (rows.results??[]).map((row)=>({
     id:String(row.id),brand:String(row.brand??"Tesla"),model:String(row.model),trim:row.trim==null?null:String(row.trim),
     batteryKWh:row.battery_kwh==null?null:Number(row.battery_kwh),usableKWh:row.usable_kwh==null?null:Number(row.usable_kwh),
-    rangeKm:row.range_km==null?null:Number(row.range_km),consumptionKWh100:row.consumption_kwh100==null?null:Number(row.consumption_kwh100),
+    rangeKm:row.range_km==null?null:Number(row.range_km),summerRangeKm:row.summer_range_km==null?null:Number(row.summer_range_km),winterRangeKm:row.winter_range_km==null?null:Number(row.winter_range_km),consumptionKWh100:row.consumption_kwh100==null?null:Number(row.consumption_kwh100),
     winterConsumptionKWh100:row.winter_consumption_kwh100==null?null:Number(row.winter_consumption_kwh100),
     yearFrom:row.year_from==null?null:Number(row.year_from),yearTo:row.year_to==null?null:Number(row.year_to),
     maxChargeKw:row.max_charge_kw==null?null:Number(row.max_charge_kw),
@@ -513,7 +513,7 @@ export const adminSaveVehicleModel = createServerFn({method:"POST"})
   .inputValidator((input:unknown)=>z.object({
     id:z.string().optional(),brand:z.string().trim().min(1).max(80),model:z.string().trim().min(1).max(120),
     trim:z.string().max(120).nullable().optional(),battery_kwh:z.number().positive().max(300).nullable().optional(),
-    usable_kwh:z.number().positive().max(300).nullable().optional(),range_km:z.number().int().positive().max(1500).nullable().optional(),
+    usable_kwh:z.number().positive().max(300).nullable().optional(),range_km:z.number().int().positive().max(1500).nullable().optional(),summer_range_km:z.number().int().positive().max(1500).nullable().optional(),winter_range_km:z.number().int().positive().max(1500).nullable().optional(),
     consumption_kwh100:z.number().positive().max(100).nullable().optional(),winter_consumption_kwh100:z.number().positive().max(100).nullable().optional(),year_from:z.number().int().min(1990).max(2100),
     year_to:z.number().int().min(1990).max(2100),max_charge_kw:z.number().int().positive().max(1000).nullable().optional(),
     connectors:z.array(z.string().max(30)).max(10).default(["Type 2","CCS"]),image_url:z.string().max(500000).nullable().optional().refine((value)=>!value || /^https?:\/\//i.test(value) || /^data:image\/(?:jpeg|png|webp);base64,/i.test(value),{message:"Gebruik een http(s)-afbeeldingslink of een geüploade afbeelding."}),
@@ -521,10 +521,10 @@ export const adminSaveVehicleModel = createServerFn({method:"POST"})
   }).refine(v=>v.year_to>=v.year_from,{message:"Eindbouwjaar moet gelijk aan of later dan beginbouwjaar zijn."}).parse(input))
   .handler(async({data})=>{
     const user=await requireD1Admin(); const id=data.id??crypto.randomUUID();
-    await getD1().prepare(`INSERT INTO vehicle_models (id,brand,model,trim,battery_kwh,usable_kwh,range_km,consumption_kwh100,winter_consumption_kwh100,year_from,year_to,max_charge_kw,connectors,image_url,notes,published,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
-      ON CONFLICT(id) DO UPDATE SET brand=excluded.brand,model=excluded.model,trim=excluded.trim,battery_kwh=excluded.battery_kwh,usable_kwh=excluded.usable_kwh,range_km=excluded.range_km,consumption_kwh100=excluded.consumption_kwh100,winter_consumption_kwh100=excluded.winter_consumption_kwh100,year_from=excluded.year_from,year_to=excluded.year_to,max_charge_kw=excluded.max_charge_kw,connectors=excluded.connectors,image_url=excluded.image_url,notes=excluded.notes,published=excluded.published,updated_at=CURRENT_TIMESTAMP`)
-      .bind(id,data.brand,data.model,data.trim??null,data.battery_kwh??null,data.usable_kwh??null,data.range_km??null,data.consumption_kwh100??null,data.winter_consumption_kwh100??null,data.year_from,data.year_to,data.max_charge_kw??null,JSON.stringify(data.connectors),data.image_url??null,data.notes??null,data.published?1:0).run();
+    await getD1().prepare(`INSERT INTO vehicle_models (id,brand,model,trim,battery_kwh,usable_kwh,range_km,summer_range_km,winter_range_km,consumption_kwh100,winter_consumption_kwh100,year_from,year_to,max_charge_kw,connectors,image_url,notes,published,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+      ON CONFLICT(id) DO UPDATE SET brand=excluded.brand,model=excluded.model,trim=excluded.trim,battery_kwh=excluded.battery_kwh,usable_kwh=excluded.usable_kwh,range_km=excluded.range_km,summer_range_km=excluded.summer_range_km,winter_range_km=excluded.winter_range_km,consumption_kwh100=excluded.consumption_kwh100,winter_consumption_kwh100=excluded.winter_consumption_kwh100,year_from=excluded.year_from,year_to=excluded.year_to,max_charge_kw=excluded.max_charge_kw,connectors=excluded.connectors,image_url=excluded.image_url,notes=excluded.notes,published=excluded.published,updated_at=CURRENT_TIMESTAMP`)
+      .bind(id,data.brand,data.model,data.trim??null,data.battery_kwh??null,data.usable_kwh??null,data.range_km??null,data.summer_range_km??null,data.winter_range_km??null,data.consumption_kwh100??null,data.winter_consumption_kwh100??null,data.year_from,data.year_to,data.max_charge_kw??null,JSON.stringify(data.connectors),data.image_url??null,data.notes??null,data.published?1:0).run();
     await d1Audit(user.id,"vehicle_model_save",1,{id,brand:data.brand,model:data.model,years:[data.year_from,data.year_to]});
     return {id};
   });
