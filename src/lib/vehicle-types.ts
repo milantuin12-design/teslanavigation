@@ -17,9 +17,14 @@ export interface VehicleModel {
   published: boolean;
 }
 
-/** Sleutel zoals gebruikt in de routeplanner ("Model 3 Long Range AWD"). */
+/** Verwijder jaartallen uit model-/uitvoeringsnamen; het aparte bouwjaarveld bepaalt de variant. */
+export function cleanVehicleName(value: string | null | undefined): string {
+  return (value ?? "").replace(/\\b(?:19|20)\\d{2}\\b/g, "").replace(/\\s+/g, " ").trim();
+}
+
+/** Sleutel zoals gebruikt in de routeplanner (zonder jaartallen in de naam). */
 export function vehicleKey(v: Pick<VehicleModel, 'model' | 'trim'>): string {
-  return v.trim ? `${v.model} ${v.trim}`.trim() : v.model;
+  return [cleanVehicleName(v.model), cleanVehicleName(v.trim)].filter(Boolean).join(" ");
 }
 
 export function vehicleLabel(v: VehicleModel): string {
