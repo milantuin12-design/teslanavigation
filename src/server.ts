@@ -486,6 +486,40 @@ export default {
         return jsonResponse({ error: error instanceof Error ? error.message : "Verwijderen uit D1 mislukt." }, 500);
       }
     }
+    // Public map feed: read the same live D1 records as Admin without
+    // routing through TanStack Start's server-function transport.
+    if (pathname === "/api/public/superchargers") {
+      if (request.method !== "GET") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
+      try {
+        const db = getD1Binding(env);
+        if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
+        const [chargerRows, ownerRows] = await Promise.all([
+          db.prepare("SELECT * FROM superchargers WHERE COALESCE(hidden,0) = 0 AND LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') AND (COALESCE(published,1) != 0 OR LOWER(TRIM(COALESCE(status, ''))) IN ('permit','vergunning','vergunning verleend','vergunning_verleend')) ORDER BY name COLLATE NOCASE").all<Record<string, unknown>>(),
+          db.prepare("SELECT id,name,logo_url,description,website,contact,notes FROM charger_owners ORDER BY name COLLATE NOCASE").all<Record<string, unknown>>(),
+        ]);
+        if (!Array.isArray(chargerRows.results) || !Array.isArray(ownerRows.results)) {
+          return jsonResponse({ error: "Cloudflare D1 gaf geen geldige openbare Superchargerdata terug." }, 502);
+        }
+        const jsonColumns = ["opening_hours","charger_configs","parking_blocks","price_blocks","construction","works","closure","traffic_forecast","planned_upgrade","stall_states","voting","photos"];
+        const boolColumns = ["trailer_friendly","is_available","parking_fee","in_parking_garage","low_speed","published","hidden"];
+        const chargers = chargerRows.results.map((source) => {
+          const row: Record<string, unknown> = { ...source };
+          for (const key of jsonColumns) {
+            if (typeof row[key] === "string") {
+              try { row[key] = JSON.parse(row[key] as string); } catch { /* preserve legacy value */ }
+            }
+          }
+          for (const key of boolColumns) {
+            if (row[key] !== undefined && row[key] !== null) row[key] = Number(row[key]) === 1;
+          }
+          return row;
+        });
+        return jsonResponse({ chargers, owners: ownerRows.results });
+      } catch (error) {
+        console.error("[TeslaNavigation] Public D1 map feed failed:", error);
+        return jsonResponse({ error: error instanceof Error ? error.message : "Live Superchargerdata laden mislukt." }, 503);
+      }
+    }
     if (pathname === "/api/admin/superchargers") {
       try {
         return await handleAdminSuperchargerList(request, env);
