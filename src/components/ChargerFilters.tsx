@@ -45,7 +45,7 @@ export default function ChargerFilters({ filters, onChange, chargers, visibleCou
   const ownerGroups = useMemo(() => {
     const groups = new Map<string, string>();
     for (const charger of chargers) {
-      const name = (charger.ownerName ?? "").normalize("NFKC").trim().replace(/\\s+/g, " ");
+      const name = (charger.ownerName ?? "").normalize("NFKC").trim().replace(/\s+/g, " ");
       if (!name) continue;
       const key = name.toLocaleLowerCase("nl-NL");
       if (!groups.has(key)) groups.set(key, name);
