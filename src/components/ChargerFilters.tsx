@@ -41,6 +41,18 @@ export default function ChargerFilters({ filters, onChange, chargers, visibleCou
     return Array.from(unique.values()).sort((a, b) => a.localeCompare(b, "nl"));
   }, [chargers]);
 
+  // Eigenaren met dezelfde naam vormen één groep, ook bij verschillende IDs/hoofdletters/spaties.
+  const ownerGroups = useMemo(() => {
+    const groups = new Map<string, string>();
+    for (const charger of chargers) {
+      const name = (charger.ownerName ?? "").normalize("NFKC").trim().replace(/\\s+/g, " ");
+      if (!name) continue;
+      const key = name.toLocaleLowerCase("nl-NL");
+      if (!groups.has(key)) groups.set(key, name);
+    }
+    return [...groups.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name, "nl"));
+  }, [chargers]);
+
   // Tellen per status: alle statussen tonen die minimaal 1 locatie hebben.
   const availableStatuses = useMemo(() => {
     const counts: Partial<Record<ChargerLifecycleStatus, number>> = {};
@@ -212,6 +224,17 @@ export default function ChargerFilters({ filters, onChange, chargers, visibleCou
                 {countries.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
+              </select>
+            </div>
+          )}
+
+          {/* Eigenaar: één optie per unieke eigenaarsnaam */}
+          {ownerGroups.length > 0 && (
+            <div>
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Eigenaar</div>
+              <select value={filters.ownerId} onChange={(e) => onChange({ ...filters, ownerId: e.target.value })} className="w-full bg-slate-950/70 border border-slate-700/60 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none">
+                <option value="">Alle eigenaren ({ownerGroups.length})</option>
+                {ownerGroups.map((owner) => <option key={owner.id} value={owner.id}>{owner.name}</option>)}
               </select>
             </div>
           )}
