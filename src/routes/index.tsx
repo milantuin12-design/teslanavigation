@@ -2074,7 +2074,7 @@ function Index() {
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" aria-pressed={!showDevelopmentChargers} className={`dark bg-background/90 text-foreground border-border shadow-lg ${!showDevelopmentChargers ? "ring-2 ring-blue-500" : ""}`} onClick={() => setShowDevelopmentChargers((v) => !v)}>
-                Verberg bouwlocaties
+                {showDevelopmentChargers ? "Verberg bouwlocaties" : "Toon bouwlocaties"}
               </Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setFiltersOpen((v) => !v)} title="Filters">
                 <SlidersHorizontal className="size-4" aria-hidden="true" /><span className="hidden sm:inline">Filters</span>
