@@ -118,9 +118,9 @@ export async function mapCloudSuperchargers(rows: LocalRow[], ownerRows: Owner[]
   const owners = new Map(ownerRows.map((owner) => [owner.id, owner]));
   const network: NetworkSite[] = rows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
   const tariffs = (tariffFile as unknown as { tariffs: any[] }).tariffs ?? [];
-  const visibleRows = rows.filter((row) => !["plan", "planned", "voting"].includes(String(row.status ?? "").trim().toLowerCase()));
-  const visibleNetwork: NetworkSite[] = visibleRows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
-  return visibleRows.map((row) => toSupercharger(withBundledTariff(row, tariffs), owners, visibleNetwork));
+  // The public D1 feed already excludes only records explicitly marked hidden.
+  // Keep every other cloud record on the map, including unpublished and planned locations.
+  return rows.map((row) => toSupercharger(withBundledTariff(row, tariffs), owners, network));
 }
 
 /** Laadt de volledige meegeleverde dataset rechtstreeks in de browser; geen Lovable Cloud of Supabase nodig. */
