@@ -31,6 +31,7 @@ import ChargerFilters from "@/components/ChargerFilters";
 import ReportChargerDialog, { type ReportTarget } from "@/components/ReportChargerDialog";
 import OwnerPanel from "@/components/OwnerPanel";
 import ChargerCompareDialog from "@/components/ChargerCompareDialog";
+import SuperchargerLab from "@/components/SuperchargerLab";
 import SiteUpdatesPopup from "@/components/SiteUpdatesPopup";
 import SplashScreen from "@/components/SplashScreen";
 import {
@@ -154,6 +155,7 @@ const OFF_ROUTE_KM_THRESHOLD = 0.2; // 200m
 const OFF_ROUTE_PERSIST_MS = 8000; // off-route for 8s before rerouting
 
 function Index() {
+  const [superchargerLabOpen, setSuperchargerLabOpen] = useState(false);
   const [startCoord, setStartCoord] = useState<{ lat: number; lng: number } | null>(null);
   const [destCoord, setDestCoord] = useState<{ lat: number; lng: number } | null>(null);
   const [waypoints, setWaypoints] = useState<PlannedWaypoint[]>([]);
@@ -2085,6 +2087,7 @@ function Index() {
               </Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCountryPricesOpen(true)}>Prijs per land</Button>
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setCompareOpen(true)}>Vergelijk locaties</Button>
+              <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setSuperchargerLabOpen(true)}>✦ Ontdek</Button>
               <AccountMenu />
             </div>
             {filtersOpen && (
@@ -2159,6 +2162,8 @@ function Index() {
          </div>
        </div>
      )}
+
+        <SuperchargerLab open={superchargerLabOpen} onOpenChange={setSuperchargerLabOpen} chargers={superchargers} />
 
         <EvMap
           startCoord={startCoord}
