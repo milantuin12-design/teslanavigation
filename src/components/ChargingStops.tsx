@@ -314,14 +314,6 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
         const availabilityForecast = eta ? getTrafficForecastAt(stop.charger.trafficForecast, eta, stop.charger.province, holidayMode, winterSportsMode && isSnowRegion(stop.charger)) : null;
         const openStalls = eta ? getOpenStalls(stop.charger, eta) : 0;
         const estimatedFreeStalls = availabilityForecast ? Math.max(0, Math.min(openStalls, Math.round(openStalls * (1 - availabilityForecast.level / 100)))) : null;
-        const trailerFriendlyCapacity = Math.max(0, Math.floor(stop.charger.construction?.trailerFriendlyStalls ?? (stop.charger.trailerFriendly ? 1 : 0)));
-        const trailerStallsPerSpace = Math.max(1, Math.floor(stop.charger.construction?.trailerStallsPerSpace ?? 1));
-        const trailerForecast = eta ? getTrafficForecastAt(stop.charger.construction?.trailerTrafficForecast ?? stop.charger.trafficForecast, eta, stop.charger.province, holidayMode, winterSportsMode && isSnowRegion(stop.charger)) : null;
-        const trailerForecastFree = trailerForecast ? Math.floor(trailerFriendlyCapacity * (1 - trailerForecast.level / 100)) : null;
-        const trailerCapacityFromFreeStalls = estimatedFreeStalls !== null ? Math.floor(estimatedFreeStalls / trailerStallsPerSpace) : null;
-        const estimatedFreeTrailerSpaces = showTrailer && trailerFriendlyCapacity > 0
-          ? Math.max(0, Math.min(trailerFriendlyCapacity, trailerForecastFree === null ? (trailerCapacityFromFreeStalls ?? 0) : trailerCapacityFromFreeStalls === null ? trailerForecastFree : Math.min(trailerForecastFree, trailerCapacityFromFreeStalls)))
-          : null;
         return (
           <div key={idx} className="space-y-2">
             {legEl(idx)}
@@ -348,11 +340,6 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 )}
                 <div className="mt-1 text-[10px] text-slate-400">Schatting op basis van de verwachte drukte rond {eta ? time(eta) : "aankomst"}; geen live bezettingsmeting.</div>
               </div>
-              {showTrailer && (
-                <div className={`mt-1 text-xs font-medium ${estimatedFreeTrailerSpaces !== null && estimatedFreeTrailerSpaces > 0 ? "text-emerald-300" : "text-amber-300"}`}>
-                  🚐 Aanhanger: {trailerFriendlyCapacity <= 0 ? "geen plek geregistreerd" : estimatedFreeTrailerSpaces === null ? "beschikbaarheid onbekend" : estimatedFreeTrailerSpaces > 0 ? `waarschijnlijk ${estimatedFreeTrailerSpaces} plek vrij` : "waarschijnlijk geen plek vrij"}
-                </div>
-              )}
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
                 <span className="flex items-center gap-1"><MapPin size={11} />{stop.distanceFromStart} km</span>
                 <span className="flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-amber-300">
