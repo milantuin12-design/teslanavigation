@@ -363,7 +363,7 @@ export default function InputPanel({
   // Het bouwjaar is altijd een aparte invoer. Het gekozen jaar bepaalt welke
   // voertuigvariant/thema actief is; een modelkeuze mag het jaar nooit wijzigen.
   const minYear = minYearForModel(selectedModel);
-  const maxYear = 2100;
+  const maxYear = vehicleModels.filter((vehicle) => vehicleKey(vehicle) === selectedModel).reduce((latest, vehicle) => vehicle.yearTo == null ? latest : Math.min(latest, vehicle.yearTo), 2100);
   const parseOrGeocode = useCallback(async (
     input: string,
     setCoord: (c: { lat: number; lng: number } | null) => void,
