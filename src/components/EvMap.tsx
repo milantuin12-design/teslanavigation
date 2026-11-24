@@ -381,7 +381,26 @@ export default function EvMap({ startCoord, destCoord, superchargers, chargingSt
           : (charger.status === 'construction' ? '#f59e0b' : charger.status === 'long_closed' || charger.isAvailable === false ? '#64748b' : '#dc2626'));
         const place = [charger.city, charger.province, charger.country].filter(Boolean).join(', ');
         const isFavorite = favoriteChargerIds.includes(charger.id ?? "");
-        let popup = `<style>.leaflet-popup-content-wrapper:has(.tn-sc-popup){border-radius:20px!important;padding:0!important;overflow:hidden;box-shadow:0 18px 55px rgba(15,23,42,.24)!important;border:1px solid rgba(148,163,184,.22)}.leaflet-popup-content:has(.tn-sc-popup){margin:0!important;width:auto!important;min-width:0!important}.tn-sc-popup{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;line-height:1.48;width:min(340px,calc(100vw - 76px));max-width:340px;min-width:260px;padding:16px;color:#0f172a;background:linear-gradient(160deg,#fff 0%,#f8fafc 100%);border-radius:20px}.tn-sc-popup strong{letter-spacing:-.025em}.tn-sc-popup img{border-radius:12px!important}.tn-sc-popup button[data-favorite-id]{width:36px!important;height:36px!important;border-radius:12px!important;background:#f1f5f9!important;font-size:22px!important}.tn-sc-popup button[data-owner-id]{padding:7px 10px!important;border-radius:10px!important;background:#eff6ff!important;text-decoration:none!important;width:100%;box-sizing:border-box}.tn-sc-popup button[data-report-id]{padding:10px 12px!important;border-radius:12px!important;background:#fff1f2!important;border:1px solid #fecdd3!important;color:#be123c!important;margin-top:12px!important}.tn-sc-popup button{transition:transform .15s ease,background .15s ease}.tn-sc-popup button:active{transform:scale(.98)}.tn-sc-popup [style*="border-radius:7px"],.tn-sc-popup [style*="border-radius: 7px"]{border-radius:13px!important}.tn-sc-popup [style*="border-top:1px"],.tn-sc-popup [style*="border-top: 1px"]{border-color:#e2e8f0!important}@media(prefers-color-scheme:dark){.leaflet-popup-content-wrapper:has(.tn-sc-popup){background:#111827!important;border-color:#334155}.tn-sc-popup{background:linear-gradient(160deg,#1e293b,#0f172a);color:#f8fafc}.tn-sc-popup [style*="color:#64748b"],.tn-sc-popup [style*="color: #64748b"]{color:#94a3b8!important}.tn-sc-popup [style*="background:#eff6ff"]{background:#1e3a5f!important;color:#bfdbfe!important}}</style><div class="tn-sc-popup" style="font-family:system-ui;font-size:13px;min-width:240px;color:#0f172a;">
+        let popup = `<style>
+.leaflet-popup-content-wrapper:has(.tn-sc-popup){background:#fff!important;border:1px solid #e5e7eb!important;border-radius:18px!important;padding:0!important;overflow:hidden;box-shadow:0 16px 48px rgba(15,23,42,.22)!important}
+.leaflet-popup-content:has(.tn-sc-popup){margin:0!important;width:auto!important;min-width:0!important}
+.leaflet-popup-tip{background:#fff!important}
+.tn-sc-popup{box-sizing:border-box!important;display:block!important;width:min(350px,calc(100vw - 76px))!important;max-width:350px!important;min-width:260px!important;padding:18px!important;background:#fff!important;color:#172033!important;color-scheme:light!important;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,sans-serif!important;font-size:13px!important;line-height:1.55!important}
+.tn-sc-popup *{box-sizing:border-box}
+.tn-sc-popup strong{color:#111827!important;letter-spacing:-.02em}
+.tn-sc-popup div,.tn-sc-popup span,.tn-sc-popup p{ text-shadow:none!important}
+.tn-sc-popup img{border-radius:12px!important}
+.tn-sc-popup button[data-favorite-id]{width:38px!important;height:38px!important;border-radius:12px!important;background:#f3f4f6!important;color:#475569!important;font-size:22px!important}
+.tn-sc-popup button[data-owner-id]{padding:9px 11px!important;border-radius:11px!important;background:#eff6ff!important;color:#1d4ed8!important;text-decoration:none!important;width:100%;box-sizing:border-box}
+.tn-sc-popup button[data-report-id]{padding:10px 12px!important;border-radius:11px!important;background:#fff1f2!important;border:1px solid #fecdd3!important;color:#be123c!important;margin-top:12px!important}
+.tn-sc-popup button{transition:transform .15s ease,background .15s ease}
+.tn-sc-popup button:active{transform:scale(.98)}
+.tn-sc-popup [style*="color:#64748b"],.tn-sc-popup [style*="color: #64748b"]{color:#64748b!important}
+.tn-sc-popup [style*="color:#475569"],.tn-sc-popup [style*="color: #475569"]{color:#475569!important}
+.tn-sc-popup [style*="color:#334155"],.tn-sc-popup [style*="color: #334155"]{color:#334155!important}
+.tn-sc-popup [style*="border-radius:7px"],.tn-sc-popup [style*="border-radius: 7px"]{border-radius:12px!important}
+.tn-sc-popup [style*="border-top:1px"],.tn-sc-popup [style*="border-top: 1px"]{border-color:#e5e7eb!important}
+</style><div class="tn-sc-popup" style="font-family:system-ui;font-size:13px;min-width:240px;color:#0f172a;">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-right:2px;">
             <div style="min-width:0;flex:1;">
               <strong style="font-size:15px;display:block;">${escapeHtml(charger.name || 'Onbekend')}</strong>
