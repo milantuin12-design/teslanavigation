@@ -399,7 +399,7 @@ export const adminListSuperchargers = createServerFn({ method: "POST" })
     } catch (error) {
       console.error("[TeslaNavigation] Bundled D1 seed failed; reading existing D1 rows anyway:", error);
     }
-    const response = await db.prepare("SELECT * FROM superchargers WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting') ORDER BY name COLLATE NOCASE LIMIT 5000")
+    const response = await db.prepare("SELECT * FROM superchargers ORDER BY name COLLATE NOCASE LIMIT 5000")
       .all<Record<string, unknown>>();
     const rows = requireD1Rows<Record<string, unknown>>(response, "Supercharger-lijst");
     return { chargers: rows.map(d1DecodeCharger) };
