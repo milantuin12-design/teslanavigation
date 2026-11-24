@@ -713,7 +713,7 @@ export default function InputPanel({
                       {variant?.imageUrl ? <img src={variant.imageUrl} alt={model} loading="lazy" className="h-full w-full object-contain p-1 transition-transform group-hover:scale-105" /> : <Car className="h-7 w-7 text-slate-500" />}
                       {selected && <span className="absolute right-1 top-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[8px] font-semibold text-white">Gekozen</span>}
                     </div>
-                    <div className="px-1.5 py-1"><div className="truncate text-[11px] font-semibold text-white">{model}</div>{variant?.yearFrom && <div className="text-[9px] text-slate-400">{variant.yearFrom}–{variant.yearTo ?? "heden"}</div>}</div>
+                    <div className="px-1.5 py-1"><div className="truncate text-[11px] font-semibold text-white">{model}</div></div>
                   </button>
                 );
               })}
