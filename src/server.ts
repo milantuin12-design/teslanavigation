@@ -484,19 +484,49 @@ export default {
         return jsonResponse({ error: error instanceof Error ? error.message : "Verwijderen uit D1 mislukt." }, 500);
       }
     }
-    // Public map feed: read the same live D1 records as Admin without
-    // routing through TanStack Start's server-function transport.
+    // Public map feed: read the same live D1 records as Admin. A short edge
+    // cache prevents every open map/tab from repeatedly scanning the full D1
+    // table; a separate stale copy keeps the map usable during brief D1 outages.
     if (pathname === "/api/public/superchargers") {
       if (request.method !== "GET") return jsonResponse({ error: "Methode niet toegestaan." }, 405);
+      const cache = caches.default;
+      const cacheOrigin = new URL(request.url).origin;
+      const freshKey = new Request(cacheOrigin + "/__cache/public-superchargers/fresh-v1");
+      const staleKey = new Request(cacheOrigin + "/__cache/public-superchargers/stale-v1");
+      const serveCached = async (key: Request, cacheState: "HIT" | "STALE"): Promise<Response | null> => {
+        try {
+          const cached = await cache.match(key);
+          if (!cached) return null;
+          const headers = new Headers(cached.headers);
+          headers.set("cache-control", "no-store, max-age=0");
+          headers.set("x-teslanavigation-map-cache", cacheState);
+          return new Response(cached.body, { status: 200, headers });
+        } catch (cacheError) {
+          console.warn("[TeslaNavigation] Public map cache read failed:", cacheError);
+          return null;
+        }
+      };
+      const staleFallback = async (reason: string): Promise<Response> => {
+        const stale = await serveCached(staleKey, "STALE");
+        if (stale) {
+          console.warn("[TeslaNavigation] Serving last good map feed because D1 is temporarily unavailable:", reason);
+          return stale;
+        }
+        return jsonResponse({ error: reason }, 503);
+      };
+
+      const fresh = await serveCached(freshKey, "HIT");
+      if (fresh) return fresh;
+
       try {
         const db = getD1Binding(env);
-        if (!db) return jsonResponse({ error: "Cloudflare D1-binding DB ontbreekt." }, 503);
+        if (!db) return await staleFallback("Cloudflare D1-binding DB ontbreekt.");
         const [chargerRows, ownerRows] = await Promise.all([
           db.prepare("SELECT * FROM superchargers WHERE COALESCE(hidden,0) = 0 ORDER BY name COLLATE NOCASE").all<Record<string, unknown>>(),
           db.prepare("SELECT id,name,logo_url,description,website,contact,notes FROM charger_owners ORDER BY name COLLATE NOCASE").all<Record<string, unknown>>(),
         ]);
         if (!Array.isArray(chargerRows.results) || !Array.isArray(ownerRows.results)) {
-          return jsonResponse({ error: "Cloudflare D1 gaf geen geldige openbare Superchargerdata terug." }, 502);
+          return await staleFallback("Cloudflare D1 gaf geen geldige openbare Superchargerdata terug.");
         }
         const jsonColumns = ["opening_hours","charger_configs","parking_blocks","price_blocks","construction","works","closure","traffic_forecast","planned_upgrade","stall_states","voting","photos"];
         const boolColumns = ["trailer_friendly","is_available","parking_fee","in_parking_garage","low_speed","published","hidden"];
@@ -512,10 +542,27 @@ export default {
           }
           return row;
         });
-        return jsonResponse({ chargers, owners: ownerRows.results });
+        const payload = { chargers, owners: ownerRows.results };
+        const response = jsonResponse(payload);
+        // Keep the browser response private/no-store; only the Worker edge
+        // cache gets a short freshness window and a longer stale-if-error copy.
+        const freshHeaders = new Headers(response.headers);
+        freshHeaders.set("cache-control", "public, max-age=20");
+        const staleHeaders = new Headers(response.headers);
+        staleHeaders.set("cache-control", "public, max-age=300");
+        try {
+          await Promise.all([
+            cache.put(freshKey, new Response(response.clone().body, { status: 200, headers: freshHeaders })),
+            cache.put(staleKey, new Response(response.clone().body, { status: 200, headers: staleHeaders })),
+          ]);
+        } catch (cacheError) {
+          console.warn("[TeslaNavigation] Public map cache write failed:", cacheError);
+        }
+        response.headers.set("x-teslanavigation-map-cache", "MISS");
+        return response;
       } catch (error) {
         console.error("[TeslaNavigation] Public D1 map feed failed:", error);
-        return jsonResponse({ error: error instanceof Error ? error.message : "Live Superchargerdata laden mislukt." }, 503);
+        return await staleFallback(error instanceof Error ? error.message : "Live Superchargerdata laden mislukt.");
       }
     }
     if (pathname === "/api/admin/superchargers") {
