@@ -174,18 +174,25 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
     let active = true;
     const currencies = [...new Set(stops.flatMap((stop) => [
       stop.charger.priceCurrency || 'EUR',
-      ...(stop.charger.priceBlocks ?? []).map((block) => stop.charger.priceCurrency || 'EUR'),
+      ...(stop.charger.priceBlocks ?? []).map(() => stop.charger.priceCurrency || 'EUR'),
       ...(stop.charger.parkingBlocks ?? []).map((block) => block.currency || 'EUR'),
     ]).map((code) => code.trim().toUpperCase()).filter((code) => /^[A-Z]{3}$/.test(code) && code !== 'EUR'))];
     if (currencies.length === 0) { setEurRates({}); return () => { active = false; }; }
     Promise.all(currencies.map(async (code) => {
-      try {
-        const response = await fetch(`https://api.frankfurter.app/latest?from=${encodeURIComponent(code)}&to=EUR`, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`Koers ${code} niet beschikbaar`);
-        const data = await response.json() as { rates?: { EUR?: number } };
-        const rate = Number(data?.rates?.EUR);
-        return Number.isFinite(rate) && rate > 0 ? [code, rate] as const : null;
-      } catch { return null; }
+      const endpoints = [
+        `https://api.frankfurter.dev/v1/latest?base=${encodeURIComponent(code)}&symbols=EUR`,
+        `https://api.frankfurter.app/latest?from=${encodeURIComponent(code)}&to=EUR`,
+      ];
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint, { cache: 'no-store' });
+          if (!response.ok) continue;
+          const data = await response.json() as { rates?: { EUR?: number } };
+          const rate = Number(data?.rates?.EUR);
+          if (Number.isFinite(rate) && rate > 0) return [code, rate] as const;
+        } catch { /* probeer de reservekoersbron */ }
+      }
+      return null;
     })).then((entries) => {
       if (active) setEurRates(Object.fromEntries(entries.filter((entry): entry is readonly [string, number] => entry !== null)));
     });
@@ -371,8 +378,8 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
               <div className="mt-2 rounded-lg border border-white/10 bg-black/10 p-2 text-[11px] space-y-1">
                 <div className="font-semibold text-slate-300">Kosten van deze laadstop</div>
                 <div className="flex justify-between gap-3"><span className="text-slate-400">Bijgeladen</span><strong className="text-white">{typeof stop.energyChargedKWh === 'number' ? `${stop.energyChargedKWh.toFixed(1)} kWh` : 'onbekend'}</strong></div>
-                <div className="flex justify-between gap-3"><span className="text-slate-400">Laadtarief</span><strong className="text-white">{costEstimate?.type === 'minute' ? `${localCurrency(costEstimate.amount, costEstimate.currency)} totaal · per minuut` : activePrice !== null ? `${localCurrency(activePrice, stop.charger.priceCurrency)}/kWh` : 'tarief onbekend'}</strong></div>
-                <div className="flex justify-between gap-3"><span className="text-slate-400">Elektriciteit</span><strong className="text-white">{costEstimate ? `${localCurrency(costEstimate.amount, costEstimate.currency)}${euroEquivalent(costEstimate.amount, costEstimate.currency, eurRates)}` : charge !== null ? euro(charge) : 'tarief onbekend'}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-slate-400">Laadtarief</span><strong className="text-white">{costEstimate?.type === 'minute' ? (stopCosts[idx].charge !== null ? `${euro(stopCosts[idx].charge)} totaal · per minuut` : 'omrekening naar EUR ophalen') : activePrice !== null ? (convertToEuro(activePrice, stop.charger.priceCurrency, eurRates) !== null ? `${euro(convertToEuro(activePrice, stop.charger.priceCurrency, eurRates)!)} /kWh` : 'omrekening naar EUR ophalen') : 'tarief onbekend'}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-slate-400">Elektriciteit</span><strong className="text-white">{stopCosts[idx].charge !== null ? euro(stopCosts[idx].charge) : 'omrekening naar EUR ophalen'}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-slate-400">Parkeren</span><strong className="text-white">{!stop.charger.parkingFee ? 'Geen parkeerkosten' : park !== null ? euro(park) : 'tarief onbekend'}</strong></div>
                 <div className="flex justify-between gap-3 border-t border-white/10 pt-1"><span className="font-semibold text-slate-300">Totaal stop</span><strong className="text-emerald-300">{stopCosts[idx].known ? euro((stopCosts[idx].charge ?? 0) + (stopCosts[idx].parking ?? 0)) : 'niet volledig bekend'}</strong></div>
               </div>
