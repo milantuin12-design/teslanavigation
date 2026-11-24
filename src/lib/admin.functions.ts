@@ -554,11 +554,19 @@ export const adminSaveVehicleYearSpec = createServerFn({method:"POST"})
     connectors:z.array(z.string().max(30)).max(10).default(["Type 2","CCS"])
   }).parse(input))
   .handler(async({data})=>{
-    const user=await requireD1Admin(), id=data.id??crypto.randomUUID();
-    await getD1().prepare(`INSERT INTO vehicle_year_specs (id,vehicle_model_id,year,battery_kwh,usable_kwh,range_km,summer_range_km,winter_range_km,max_charge_kw,connectors,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
-      ON CONFLICT(vehicle_model_id,year) DO UPDATE SET battery_kwh=excluded.battery_kwh,usable_kwh=excluded.usable_kwh,range_km=excluded.range_km,summer_range_km=excluded.summer_range_km,winter_range_km=excluded.winter_range_km,max_charge_kw=excluded.max_charge_kw,connectors=excluded.connectors,updated_at=CURRENT_TIMESTAMP`)
-      .bind(id,data.vehicle_model_id,data.year,data.battery_kwh??null,data.usable_kwh??null,data.range_km??null,data.summer_range_km??null,data.winter_range_km??null,data.max_charge_kw??null,JSON.stringify(data.connectors)).run();
+    const user=await requireD1Admin(), db=getD1();
+    const values=[data.battery_kwh??null,data.usable_kwh??null,data.range_km??null,data.summer_range_km??null,data.winter_range_km??null,data.max_charge_kw??null,JSON.stringify(data.connectors)];
+    // The model + year pair is the stable identity. Never reuse a possibly stale
+    // client ID for an INSERT: that can collide with another row's primary key.
+    const existing=await db.prepare("SELECT id FROM vehicle_year_specs WHERE vehicle_model_id=? AND year=?")
+      .bind(data.vehicle_model_id,data.year).first<{id:string}>();
+    if(existing){
+      await db.prepare("UPDATE vehicle_year_specs SET battery_kwh=?,usable_kwh=?,range_km=?,summer_range_km=?,winter_range_km=?,max_charge_kw=?,connectors=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
+        .bind(...values,existing.id).run();
+    }else{
+      await db.prepare("INSERT INTO vehicle_year_specs (id,vehicle_model_id,year,battery_kwh,usable_kwh,range_km,summer_range_km,winter_range_km,max_charge_kw,connectors,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)")
+        .bind(crypto.randomUUID(),data.vehicle_model_id,data.year,...values).run();
+    }
     await d1Audit(user.id,"vehicle_year_spec_save",1,{vehicle_model_id:data.vehicle_model_id,year:data.year});
     return {ok:true};
   });
