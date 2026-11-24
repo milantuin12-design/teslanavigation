@@ -1,4 +1,4 @@
-name: Deploy TeslaNavigation to Cloudflare
+name: Deploy TeslaNavigation to Cloudflare # always deploy the production migration branch, never main
 
 on:
   push:
