@@ -735,7 +735,7 @@ function Index() {
   const fetchTrafficRoutesFn = useServerFn(fetchTrafficRoutes);
   const trailerReductionEffective = trailerEnabled ? trailerReductionPercent : 0;
 
-  const catalogueBatteryForRange = selectedCatalogueVehicle?.usableKWh ?? selectedCatalogueVehicle?.batteryKWh ?? packKWh;
+  const catalogueBatteryForRange = packKWh;
   const activeSeasonalConsumption = weatherMode === "winter"
     ? activeVehicle?.winter_consumption_kwh100
     : activeVehicle?.summer_consumption_kwh100;
