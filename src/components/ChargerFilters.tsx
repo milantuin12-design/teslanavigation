@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Filter, ChevronDown, ChevronUp, Sparkles, X } from "lucide-react";
+import { useMemo } from "react";
+import { X } from "lucide-react";
 import type { ChargerFilterState, ChargerLifecycleStatus, Supercharger } from "@/lib/tesla-types";
 import { defaultChargerFilters } from "@/lib/tesla-types";
 import { lifecycleLabels } from "@/lib/tesla-utils";
@@ -29,13 +29,17 @@ interface Props {
 }
 
 export default function ChargerFilters({ filters, onChange, chargers, visibleCount, owners = [] }: Props) {
-  const [open, setOpen] = useState(false);
-
-  // Alleen landen tonen die daadwerkelijk laders hebben
-  const countries = useMemo(
-    () => Array.from(new Set(chargers.map((c) => c.country).filter(Boolean) as string[])).sort(),
-    [chargers],
-  );
+  // Normaliseer landnamen zodat hoofdletters en extra spaties geen dubbele opties maken.
+  const countries = useMemo(() => {
+    const unique = new Map<string, string>();
+    for (const charger of chargers) {
+      const label = charger.country?.trim();
+      if (!label) continue;
+      const key = label.normalize("NFKC").toLocaleLowerCase("nl-NL");
+      if (!unique.has(key)) unique.set(key, label);
+    }
+    return Array.from(unique.values()).sort((a, b) => a.localeCompare(b, "nl"));
+  }, [chargers]);
 
   // Tellen per status: alle statussen tonen die minimaal 1 locatie hebben.
   const availableStatuses = useMemo(() => {
@@ -45,7 +49,7 @@ export default function ChargerFilters({ filters, onChange, chargers, visibleCou
         counts[c.status] = (counts[c.status] || 0) + 1;
       }
     }
-    return STATUS_ORDER.filter((s) => (counts[s] || 0) > 0).map((s) => ({
+    return STATUS_ORDER.filter((s) => s !== "permit" && s !== "permanent_closed" && (counts[s] || 0) > 0).map((s) => ({
       status: s,
       count: counts[s] || 0,
     }));
@@ -92,22 +96,7 @@ export default function ChargerFilters({ filters, onChange, chargers, visibleCou
 
   return (
     <div className="rounded-xl border border-slate-700/60 bg-slate-900/80 backdrop-blur-md shadow-xl overflow-hidden transition-all">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-semibold text-slate-200 hover:bg-slate-800/40 transition-colors"
-      >
-        <span className="flex items-center gap-2">
-          <Filter size={15} className="text-blue-400" />
-          <span>Filters</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono font-normal">
-            {visibleCount} laders
-          </span>
-        </span>
-        {open ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
-      </button>
-
-      {open && (
-        <div className="p-3.5 space-y-4 border-t border-slate-800/80 text-xs">
+      <div className="p-3.5 space-y-4 border-t border-slate-800/80 text-xs">
           {/* Zoekbalk */}
           <input
             type="text"
@@ -237,8 +226,7 @@ export default function ChargerFilters({ filters, onChange, chargers, visibleCou
               Alle filters wissen
             </button>
           )}
-        </div>
-      )}
+      </div>
     </div>
   );
 }
