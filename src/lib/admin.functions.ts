@@ -545,9 +545,12 @@ export const adminSaveVehicleModel = createServerFn({method:"POST"})
 export const adminSaveVehicleYearSpec = createServerFn({method:"POST"})
   .inputValidator((input:unknown)=>z.object({
     id:z.string().optional(),vehicle_model_id:z.string().min(1).max(120),year:z.number().int().min(1990).max(2100),
-    battery_kwh:z.number().positive().max(300).nullable().optional(),usable_kwh:z.number().positive().max(300).nullable().optional(),
-    range_km:z.number().int().positive().max(1500).nullable().optional(),summer_range_km:z.number().int().positive().max(1500).nullable().optional(),
-    winter_range_km:z.number().int().positive().max(1500).nullable().optional(),max_charge_kw:z.number().int().positive().max(1000).nullable().optional(),
+    battery_kwh:z.preprocess(value=>value===""||(typeof value==="number"&&!Number.isFinite(value))?null:value,z.number().positive().max(300).nullable().optional()),
+    usable_kwh:z.preprocess(value=>value===""||(typeof value==="number"&&!Number.isFinite(value))?null:value,z.number().positive().max(300).nullable().optional()),
+    range_km:z.preprocess(value=>value===""||(typeof value==="number"&&!Number.isFinite(value))?null:value,z.number().int().positive().max(1500).nullable().optional()),
+    summer_range_km:z.preprocess(value=>value===""||(typeof value==="number"&&!Number.isFinite(value))?null:value,z.number().int().positive().max(1500).nullable().optional()),
+    winter_range_km:z.preprocess(value=>value===""||(typeof value==="number"&&!Number.isFinite(value))?null:value,z.number().int().positive().max(1500).nullable().optional()),
+    max_charge_kw:z.preprocess(value=>value===""||(typeof value==="number"&&!Number.isFinite(value))?null:value,z.number().int().positive().max(1000).nullable().optional()),
     connectors:z.array(z.string().max(30)).max(10).default(["Type 2","CCS"])
   }).parse(input))
   .handler(async({data})=>{
