@@ -12,6 +12,14 @@ describe("Supercharger network sync safety", () => {
     );
   });
 
+  it("always caps V2 hardware at 150 kW while preserving V3/V4 reported power", () => {
+    const source = fs.readFileSync("scripts/sync-supercharger-network.mjs", "utf8");
+    expect(source).toContain('if (version === "V2") return 150');
+    expect(source).toContain("const configs = siteConfigs(versions, site.powerKilowatt)");
+    expect(source).toContain("max_speed_kw: maxPower");
+    expect(source).toContain("charger_configs: configs");
+  });
+
   it("only creates newly discovered rows as explicitly automatic", () => {
     const source = fs.readFileSync("scripts/sync-supercharger-network.mjs", "utf8");
     expect(source).toContain('data_source: "automatic"');
