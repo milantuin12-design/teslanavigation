@@ -760,7 +760,6 @@ export default function InputPanel({
                     <div><span className="text-slate-500">Praktijkbereik op basis van verbruik</span><div className="font-semibold text-white">{practicalRange ? `±${practicalRange.toLocaleString("nl-NL")} km` : "Nog niet te berekenen"}</div></div>
                     {connectors && <div className="col-span-2"><span className="text-slate-500">Aansluitingen</span><div className="font-semibold text-white">{connectors}</div></div>}
                   </div>
-                  {!seasonalUse && <p className="mt-1.5 text-[10px] text-amber-300">Stel dit seizoensverbruik in bij Admin → Voertuigmodellen voor een nauwkeurige routeberekening. WLTP wordt niet als praktijkverbruik gebruikt.</p>}
                 </div>
               );
             })()}
