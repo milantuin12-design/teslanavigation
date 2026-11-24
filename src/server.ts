@@ -152,7 +152,6 @@ async function handleAdminSuperchargerList(request: Request, workerEnv: unknown)
   // excluded from admin reads so every reload is a single bounded D1 query.
   const result = await db.prepare(`
     SELECT * FROM superchargers
-    WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting')
     ORDER BY name COLLATE NOCASE
     LIMIT 5000
   `).all<Record<string, unknown>>();
@@ -201,7 +200,6 @@ export default {
           // returning station names, IDs, or any other database contents.
           const probe = await db.prepare(`
             SELECT * FROM superchargers
-            WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('plan','planned','voting')
             ORDER BY name COLLATE NOCASE
             LIMIT 5000
           `).all<Record<string, unknown>>();
