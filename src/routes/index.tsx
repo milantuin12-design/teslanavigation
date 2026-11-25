@@ -447,8 +447,9 @@ function Index() {
   }, [chargerFilters, rememberFilters]);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
-  // Bouw- en vergunningslocaties zijn standaard verborgen.
-  const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
+  // Toon alle Admin-locaties standaard, inclusief bouw- en vergunningslocaties.
+  // De gebruiker kan deze locaties desgewenst verbergen via de kaartknop.
+  const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(true);
   const [showAllChargers, setShowAllChargers] = useState(true);
   const [mapType, setMapType] = useState<"road" | "satellite">("satellite");
   const [mapZoom, setMapZoom] = useState(7);
