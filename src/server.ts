@@ -122,6 +122,20 @@ function withBuildHeaders(response: Response, env: unknown): Response {
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
+async function invalidatePublicMapCache(): Promise<void> {
+  try {
+    const cache = caches.default;
+    const origin = "https://teslanavigation.milantuin12.workers.dev";
+    await Promise.all([
+      cache.delete(new Request(origin + "/__cache/public-superchargers/fresh-v1")),
+      cache.delete(new Request(origin + "/__cache/public-superchargers/stale-v1")),
+    ]);
+  } catch (error) {
+    // Cache invalidation is best-effort; D1 remains the source of truth.
+    console.warn("[TeslaNavigation] Could not invalidate public map cache:", error);
+  }
+}
+
 function jsonResponse(value: unknown, status = 200): Response {
   return new Response(JSON.stringify(value), {
     status,
@@ -418,6 +432,7 @@ export default {
         const sql = "INSERT INTO superchargers (" + columns.join(",") + ") VALUES (" + columns.map(() => "?").join(",") + ") ON CONFLICT(id) DO UPDATE SET " + (updates || "id=excluded.id");
         const result = await db.prepare(sql).bind(...values).run();
         if (result.success === false) throw new Error("Cloudflare D1 heeft de wijziging niet opgeslagen.");
+        await invalidatePublicMapCache();
         await db.prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
           .bind(crypto.randomUUID(), admin.id, "supercharger_upsert", 1, JSON.stringify({ id: row.id, name: row.name })).run();
         return jsonResponse({ ok: true, id: row.id });
@@ -458,6 +473,7 @@ export default {
           statements.push(db.prepare("UPDATE superchargers SET " + set + ", data_source='manual', updated_at=CURRENT_TIMESTAMP WHERE id IN (" + group.map(() => "?").join(",") + ")").bind(...values, ...group));
         }
         await db.batch(statements);
+        await invalidatePublicMapCache();
         await db.prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
           .bind(crypto.randomUUID(), admin.id, "supercharger_bulk_update", ids.length, JSON.stringify({ fields: keys })).run();
         return jsonResponse({ ok: true, updated: ids.length });
@@ -476,6 +492,7 @@ export default {
         if (!id || id.length > 120) return jsonResponse({ error: "Ongeldig Supercharger-ID." }, 400);
         const result = await db.prepare("DELETE FROM superchargers WHERE id = ?").bind(id).run();
         if (!result.meta?.changes) return jsonResponse({ error: "Supercharger niet gevonden." }, 404);
+        await invalidatePublicMapCache();
         await db.prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
           .bind(crypto.randomUUID(), admin.id, "supercharger_delete", 1, JSON.stringify({ id })).run();
         return jsonResponse({ ok: true });
