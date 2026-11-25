@@ -5,6 +5,7 @@ import {
   normalizeChargerConfigs,
   normalizeOpeningHours,
   parseChargerConfigsFromLegacy,
+  parseMaxSpeed,
 } from "./tesla-utils";
 import { createRegionalTrafficForecast } from "./traffic-forecast";
 
