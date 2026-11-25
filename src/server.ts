@@ -532,9 +532,8 @@ export default {
         return jsonResponse({ error: reason }, 503);
       };
 
-      const fresh = await serveCached(freshKey, "HIT");
-      if (fresh) return fresh;
-
+      // Always read the current D1 rows. A cached public feed can hide admin
+      // edits and make the planner disagree with the admin panel.
       try {
         const db = getD1Binding(env);
         if (!db) return await staleFallback("Cloudflare D1-binding DB ontbreekt.");
@@ -573,20 +572,6 @@ export default {
         });
         const payload = { chargers, owners: ownerRows.results };
         const response = jsonResponse(payload);
-        // Keep the browser response private/no-store; only the Worker edge
-        // cache gets a short freshness window and a longer stale-if-error copy.
-        const freshHeaders = new Headers(response.headers);
-        freshHeaders.set("cache-control", "public, max-age=20");
-        const staleHeaders = new Headers(response.headers);
-        staleHeaders.set("cache-control", "public, max-age=300");
-        try {
-          await Promise.all([
-            cache.put(freshKey, new Response(response.clone().body, { status: 200, headers: freshHeaders })),
-            cache.put(staleKey, new Response(response.clone().body, { status: 200, headers: staleHeaders })),
-          ]);
-        } catch (cacheError) {
-          console.warn("[TeslaNavigation] Public map cache write failed:", cacheError);
-        }
         response.headers.set("x-teslanavigation-map-cache", "MISS");
         return response;
       } catch (error) {
