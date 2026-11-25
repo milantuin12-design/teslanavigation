@@ -116,11 +116,27 @@ function toSupercharger(row: LocalRow, owners: Map<string, Owner>, network: Netw
 export async function mapCloudSuperchargers(rows: LocalRow[], ownerRows: Owner[] = []): Promise<Supercharger[]> {
   const { default: tariffFile } = await import("@/data/supercharger-tariffs.json");
   const owners = new Map(ownerRows.map((owner) => [owner.id, owner]));
-  const network: NetworkSite[] = rows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
+  // A single malformed legacy D1 row must never prevent all 1,839+ valid
+  // Superchargers from appearing on the public map.
+  const validRows = rows.filter((row) =>
+    row && typeof row.id === "string" && typeof row.name === "string" &&
+    Number.isFinite(Number(row.lat)) && Number.isFinite(Number(row.lng)) )
+    .map((row) => ({ ...row, lat: Number(row.lat), lng: Number(row.lng) }));
+  const network: NetworkSite[] = validRows.map((row) => ({ id: row.id, lat: row.lat, lng: row.lng }));
   const tariffs = (tariffFile as unknown as { tariffs: any[] }).tariffs ?? [];
-  // The public D1 feed already excludes only records explicitly marked hidden.
-  // Keep every other cloud record on the map, including unpublished and planned locations.
-  return rows.map((row) => toSupercharger(withBundledTariff(row, tariffs), owners, network));
+  // Keep every valid cloud record, including unpublished and planned locations.
+  const mapped: Supercharger[] = [];
+  for (const row of validRows) {
+    try {
+      mapped.push(toSupercharger(withBundledTariff(row, tariffs), owners, network));
+    } catch (error) {
+      console.error("[TeslaNavigation] One invalid Supercharger row was skipped:", row.id, error);
+    }
+  }
+  if (rows.length > 0 && mapped.length === 0) {
+    throw new Error("De openbare D1-feed bevatte geen omzetbare Superchargerrecords.");
+  }
+  return mapped;
 }
 
 /** Laadt de volledige meegeleverde dataset rechtstreeks in de browser; geen Lovable Cloud of Supabase nodig. */
