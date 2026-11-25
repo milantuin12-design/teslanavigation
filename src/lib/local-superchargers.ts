@@ -126,15 +126,26 @@ export async function mapCloudSuperchargers(rows: LocalRow[], ownerRows: Owner[]
   const tariffs = (tariffFile as unknown as { tariffs: any[] }).tariffs ?? [];
   // Keep every valid cloud record, including unpublished and planned locations.
   const mapped: Supercharger[] = [];
+  let firstMappingError: string | null = null;
   for (const row of validRows) {
     try {
       mapped.push(toSupercharger(withBundledTariff(row, tariffs), owners, network));
     } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      firstMappingError ??= reason;
       console.error("[TeslaNavigation] One invalid Supercharger row was skipped:", row.id, error);
     }
   }
   if (rows.length > 0 && mapped.length === 0) {
-    throw new Error("De openbare D1-feed bevatte geen omzetbare Superchargerrecords.");
+    const sample = rows[0] && typeof rows[0] === "object" ? rows[0] as Record<string, unknown> : {};
+    const keys = Object.keys(sample).slice(0, 30).join(", ");
+    throw new Error(
+      "D1-records=" + rows.length +
+      "; geldige locatievelden=" + validRows.length +
+      "; omzetbaar=" + mapped.length +
+      "; velden=" + (keys || "geen") +
+      "; eerste omzetfout=" + (firstMappingError || "geen; controleer id/name/lat/lng en JSON-velden")
+    );
   }
   return mapped;
 }
