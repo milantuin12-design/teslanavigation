@@ -449,7 +449,7 @@ function Index() {
 
   // Bouw- en vergunningslocaties zijn standaard verborgen.
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(false);
-  const [showAllChargers, setShowAllChargers] = useState(false);
+  const [showAllChargers, setShowAllChargers] = useState(true);
   const [mapType, setMapType] = useState<"road" | "satellite">("satellite");
   const [mapZoom, setMapZoom] = useState(7);
   const [mapMarkerSize, setMapMarkerSize] = useState(30);
