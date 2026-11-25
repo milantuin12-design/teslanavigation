@@ -286,6 +286,7 @@ function Index() {
   }, [readGlobalWinterSportsMode, readGlobalHolidayPeriodMode]);
   const [isLoadingChargers, setIsLoadingChargers] = useState(true);
   const [chargerLoadError, setChargerLoadError] = useState<string | null>(null);
+  const liveMapLoadedRef = useRef(false);
   const previousChargerSnapshotRef = useRef<Map<string, string>>(new Map());
   const chargerSnapshot = (items: Supercharger[]) => new Map(items.filter((item) => item.id).map((item) => [item.id!, JSON.stringify({ status: item.status, available: item.isAvailable, stalls: item.stallStates })]));
   const [favoriteChargerIds, setFavoriteChargerIds] = useState<string[]>([]);
@@ -800,6 +801,7 @@ function Index() {
             feed.chargers as Parameters<typeof mapCloudSuperchargers>[0],
             Array.isArray(feed.owners) ? feed.owners as Parameters<typeof mapCloudSuperchargers>[1] : [],
           );
+          liveMapLoadedRef.current = true;
           setSuperchargers(mapped);
           setChargerLoadError(null);
           // D1 blijft leidend; IndexedDB is uitsluitend een lokale startcache.
@@ -823,7 +825,7 @@ function Index() {
     // achtergrond ververst. Een late cache-read mag nooit nieuwere D1-data overschrijven.
     const cachePromise = readCachedPublicSuperchargers();
     void cachePromise.then((cached) => {
-      if (!mounted || liveFeedLoaded || !cached?.length) return;
+      if (!mounted || liveFeedLoaded || liveMapLoadedRef.current || !cached?.length) return;
       setSuperchargers(cached);
       setIsLoadingChargers(false);
     });
