@@ -836,7 +836,7 @@ function Index() {
         console.error("[TeslaNavigation] Live D1-feed laden mislukt:", error);
         const cached = await cachePromise;
         if (cached?.length) {
-          if (mounted) setChargerLoadError("Live D1 is tijdelijk niet bereikbaar; de laatst opgeslagen Superchargerdata wordt getoond.");
+          if (mounted) setChargerLoadError("Live Superchargerdata laden mislukt: " + (error instanceof Error ? error.message : String(error)) + " De laatst opgeslagen kaartdata wordt getoond.");
           return;
         }
         try {
