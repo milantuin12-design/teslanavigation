@@ -556,7 +556,7 @@ export default {
         } catch (ownerError) {
           console.warn("[TeslaNavigation] Owner metadata unavailable; serving charger data without it:", ownerError);
         }
-        const jsonColumns = ["opening_hours","charger_configs","parking_blocks","price_blocks","construction","works","closure","traffic_forecast","planned_upgrade","stall_states","voting","photos"];
+        const jsonColumns = ["versions","opening_hours","charger_configs","parking_blocks","price_blocks","construction","works","closure","traffic_forecast","planned_upgrade","stall_states","voting","photos"];
         const boolColumns = ["trailer_friendly","is_available","parking_fee","in_parking_garage","low_speed","published","hidden"];
         const chargers = chargerRows.results.map((source) => {
           const row: Record<string, unknown> = { ...source };
