@@ -542,7 +542,6 @@ export default {
         // must not make otherwise valid charger records unavailable.
         const chargerRows = await db.prepare(`
           SELECT * FROM superchargers
-          WHERE COALESCE(hidden,0) = 0
           ORDER BY name COLLATE NOCASE
           LIMIT 5000
         `).all<Record<string, unknown>>();
@@ -570,7 +569,10 @@ export default {
           }
           return row;
         });
-        const payload = { chargers, owners: ownerRows.results };
+        // Apply the public visibility rule in JavaScript, not in SQL.
+        // This deliberately uses the exact same D1 SELECT as the working Admin list,
+        // so a schema/SQL expression mismatch cannot break the entire public map.
+        const payload = { chargers: chargers.filter((row) => row.hidden !== true && Number(row.hidden) !== 1), owners: ownerRows.results };
         const response = jsonResponse(payload);
         response.headers.set("x-teslanavigation-map-cache", "MISS");
         return response;
