@@ -456,9 +456,11 @@ export default {
         const allowed = new Set(["country","province","max_speed_kw","versions","trailer_friendly","is_available","parking_fee","in_parking_garage","low_speed","published","notes","reopen_at","status","owner_id","owner_name","price_blocks","price_currency","parking_fee_amount","parking_free_minutes","parking_per_minutes","parking_per_euro"]);
         const jsonFields = new Set(["versions","price_blocks"]);
         const boolFields = new Set(["trailer_friendly","is_available","parking_fee","in_parking_garage","low_speed","published"]);
-        const changes = Object.fromEntries(Object.entries(input.changes as Record<string, unknown>).filter(([key, value]) => allowed.has(key) && value !== undefined));
+        const rawChanges = input.changes as Record<string, unknown>;
+        const wheelchairAccessible = typeof rawChanges.wheelchairAccessible === "boolean" ? rawChanges.wheelchairAccessible : undefined;
+        const changes = Object.fromEntries(Object.entries(rawChanges).filter(([key, value]) => allowed.has(key) && value !== undefined));
         const keys = Object.keys(changes);
-        if (!keys.length) return jsonResponse({ error: "Geen geldige velden om bij te werken." }, 400);
+        if (!keys.length && wheelchairAccessible === undefined) return jsonResponse({ error: "Geen geldige velden om bij te werken." }, 400);
         const values = keys.map((key) => {
           const value = changes[key];
           if (jsonFields.has(key) && value !== null && value !== undefined) return typeof value === "string" ? value : JSON.stringify(value);
@@ -471,6 +473,12 @@ export default {
           const group = ids.slice(i, i + 100);
           const set = keys.map((key) => key + "=?").join(",");
           statements.push(db.prepare("UPDATE superchargers SET " + set + ", data_source='manual', updated_at=CURRENT_TIMESTAMP WHERE id IN (" + group.map(() => "?").join(",") + ")").bind(...values, ...group));
+        }
+        if (wheelchairAccessible !== undefined) {
+          for (let i = 0; i < ids.length; i += 100) {
+            const group = ids.slice(i, i + 100);
+            statements.push(db.prepare("UPDATE superchargers SET construction=json_set(CASE WHEN json_valid(construction) THEN construction ELSE '{}' END, '$.wheelchairAccessible', ?), data_source='manual', updated_at=CURRENT_TIMESTAMP WHERE id IN (" + group.map(() => "?").join(",") + ")").bind(wheelchairAccessible ? 1 : 0, ...group));
+          }
         }
         await db.batch(statements);
         await invalidatePublicMapCache();
