@@ -1132,8 +1132,10 @@ const PERMANENT_VISIBLE_MS = 14 * 24 * 3600 * 1000;
 
 /** Hoort deze lader op de normale kaart? (verborgen of >14 dagen permanent gesloten = nee) */
 export function isVisibleOnMap(charger: Supercharger, now: number = Date.now()): boolean {
-  // Vergunningslocaties blijven zichtbaar, ook als oude imports ze als verborgen markeerden.
-  const developmentLocation = charger.status === 'permit';
+  // Bouw- en vergunningslocaties uit Admin blijven beschikbaar voor de kaartfilters.
+  // De aparte knop "Verberg bouwlocaties" regelt hun zichtbaarheid; een oude hidden-vlag
+  // uit een import mag ze niet onbedoeld permanent uit de kaartselectie verwijderen.
+  const developmentLocation = charger.status === 'construction' || charger.status === 'permit';
   if (charger.hidden && !developmentLocation) return false;
   if (charger.status === 'permanent_closed') {
     const t = charger.permanentlyClosedAt ? new Date(charger.permanentlyClosedAt).getTime() : NaN;
