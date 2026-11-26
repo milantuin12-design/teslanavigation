@@ -469,10 +469,12 @@ export default {
         });
         const statements: AdminD1Statement[] = [];
         const ids = input.ids as string[];
-        for (let i = 0; i < ids.length; i += 100) {
-          const group = ids.slice(i, i + 100);
-          const set = keys.map((key) => key + "=?").join(",");
-          statements.push(db.prepare("UPDATE superchargers SET " + set + ", data_source='manual', updated_at=CURRENT_TIMESTAMP WHERE id IN (" + group.map(() => "?").join(",") + ")").bind(...values, ...group));
+        if (keys.length) {
+          for (let i = 0; i < ids.length; i += 100) {
+            const group = ids.slice(i, i + 100);
+            const set = keys.map((key) => key + "=?").join(",");
+            statements.push(db.prepare("UPDATE superchargers SET " + set + ", data_source='manual', updated_at=CURRENT_TIMESTAMP WHERE id IN (" + group.map(() => "?").join(",") + ")").bind(...values, ...group));
+          }
         }
         if (wheelchairAccessible !== undefined) {
           for (let i = 0; i < ids.length; i += 100) {
