@@ -82,6 +82,26 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   const identity = [charger.name, charger.city, charger.province].filter(Boolean).join(" ").toLowerCase();
   // Bekende uitzonderingen die niet uit de algemene regio-indeling af te leiden zijn.
   // Locatiespecifieke correcties op basis van gebruikersfeedback en beschikbare bezettingsinformatie.
+  // Zwolle en Deventer: gebruiker meldt circa 9/24 en 8/20 vrij tijdens de middagspits.
+  // Gebruik deze expliciete bezettingsankers totdat een echte historische uurreeks beschikbaar is.
+  if (/zwolle|nieuwleusenerdijk/.test(identity)) return {
+    label: "locatieschatting Zwolle op basis van gemelde middagspitsbezetting (circa 60–65%)",
+    confidence: "low",
+    levels: {
+      weekday: [10, 25, 60, 65, 25],
+      weekend: [8, 20, 40, 45, 20],
+      holiday: [12, 30, 55, 60, 25],
+    },
+  };
+  if (/deventer|birnieweg/.test(identity)) return {
+    label: "locatieschatting Deventer op basis van gemelde middagspitsbezetting (circa 60%)",
+    confidence: "low",
+    levels: {
+      weekday: [10, 25, 60, 60, 25],
+      weekend: [8, 20, 40, 45, 20],
+      holiday: [12, 30, 55, 60, 25],
+    },
+  };
   // Maastricht: 24 stalls; gebruiker meldt dat deze locatie duidelijk rustiger is dan het generieke stadsprofiel.
   if (/maastricht/.test(identity)) return {
     label: "rustige locatieschatting Maastricht; 24 laadpunten, geen historische uurreeks",
