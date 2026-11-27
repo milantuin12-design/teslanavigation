@@ -84,6 +84,27 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   // Locatiespecifieke correcties op basis van gebruikersfeedback en beschikbare bezettingsinformatie.
   // Zwolle en Deventer: gebruiker meldt circa 9/24 en 8/20 vrij tijdens de middagspits.
   // Gebruik deze expliciete bezettingsankers totdat een echte historische uurreeks beschikbaar is.
+  // Tirol: expliciet onderscheid op basis van gebruikerscorrectie.
+  // Beide locaties hebben 4 V4-stalls; Innsbruck is drukker dan Lermoos.
+  // Lage confidence: dit zijn schattingen, geen historische bezettingsmetingen.
+  if (/innsbruck|bernhard.?h[oö]fel/.test(identity)) return {
+    label: "locatieschatting Innsbruck: drukker dan Lermoos volgens gebruikerscorrectie; geen historische uurreeks",
+    confidence: "low",
+    levels: {
+      weekday: [14, 17, 18, 19, 12],
+      weekend: [12, 15, 16, 17, 10],
+      holiday: [15, 18, 19, 20, 12],
+    },
+  };
+  if (/lermoos|innsbruckerstrasse.?40/.test(identity)) return {
+    label: "locatieschatting Lermoos: rustiger dan Innsbruck volgens gebruikerscorrectie; geen historische uurreeks",
+    confidence: "low",
+    levels: {
+      weekday: [6, 8, 9, 10, 6],
+      weekend: [8, 10, 12, 12, 7],
+      holiday: [10, 13, 16, 15, 8],
+    },
+  };
   // Nederlandse locaties met expliciet gemelde hoge middagspitsdrukte.
   if (/duiven/.test(identity)) return {
     label: "locatieschatting Duiven: verhoogde Nederlandse middagspitsdrukte; nog geen historische uurreeks",
