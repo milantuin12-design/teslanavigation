@@ -85,14 +85,25 @@ function toSupercharger(row: LocalRow, owners: Map<string, Owner>, network: Netw
       : /lermoos|innsbruckerstrasse.?40/i.test([row.name, row.city].filter(Boolean).join(" "))
         ? 250
         : parseMaxSpeed(row.stall_types ?? undefined, row.max_speed_kw ?? undefined, configs),
-    versions: /innsbruck|bernhard.?h[oö]fel|lermoos|innsbruckerstrasse.?40/i.test([row.name, row.city].filter(Boolean).join(" "))
-      ? ["V4"]
-      : getVersionsFromConfigs(configs).length ? getVersionsFromConfigs(configs) : row.versions ?? [],
-    chargerConfigs: /innsbruck|bernhard.?h[oö]fel/i.test([row.name, row.city].filter(Boolean).join(" "))
-      ? [{ count: 4, version: "V4", speedKw: 400 }]
-      : /lermoos|innsbruckerstrasse.?40/i.test([row.name, row.city].filter(Boolean).join(" "))
-        ? [{ count: 4, version: "V4", speedKw: 250 }]
-        : configs,
+    versions: (() => {
+      const identity = [row.name, row.city].filter(Boolean).join(" ");
+      const knownVersions = getVersionsFromConfigs(configs);
+      if (/innsbruck|bernhard.?h[oö]fel|lermoos|innsbruckerstrasse.?40/i.test(identity)) {
+        return Array.from(new Set([...knownVersions, "V4"]));
+      }
+      return knownVersions.length ? knownVersions : row.versions ?? [];
+    })(),
+    chargerConfigs: (() => {
+      const identity = [row.name, row.city].filter(Boolean).join(" ");
+      const v4Speed = /innsbruck|bernhard.?h[oö]fel/i.test(identity) ? 400
+        : /lermoos|innsbruckerstrasse.?40/i.test(identity) ? 250 : null;
+      if (v4Speed === null) return configs;
+      // Corrigeer alleen de V4-configuratie; behoud eventuele andere laadpunttypes.
+      return [
+        ...configs.filter((config) => String(config.version).toUpperCase() !== "V4"),
+        { count: 4, version: "V4", speedKw: v4Speed },
+      ];
+    })(),
     openingHours: normalizeOpeningHours(row.opening_hours, row.opening_time, row.closing_time),
     openingTime: row.opening_time, closingTime: row.closing_time,
     trailerFriendly: !!row.trailer_friendly,
