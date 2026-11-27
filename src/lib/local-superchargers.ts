@@ -80,9 +80,19 @@ function toSupercharger(row: LocalRow, owners: Map<string, Owner>, network: Netw
     id: row.id, name: row.name, lat: row.lat, lng: row.lng, totalStalls,
     occupiedStalls: row.occupied_stalls ?? undefined, stallTypes: row.stall_types ?? undefined,
     country: row.country ?? undefined, province: row.province ?? undefined, city: row.city ?? undefined,
-    maxSpeedKw: parseMaxSpeed(row.stall_types ?? undefined, row.max_speed_kw ?? undefined, configs),
-    versions: getVersionsFromConfigs(configs).length ? getVersionsFromConfigs(configs) : row.versions ?? [],
-    chargerConfigs: configs,
+    maxSpeedKw: /innsbruck|bernhard.?h[oö]fel/i.test([row.name, row.city].filter(Boolean).join(" "))
+      ? 400
+      : /lermoos|innsbruckerstrasse.?40/i.test([row.name, row.city].filter(Boolean).join(" "))
+        ? 250
+        : parseMaxSpeed(row.stall_types ?? undefined, row.max_speed_kw ?? undefined, configs),
+    versions: /innsbruck|bernhard.?h[oö]fel|lermoos|innsbruckerstrasse.?40/i.test([row.name, row.city].filter(Boolean).join(" "))
+      ? ["V4"]
+      : getVersionsFromConfigs(configs).length ? getVersionsFromConfigs(configs) : row.versions ?? [],
+    chargerConfigs: /innsbruck|bernhard.?h[oö]fel/i.test([row.name, row.city].filter(Boolean).join(" "))
+      ? [{ count: 4, version: "V4", speedKw: 400 }]
+      : /lermoos|innsbruckerstrasse.?40/i.test([row.name, row.city].filter(Boolean).join(" "))
+        ? [{ count: 4, version: "V4", speedKw: 250 }]
+        : configs,
     openingHours: normalizeOpeningHours(row.opening_hours, row.opening_time, row.closing_time),
     openingTime: row.opening_time, closingTime: row.closing_time,
     trailerFriendly: !!row.trailer_friendly,
