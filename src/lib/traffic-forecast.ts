@@ -46,7 +46,7 @@ function zoneFor(charger: Pick<Supercharger, "name" | "city" | "province" | "lat
 function levelFor(zone: ReturnType<typeof zoneFor>, category: "weekday" | "weekend" | "holiday", period: number): number {
   const rows: Record<typeof zone, Record<typeof category, number[]>> = {
     urban: {
-      weekday: [5, 20, 28, 30, 12],
+      weekday: [8, 28, 40, 45, 18],
       weekend: [5, 18, 30, 26, 12],
       holiday: [7, 25, 38, 34, 15],
     },
@@ -84,6 +84,25 @@ function siteOverride(charger: Supercharger): { label: string; levels: Record<Tr
   // Locatiespecifieke correcties op basis van gebruikersfeedback en beschikbare bezettingsinformatie.
   // Zwolle en Deventer: gebruiker meldt circa 9/24 en 8/20 vrij tijdens de middagspits.
   // Gebruik deze expliciete bezettingsankers totdat een echte historische uurreeks beschikbaar is.
+  // Nederlandse locaties met expliciet gemelde hoge middagspitsdrukte.
+  if (/duiven/.test(identity)) return {
+    label: "locatieschatting Duiven: verhoogde Nederlandse middagspitsdrukte; nog geen historische uurreeks",
+    confidence: "low",
+    levels: {
+      weekday: [12, 35, 58, 65, 30],
+      weekend: [10, 28, 48, 52, 24],
+      holiday: [14, 38, 58, 62, 30],
+    },
+  };
+  if (/apeldoorn.?oost|oost.?apeldoorn/.test(identity)) return {
+    label: "locatieschatting Apeldoorn-Oost: verhoogde Nederlandse middagspitsdrukte; nog geen historische uurreeks",
+    confidence: "low",
+    levels: {
+      weekday: [12, 35, 58, 65, 30],
+      weekend: [10, 28, 48, 52, 24],
+      holiday: [14, 38, 58, 62, 30],
+    },
+  };
   if (/zwolle|nieuwleusenerdijk/.test(identity)) return {
     label: "locatieschatting Zwolle op basis van gemelde middagspitsbezetting (circa 60–65%)",
     confidence: "low",
