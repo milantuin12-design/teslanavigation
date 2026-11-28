@@ -1496,19 +1496,17 @@ function Index() {
     const corridorRoutePromises: Promise<{ route: RouteResult; steps: RouteStep[] }[]>[] = [];
     if (corridors.length > 0) {
       const bearings = [0, 45, 90, 135, 180, 225, 270, 315];
-      for (const corridor of corridors) {
-        for (const bearing of bearings) {
-          const angle = (bearing * Math.PI) / 180;
-          const distanceKm = Math.max(0.05, corridor.radiusKm * 0.8);
+      for (const bearing of bearings) {
+        const angle = (bearing * Math.PI) / 180;
+        const shapedVia: [number, number][] = extraWaypoints.map((point) => {
+          if (!point.corridor) return [point.lng, point.lat];
+          const distanceKm = Math.max(0.05, point.radiusKm * 0.8);
           const latOffset = (distanceKm * Math.cos(angle)) / 111.32;
-          const lngScale = Math.max(0.2, Math.cos((corridor.lat * Math.PI) / 180));
+          const lngScale = Math.max(0.2, Math.cos((point.lat * Math.PI) / 180));
           const lngOffset = (distanceKm * Math.sin(angle)) / (111.32 * lngScale);
-          const shapedVia: [number, number][] = extraWaypoints.map((point) => {
-            if (point !== corridor) return [point.lng, point.lat];
-            return [point.lng + lngOffset, point.lat + latOffset];
-          });
-          corridorRoutePromises.push(fetchRouteAlternatives(startPoint, endPoint, shapedVia));
-        }
+          return [point.lng + lngOffset, point.lat + latOffset];
+        });
+        corridorRoutePromises.push(fetchRouteAlternatives(startPoint, endPoint, shapedVia));
       }
     }
     const basePromise = corridors.length > 0
