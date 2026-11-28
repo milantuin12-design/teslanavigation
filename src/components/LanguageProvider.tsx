@@ -4,20 +4,17 @@ import { translateTexts } from "@/lib/translate.functions";
 import { DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, getStoredLanguage, setStoredLanguage, type AppLanguage } from "@/lib/i18n";
 import { Globe } from "lucide-react";
 
-const CACHE_PREFIX = "tn-i18n-";
+const CACHE_PREFIX = "tn-i18n-v2-";
 const SKIP = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "CODE", "TEXTAREA", "INPUT", "SVG", "PATH"]);
 const listeners = new Set<(l: string) => void>();
 let currentLang = DEFAULT_LANGUAGE;
 
 export function changeLanguage(code: string) {
+  if (!code || code === currentLang) return;
+  // De vertaler wijzigt tekstnodes buiten React. Een volledige reload herstelt
+  // de originele brontekst voordat de volgende taal wordt toegepast.
   setStoredLanguage(code);
-  // Bij terug naar Nederlands: pagina opnieuw laden zodat originele teksten terugkomen.
-  if (code === DEFAULT_LANGUAGE && currentLang !== DEFAULT_LANGUAGE) {
-    window.location.reload();
-    return;
-  }
-  currentLang = code;
-  listeners.forEach((fn) => fn(code));
+  window.location.reload();
 }
 
 function loadCache(lang: string): Record<string, string> {
@@ -54,6 +51,10 @@ export function LanguageProvider() {
     }).catch(() => {});
 
     const pending = new Set<string>();
+    // Ontbrekende vertalingen alleen voor deze sessie onthouden. Sla nooit
+    // de Nederlandse fallback op in localStorage: die zou echte vertalingen
+    // na een latere database-update blijven blokkeren.
+    const missing = new Set<string>();
     let timer: ReturnType<typeof setTimeout> | null = null;
     let busy = false;
 
@@ -64,11 +65,13 @@ export function LanguageProvider() {
       batch.forEach((t) => pending.delete(t));
       try {
         const res = await translateTexts({ data: { lang, texts: batch } });
-        // markeer onvertaalbare zodat we niet blijven vragen
-        for (const t of batch) map[t] = res[t] ?? map[t] ?? t;
+        for (const t of batch) {
+          if (res[t]) map[t] = res[t];
+          else if (!map[t]) missing.add(t);
+        }
         saveCache(lang, map);
         apply(document.body);
-      } catch { for (const t of batch) map[t] = t; }
+      } catch { batch.forEach((t) => missing.add(t)); }
       busy = false;
       if (pending.size) timer = setTimeout(flush, 300);
     };
@@ -82,7 +85,7 @@ export function LanguageProvider() {
       const key = src.trim();
       if (key.length < 2 || !/[a-zA-Z]/.test(key)) return;
       const tr = map[key];
-      if (tr === undefined) { pending.add(key); return; }
+      if (tr === undefined) { if (!missing.has(key)) pending.add(key); return; }
       const next = src.replace(key, tr);
       if (node.nodeValue !== next) node.nodeValue = next;
     };
@@ -95,7 +98,7 @@ export function LanguageProvider() {
         let src = el.getAttribute(srcAttr);
         if (!src || (v !== src && v !== map[src])) { src = v; el.setAttribute(srcAttr, v); }
         const tr = map[src.trim()];
-        if (tr === undefined) { if (/[a-zA-Z]/.test(src)) pending.add(src.trim()); }
+        if (tr === undefined) { if (/[a-zA-Z]/.test(src) && !missing.has(src.trim())) pending.add(src.trim()); }
         else if (v !== tr) el.setAttribute(attr, tr);
       }
     };
