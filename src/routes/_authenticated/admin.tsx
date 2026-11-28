@@ -727,8 +727,9 @@ function AdminPage() {
       const sourceRows = JSON.parse(raw) as { name: string; country: string }[];
       if (!Array.isArray(sourceRows) || sourceRows.length !== 453) throw new Error("De ingebouwde lijst is onvolledig; er zijn geen wijzigingen opgeslagen.");
       const normalize = (value: unknown) => String(value ?? "")
+        .replace(/^\\s*\\[ev\\s+otm\\]\\s*/i, "")
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[\\u0300-\\u036f]/g, "")
         .toLocaleLowerCase()
         .replace(/[^a-z0-9]+/g, " ")
         .trim();
@@ -798,11 +799,28 @@ function AdminPage() {
             nameKeys.add(normalizedSourceName.slice(0, -(suffix.length + 1)).trim());
           }
         }
-        const matches = chargers.filter((charger) => {
+        // Aosta heeft in de beheerlijst afwijkende locatienamen; deze drie
+        // bronregels worden bewust apart gehouden zodat nooit de verkeerde Aosta
+        // wordt aangevinkt. Alle overige locaties worden eerst exact en daarna
+        // alleen bij een unieke, duidelijke naam-overeenkomst gekoppeld.
+        const isAosta = /^aosta\\b/i.test(name);
+        const exactMatches = isAosta ? [] : chargers.filter((charger) => {
           const chargerName = normalize(charger.name);
           const chargerCity = normalize(charger.city);
           const sameLocation = nameKeys.has(chargerName) || nameKeys.has(chargerCity);
           return sameLocation && canonicalCountry(charger.country) === countryKey;
+        });
+        const matches = exactMatches.length > 0 || isAosta ? exactMatches : chargers.filter((charger) => {
+          const chargerName = normalize(charger.name);
+          const chargerCity = normalize(charger.city);
+          const sameCountry = canonicalCountry(charger.country) === countryKey;
+          // Accepteer titelvarianten met extra plaats-/locatietekst, maar nooit
+          // een gok op alleen een land of een heel korte plaatsnaam.
+          const nameMatch = Array.from(nameKeys).some((key) => key.length >= 7 &&
+            (chargerName.includes(key) || key.includes(chargerName)));
+          const cityMatch = Array.from(nameKeys).some((key) => key.length >= 7 &&
+            chargerCity.length >= 4 && (key.startsWith(chargerCity + " ") || key.includes(" " + chargerCity + " ")));
+          return sameCountry && (nameMatch || cityMatch);
         });
         if (matches.length === 1) matchedIds.add(matches[0].id);
         else if (matches.length > 1) ambiguous.push(name + ", " + country);
