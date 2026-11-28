@@ -333,7 +333,6 @@ function AdminPage() {
   const [accessibilityFilter, setAccessibilityFilter] = useState("all");
   const [trailerFilter, setTrailerFilter] = useState("all");
   const [sortBy, setSortBy] = useState("name-asc");
-  const [qualitySeverityFilter, setQualitySeverityFilter] = useState<"important" | "all">("important");
   const [editing, setEditing] = useState<Partial<Charger> | null>(null);
   const [coordsInput, setCoordsInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -919,7 +918,6 @@ function AdminPage() {
               <div className="mt-2 flex flex-wrap gap-2 text-xs">
                 <span className="rounded-md bg-rose-500/15 px-2 py-1 text-rose-300">{qualityCounts.high} belangrijk</span>
                 <span className="rounded-md bg-amber-500/15 px-2 py-1 text-amber-300">{qualityCounts.medium} aandacht</span>
-                <span className="rounded-md bg-slate-700 px-2 py-1 text-slate-300"></span>
                 <span className="rounded-md bg-slate-700 px-2 py-1 text-slate-300">{dataQualityIssues.length} belangrijke signalen · {chargers.length} locaties</span>
               </div>
             </div>
@@ -929,7 +927,7 @@ function AdminPage() {
             </div>
           </div>
           {qualityOpen && <div className="mt-3 max-h-72 space-y-1 overflow-y-auto border-t border-slate-700 pt-3">
-            <div className="mb-2 flex items-center gap-2"><span className="text-xs text-slate-400">Prioriteit:</span><select value={qualitySeverityFilter} onChange={(e) => setQualitySeverityFilter(e.target.value as "important" | "all")} className="rounded bg-slate-800 border border-slate-700 px-2 py-1 text-xs"><option value="important">Alleen middel + hoog</option><option value="all">Alle meldingen</option></select></div>\n            {dataQualityIssues.length === 0 ? <p className="text-xs text-emerald-300">Geen middelhoge of hoge dataproblemen gevonden.</p> : dataQualityIssues.filter((issue) => qualitySeverityFilter === "all" || issue.severity === "high" || issue.severity === "medium").slice(0, 250).map((issue, index) => (
+            {dataQualityIssues.length === 0 ? <p className="text-xs text-emerald-300">Geen middelhoge of hoge dataproblemen gevonden.</p> : dataQualityIssues.slice(0, 250).map((issue, index) => (
               <div key={issue.id + issue.issue + index} className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-slate-900/70 px-2 py-1.5 text-xs">
                 <div className="min-w-0"><span className="font-semibold text-white">{issue.name}</span><span className="ml-2 text-slate-500">{issue.country}</span><div className="mt-0.5 text-slate-300">{issue.issue}</div></div>
                 <span className={issue.severity === "high" ? "text-rose-300" : issue.severity === "medium" ? "text-amber-300" : "text-slate-400"}>{issue.severity === "high" ? "Belangrijk" : issue.severity === "medium" ? "Aandacht" : "Controleren"}</span>
