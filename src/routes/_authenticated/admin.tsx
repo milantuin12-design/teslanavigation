@@ -784,6 +784,8 @@ function AdminPage() {
         )?.[0] ?? key;
       };
       const matchedIds = new Set<string>();
+      const matchedSourceRows: string[] = [];
+      const duplicateSourceMatches: string[] = [];
       const unmatched: string[] = [];
       const ambiguous: string[] = [];
       for (const row of sourceRows) {
@@ -799,31 +801,45 @@ function AdminPage() {
             nameKeys.add(normalizedSourceName.slice(0, -(suffix.length + 1)).trim());
           }
         }
-        // Aosta heeft in de beheerlijst afwijkende locatienamen; deze drie
-        // bronregels worden bewust apart gehouden zodat nooit de verkeerde Aosta
-        // wordt aangevinkt. Alle overige locaties worden eerst exact en daarna
-        // alleen bij een unieke, duidelijke naam-overeenkomst gekoppeld.
-        const isAosta = /^aosta\b/i.test(name);
-        const exactMatches = isAosta ? [] : chargers.filter((charger) => {
-          const chargerName = normalize(charger.name);
-          const chargerCity = normalize(charger.city);
-          const sameLocation = nameKeys.has(chargerName) || nameKeys.has(chargerCity);
-          return sameLocation && canonicalCountry(charger.country) === countryKey;
-        });
-        const matches = exactMatches.length > 0 || isAosta ? exactMatches : chargers.filter((charger) => {
-          const chargerName = normalize(charger.name);
-          const chargerCity = normalize(charger.city);
-          const sameCountry = canonicalCountry(charger.country) === countryKey;
-          // Accepteer titelvarianten met extra plaats-/locatietekst, maar nooit
-          // een gok op alleen een land of een heel korte plaatsnaam.
-          const nameMatch = Array.from(nameKeys).some((key) => key.length >= 7 &&
-            (chargerName.includes(key) || key.includes(chargerName)));
-          const cityMatch = Array.from(nameKeys).some((key) => key.length >= 7 &&
-            chargerCity.length >= 4 && (key.startsWith(chargerCity + " ") || key.includes(" " + chargerCity + " ")));
-          return sameCountry && (nameMatch || cityMatch);
-        });
-        if (matches.length === 1) matchedIds.add(matches[0].id);
-        else if (matches.length > 1) ambiguous.push(name + ", " + country);
+        // Aosta heeft afwijkende namen in de admin en blijft bewust handmatig.
+        if (/^aosta\b/i.test(name)) { unmatched.push(name + ", " + country); continue; }
+
+        // Kies de beste naamovereenkomst in plaats van alle gedeeltelijke
+        // overeenkomsten als gelijkwaardig te behandelen. Zo wint bijvoorbeeld
+        // "Berlin - Mariendorfer Damm" van een generieke kandidaat "Berlin".
+        // Bij een gelijke hoogste score blijft de locatie veilig overgeslagen.
+        const candidates = chargers
+          .filter((charger) => canonicalCountry(charger.country) === countryKey)
+          .map((charger) => {
+            const chargerName = normalize(charger.name);
+            const chargerCity = normalize(charger.city);
+            let score = 0;
+            for (const key of nameKeys) {
+              if (!key) continue;
+              if (chargerName === key || chargerCity === key) score = Math.max(score, 10000 + key.length);
+              else if (chargerName.includes(key)) score = Math.max(score, 7000 + key.length);
+              else if (key.includes(chargerName) && chargerName.length >= 8 && chargerName.includes(" ")) {
+                score = Math.max(score, 5000 + chargerName.length);
+              }
+              // City is only a tie-breaker when the station name already has
+              // a meaningful overlap; it can never match every charger in a city.
+              const sourceTokens = new Set(key.split(" ").filter((token) => token.length >= 4));
+              const chargerTokens = new Set(chargerName.split(" ").filter((token) => token.length >= 4));
+              const overlap = [...sourceTokens].filter((token) => chargerTokens.has(token)).length;
+              if (overlap > 0) score = Math.max(score, 3000 + overlap * 100 + [...sourceTokens].join("").length);
+              if (chargerCity && key.startsWith(chargerCity + " ") && score > 0) score += 25;
+            }
+            return { charger, score };
+          })
+          .filter((candidate) => candidate.score > 0)
+          .sort((a, b) => b.score - a.score);
+        const bestScore = candidates[0]?.score ?? 0;
+        const best = candidates.filter((candidate) => candidate.score === bestScore);
+        if (best.length === 1) {
+          matchedSourceRows.push(name + ", " + country);
+          if (matchedIds.has(best[0].charger.id)) duplicateSourceMatches.push(name + ", " + country + " → " + best[0].charger.name);
+          matchedIds.add(best[0].charger.id);
+        } else if (best.length > 1) ambiguous.push(name + ", " + country + " → " + best.map((candidate) => candidate.charger.name).join(" | "));
         else unmatched.push(name + ", " + country);
       }
       const ids = Array.from(matchedIds);
@@ -836,9 +852,11 @@ function AdminPage() {
       await load();
       const report = [
         "Bronlijst: " + sourceRows.length + " locaties",
-        "Rolstoeltoegankelijk gemarkeerd: " + updated,
-        "Niet gevonden: " + unmatched.length + (unmatched.length ? "\\n" + unmatched.join("\\n") : ""),
-        "Meerdere exacte matches (overgeslagen): " + ambiguous.length + (ambiguous.length ? "\\n" + ambiguous.join("\\n") : ""),
+        "Unieke Superchargers bijgewerkt: " + updated,
+        "Bronregels gekoppeld: " + matchedSourceRows.length,
+        "Dubbele bronregels naar dezelfde Supercharger: " + duplicateSourceMatches.length + (duplicateSourceMatches.length ? "\\n" + duplicateSourceMatches.join("\\n") : ""),
+        "Niet gevonden / handmatig controleren: " + unmatched.length + (unmatched.length ? "\\n" + unmatched.join("\\n") : ""),
+        "Gelijke beste matches (veilig overgeslagen): " + ambiguous.length + (ambiguous.length ? "\\n" + ambiguous.join("\\n") : ""),
       ].join("\\n\\n");
       setWheelchairImportReport(report);
       console.info("[TeslaNavigation] Rolstoelimportresultaat\\n" + report);
