@@ -902,20 +902,29 @@ function Index() {
         model_name: string; battery_percent: number; trailer_mode: boolean; trailer_reduction: number;
         weather_mode: string; time_mode: string; payload: unknown;
       };
-      // Lokaal eerst: direct inladen, ook als de database niet bereikbaar is.
-      let data: SavedRow | null = getCachedSavedRouteRow<SavedRow>(loadId);
-      if (!data) {
-        try {
-          data = await getMySavedRoute({ data: { id: loadId } }) as SavedRow | null;
-          if (data) cacheSavedRouteRow(data as unknown as { id: string } & Record<string, unknown>);
-        } catch { data = null; }
+      // Cloudflare D1 is leidend: haal altijd eerst de nieuwste route op.
+      // Gebruik de lokale kopie alleen als D1 tijdelijk niet bereikbaar is of de route daar ontbreekt.
+      let data: SavedRow | null = null;
+      let cloudError: unknown = null;
+      try {
+        data = await getMySavedRoute({ data: { id: loadId } }) as SavedRow | null;
+      } catch (error) {
+        cloudError = error;
       }
-      if (!data) { toast.error("Route niet gevonden (offline en niet lokaal bewaard)"); return; }
+      if (data) {
+        cacheSavedRouteRow(data as unknown as { id: string } & Record<string, unknown>);
+      } else {
+        data = getCachedSavedRouteRow<SavedRow>(loadId);
+      }
+      if (!data) {
+        toast.error(cloudError instanceof Error ? `Route laden mislukt: ${cloudError.message}` : "Route niet gevonden in Cloudflare D1 of lokale opslag");
+        return;
+      }
       setStartCoord({ lat: data.start_lat, lng: data.start_lng });
       setDestCoord({ lat: data.end_lat, lng: data.end_lng });
       setSelectedModel(data.model_name);
       setBatteryPercent(data.battery_percent);
-      setTrailerEnabled(data.trailer_mode);
+      setTrailerEnabled(Boolean(data.trailer_mode));
       setTrailerReductionPercent(data.trailer_reduction);
       setWeatherMode(data.weather_mode as WeatherMode);
       setTimeMode(data.time_mode as TimeMode);
@@ -2302,7 +2311,7 @@ function Index() {
                 start_lat: startCoord.lat, start_lng: startCoord.lng,
                 end_lat: destCoord.lat, end_lng: destCoord.lng,
                 model_name: selectedModel,
-                battery_percent: batteryPercent,
+                battery_percent: Math.max(0, Math.min(100, Math.round(batteryPercent))),
                 trailer_mode: trailerEnabled,
                 trailer_reduction: trailerReductionPercent,
                 weather_mode: weatherMode,
@@ -2315,7 +2324,7 @@ function Index() {
                   settings: { targetArrivalPercent, chargeTargetPercent, chargerArrivalTarget, modelYear, departureDate: departureDate.toISOString(), packKWh },
                 })),
                 total_distance_km: route.totalDistanceKm,
-                total_time_min: route.totalTimeMin,
+                total_time_min: Math.round(route.totalTimeMin),
               };
               // Altijd eerst lokaal bewaren; cloud is een extra kopie.
               cacheSavedRouteRow({ ...row, start_address: null, end_address: null, created_at: new Date().toISOString() });
