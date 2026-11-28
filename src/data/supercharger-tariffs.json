@@ -34234,5 +34234,19 @@
         "The Netherlands"
       ]
     }
+    ,{
+      "country": "Germany",
+      "match": [
+        "rhüden",
+        "rhuden",
+        "seesen maxi autohof"
+      ],
+      "label": "Seesen (Rhüden) – MAXI Autohof",
+      "timezone": "Europe/Berlin",
+      "pricePerKwh": 0.39,
+      "source": "https://kilowattindex.com/site/rhudensupercharger/",
+      "sourceChecked": "2026-11-28",
+      "currency": "EUR"
+    }
   ]
 }
