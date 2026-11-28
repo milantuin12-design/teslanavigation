@@ -332,24 +332,19 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                     <div className="flex flex-wrap items-center gap-2">
                     <div className="text-sm font-semibold text-white">{stop.charger.name}</div>
                     {requireAccessibleStalls && stop.charger.construction?.wheelchairAccessible === true && (
-                      <span className="text-emerald-400" title="Invalidenplek aanwezig" aria-label="Invalidenplek aanwezig">♿</span>
+                      <span className="text-emerald-400 text-lg leading-none" title="Invalidenplek aanwezig" aria-label="Invalidenplek aanwezig">♿</span>
                     )}
-                    {showTrailer && (() => {
-                      const count = stop.charger.construction?.trailerFriendlyStalls ?? stop.charger.trailerFriendlyStalls ?? (stop.charger.trailerFriendly ? 1 : 0);
-                      return (
-                        <span
-                          className={count > 0
-                            ? "inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-300"
-                            : "inline-flex items-center rounded-md border border-red-500/30 bg-red-500/15 px-2 py-1 text-[10px] font-semibold text-red-300"}
-                          aria-label={count > 0 ? "Aanhangervriendelijk" : "Niet Aanhangervriendelijk"}
-                          title={count > 0 ? `${count} aanhangerplaats(en)` : "Geen aanhangerplaatsen geregistreerd"}
-                        >
-                          {count > 0 ? "Aanhangervriendelijk" : "Niet Aanhangervriendelijk"}
-                        </span>
-                      );
-                    })()}
                   </div>
                   </div>
+                  {(() => {
+                    const trailerSpaces = stop.charger.construction?.trailerFriendlyStalls ?? stop.charger.trailerFriendlyStalls ?? (stop.charger.trailerFriendly ? 1 : 0);
+                    const trailerFriendly = trailerSpaces > 0;
+                    return (
+                      <div className={`mt-2 inline-flex items-center rounded-lg border px-3 py-2 text-xs font-semibold ${trailerFriendly ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-red-500/30 bg-red-500/10 text-red-300"}`}>
+                        {trailerFriendly ? "Aanhangervriendelijk" : "Niet Aanhangervriendelijk"}
+                      </div>
+                    );
+                  })()}
                   {eta && <div className="mt-0.5 text-[11px] text-blue-300">Aankomst ± {time(eta)} · vertrek ± {time(new Date(eta.getTime() + stop.chargeDurationMin * 60000))}</div>}
                   {cheapestStopIndex === idx && knownStopCosts.length > 1 && <div className="mt-1 inline-flex rounded-md bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-300">Goedkoopste berekende laadstop incl. parkeren</div>}
                   {eta && (() => { const chargerTemp = weather?.temperatureSegments?.length ? weather.temperatureSegments.reduce((best, point) => Math.abs(point.km - stop.distanceFromStart) < Math.abs(best.km - stop.distanceFromStart) ? point : best).tempC : weather?.tempC ?? null; const preheat = batteryPreheatMinutes(chargerTemp); return <div className="mt-1 text-[10px] text-cyan-300">❄ Accu-voorverwarming: {preheat == null ? "temperatuurverwachting niet beschikbaar; Tesla bepaalt de benodigde tijd automatisch." : `bij ongeveer ${Math.round(chargerTemp!)}°C kan Tesla circa ${preheat} min voor aankomst beginnen.`} Navigeren naar de Supercharger activeert de automatische voorverwarming.</div>; })()}
