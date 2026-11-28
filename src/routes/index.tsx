@@ -2144,7 +2144,7 @@ function Index() {
                     onClick={() => handleSelectRoute(i)}
                     className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${selectedRouteIndex === i ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30" : "text-slate-300 hover:bg-white/10 hover:text-white"}`}
                   >
-                    Route {i + 1} · {plan.route.totalDistanceKm} km · {plan.stops.length} stop{plan.stops.length === 1 ? "" : "s"} · {Math.round(plan.route.totalTimeMin + plan.stops.reduce((sum, stop) => sum + stop.chargeDurationMin, 0))} min totaal
+                    Route {i + 1} · {plan.route.totalDistanceKm} km · {plan.stops.length} stop{plan.stops.length === 1 ? "" : "s"} · {(() => { const totalMin = Math.round(plan.route.totalTimeMin + plan.stops.reduce((sum, stop) => sum + stop.chargeDurationMin, 0)); const hours = Math.floor(totalMin / 60); const minutes = totalMin % 60; return hours > 0 ? `${hours} uur ${minutes} min totaal` : `${minutes} min totaal`; })()}
                     {i === fastestRouteIndex && <span className="ml-1 rounded bg-emerald-500/20 px-1 text-emerald-300">Snelst</span>}
                     {i === fewestStopsIndex && <span className="ml-1 rounded bg-blue-500/20 px-1 text-blue-300">Minste stops</span>}
                     {i === cheapestRouteIndex && <span className="ml-1 rounded bg-amber-500/20 px-1 text-amber-300">Goedkoopst · €{routeCosts[i]!.toFixed(2)}</span>}
