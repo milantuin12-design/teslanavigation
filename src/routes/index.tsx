@@ -1490,11 +1490,30 @@ function Index() {
     const endPoint: [number, number] = [toCoord.lng, toCoord.lat];
     const normalVia = via.map((w) => [w.lng, w.lat] as [number, number]);
 
-    // "Langs punt" is uitsluitend een afstandsfilter, nooit een verplicht routepunt.
-    // Vraag de normale routes op (met alleen echte Via-punten) en controleer
-    // daarna of de route binnen de ingestelde straal van elk "Langs punt" komt.
-    // Zo blijft de auto op de doorgaande weg/snelweg en wordt er niet naar de pin gereden.
-    const basePromise = fetchRouteAlternatives(startPoint, endPoint, normalVia);
+    // "Langs punt" stuurt de route via een berijdbare weg binnen de ingestelde cirkel.
+    // We gebruiken punten op een ring binnen de straal als routeringshulp, nooit de pin zelf.
+    // De router mag dus een geschikte doorgaande weg kiezen zonder naar de exacte locatie te rijden.
+    const corridorRoutePromises: Promise<{ route: RouteResult; steps: RouteStep[] }[]>[] = [];
+    if (corridors.length > 0) {
+      const bearings = [0, 45, 90, 135, 180, 225, 270, 315];
+      for (const corridor of corridors) {
+        for (const bearing of bearings) {
+          const angle = (bearing * Math.PI) / 180;
+          const distanceKm = Math.max(0.05, corridor.radiusKm * 0.8);
+          const latOffset = (distanceKm * Math.cos(angle)) / 111.32;
+          const lngScale = Math.max(0.2, Math.cos((corridor.lat * Math.PI) / 180));
+          const lngOffset = (distanceKm * Math.sin(angle)) / (111.32 * lngScale);
+          const shapedVia: [number, number][] = extraWaypoints.map((point) => {
+            if (point !== corridor) return [point.lng, point.lat];
+            return [point.lng + lngOffset, point.lat + latOffset];
+          });
+          corridorRoutePromises.push(fetchRouteAlternatives(startPoint, endPoint, shapedVia));
+        }
+      }
+    }
+    const basePromise = corridors.length > 0
+      ? Promise.all(corridorRoutePromises).then((groups) => groups.flat())
+      : fetchRouteAlternatives(startPoint, endPoint, normalVia);
     // Verkeersroutes bevatten geen corridor-shaping; gebruik ze daarom niet
     // wanneer "langs punt" actief is, anders kunnen ze geldige kandidaten verdringen.
     const trafficPromise = onlineTraffic && !isFutureTrip && corridors.length === 0
