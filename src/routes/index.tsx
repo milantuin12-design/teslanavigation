@@ -1490,43 +1490,11 @@ function Index() {
     const endPoint: [number, number] = [toCoord.lng, toCoord.lat];
     const normalVia = via.map((w) => [w.lng, w.lat] as [number, number]);
 
-    // Zoek bij "langs punt" actief naar routes via wegen in de cirkel.
-    // De gegenereerde coördinaten zijn alleen routeringshulp (geen laad-/stoplocaties).
-    const corridorRoutePromises: Promise<{ route: RouteResult; steps: RouteStep[] }[]>[] = [];
-    if (corridors.length > 0) {
-      // Eerst via het middelpunt: de router snapt dit naar een berijdbare weg.
-      // Daarna proberen we alternatieve snap-punten binnen de cirkel, zodat
-      // een weg vlak langs het punt gekozen kan worden zonder naar de pin te rijden.
-      const centerVia: [number, number][] = extraWaypoints.map((point) =>
-        [point.lng, point.lat] as [number, number],
-      );
-      corridorRoutePromises.push(fetchRouteAlternatives(startPoint, endPoint, centerVia));
-
-      const bearings = [0, 45, 90, 135, 180, 225, 270, 315];
-      // Eén goed gekozen ring van alternatieve snap-punten is meestal genoeg.
-      // Twee ringen verdubbelden het aantal routerverzoeken zonder evenredige winst.
-      const offsetFactors = [0.65];
-      for (let corridorIndex = 0; corridorIndex < corridors.length; corridorIndex++) {
-        const corridor = corridors[corridorIndex];
-        for (const factor of offsetFactors) {
-          for (const bearing of bearings) {
-            const angle = (bearing * Math.PI) / 180;
-            const distanceKm = Math.max(0.05, corridor.radiusKm * factor);
-            const latOffset = (distanceKm * Math.cos(angle)) / 111.32;
-            const lngScale = Math.max(0.2, Math.cos((corridor.lat * Math.PI) / 180));
-            const lngOffset = (distanceKm * Math.sin(angle)) / (111.32 * lngScale);
-            const shapedVia: [number, number][] = extraWaypoints.map((point) => {
-              if (!point.corridor || point !== corridor) return [point.lng, point.lat];
-              return [point.lng + lngOffset, point.lat + latOffset];
-            });
-            corridorRoutePromises.push(fetchRouteAlternatives(startPoint, endPoint, shapedVia));
-          }
-        }
-      }
-    }
-    const basePromise = corridors.length > 0
-      ? Promise.all(corridorRoutePromises).then((groups) => groups.flat())
-      : fetchRouteAlternatives(startPoint, endPoint, normalVia);
+    // "Langs punt" is uitsluitend een afstandsfilter, nooit een verplicht routepunt.
+    // Vraag de normale routes op (met alleen echte Via-punten) en controleer
+    // daarna of de route binnen de ingestelde straal van elk "Langs punt" komt.
+    // Zo blijft de auto op de doorgaande weg/snelweg en wordt er niet naar de pin gereden.
+    const basePromise = fetchRouteAlternatives(startPoint, endPoint, normalVia);
     // Verkeersroutes bevatten geen corridor-shaping; gebruik ze daarom niet
     // wanneer "langs punt" actief is, anders kunnen ze geldige kandidaten verdringen.
     const trafficPromise = onlineTraffic && !isFutureTrip && corridors.length === 0
