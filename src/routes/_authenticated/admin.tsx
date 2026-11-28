@@ -727,7 +727,7 @@ function AdminPage() {
       const sourceRows = JSON.parse(raw) as { name: string; country: string }[];
       if (!Array.isArray(sourceRows) || sourceRows.length !== 453) throw new Error("De ingebouwde lijst is onvolledig; er zijn geen wijzigingen opgeslagen.");
       const normalize = (value: unknown) => String(value ?? "")
-        .replace(/^\\s*\\[ev\\s+otm\\]\\s*/i, "")
+        .replace(/^\s*\[ev\s+otm\]\s*/i, "")
         .normalize("NFD")
         .replace(/[\\u0300-\\u036f]/g, "")
         .toLocaleLowerCase()
@@ -803,7 +803,7 @@ function AdminPage() {
         // bronregels worden bewust apart gehouden zodat nooit de verkeerde Aosta
         // wordt aangevinkt. Alle overige locaties worden eerst exact en daarna
         // alleen bij een unieke, duidelijke naam-overeenkomst gekoppeld.
-        const isAosta = /^aosta\\b/i.test(name);
+        const isAosta = /^aosta\b/i.test(name);
         const exactMatches = isAosta ? [] : chargers.filter((charger) => {
           const chargerName = normalize(charger.name);
           const chargerCity = normalize(charger.city);
