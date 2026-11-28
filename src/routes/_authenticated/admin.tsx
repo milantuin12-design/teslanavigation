@@ -728,33 +728,59 @@ function AdminPage() {
       if (!Array.isArray(sourceRows) || sourceRows.length !== 453) throw new Error("De ingebouwde lijst is onvolledig; er zijn geen wijzigingen opgeslagen.");
       const normalize = (value: unknown) => String(value ?? "")
         .normalize("NFD")
-        .replace(/[\\u0300-\\u036f]/g, "")
+        .replace(/[\u0300-\u036f]/g, "")
         .toLocaleLowerCase()
         .replace(/[^a-z0-9]+/g, " ")
         .trim();
+      // Normalize common European country names and ISO codes from the source export and D1.
       const countryAliases: Record<string, string[]> = {
-        "belgium": ["belgium", "belgie", "belgique", "be"],
-        "netherlands": ["netherlands", "nederland", "nl", "the netherlands"],
-        "france": ["france", "fr"],
-        "germany": ["germany", "deutschland", "de"],
-        "italy": ["italy", "italia", "it"],
-        "spain": ["spain", "espana", "es"],
-        "austria": ["austria", "osterreich", "at"],
-        "switzerland": ["switzerland", "schweiz", "suisse", "ch"],
-        "united kingdom": ["united kingdom", "great britain", "uk", "gb"],
-        "denmark": ["denmark", "danmark", "dk"],
-        "sweden": ["sweden", "sverige", "se"],
-        "norway": ["norway", "norge", "no"],
-        "finland": ["finland", "suomi", "fi"],
-        "luxembourg": ["luxembourg", "lu"],
-        "poland": ["poland", "polska", "pl"],
-        "czech republic": ["czech republic", "czechia", "cz"],
-        "portugal": ["portugal", "pt"],
-        "ireland": ["ireland", "ie"],
+        "albania": ["albania", "shqiperia", "al", "alb"],
+        "andorra": ["andorra", "ad", "and"],
+        "austria": ["austria", "osterreich", "at", "aut"],
+        "belgium": ["belgium", "belgie", "belgique", "be", "bel"],
+        "bosnia and herzegovina": ["bosnia and herzegovina", "bosnia", "ba", "bih"],
+        "bulgaria": ["bulgaria", "bg", "bgr"],
+        "croatia": ["croatia", "hrvatska", "hr", "hrv"],
+        "cyprus": ["cyprus", "kypros", "cy", "cyp"],
+        "czechia": ["czechia", "czech republic", "cz", "cze"],
+        "denmark": ["denmark", "danmark", "dk", "dnk"],
+        "estonia": ["estonia", "eesti", "ee", "est"],
+        "finland": ["finland", "suomi", "fi", "fin"],
+        "france": ["france", "fr", "fra"],
+        "germany": ["germany", "deutschland", "de", "deu"],
+        "greece": ["greece", "hellas", "ellada", "gr", "grc"],
+        "hungary": ["hungary", "magyarorszag", "hu", "hun"],
+        "iceland": ["iceland", "island", "is", "isl"],
+        "ireland": ["ireland", "eire", "ie", "irl"],
+        "italy": ["italy", "italia", "it", "ita"],
+        "latvia": ["latvia", "latvija", "lv", "lva"],
+        "liechtenstein": ["liechtenstein", "li", "lie"],
+        "lithuania": ["lithuania", "lietuva", "lt", "ltu"],
+        "luxembourg": ["luxembourg", "lu", "lux"],
+        "malta": ["malta", "mt", "mlt"],
+        "monaco": ["monaco", "mc", "mco"],
+        "montenegro": ["montenegro", "me", "mne"],
+        "netherlands": ["netherlands", "the netherlands", "nederland", "nl", "nld"],
+        "north macedonia": ["north macedonia", "macedonia", "mk", "mkd"],
+        "norway": ["norway", "norge", "no", "nor"],
+        "poland": ["poland", "polska", "pl", "pol"],
+        "portugal": ["portugal", "pt", "prt"],
+        "romania": ["romania", "ro", "rou"],
+        "san marino": ["san marino", "sm", "smr"],
+        "serbia": ["serbia", "srbija", "rs", "srb"],
+        "slovakia": ["slovakia", "slovensko", "sk", "svk"],
+        "slovenia": ["slovenia", "slovenija", "si", "svn"],
+        "spain": ["spain", "espana", "es", "esp"],
+        "sweden": ["sweden", "sverige", "se", "swe"],
+        "switzerland": ["switzerland", "schweiz", "suisse", "svizzera", "ch", "che"],
+        "united kingdom": ["united kingdom", "great britain", "uk", "gb", "gbr"],
+        "vatican city": ["vatican city", "holy see", "va", "vat"],
       };
       const canonicalCountry = (value: unknown) => {
         const key = normalize(value);
-        return Object.entries(countryAliases).find(([, aliases]) => aliases.some((alias) => normalize(alias) === key))?.[0] ?? key;
+        return Object.entries(countryAliases).find(([, aliases]) =>
+          aliases.some((alias) => normalize(alias) === key)
+        )?.[0] ?? key;
       };
       const matchedIds = new Set<string>();
       const unmatched: string[] = [];
@@ -763,18 +789,21 @@ function AdminPage() {
         const name = String(row.name ?? "").trim();
         const country = String(row.country ?? "").trim();
         const countryKey = canonicalCountry(country);
-        const nameKeys = new Set([normalize(name)]);
-        // In the supplied export, location names can include the country suffix (e.g. "City, France"),
-        // while the admin stores only the Supercharger location name.
-        const suffix = normalize(country);
-        const normalizedName = normalize(name);
-        if (suffix && normalizedName.endsWith(" " + suffix)) {
-          nameKeys.add(normalizedName.slice(0, -(suffix.length + 1)).trim());
+        const normalizedSourceName = normalize(name);
+        const nameKeys = new Set([normalizedSourceName]);
+        // The source export sometimes appends the country to the location name.
+        const countrySuffixes = [normalize(country), ...((countryAliases[countryKey] ?? []).map(normalize))];
+        for (const suffix of countrySuffixes) {
+          if (suffix && normalizedSourceName.endsWith(" " + suffix)) {
+            nameKeys.add(normalizedSourceName.slice(0, -(suffix.length + 1)).trim());
+          }
         }
-        const matches = chargers.filter((charger) =>
-          nameKeys.has(normalize(charger.name)) &&
-          canonicalCountry(charger.country) === countryKey
-        );
+        const matches = chargers.filter((charger) => {
+          const chargerName = normalize(charger.name);
+          const chargerCity = normalize(charger.city);
+          const sameLocation = nameKeys.has(chargerName) || nameKeys.has(chargerCity);
+          return sameLocation && canonicalCountry(charger.country) === countryKey;
+        });
         if (matches.length === 1) matchedIds.add(matches[0].id);
         else if (matches.length > 1) ambiguous.push(name + ", " + country);
         else unmatched.push(name + ", " + country);
