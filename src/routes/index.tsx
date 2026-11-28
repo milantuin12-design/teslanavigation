@@ -1919,7 +1919,7 @@ function Index() {
   // Bij een route worden standaard alleen de gekozen laadstops getoond.
   // "Alles tonen" toont alle normale Superchargers, maar nooit bouwlocaties.
   const mapChargers = useMemo(() => {
-    if (!route || showAllChargers || chargingStops.length === 0) return visibleChargers;
+    if (!route || showAllChargers) return visibleChargers;
     const used = new Set(chargingStops.map((s) => s.charger.id ?? s.charger.name));
     return visibleChargers.filter((c) => used.has(c.id ?? c.name));
   }, [route, showAllChargers, chargingStops, visibleChargers]);
@@ -2161,7 +2161,7 @@ function Index() {
             )}
 
 
-            {route && chargingStops.length > 0 && (
+            {route && (
               <Button size="sm" variant="outline" className="dark bg-background/90 text-foreground border-border" onClick={() => setShowAllChargers((v) => !v)}>
                 {showAllChargers ? "Alleen laders van mijn route" : "Alles tonen"}
               </Button>
@@ -2216,7 +2216,7 @@ function Index() {
           heading={currentHeading}
           headingUp={headingUp}
           waypoints={waypoints}
-          routeChargersOnly={!!route && !showAllChargers && chargingStops.length > 0}
+          routeChargersOnly={!!route && !showAllChargers}
           favoriteChargerIds={favoriteChargerIds}
           mapType={mapType}
           mapZoom={mapZoom}
