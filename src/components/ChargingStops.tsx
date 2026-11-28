@@ -336,7 +336,7 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                     )}
                   </div>
                   </div>
-                  {(() => {
+                  {showTrailer && (() => {
                     const trailerSpaces = stop.charger.construction?.trailerFriendlyStalls ?? stop.charger.trailerFriendlyStalls ?? (stop.charger.trailerFriendly ? 1 : 0);
                     const trailerFriendly = trailerSpaces > 0;
                     return (
