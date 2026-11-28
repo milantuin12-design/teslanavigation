@@ -729,7 +729,7 @@ function AdminPage() {
       const normalize = (value: unknown) => String(value ?? "")
         .replace(/^\s*\[ev\s+otm\]\s*/i, "")
         .normalize("NFD")
-        .replace(/[\\u0300-\\u036f]/g, "")
+        .replace(/[\u0300-\u036f]/g, "")
         .toLocaleLowerCase()
         .replace(/[^a-z0-9]+/g, " ")
         .trim();
