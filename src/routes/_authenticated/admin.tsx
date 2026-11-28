@@ -338,9 +338,6 @@ function AdminPage() {
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
   const [bulkPrice, setBulkPrice] = useState({ parkingFeeAmount: "", parkingFreeMinutes: "", parkingPerMinutes: "", parkingPerEuro: "" });
   const fileRef = useRef<HTMLInputElement>(null);
-  const [wheelchairImporting, setWheelchairImporting] = useState(false);
-  const wheelchairFileRef = useRef<HTMLInputElement>(null);
-  const [wheelchairImportReport, setWheelchairImportReport] = useState("");
   const runImport = useServerFn(importSuperchargers);
   const readWinterSportsMode = useServerFn(getWinterSportsMode);
   const saveWinterSportsMode = useServerFn(setWinterSportsMode);
@@ -712,162 +709,6 @@ function AdminPage() {
     return result;
   };
 
-  const importWheelchairList = async () => {
-    if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden."); return; }
-    setWheelchairImporting(true);
-    try {
-      const response = await fetch("/data/wheelchair-superchargers.json.gz.b64", { cache: "no-store" });
-      if (!response.ok) throw new Error("De ingebouwde rolstoellijst kon niet worden geladen (HTTP " + response.status + ").");
-      const encoded = (await response.text()).trim();
-      const binary = atob(encoded);
-      const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-      if (typeof DecompressionStream === "undefined") throw new Error("Deze browser ondersteunt de gegevensimport niet; open TeslaNavigation in Chrome of Edge.");
-      const decompressed = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
-      const raw = await new Response(decompressed).text();
-      const sourceRows = JSON.parse(raw) as { name: string; country: string }[];
-      if (!Array.isArray(sourceRows) || sourceRows.length !== 453) throw new Error("De ingebouwde lijst is onvolledig; er zijn geen wijzigingen opgeslagen.");
-      const normalize = (value: unknown) => String(value ?? "")
-        .replace(/^\s*\[ev\s+otm\]\s*/i, "")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLocaleLowerCase()
-        .replace(/[^a-z0-9]+/g, " ")
-        .trim();
-      // Normalize common European country names and ISO codes from the source export and D1.
-      const countryAliases: Record<string, string[]> = {
-        "albania": ["albania", "shqiperia", "al", "alb"],
-        "andorra": ["andorra", "ad", "and"],
-        "austria": ["austria", "osterreich", "at", "aut"],
-        "belgium": ["belgium", "belgie", "belgique", "be", "bel"],
-        "bosnia and herzegovina": ["bosnia and herzegovina", "bosnia", "ba", "bih"],
-        "bulgaria": ["bulgaria", "bg", "bgr"],
-        "croatia": ["croatia", "hrvatska", "hr", "hrv"],
-        "cyprus": ["cyprus", "kypros", "cy", "cyp"],
-        "czechia": ["czechia", "czech republic", "cz", "cze"],
-        "denmark": ["denmark", "danmark", "dk", "dnk"],
-        "estonia": ["estonia", "eesti", "ee", "est"],
-        "finland": ["finland", "suomi", "fi", "fin"],
-        "france": ["france", "fr", "fra"],
-        "germany": ["germany", "deutschland", "de", "deu"],
-        "greece": ["greece", "hellas", "ellada", "gr", "grc"],
-        "hungary": ["hungary", "magyarorszag", "hu", "hun"],
-        "iceland": ["iceland", "island", "is", "isl"],
-        "ireland": ["ireland", "eire", "ie", "irl"],
-        "italy": ["italy", "italia", "it", "ita"],
-        "latvia": ["latvia", "latvija", "lv", "lva"],
-        "liechtenstein": ["liechtenstein", "li", "lie"],
-        "lithuania": ["lithuania", "lietuva", "lt", "ltu"],
-        "luxembourg": ["luxembourg", "lu", "lux"],
-        "malta": ["malta", "mt", "mlt"],
-        "monaco": ["monaco", "mc", "mco"],
-        "montenegro": ["montenegro", "me", "mne"],
-        "netherlands": ["netherlands", "the netherlands", "nederland", "nl", "nld"],
-        "north macedonia": ["north macedonia", "macedonia", "mk", "mkd"],
-        "norway": ["norway", "norge", "no", "nor"],
-        "poland": ["poland", "polska", "pl", "pol"],
-        "portugal": ["portugal", "pt", "prt"],
-        "romania": ["romania", "ro", "rou"],
-        "san marino": ["san marino", "sm", "smr"],
-        "serbia": ["serbia", "srbija", "rs", "srb"],
-        "slovakia": ["slovakia", "slovensko", "sk", "svk"],
-        "slovenia": ["slovenia", "slovenija", "si", "svn"],
-        "spain": ["spain", "espana", "es", "esp"],
-        "sweden": ["sweden", "sverige", "se", "swe"],
-        "switzerland": ["switzerland", "schweiz", "suisse", "svizzera", "ch", "che"],
-        "united kingdom": ["united kingdom", "great britain", "uk", "gb", "gbr"],
-        "vatican city": ["vatican city", "holy see", "va", "vat"],
-      };
-      const canonicalCountry = (value: unknown) => {
-        const key = normalize(value);
-        return Object.entries(countryAliases).find(([, aliases]) =>
-          aliases.some((alias) => normalize(alias) === key)
-        )?.[0] ?? key;
-      };
-      const matchedIds = new Set<string>();
-      const matchedSourceRows: string[] = [];
-      const duplicateSourceMatches: string[] = [];
-      const unmatched: string[] = [];
-      const ambiguous: string[] = [];
-      for (const row of sourceRows) {
-        const name = String(row.name ?? "").trim();
-        const country = String(row.country ?? "").trim();
-        const countryKey = canonicalCountry(country);
-        const normalizedSourceName = normalize(name);
-        const nameKeys = new Set([normalizedSourceName]);
-        // The source export sometimes appends the country to the location name.
-        const countrySuffixes = [normalize(country), ...((countryAliases[countryKey] ?? []).map(normalize))];
-        for (const suffix of countrySuffixes) {
-          if (suffix && normalizedSourceName.endsWith(" " + suffix)) {
-            nameKeys.add(normalizedSourceName.slice(0, -(suffix.length + 1)).trim());
-          }
-        }
-        // Aosta heeft afwijkende namen in de admin en blijft bewust handmatig.
-        if (/^aosta\b/i.test(name)) { unmatched.push(name + ", " + country); continue; }
-
-        // Kies de beste naamovereenkomst in plaats van alle gedeeltelijke
-        // overeenkomsten als gelijkwaardig te behandelen. Zo wint bijvoorbeeld
-        // "Berlin - Mariendorfer Damm" van een generieke kandidaat "Berlin".
-        // Bij een gelijke hoogste score blijft de locatie veilig overgeslagen.
-        const candidates = chargers
-          .filter((charger) => canonicalCountry(charger.country) === countryKey)
-          .map((charger) => {
-            const chargerName = normalize(charger.name);
-            const chargerCity = normalize(charger.city);
-            let score = 0;
-            for (const key of nameKeys) {
-              if (!key) continue;
-              if (chargerName === key || chargerCity === key) score = Math.max(score, 10000 + key.length);
-              else if (chargerName.includes(key)) score = Math.max(score, 7000 + key.length);
-              else if (key.includes(chargerName) && chargerName.length >= 8 && chargerName.includes(" ")) {
-                score = Math.max(score, 5000 + chargerName.length);
-              }
-              // City is only a tie-breaker when the station name already has
-              // a meaningful overlap; it can never match every charger in a city.
-              const sourceTokens = new Set(key.split(" ").filter((token) => token.length >= 4));
-              const chargerTokens = new Set(chargerName.split(" ").filter((token) => token.length >= 4));
-              const overlap = [...sourceTokens].filter((token) => chargerTokens.has(token)).length;
-              if (overlap > 0) score = Math.max(score, 3000 + overlap * 100 + [...sourceTokens].join("").length);
-              if (chargerCity && key.startsWith(chargerCity + " ") && score > 0) score += 25;
-            }
-            return { charger, score };
-          })
-          .filter((candidate) => candidate.score > 0)
-          .sort((a, b) => b.score - a.score);
-        const bestScore = candidates[0]?.score ?? 0;
-        const best = candidates.filter((candidate) => candidate.score === bestScore);
-        if (best.length === 1) {
-          matchedSourceRows.push(name + ", " + country);
-          if (matchedIds.has(best[0].charger.id)) duplicateSourceMatches.push(name + ", " + country + " → " + best[0].charger.name);
-          matchedIds.add(best[0].charger.id);
-        } else if (best.length > 1) ambiguous.push(name + ", " + country + " → " + best.map((candidate) => candidate.charger.name).join(" | "));
-        else unmatched.push(name + ", " + country);
-      }
-      const ids = Array.from(matchedIds);
-      if (!ids.length) throw new Error("Geen exacte matches gevonden. Er is niets aangepast.");
-      let updated = 0;
-      for (let i = 0; i < ids.length; i += 100) {
-        const result = await sendAdminBulkUpdate(ids.slice(i, i + 100), { wheelchairAccessible: true });
-        updated += result.updated;
-      }
-      await load();
-      const report = [
-        "Bronlijst: " + sourceRows.length + " locaties",
-        "Unieke Superchargers bijgewerkt: " + updated,
-        "Bronregels gekoppeld: " + matchedSourceRows.length,
-        "Dubbele bronregels naar dezelfde Supercharger: " + duplicateSourceMatches.length + (duplicateSourceMatches.length ? "\\n" + duplicateSourceMatches.join("\\n") : ""),
-        "Niet gevonden / handmatig controleren: " + unmatched.length + (unmatched.length ? "\\n" + unmatched.join("\\n") : ""),
-        "Gelijke beste matches (veilig overgeslagen): " + ambiguous.length + (ambiguous.length ? "\\n" + ambiguous.join("\\n") : ""),
-      ].join("\\n\\n");
-      setWheelchairImportReport(report);
-      console.info("[TeslaNavigation] Rolstoelimportresultaat\\n" + report);
-      toast.success(updated + " Superchargers bijgewerkt. " + (unmatched.length + ambiguous.length) + " overgeslagen; bekijk de lijst hieronder.");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Import van rolstoeltoegankelijkheid mislukt.");
-    } finally {
-      setWheelchairImporting(false);
-    }
-  };
-
   const bulkUpdate = async (changes: Record<string, unknown>) => {
     if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Bulk wijzigen is uitgeschakeld."); return; }
     const ids = Array.from(selectedIds);
@@ -962,13 +803,6 @@ function AdminPage() {
             <Link to="/" className="text-sm text-slate-400 hover:text-white">← Terug naar kaart</Link>
             <h1 className="text-2xl md:text-3xl font-bold mt-1">Superchargers beheren</h1>
             <p className="text-sm text-slate-400">{chargers.length} laders totaal</p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Button size="sm" variant="outline" className="border-cyan-700 text-cyan-200" disabled={wheelchairImporting || !cloudConnected} onClick={() => void importWheelchairList()}>
-                {wheelchairImporting ? "453 locaties verwerken…" : "♿ Mijn aangeleverde lijst toepassen"}
-              </Button>
-              <span className="text-xs text-slate-500">Gebruikt de lijst die je al stuurde. Alleen exacte naam + land matches worden aangepast.</span>
-              {wheelchairImportReport && <pre className="mt-2 max-h-64 w-full overflow-auto whitespace-pre-wrap rounded-md border border-slate-700 bg-slate-950 p-3 text-xs text-slate-300">{wheelchairImportReport}</pre>}
-            </div>
           </div>
           <div className="flex items-center gap-2">
             <Link to="/eigenaren"><Button variant="outline" size="sm" className="border-slate-700">Eigenaren</Button></Link>
