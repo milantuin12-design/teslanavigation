@@ -34761,6 +34761,181 @@
       ],
       "source": "https://kilowattindex.com/site/KingsLynngbsupercharger/",
       "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "maidstone"
+      ],
+      "label": "Maidstone – Eclipse Park",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "08:00",
+          "to": "19:00",
+          "pricePerKwh": 0.5
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 0.33
+        }
+      ],
+      "source": "https://kilowattindex.com/site/maidstonesupercharger/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "croydon"
+      ],
+      "label": "Croydon – Croydon Airport Visitor Centre",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.34
+        },
+        {
+          "from": "09:00",
+          "to": "24:00",
+          "pricePerKwh": 0.53
+        }
+      ],
+      "source": "https://kilowattindex.com/site/CroydonSupercharger/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "sheffield"
+      ],
+      "label": "Sheffield – Meadowhall Retail Park",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "09:00",
+          "to": "22:00",
+          "pricePerKwh": 0.51
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://kilowattindex.com/site/301694/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "milton keynes"
+      ],
+      "label": "Milton Keynes – Tesla Centre",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.26
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "08:00",
+          "to": "19:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "19:00",
+          "to": "24:00",
+          "pricePerKwh": 0.41
+        }
+      ],
+      "source": "https://kilowattindex.com/site/17107/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "penhale"
+      ],
+      "label": "Penhale – Kingsley Village",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "04:00",
+          "to": "08:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "08:00",
+          "to": "17:00",
+          "pricePerKwh": 0.58
+        },
+        {
+          "from": "17:00",
+          "to": "21:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.22
+        }
+      ],
+      "source": "https://kilowattindex.com/site/26317/",
+      "sourceChecked": "2026-11-28"
     }
   ]
 }
