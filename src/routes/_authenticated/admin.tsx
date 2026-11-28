@@ -726,14 +726,55 @@ function AdminPage() {
       const raw = await new Response(decompressed).text();
       const sourceRows = JSON.parse(raw) as { name: string; country: string }[];
       if (!Array.isArray(sourceRows) || sourceRows.length !== 453) throw new Error("De ingebouwde lijst is onvolledig; er zijn geen wijzigingen opgeslagen.");
-      const normalize = (value: unknown) => String(value ?? "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").trim().toLocaleLowerCase().replace(/\\s+/g, " ");
+      const normalize = (value: unknown) => String(value ?? "")
+        .normalize("NFD")
+        .replace(/[\\u0300-\\u036f]/g, "")
+        .toLocaleLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+      const countryAliases: Record<string, string[]> = {
+        "belgium": ["belgium", "belgie", "belgique", "be"],
+        "netherlands": ["netherlands", "nederland", "nl", "the netherlands"],
+        "france": ["france", "fr"],
+        "germany": ["germany", "deutschland", "de"],
+        "italy": ["italy", "italia", "it"],
+        "spain": ["spain", "espana", "es"],
+        "austria": ["austria", "osterreich", "at"],
+        "switzerland": ["switzerland", "schweiz", "suisse", "ch"],
+        "united kingdom": ["united kingdom", "great britain", "uk", "gb"],
+        "denmark": ["denmark", "danmark", "dk"],
+        "sweden": ["sweden", "sverige", "se"],
+        "norway": ["norway", "norge", "no"],
+        "finland": ["finland", "suomi", "fi"],
+        "luxembourg": ["luxembourg", "lu"],
+        "poland": ["poland", "polska", "pl"],
+        "czech republic": ["czech republic", "czechia", "cz"],
+        "portugal": ["portugal", "pt"],
+        "ireland": ["ireland", "ie"],
+      };
+      const canonicalCountry = (value: unknown) => {
+        const key = normalize(value);
+        return Object.entries(countryAliases).find(([, aliases]) => aliases.some((alias) => normalize(alias) === key))?.[0] ?? key;
+      };
       const matchedIds = new Set<string>();
       const unmatched: string[] = [];
       const ambiguous: string[] = [];
       for (const row of sourceRows) {
-        const name = row.name.trim();
-        const country = row.country.trim();
-        const matches = chargers.filter((charger) => normalize(charger.name) === normalize(name) && normalize(charger.country) === normalize(country));
+        const name = String(row.name ?? "").trim();
+        const country = String(row.country ?? "").trim();
+        const countryKey = canonicalCountry(country);
+        const nameKeys = new Set([normalize(name)]);
+        // In the supplied export, location names can include the country suffix (e.g. "City, France"),
+        // while the admin stores only the Supercharger location name.
+        const suffix = normalize(country);
+        const normalizedName = normalize(name);
+        if (suffix && normalizedName.endsWith(" " + suffix)) {
+          nameKeys.add(normalizedName.slice(0, -(suffix.length + 1)).trim());
+        }
+        const matches = chargers.filter((charger) =>
+          nameKeys.has(normalize(charger.name)) &&
+          canonicalCountry(charger.country) === countryKey
+        );
         if (matches.length === 1) matchedIds.add(matches[0].id);
         else if (matches.length > 1) ambiguous.push(name + ", " + country);
         else unmatched.push(name + ", " + country);
