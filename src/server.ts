@@ -467,22 +467,21 @@ export default {
           if (boolFields.has(key) && typeof value === "boolean") return value ? 1 : 0;
           return value;
         });
-        const statements: AdminD1Statement[] = [];
         const ids = input.ids as string[];
-        if (keys.length) {
-          for (let i = 0; i < ids.length; i += 100) {
-            const group = ids.slice(i, i + 100);
+        // Execute small sequential groups. D1 can reject large prepared batches with
+        // SQLITE_ERROR "too many SQL variables", even when each individual IN clause
+        // appears reasonable. Keep every statement comfortably below SQLite's limit.
+        const groupSize = 25;
+        for (let i = 0; i < ids.length; i += groupSize) {
+          const group = ids.slice(i, i + groupSize);
+          if (keys.length) {
             const set = keys.map((key) => key + "=?").join(",");
-            statements.push(db.prepare("UPDATE superchargers SET " + set + ", data_source='manual', updated_at=CURRENT_TIMESTAMP WHERE id IN (" + group.map(() => "?").join(",") + ")").bind(...values, ...group));
+            await db.prepare("UPDATE superchargers SET " + set + ", data_source='manual', updated_at=CURRENT_TIMESTAMP WHERE id IN (" + group.map(() => "?").join(",") + ")").bind(...values, ...group).run();
+          }
+          if (wheelchairAccessible !== undefined) {
+            await db.prepare("UPDATE superchargers SET construction=json_set(CASE WHEN json_valid(construction) THEN construction ELSE '{}' END, '$.wheelchairAccessible', ?), data_source='manual', updated_at=CURRENT_TIMESTAMP WHERE id IN (" + group.map(() => "?").join(",") + ")").bind(wheelchairAccessible ? 1 : 0, ...group).run();
           }
         }
-        if (wheelchairAccessible !== undefined) {
-          for (let i = 0; i < ids.length; i += 100) {
-            const group = ids.slice(i, i + 100);
-            statements.push(db.prepare("UPDATE superchargers SET construction=json_set(CASE WHEN json_valid(construction) THEN construction ELSE '{}' END, '$.wheelchairAccessible', ?), data_source='manual', updated_at=CURRENT_TIMESTAMP WHERE id IN (" + group.map(() => "?").join(",") + ")").bind(wheelchairAccessible ? 1 : 0, ...group));
-          }
-        }
-        await db.batch(statements);
         await invalidatePublicMapCache();
         await db.prepare("INSERT INTO admin_audit_log (id,user_id,action,target_count,details) VALUES (?,?,?,?,?)")
           .bind(crypto.randomUUID(), admin.id, "supercharger_bulk_update", ids.length, JSON.stringify({ fields: keys })).run();
