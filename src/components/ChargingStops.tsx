@@ -331,10 +331,23 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="flex flex-wrap items-center gap-2">
                     <div className="text-sm font-semibold text-white">{stop.charger.name}</div>
-                    <div className="flex items-center gap-2" aria-label="Toegankelijkheid en aanhangerplaatsen">
-                      {requireAccessibleStalls && <span className={stop.charger.construction?.wheelchairAccessible === true ? "text-emerald-400" : "text-red-400"} title={stop.charger.construction?.wheelchairAccessible === true ? "Invalidenplek aanwezig" : "Geen invalidenplek geregistreerd"} aria-label={stop.charger.construction?.wheelchairAccessible === true ? "Invalidenplek aanwezig" : "Geen invalidenplek geregistreerd"}>♿</span>}
-                      {showTrailer && (() => { const count = stop.charger.construction?.trailerFriendlyStalls ?? stop.charger.trailerFriendlyStalls ?? (stop.charger.trailerFriendly ? 1 : 0); return <span className={count > 0 ? "text-emerald-400" : "text-red-400"} title={count > 0 ? `${count} aanhangerplaats(en)` : "Geen aanhangerplaats geregistreerd"} aria-label={count > 0 ? `${count} aanhangerplaats(en)` : "Geen aanhangerplaats geregistreerd"}>🚙</span>; })()}
-                    </div>
+                    {requireAccessibleStalls && stop.charger.construction?.wheelchairAccessible === true && (
+                      <span className="text-emerald-400" title="Invalidenplek aanwezig" aria-label="Invalidenplek aanwezig">♿</span>
+                    )}
+                    {showTrailer && (() => {
+                      const count = stop.charger.construction?.trailerFriendlyStalls ?? stop.charger.trailerFriendlyStalls ?? (stop.charger.trailerFriendly ? 1 : 0);
+                      return (
+                        <span
+                          className={count > 0
+                            ? "inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-300"
+                            : "inline-flex items-center rounded-md border border-red-500/30 bg-red-500/15 px-2 py-1 text-[10px] font-semibold text-red-300"}
+                          aria-label={count > 0 ? "Aanhangervriendelijk" : "Niet Aanhangervriendelijk"}
+                          title={count > 0 ? `${count} aanhangerplaats(en)` : "Geen aanhangerplaatsen geregistreerd"}
+                        >
+                          {count > 0 ? "Aanhangervriendelijk" : "Niet Aanhangervriendelijk"}
+                        </span>
+                      );
+                    })()}
                   </div>
                   </div>
                   {eta && <div className="mt-0.5 text-[11px] text-blue-300">Aankomst ± {time(eta)} · vertrek ± {time(new Date(eta.getTime() + stop.chargeDurationMin * 60000))}</div>}
