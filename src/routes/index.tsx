@@ -450,7 +450,7 @@ function Index() {
   // Toon alle Admin-locaties standaard, inclusief bouw- en vergunningslocaties.
   // De gebruiker kan deze locaties desgewenst verbergen via de kaartknop.
   const [showDevelopmentChargers, setShowDevelopmentChargers] = useState(true);
-  const [showAllChargers, setShowAllChargers] = useState(true);
+  const [showAllChargers, setShowAllChargers] = useState(false);
   const [mapType, setMapType] = useState<"road" | "satellite">("satellite");
   const [mapZoom, setMapZoom] = useState(7);
   const [mapMarkerSize, setMapMarkerSize] = useState(30);
@@ -2013,6 +2013,7 @@ function Index() {
               hasCcsAdapter={hasCcsAdapter}
               onCcsAdapterChange={setHasCcsAdapter}
               ccsBlocked={ccsBlocked}
+              requireAccessibleStalls={requireAccessibleStalls}
               isCalculating={isCalculating}
               calculationProgress={calculationProgress}
               totalDistanceKm={route?.totalDistanceKm ?? null}
