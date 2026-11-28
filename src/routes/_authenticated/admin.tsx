@@ -325,6 +325,15 @@ function AdminPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [chargers, setChargers] = useState<Charger[]>([]);
   const [search, setSearch] = useState("");
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priceFilter, setPriceFilter] = useState("all");
+  const [versionFilter, setVersionFilter] = useState("all");
+  const [ownerFilter, setOwnerFilter] = useState("all");
+  const [accessibilityFilter, setAccessibilityFilter] = useState("all");
+  const [trailerFilter, setTrailerFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("name-asc");
+  const [qualitySeverityFilter, setQualitySeverityFilter] = useState<"important" | "all">("important");
   const [editing, setEditing] = useState<Partial<Charger> | null>(null);
   const [coordsInput, setCoordsInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -741,15 +750,37 @@ function AdminPage() {
     </div>
   );
 
-  const filtered = chargers.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()) || (c.country || "").toLowerCase().includes(search.toLowerCase()));
+  const countries = Array.from(new Set(chargers.map((c) => c.country).filter(Boolean))).sort((a, b) => a.localeCompare(b, "nl"));
+  const filtered = chargers.filter((c) => {
+    const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || (c.country || "").toLowerCase().includes(search.toLowerCase()) || (c.city || "").toLowerCase().includes(search.toLowerCase()) || (c.province || "").toLowerCase().includes(search.toLowerCase());
+    const matchesCountry = countryFilter === "all" || c.country === countryFilter;
+    const matchesStatus = statusFilter === "all" || (statusFilter === "operational" ? (!c.status || c.status === "operational") : c.status === statusFilter);
+    const hasKwhPrice = (c.price_blocks?.length ?? 0) > 0;
+    const matchesPrice = priceFilter === "all" || (priceFilter === "missing" ? !hasKwhPrice : hasKwhPrice);
+    const configs = configsForCharger(c);
+    const matchesVersion = versionFilter === "all" || configs.some((config) => config.version === versionFilter);
+    const matchesOwner = ownerFilter === "all" || (ownerFilter === "none" ? !c.owner_id && !c.owner_name : c.owner_id === ownerFilter);
+    const accessible = c.construction?.wheelchairAccessible === true;
+    const matchesAccessibility = accessibilityFilter === "all" || (accessibilityFilter === "yes" ? accessible : !accessible);
+    const matchesTrailer = trailerFilter === "all" || (trailerFilter === "yes" ? !!c.trailer_friendly : !c.trailer_friendly);
+    return matchesSearch && matchesCountry && matchesStatus && matchesPrice && matchesVersion && matchesOwner && matchesAccessibility && matchesTrailer;
+  }).sort((a, b) => {
+    if (sortBy === "name-desc") return b.name.localeCompare(a.name, "nl");
+    if (sortBy === "country-asc") return (a.country || "").localeCompare(b.country || "", "nl") || a.name.localeCompare(b.name, "nl");
+    if (sortBy === "country-desc") return (b.country || "").localeCompare(a.country || "", "nl") || a.name.localeCompare(b.name, "nl");
+    if (sortBy === "price-missing") return Number((a.price_blocks?.length ?? 0) > 0) - Number((b.price_blocks?.length ?? 0) > 0) || a.name.localeCompare(b.name, "nl");
+    if (sortBy === "stalls-desc") return (totalFromConfigs(configsForCharger(b)) ?? 0) - (totalFromConfigs(configsForCharger(a)) ?? 0);
+    if (sortBy === "speed-desc") return (maxSpeedFromConfigs(configsForCharger(b)) ?? 0) - (maxSpeedFromConfigs(configsForCharger(a)) ?? 0);
+    return a.name.localeCompare(b.name, "nl");
+  });
 
-  // Automatische kwaliteitscontrole: signaleert ontbrekende of onlogische data,
-  // maar wijzigt nooit automatisch bestaande Supercharger-gegevens.
-  const dataQualityIssues: { id: string; name: string; country: string; issue: string; severity: "high" | "medium" | "low" }[] = [];
+  // Automatische kwaliteitscontrole: alleen hoge en middelhoge prioriteit tonen.
+  // Lage prioriteit (zoals ontbrekende drukteprofielen of openingstijden) wordt bewust weggelaten.
+  const dataQualityIssues: { id: string; name: string; country: string; issue: string; severity: "high" | "medium" }[] = [];
   const seenNames = new Map<string, string>();
   const seenCoords = new Map<string, string>();
   for (const charger of chargers) {
-    const addIssue = (issue: string, severity: "high" | "medium" | "low" = "medium") => {
+    const addIssue = (issue: string, severity: "high" | "medium" = "medium") => {
       dataQualityIssues.push({ id: charger.id, name: charger.name, country: charger.country || "Onbekend", issue, severity });
     };
     const identity = `${charger.name.trim().toLowerCase()}|${(charger.country || "").trim().toLowerCase()}`;
@@ -762,18 +793,14 @@ function AdminPage() {
     else seenCoords.set(coordKey, charger.name);
     if (!Number.isFinite(charger.lat) || !Number.isFinite(charger.lng) || Math.abs(charger.lat) > 90 || Math.abs(charger.lng) > 180) addIssue("Ongeldige GPS-coördinaten", "high");
     if (!charger.country?.trim()) addIssue("Land ontbreekt", "high");
-    if (!charger.city?.trim() && !charger.province?.trim()) addIssue("Stad en regio ontbreken", "low");
     const configs = configsForCharger(charger);
     if (!configs.length || !totalFromConfigs(configs)) addIssue("Aantal laadpunten / laadconfiguratie ontbreekt", "medium");
     if (!configs.length || !maxSpeedFromConfigs(configs)) addIssue("Maximaal laadvermogen ontbreekt", "medium");
-    if (charger.status === "operational" && !(charger.price_blocks?.length)) addIssue("Geen tijdsgebonden laadprijs ingevuld", "low");
-    if (charger.status === "operational" && !charger.traffic_forecast && !charger.construction?.trafficForecast) addIssue("Geen drukteprofiel opgeslagen", "low");
-    if (charger.status === "operational" && !charger.opening_hours && !charger.opening_time && !charger.closing_time) addIssue("Openingstijden niet expliciet gecontroleerd (24/7 wordt niet aangenomen als geverifieerd)", "low");
+    if (charger.status === "operational" && !(charger.price_blocks?.length)) addIssue("Geen kWh-laadprijs ingevuld", "medium");
   }
   const qualityCounts = {
     high: dataQualityIssues.filter((issue) => issue.severity === "high").length,
     medium: dataQualityIssues.filter((issue) => issue.severity === "medium").length,
-    low: dataQualityIssues.filter((issue) => issue.severity === "low").length,
   };
   const exportQualityReport = () => {
     const escapeCsv = (value: string) => `"${value.replaceAll('"', '""')}"`;
@@ -872,7 +899,18 @@ function AdminPage() {
             <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={applyBulkPrice}>Toepassen op selectie</Button>
           </div>
         )}
-        <Input placeholder="Zoek op naam of land…" value={search} onChange={(e) => setSearch(e.target.value)} className="bg-slate-800 border-slate-700 mb-4" />
+        <Input placeholder="Zoek op naam, land, stad of provincie…" value={search} onChange={(e) => setSearch(e.target.value)} className="bg-slate-800 border-slate-700 mb-2" />
+        <div className="mb-4 grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2">
+          <select aria-label="Filter land" value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)} className="rounded-md bg-slate-800 border border-slate-700 px-2 py-2 text-xs"><option value="all">Alle landen</option>{countries.map((country) => <option key={country} value={country}>{country}</option>)}</select>
+          <select aria-label="Filter status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-md bg-slate-800 border border-slate-700 px-2 py-2 text-xs"><option value="all">Alle statussen</option>{STATUS_OPTIONS.map((status) => <option key={status} value={status}>{lifecycleLabels[status] ?? status}</option>)}</select>
+          <select aria-label="Filter kWh-prijs" value={priceFilter} onChange={(e) => setPriceFilter(e.target.value)} className="rounded-md bg-slate-800 border border-slate-700 px-2 py-2 text-xs"><option value="all">Alle laadprijzen</option><option value="missing">Geen kWh-prijs</option><option value="has">Wel kWh-prijs</option></select>
+          <select aria-label="Filter laadversie" value={versionFilter} onChange={(e) => setVersionFilter(e.target.value)} className="rounded-md bg-slate-800 border border-slate-700 px-2 py-2 text-xs"><option value="all">Alle versies</option>{versionOpts.map((version) => <option key={version} value={version}>{version}</option>)}</select>
+          <select aria-label="Filter eigenaar" value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)} className="rounded-md bg-slate-800 border border-slate-700 px-2 py-2 text-xs"><option value="all">Alle eigenaren</option><option value="none">Geen eigenaar</option>{owners.map((owner) => <option key={owner.id} value={owner.id}>{owner.name}</option>)}</select>
+          <select aria-label="Filter invalidenplek" value={accessibilityFilter} onChange={(e) => setAccessibilityFilter(e.target.value)} className="rounded-md bg-slate-800 border border-slate-700 px-2 py-2 text-xs"><option value="all">Alle rolstoelplekken</option><option value="yes">Wel invalidenplek</option><option value="no">Geen invalidenplek</option></select>
+          <select aria-label="Filter aanhanger" value={trailerFilter} onChange={(e) => setTrailerFilter(e.target.value)} className="rounded-md bg-slate-800 border border-slate-700 px-2 py-2 text-xs"><option value="all">Alle aanhangerstatussen</option><option value="yes">Aanhangervriendelijk</option><option value="no">Niet gemarkeerd</option></select>
+          <select aria-label="Sorteren" value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="rounded-md bg-slate-800 border border-slate-700 px-2 py-2 text-xs"><option value="name-asc">Naam A–Z</option><option value="name-desc">Naam Z–A</option><option value="country-asc">Land A–Z</option><option value="country-desc">Land Z–A</option><option value="price-missing">Geen prijs eerst</option><option value="stalls-desc">Meeste laders</option><option value="speed-desc">Hoogste kW</option></select>
+        </div>
+        <div className="mb-3 flex items-center justify-between text-xs text-slate-400"><span>{filtered.length} van {chargers.length} locaties</span><button type="button" className="text-cyan-300 hover:text-white" onClick={() => { setSearch(""); setCountryFilter("all"); setStatusFilter("all"); setPriceFilter("all"); setVersionFilter("all"); setOwnerFilter("all"); setAccessibilityFilter("all"); setTrailerFilter("all"); setSortBy("name-asc"); }}>Filters wissen</button></div>
         <section className="mb-4 rounded-xl border border-cyan-700/50 bg-slate-800/60 p-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -881,8 +919,8 @@ function AdminPage() {
               <div className="mt-2 flex flex-wrap gap-2 text-xs">
                 <span className="rounded-md bg-rose-500/15 px-2 py-1 text-rose-300">{qualityCounts.high} belangrijk</span>
                 <span className="rounded-md bg-amber-500/15 px-2 py-1 text-amber-300">{qualityCounts.medium} aandacht</span>
-                <span className="rounded-md bg-slate-700 px-2 py-1 text-slate-300">{qualityCounts.low} ontbrekend / controleren</span>
-                <span className="rounded-md bg-slate-700 px-2 py-1 text-slate-300">{dataQualityIssues.length} signalen · {chargers.length} locaties</span>
+                <span className="rounded-md bg-slate-700 px-2 py-1 text-slate-300"></span>
+                <span className="rounded-md bg-slate-700 px-2 py-1 text-slate-300">{dataQualityIssues.length} belangrijke signalen · {chargers.length} locaties</span>
               </div>
             </div>
             <div className="flex gap-2">
@@ -891,7 +929,7 @@ function AdminPage() {
             </div>
           </div>
           {qualityOpen && <div className="mt-3 max-h-72 space-y-1 overflow-y-auto border-t border-slate-700 pt-3">
-            {dataQualityIssues.length === 0 ? <p className="text-xs text-emerald-300">Geen dataproblemen gevonden in de uitgevoerde controles.</p> : dataQualityIssues.slice(0, 250).map((issue, index) => (
+            <div className="mb-2 flex items-center gap-2"><span className="text-xs text-slate-400">Prioriteit:</span><select value={qualitySeverityFilter} onChange={(e) => setQualitySeverityFilter(e.target.value as "important" | "all")} className="rounded bg-slate-800 border border-slate-700 px-2 py-1 text-xs"><option value="important">Alleen middel + hoog</option><option value="all">Alle meldingen</option></select></div>\n            {dataQualityIssues.length === 0 ? <p className="text-xs text-emerald-300">Geen middelhoge of hoge dataproblemen gevonden.</p> : dataQualityIssues.filter((issue) => qualitySeverityFilter === "all" || issue.severity === "high" || issue.severity === "medium").slice(0, 250).map((issue, index) => (
               <div key={issue.id + issue.issue + index} className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-slate-900/70 px-2 py-1.5 text-xs">
                 <div className="min-w-0"><span className="font-semibold text-white">{issue.name}</span><span className="ml-2 text-slate-500">{issue.country}</span><div className="mt-0.5 text-slate-300">{issue.issue}</div></div>
                 <span className={issue.severity === "high" ? "text-rose-300" : issue.severity === "medium" ? "text-amber-300" : "text-slate-400"}>{issue.severity === "high" ? "Belangrijk" : issue.severity === "medium" ? "Aandacht" : "Controleren"}</span>
