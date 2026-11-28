@@ -338,6 +338,8 @@ function AdminPage() {
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
   const [bulkPrice, setBulkPrice] = useState({ parkingFeeAmount: "", parkingFreeMinutes: "", parkingPerMinutes: "", parkingPerEuro: "" });
   const fileRef = useRef<HTMLInputElement>(null);
+  const wheelchairFileRef = useRef<HTMLInputElement>(null);
+  const [wheelchairImporting, setWheelchairImporting] = useState(false);
   const runImport = useServerFn(importSuperchargers);
   const readWinterSportsMode = useServerFn(getWinterSportsMode);
   const saveWinterSportsMode = useServerFn(setWinterSportsMode);
@@ -709,6 +711,49 @@ function AdminPage() {
     return result;
   };
 
+  const importWheelchairList = async (file: File) => {
+    if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden."); return; }
+    setWheelchairImporting(true);
+    try {
+      const raw = await file.text();
+      const normalize = (value: unknown) => String(value ?? "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").trim().toLocaleLowerCase().replace(/\\s+/g, " ");
+      const rows = raw.replace(/^\\uFEFF/, "").split(/\\r?\\n/).map((line) => line.split("\\t")).filter((cells) => cells.some((cell) => cell.trim()));
+      const matchedIds = new Set<string>();
+      const unmatched: string[] = [];
+      const ambiguous: string[] = [];
+      for (const cells of rows) {
+        const nameIndex = cells.findIndex((cell) => cell.trim() !== "");
+        if (nameIndex < 0) continue;
+        const name = cells[nameIndex].trim();
+        const country = (cells[nameIndex + 5] ?? "").trim();
+        if (!country) { unmatched.push(name + " (land ontbreekt)"); continue; }
+        const matches = chargers.filter((charger) => normalize(charger.name) === normalize(name) && normalize(charger.country) === normalize(country));
+        if (matches.length === 1) matchedIds.add(matches[0].id);
+        else if (matches.length > 1) ambiguous.push(name + ", " + country);
+        else unmatched.push(name + ", " + country);
+      }
+      const ids = Array.from(matchedIds);
+      if (ids.length) {
+        for (let i = 0; i < ids.length; i += 100) {
+          await sendAdminBulkUpdate(ids.slice(i, i + 100), { wheelchairAccessible: true });
+        }
+      }
+      await load();
+      const report = [
+        "Rolstoeltoegankelijk gemarkeerd: " + ids.length,
+        "Niet gevonden: " + unmatched.length + (unmatched.length ? "\\n" + unmatched.join("\\n") : ""),
+        "Meerdere exacte matches (overgeslagen): " + ambiguous.length + (ambiguous.length ? "\\n" + ambiguous.join("\\n") : ""),
+      ].join("\\n\\n");
+      console.info("[TeslaNavigation] Rolstoelimportresultaat\\n" + report);
+      toast.success(ids.length + " Superchargers bijgewerkt. " + (unmatched.length + ambiguous.length) + " overgeslagen; namen staan in de console.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Import van rolstoeltoegankelijkheid mislukt.");
+    } finally {
+      setWheelchairImporting(false);
+      if (wheelchairFileRef.current) wheelchairFileRef.current.value = "";
+    }
+  };
+
   const bulkUpdate = async (changes: Record<string, unknown>) => {
     if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden. Bulk wijzigen is uitgeschakeld."); return; }
     const ids = Array.from(selectedIds);
@@ -803,6 +848,13 @@ function AdminPage() {
             <Link to="/" className="text-sm text-slate-400 hover:text-white">← Terug naar kaart</Link>
             <h1 className="text-2xl md:text-3xl font-bold mt-1">Superchargers beheren</h1>
             <p className="text-sm text-slate-400">{chargers.length} laders totaal</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <input ref={wheelchairFileRef} type="file" accept=".txt,.tsv,.csv" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importWheelchairList(file); }} />
+              <Button size="sm" variant="outline" className="border-cyan-700 text-cyan-200" disabled={wheelchairImporting || !cloudConnected} onClick={() => wheelchairFileRef.current?.click()}>
+                {wheelchairImporting ? "Rolstoelijst verwerken…" : "♿ Rolstoelvriendelijke lijst importeren"}
+              </Button>
+              <span className="text-xs text-slate-500">Alleen exacte naam + land matches worden aangepast; overige locaties worden overgeslagen.</span>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Link to="/eigenaren"><Button variant="outline" size="sm" className="border-slate-700">Eigenaren</Button></Link>
