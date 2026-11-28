@@ -133,13 +133,13 @@ export const saveMyRoute = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const user = await requireUser();
     const id = data.id || crypto.randomUUID();
-    const existing = await getD1().prepare("SELECT id FROM saved_routes WHERE id = ? AND user_id = ?").bind(id,user.id).first();
-    if (data.id && !existing) throw new Error("Deze opgeslagen route bestaat niet (meer).");
-    await getD1().prepare(`INSERT INTO saved_routes
+    const result = await getD1().prepare(`INSERT INTO saved_routes
       (id,user_id,name,start_address,start_lat,start_lng,end_address,end_lat,end_lng,model_name,battery_percent,trailer_mode,trailer_reduction,weather_mode,time_mode,route_type,charger_ids,total_distance_km,total_time_min,payload,updated_at)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
-      ON CONFLICT(id) DO UPDATE SET name=excluded.name,start_address=excluded.start_address,start_lat=excluded.start_lat,start_lng=excluded.start_lng,end_address=excluded.end_address,end_lat=excluded.end_lat,end_lng=excluded.end_lng,model_name=excluded.model_name,battery_percent=excluded.battery_percent,trailer_mode=excluded.trailer_mode,trailer_reduction=excluded.trailer_reduction,weather_mode=excluded.weather_mode,time_mode=excluded.time_mode,route_type=excluded.route_type,charger_ids=excluded.charger_ids,total_distance_km=excluded.total_distance_km,total_time_min=excluded.total_time_min,payload=excluded.payload,updated_at=CURRENT_TIMESTAMP`)
+      ON CONFLICT(id) DO UPDATE SET name=excluded.name,start_address=excluded.start_address,start_lat=excluded.start_lat,start_lng=excluded.start_lng,end_address=excluded.end_address,end_lat=excluded.end_lat,end_lng=excluded.end_lng,model_name=excluded.model_name,battery_percent=excluded.battery_percent,trailer_mode=excluded.trailer_mode,trailer_reduction=excluded.trailer_reduction,weather_mode=excluded.weather_mode,time_mode=excluded.time_mode,route_type=excluded.route_type,charger_ids=excluded.charger_ids,total_distance_km=excluded.total_distance_km,total_time_min=excluded.total_time_min,payload=excluded.payload,updated_at=CURRENT_TIMESTAMP
+      WHERE saved_routes.user_id = excluded.user_id`)
       .bind(id,user.id,data.name,data.start_address??null,data.start_lat,data.start_lng,data.end_address??null,data.end_lat,data.end_lng,data.model_name,data.battery_percent,data.trailer_mode?1:0,data.trailer_reduction,data.weather_mode,data.time_mode,data.route_type,JSON.stringify(data.charger_ids),data.total_distance_km??null,data.total_time_min??null,JSON.stringify(data.payload)).run();
+    if (result.meta?.changes === 0) throw new Error("Deze route-ID is al in gebruik door een ander account.");
     return { id };
   });
 
