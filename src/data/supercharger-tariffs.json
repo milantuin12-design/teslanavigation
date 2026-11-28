@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "checkedAt": "2026-11-11",
+  "checkedAt": "2026-11-28",
   "note": "Alleen Tesla-rijderstarieven. Tijdblokken zijn lokaal per station. Alleen exact gepubliceerde blokken of vaste tarieven; onbekende tarieven blijven leeg. Matcht alleen operationele locaties.",
   "tariffs": [
     {
@@ -34233,8 +34233,8 @@
       "countryAliases": [
         "The Netherlands"
       ]
-    }
-    ,{
+    },
+    {
       "country": "Germany",
       "match": [
         "rhüden",
@@ -34247,6 +34247,64 @@
       "source": "https://kilowattindex.com/site/rhudensupercharger/",
       "sourceChecked": "2026-11-28",
       "currency": "EUR"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "abington"
+      ],
+      "label": "Abington – Welcome Break Services",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "pricePerKwh": 0.53,
+      "source": "https://kilowattindex.com/site/abingtonsupercharger/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "amesbury"
+      ],
+      "label": "Amesbury – Holiday Inn",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "08:00",
+          "to": "12:00",
+          "pricePerKwh": 0.51
+        },
+        {
+          "from": "12:00",
+          "to": "18:00",
+          "pricePerKwh": 0.58
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.51
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://kilowattindex.com/site/amesburysupercharger/",
+      "sourceChecked": "2026-11-28"
     }
   ]
 }
