@@ -712,47 +712,53 @@ function AdminPage() {
     return result;
   };
 
-  const importWheelchairList = async (file: File) => {
+  const importWheelchairList = async () => {
     if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden."); return; }
     setWheelchairImporting(true);
     try {
-      const raw = await file.text();
-      const normalize = (value: unknown) => String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLocaleLowerCase().replace(/\s+/g, " ");
-      const rows = raw.replace(/^\uFEFF/, "").split(/\r?\n/).map((line) => line.split("\t")).filter((cells) => cells.some((cell) => cell.trim()));
+      const response = await fetch("/data/wheelchair-superchargers.json.gz.b64", { cache: "no-store" });
+      if (!response.ok) throw new Error("De ingebouwde rolstoellijst kon niet worden geladen (HTTP " + response.status + ").");
+      const encoded = (await response.text()).trim();
+      const binary = atob(encoded);
+      const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+      if (typeof DecompressionStream === "undefined") throw new Error("Deze browser ondersteunt de gegevensimport niet; open TeslaNavigation in Chrome of Edge.");
+      const decompressed = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+      const raw = await new Response(decompressed).text();
+      const sourceRows = JSON.parse(raw) as { name: string; country: string }[];
+      if (!Array.isArray(sourceRows) || sourceRows.length !== 453) throw new Error("De ingebouwde lijst is onvolledig; er zijn geen wijzigingen opgeslagen.");
+      const normalize = (value: unknown) => String(value ?? "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").trim().toLocaleLowerCase().replace(/\\s+/g, " ");
       const matchedIds = new Set<string>();
       const unmatched: string[] = [];
       const ambiguous: string[] = [];
-      for (const cells of rows) {
-        const nameIndex = cells.findIndex((cell) => cell.trim() !== "");
-        if (nameIndex < 0) continue;
-        const name = cells[nameIndex].trim();
-        const country = (cells[nameIndex + 5] ?? "").trim();
-        if (!country) { unmatched.push(name + " (land ontbreekt)"); continue; }
+      for (const row of sourceRows) {
+        const name = row.name.trim();
+        const country = row.country.trim();
         const matches = chargers.filter((charger) => normalize(charger.name) === normalize(name) && normalize(charger.country) === normalize(country));
         if (matches.length === 1) matchedIds.add(matches[0].id);
         else if (matches.length > 1) ambiguous.push(name + ", " + country);
         else unmatched.push(name + ", " + country);
       }
       const ids = Array.from(matchedIds);
-      if (ids.length) {
-        for (let i = 0; i < ids.length; i += 100) {
-          await sendAdminBulkUpdate(ids.slice(i, i + 100), { wheelchairAccessible: true });
-        }
+      if (!ids.length) throw new Error("Geen exacte matches gevonden. Er is niets aangepast.");
+      let updated = 0;
+      for (let i = 0; i < ids.length; i += 100) {
+        const result = await sendAdminBulkUpdate(ids.slice(i, i + 100), { wheelchairAccessible: true });
+        updated += result.updated;
       }
       await load();
       const report = [
-        "Rolstoeltoegankelijk gemarkeerd: " + ids.length,
+        "Bronlijst: " + sourceRows.length + " locaties",
+        "Rolstoeltoegankelijk gemarkeerd: " + updated,
         "Niet gevonden: " + unmatched.length + (unmatched.length ? "\\n" + unmatched.join("\\n") : ""),
         "Meerdere exacte matches (overgeslagen): " + ambiguous.length + (ambiguous.length ? "\\n" + ambiguous.join("\\n") : ""),
       ].join("\\n\\n");
       setWheelchairImportReport(report);
       console.info("[TeslaNavigation] Rolstoelimportresultaat\\n" + report);
-      toast.success(ids.length + " Superchargers bijgewerkt. " + (unmatched.length + ambiguous.length) + " overgeslagen; bekijk de lijst hieronder.");
+      toast.success(updated + " Superchargers bijgewerkt. " + (unmatched.length + ambiguous.length) + " overgeslagen; bekijk de lijst hieronder.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Import van rolstoeltoegankelijkheid mislukt.");
     } finally {
       setWheelchairImporting(false);
-      if (wheelchairFileRef.current) wheelchairFileRef.current.value = "";
     }
   };
 
@@ -851,11 +857,10 @@ function AdminPage() {
             <h1 className="text-2xl md:text-3xl font-bold mt-1">Superchargers beheren</h1>
             <p className="text-sm text-slate-400">{chargers.length} laders totaal</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <input ref={wheelchairFileRef} type="file" accept=".txt,.tsv,.csv" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importWheelchairList(file); }} />
-              <Button size="sm" variant="outline" className="border-cyan-700 text-cyan-200" disabled={wheelchairImporting || !cloudConnected} onClick={() => wheelchairFileRef.current?.click()}>
-                {wheelchairImporting ? "Rolstoelijst verwerken…" : "♿ Rolstoelvriendelijke lijst importeren"}
+              <Button size="sm" variant="outline" className="border-cyan-700 text-cyan-200" disabled={wheelchairImporting || !cloudConnected} onClick={() => void importWheelchairList()}>
+                {wheelchairImporting ? "453 locaties verwerken…" : "♿ Mijn aangeleverde lijst toepassen"}
               </Button>
-              <span className="text-xs text-slate-500">Selecteer het aangeleverde TXT-bestand. Alleen exacte naam + land matches worden aangepast; overige locaties worden overgeslagen.</span>
+              <span className="text-xs text-slate-500">Gebruikt de lijst die je al stuurde. Alleen exacte naam + land matches worden aangepast.</span>
               {wheelchairImportReport && <pre className="mt-2 max-h-64 w-full overflow-auto whitespace-pre-wrap rounded-md border border-slate-700 bg-slate-950 p-3 text-xs text-slate-300">{wheelchairImportReport}</pre>}
             </div>
           </div>
