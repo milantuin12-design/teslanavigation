@@ -28,6 +28,7 @@ interface ChargingStopsProps {
   restMin?: number;
   modelName?: string;
   carMaxKwOverride?: number;
+  requireAccessibleStalls?: boolean;
   whatIf?: {
     minus5: { reachable: boolean; arrivalPercent: number; stops: number };
     plus5: { reachable: boolean; arrivalPercent: number; stops: number };
@@ -168,7 +169,7 @@ function LegRow({ fromLabel, toLabel, km, kWh, rangeKm, from, to, climbInfo, tem
   );
 }
 
-export default function ChargingStops({ stops, holidayMode = false, winterSportsMode = false, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic, ccsBlocked, showTrailer, restMin = 0, modelName = 'Model 3 Long Range AWD', carMaxKwOverride, whatIf }: ChargingStopsProps) {
+export default function ChargingStops({ stops, holidayMode = false, winterSportsMode = false, totalDistanceKm, onBatteryChange, onRemoveCharger, onArrivalChange, departure, route, packKWh, consumptionKWh100, arrivalPercent, weather, elevation, liveTraffic, ccsBlocked, showTrailer, restMin = 0, modelName = 'Model 3 Long Range AWD', carMaxKwOverride, requireAccessibleStalls = false, whatIf }: ChargingStopsProps) {
   const [eurRates, setEurRates] = useState<EuroRates>({});
   useEffect(() => {
     let active = true;
@@ -327,8 +328,17 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
             <div className="rounded-2xl border border-white/10 bg-slate-800/60 px-3 py-3 shadow-md transition-all hover:border-blue-500/40 animate-fade-in">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <div className="text-sm font-semibold text-white">{stop.charger.name}</div>
-                  {stop.charger.construction?.wheelchairAccessible && <div className="mt-1 text-[11px] font-medium text-sky-300">♿ Invalidenplek aanwezig</div>}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="text-sm font-semibold text-white">{stop.charger.name}</div>
+                    {requireAccessibleStalls && (
+                      <span title={stop.charger.construction?.wheelchairAccessible ? "Invalidenplek aanwezig" : "Geen invalidenplek geregistreerd"}
+                        aria-label={stop.charger.construction?.wheelchairAccessible ? "Invalidenplek aanwezig" : "Geen invalidenplek geregistreerd"}
+                        className={`inline-flex items-center text-lg leading-none ${stop.charger.construction?.wheelchairAccessible ? "text-emerald-400" : "text-red-400"}`}>
+                        ♿
+                      </span>
+                    )}
+                  </div>
+                  {!requireAccessibleStalls && stop.charger.construction?.wheelchairAccessible && <div className="mt-1 text-[11px] font-medium text-sky-300">♿ Invalidenplek aanwezig</div>}
                   {eta && <div className="mt-0.5 text-[11px] text-blue-300">Aankomst ± {time(eta)} · vertrek ± {time(new Date(eta.getTime() + stop.chargeDurationMin * 60000))}</div>}
                   {cheapestStopIndex === idx && knownStopCosts.length > 1 && <div className="mt-1 inline-flex rounded-md bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-300">Goedkoopste berekende laadstop incl. parkeren</div>}
                   {eta && (() => { const chargerTemp = weather?.temperatureSegments?.length ? weather.temperatureSegments.reduce((best, point) => Math.abs(point.km - stop.distanceFromStart) < Math.abs(best.km - stop.distanceFromStart) ? point : best).tempC : weather?.tempC ?? null; const preheat = batteryPreheatMinutes(chargerTemp); return <div className="mt-1 text-[10px] text-cyan-300">❄ Accu-voorverwarming: {preheat == null ? "temperatuurverwachting niet beschikbaar; Tesla bepaalt de benodigde tijd automatisch." : `bij ongeveer ${Math.round(chargerTemp!)}°C kan Tesla circa ${preheat} min voor aankomst beginnen.`} Navigeren naar de Supercharger activeert de automatische voorverwarming.</div>; })()}
@@ -348,13 +358,24 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 <div className="mt-1 text-[10px] text-slate-400">Schatting op basis van de verwachte drukte rond {eta ? time(eta) : "aankomst"}; geen live bezettingsmeting.</div>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
-                <span className="flex items-center gap-1"><MapPin size={11} />{stop.distanceFromStart} km</span>
+                <span className="flex items-center gap-1"><MapPin size={11} />{stop.distanceFromStart} km vanaf vertrek</span>
                 <span className="flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-amber-300">
                   <BatteryCharging size={11} />{stop.batteryBefore}% → {stop.batteryAfter}%
                 </span>
                 <span className="flex items-center gap-1 text-green-400"><Clock size={11} />{dur(stop.chargeDurationMin)}</span>
                 {maxSpeedKw > 0 && stop.charger.totalStalls ? <span className="flex items-center gap-1 text-blue-400"><Gauge size={11} />{maxSpeedKw} kW{ccsBlocked ? ' (V2)' : ''}</span> : null}
                 {typeof stop.energyChargedKWh === 'number' && <span className="text-emerald-300">+{stop.energyChargedKWh} kWh</span>}
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-2 rounded-lg border border-white/10 bg-black/10 p-2 text-[11px]">
+                <div><span className="text-slate-500">Locatie</span><div className="font-medium text-slate-200">{[stop.charger.city, stop.charger.province, stop.charger.country].filter(Boolean).join(", ") || "Niet opgegeven"}</div></div>
+                <div><span className="text-slate-500">Exploitant</span><div className="font-medium text-slate-200">{stop.charger.ownerName || "Tesla"}</div></div>
+                <div><span className="text-slate-500">Aantal laadplekken</span><div className="font-medium text-slate-200">{typeof stop.charger.totalStalls === "number" ? stop.charger.totalStalls : "Onbekend"}</div></div>
+                <div><span className="text-slate-500">Versie / vermogen</span><div className="font-medium text-slate-200">{(stop.charger.versions ?? []).join(", ") || "Versie onbekend"}{maxSpeedKw > 0 ? ` · max. ${maxSpeedKw} kW` : ""}</div></div>
+                <div className="col-span-2"><span className="text-slate-500">Aansluitingen</span><div className="font-medium text-slate-200">{(stop.charger.connectors ?? []).join(" · ") || stop.charger.stallTypes || "Niet opgegeven"}</div></div>
+                {stop.charger.siteAmenities?.length ? <div className="col-span-2"><span className="text-slate-500">Voorzieningen op locatie</span><div className="font-medium text-slate-200">{stop.charger.siteAmenities.join(" · ")}</div></div> : null}
+                {stop.charger.trailerFriendly ? <div className="col-span-2 text-emerald-300">Aanhanger-vriendelijk</div> : null}
+                {stop.charger.inParkingGarage ? <div className="col-span-2 text-amber-300">In parkeergarage</div> : null}
+                {stop.charger.notes ? <div className="col-span-2"><span className="text-slate-500">Opmerking</span><div className="text-slate-300">{stop.charger.notes}</div></div> : null}
               </div>
 
       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
