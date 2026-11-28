@@ -340,6 +340,7 @@ function AdminPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const wheelchairFileRef = useRef<HTMLInputElement>(null);
   const [wheelchairImporting, setWheelchairImporting] = useState(false);
+  const [wheelchairImportReport, setWheelchairImportReport] = useState("");
   const runImport = useServerFn(importSuperchargers);
   const readWinterSportsMode = useServerFn(getWinterSportsMode);
   const saveWinterSportsMode = useServerFn(setWinterSportsMode);
@@ -744,6 +745,7 @@ function AdminPage() {
         "Niet gevonden: " + unmatched.length + (unmatched.length ? "\\n" + unmatched.join("\\n") : ""),
         "Meerdere exacte matches (overgeslagen): " + ambiguous.length + (ambiguous.length ? "\\n" + ambiguous.join("\\n") : ""),
       ].join("\\n\\n");
+      setWheelchairImportReport(report);
       console.info("[TeslaNavigation] Rolstoelimportresultaat\\n" + report);
       toast.success(ids.length + " Superchargers bijgewerkt. " + (unmatched.length + ambiguous.length) + " overgeslagen; namen staan in de console.");
     } catch (error) {
@@ -854,6 +856,7 @@ function AdminPage() {
                 {wheelchairImporting ? "Rolstoelijst verwerken…" : "♿ Rolstoelvriendelijke lijst importeren"}
               </Button>
               <span className="text-xs text-slate-500">Alleen exacte naam + land matches worden aangepast; overige locaties worden overgeslagen.</span>
+              {wheelchairImportReport && <pre className="mt-2 max-h-64 w-full overflow-auto whitespace-pre-wrap rounded-md border border-slate-700 bg-slate-950 p-3 text-xs text-slate-300">{wheelchairImportReport}</pre>}
             </div>
           </div>
           <div className="flex items-center gap-2">
