@@ -34305,6 +34305,462 @@
       ],
       "source": "https://kilowattindex.com/site/amesburysupercharger/",
       "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "aberystwyth"
+      ],
+      "label": "Aberystwyth – Aberystwyth Park Lodge Hotel",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.53
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://kilowattindex.com/site/aberystwythsupercharger/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "banbury"
+      ],
+      "label": "Banbury – Banbury Cross Retail Park",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "18:00",
+          "pricePerKwh": 0.54
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.49
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://kilowattindex.com/site/banburysupercharger/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "aviemore"
+      ],
+      "label": "Aviemore – Macdonald Highlands Hotel",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "21:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://kilowattindex.com/site/aviemoresupercharger/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "bristol cribbs"
+      ],
+      "label": "Bristol – The Mall at Cribbs Causeway",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.2
+        },
+        {
+          "from": "04:00",
+          "to": "09:00",
+          "pricePerKwh": 0.27
+        },
+        {
+          "from": "09:00",
+          "to": "19:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "19:00",
+          "to": "23:00",
+          "pricePerKwh": 0.35
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.2
+        }
+      ],
+      "source": "https://kilowattindex.com/site/bristolcribbscauseway/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "carmarthen"
+      ],
+      "label": "Carmarthen – St. Catherine’s Walk Shopping Centre",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.28
+        },
+        {
+          "from": "04:00",
+          "to": "10:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "10:00",
+          "to": "17:00",
+          "pricePerKwh": 0.53
+        },
+        {
+          "from": "17:00",
+          "to": "21:00",
+          "pricePerKwh": 0.47
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.28
+        }
+      ],
+      "source": "https://kilowattindex.com/site/286521/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "folkestone"
+      ],
+      "label": "Folkestone – Eurotunnel UK Terminal",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "04:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "04:00",
+          "to": "23:00",
+          "pricePerKwh": 0.52
+        },
+        {
+          "from": "23:00",
+          "to": "24:00",
+          "pricePerKwh": 0.44
+        }
+      ],
+      "source": "https://kilowattindex.com/site/folkestonesupercharger/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "grays"
+      ],
+      "label": "Grays – Lakeside Shopping Centre",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.3
+        },
+        {
+          "from": "08:00",
+          "to": "20:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.37
+        }
+      ],
+      "source": "https://kilowattindex.com/site/grayssupercharger/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "flimwell"
+      ],
+      "label": "Flimwell – Flimwell Park",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.24
+        },
+        {
+          "from": "08:00",
+          "to": "17:00",
+          "pricePerKwh": 0.53
+        },
+        {
+          "from": "17:00",
+          "to": "21:00",
+          "pricePerKwh": 0.48
+        },
+        {
+          "from": "21:00",
+          "to": "24:00",
+          "pricePerKwh": 0.24
+        }
+      ],
+      "source": "https://kilowattindex.com/site/flimwellsupercharger/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "liphook"
+      ],
+      "label": "Liphook – Old Thorns Hotel & Resort",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.25
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.51
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.25
+        }
+      ],
+      "source": "https://kilowattindex.com/site/liphooksupercharger/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "exeter darts farm"
+      ],
+      "label": "Exeter – Darts Farm",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "08:00",
+          "to": "18:00",
+          "pricePerKwh": 0.56
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.32
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://kilowattindex.com/site/exetersupercharger/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "grantham"
+      ],
+      "label": "Grantham – Moto Services",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "08:00",
+          "pricePerKwh": 0.21
+        },
+        {
+          "from": "08:00",
+          "to": "22:00",
+          "pricePerKwh": 0.51
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.21
+        }
+      ],
+      "source": "https://kilowattindex.com/site/granthamsupercharger/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "larkhall"
+      ],
+      "label": "Larkhall – Radstone Hotel",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.29
+        },
+        {
+          "from": "09:00",
+          "to": "18:00",
+          "pricePerKwh": 0.53
+        },
+        {
+          "from": "18:00",
+          "to": "22:00",
+          "pricePerKwh": 0.44
+        },
+        {
+          "from": "22:00",
+          "to": "24:00",
+          "pricePerKwh": 0.29
+        }
+      ],
+      "source": "https://kilowattindex.com/site/304443/",
+      "sourceChecked": "2026-11-28"
+    },
+    {
+      "country": "United Kingdom",
+      "countryAliases": [
+        "UK",
+        "Great Britain"
+      ],
+      "match": [
+        "kings lynn"
+      ],
+      "label": "King’s Lynn – Dragonfly Hotel",
+      "timezone": "Europe/London",
+      "currency": "GBP",
+      "priceBlocks": [
+        {
+          "from": "00:00",
+          "to": "09:00",
+          "pricePerKwh": 0.22
+        },
+        {
+          "from": "09:00",
+          "to": "20:00",
+          "pricePerKwh": 0.51
+        },
+        {
+          "from": "20:00",
+          "to": "24:00",
+          "pricePerKwh": 0.26
+        }
+      ],
+      "source": "https://kilowattindex.com/site/KingsLynngbsupercharger/",
+      "sourceChecked": "2026-11-28"
     }
   ]
 }
