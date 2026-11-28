@@ -747,7 +747,7 @@ function AdminPage() {
       ].join("\\n\\n");
       setWheelchairImportReport(report);
       console.info("[TeslaNavigation] Rolstoelimportresultaat\\n" + report);
-      toast.success(ids.length + " Superchargers bijgewerkt. " + (unmatched.length + ambiguous.length) + " overgeslagen; namen staan in de console.");
+      toast.success(ids.length + " Superchargers bijgewerkt. " + (unmatched.length + ambiguous.length) + " overgeslagen; bekijk de lijst hieronder.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Import van rolstoeltoegankelijkheid mislukt.");
     } finally {
