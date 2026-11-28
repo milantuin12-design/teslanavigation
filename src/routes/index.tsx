@@ -2341,22 +2341,22 @@ function Index() {
             </div>
           </div>
           <div className="space-y-3 p-4">
-            <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="size-5 text-amber-400" />Deze Supercharger is mogelijk noodzakelijk</DialogTitle></DialogHeader>
-            <p className="text-sm leading-relaxed text-slate-300">De route is zonder deze Supercharger niet haalbaar met je huidige accu- en route-instellingen. De status is onbekend: het is dus niet bevestigd of je hier kunt laden. Wil je het risico nemen?</p>
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="size-5 text-amber-400" />Wilt u het risico aangaan om hier op te laden?</DialogTitle></DialogHeader>
+            <p className="text-sm leading-relaxed text-slate-300">De status van deze Supercharger is Onbekend. Het is niet bevestigd of je hier kunt laden. Kies je Ja, dan blijft deze locatie als laadstop in je route. Kies je Nee, dan zoeken we een andere Supercharger en berekenen we de route opnieuw.</p>
             <DialogFooter className="flex-col gap-2 sm:flex-col">
-              <Button variant="outline" className="w-full border-slate-700" onClick={() => {
-                const key = riskCharger?.id ?? riskCharger?.name;
-                setRiskCharger(null);
-                setRiskChargerQueue([]);
-                if (key) { strictUnknownExclusionRef.current = true; recalcAfterExcludeRef.current = true; setExcludedChargerIds((prev) => (prev.includes(key) ? prev : [...prev, key])); }
-              }}>Nee, kies een andere Supercharger</Button>
               <Button className="w-full bg-amber-600 hover:bg-amber-700" onClick={() => {
                 const key = riskCharger?.id ?? riskCharger?.name;
                 if (key) setAcceptedUnknownIds((prev) => (prev.includes(key) ? prev : [...prev, key]));
                 const [next, ...remaining] = riskChargerQueue;
                 setRiskChargerQueue(remaining);
                 setRiskCharger(next ?? null);
-              }}>Ja, ik aanvaard het risico</Button>
+              }}>Ja, daar opladen</Button>
+              <Button variant="outline" className="w-full border-slate-700" onClick={() => {
+                const key = riskCharger?.id ?? riskCharger?.name;
+                setRiskCharger(null);
+                setRiskChargerQueue([]);
+                if (key) { strictUnknownExclusionRef.current = true; recalcAfterExcludeRef.current = true; setExcludedChargerIds((prev) => (prev.includes(key) ? prev : [...prev, key])); }
+              }}>Nee, zoek een andere lader</Button>
             </DialogFooter>
           </div>
         </DialogContent>
