@@ -4,7 +4,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { importSuperchargers, getWinterSportsMode, setWinterSportsMode, getHolidayPeriodMode, setHolidayPeriodMode } from "@/lib/tesla.functions";
 import { adminListOwners, adminCreateOwner, reverseGeocodeCharger } from "@/lib/admin.functions";
 import localDataset from "@/data/superchargers.json";
-import wheelchairAccessibleLocations from "@/data/wheelchair-accessible-superchargers.json";
 import tariffDataset from "@/data/supercharger-tariffs.json";
 import { getPendingAdminChanges } from "@/lib/local-store";
 import { Button } from "@/components/ui/button";
@@ -340,6 +339,7 @@ function AdminPage() {
   const [bulkPrice, setBulkPrice] = useState({ parkingFeeAmount: "", parkingFreeMinutes: "", parkingPerMinutes: "", parkingPerEuro: "" });
   const fileRef = useRef<HTMLInputElement>(null);
   const [wheelchairImporting, setWheelchairImporting] = useState(false);
+  const wheelchairFileRef = useRef<HTMLInputElement>(null);
   const [wheelchairImportReport, setWheelchairImportReport] = useState("");
   const runImport = useServerFn(importSuperchargers);
   const readWinterSportsMode = useServerFn(getWinterSportsMode);
@@ -712,18 +712,21 @@ function AdminPage() {
     return result;
   };
 
-  const importWheelchairList = async () => {
+  const importWheelchairList = async (file: File) => {
     if (!cloudConnected) { toast.error("Cloudflare D1 is niet verbonden."); return; }
     setWheelchairImporting(true);
     try {
+      const raw = await file.text();
       const normalize = (value: unknown) => String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLocaleLowerCase().replace(/\s+/g, " ");
-      const rows = wheelchairAccessibleLocations;
+      const rows = raw.replace(/^\uFEFF/, "").split(/\r?\n/).map((line) => line.split("\t")).filter((cells) => cells.some((cell) => cell.trim()));
       const matchedIds = new Set<string>();
       const unmatched: string[] = [];
       const ambiguous: string[] = [];
-      for (const entry of rows) {
-        const name = entry.name.trim();
-        const country = entry.country.trim();
+      for (const cells of rows) {
+        const nameIndex = cells.findIndex((cell) => cell.trim() !== "");
+        if (nameIndex < 0) continue;
+        const name = cells[nameIndex].trim();
+        const country = (cells[nameIndex + 5] ?? "").trim();
         if (!country) { unmatched.push(name + " (land ontbreekt)"); continue; }
         const matches = chargers.filter((charger) => normalize(charger.name) === normalize(name) && normalize(charger.country) === normalize(country));
         if (matches.length === 1) matchedIds.add(matches[0].id);
@@ -749,6 +752,7 @@ function AdminPage() {
       toast.error(error instanceof Error ? error.message : "Import van rolstoeltoegankelijkheid mislukt.");
     } finally {
       setWheelchairImporting(false);
+      if (wheelchairFileRef.current) wheelchairFileRef.current.value = "";
     }
   };
 
@@ -847,10 +851,11 @@ function AdminPage() {
             <h1 className="text-2xl md:text-3xl font-bold mt-1">Superchargers beheren</h1>
             <p className="text-sm text-slate-400">{chargers.length} laders totaal</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Button size="sm" variant="outline" className="border-cyan-700 text-cyan-200" disabled={wheelchairImporting || !cloudConnected} onClick={() => void importWheelchairList()}>
-                {wheelchairImporting ? "Rolstoelijst verwerken…" : "♿ Ontvangen lijst importeren (" + wheelchairAccessibleLocations.length + ")"}
+              <input ref={wheelchairFileRef} type="file" accept=".txt,.tsv,.csv" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importWheelchairList(file); }} />
+              <Button size="sm" variant="outline" className="border-cyan-700 text-cyan-200" disabled={wheelchairImporting || !cloudConnected} onClick={() => wheelchairFileRef.current?.click()}>
+                {wheelchairImporting ? "Rolstoelijst verwerken…" : "♿ Rolstoelvriendelijke lijst importeren"}
               </Button>
-              <span className="text-xs text-slate-500">De door jou aangeleverde lijst staat klaar. Alleen exacte naam + land matches worden aangepast; overige locaties worden overgeslagen.</span>
+              <span className="text-xs text-slate-500">Selecteer het aangeleverde TXT-bestand. Alleen exacte naam + land matches worden aangepast; overige locaties worden overgeslagen.</span>
               {wheelchairImportReport && <pre className="mt-2 max-h-64 w-full overflow-auto whitespace-pre-wrap rounded-md border border-slate-700 bg-slate-950 p-3 text-xs text-slate-300">{wheelchairImportReport}</pre>}
             </div>
           </div>
