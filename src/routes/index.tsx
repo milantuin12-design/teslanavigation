@@ -2052,6 +2052,7 @@ function Index() {
               showTrailer={preferTrailerFriendly || trailerReductionEffective > 0}
               modelName={selectedModel}
               carMaxKwOverride={carMaxKwOverride}
+              requireAccessibleStalls={requireAccessibleStalls}
               whatIf={routeOptions[selectedRouteIndex]?.whatIf}
               restMin={waypoints.filter((w) => !w.corridor).reduce((sum, w) => {
                 if (!w.departAt || !route) return sum + (w.restMin ?? 0);
