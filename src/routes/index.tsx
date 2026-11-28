@@ -2049,7 +2049,7 @@ function Index() {
               elevation={elevProfile}
               liveTraffic={onlineTraffic && !isFutureTrip}
               ccsBlocked={ccsBlocked}
-              showTrailer={preferTrailerFriendly || trailerReductionEffective > 0}
+              showTrailer={trailerEnabled || preferTrailerFriendly || trailerReductionEffective > 0}
               modelName={selectedModel}
               carMaxKwOverride={carMaxKwOverride}
               requireAccessibleStalls={requireAccessibleStalls}
