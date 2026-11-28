@@ -717,8 +717,8 @@ function AdminPage() {
     setWheelchairImporting(true);
     try {
       const raw = await file.text();
-      const normalize = (value: unknown) => String(value ?? "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").trim().toLocaleLowerCase().replace(/\\s+/g, " ");
-      const rows = raw.replace(/^\\uFEFF/, "").split(/\\r?\\n/).map((line) => line.split("\\t")).filter((cells) => cells.some((cell) => cell.trim()));
+      const normalize = (value: unknown) => String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLocaleLowerCase().replace(/\s+/g, " ");
+      const rows = raw.replace(/^\uFEFF/, "").split(/\r?\n/).map((line) => line.split("\t")).filter((cells) => cells.some((cell) => cell.trim()));
       const matchedIds = new Set<string>();
       const unmatched: string[] = [];
       const ambiguous: string[] = [];
