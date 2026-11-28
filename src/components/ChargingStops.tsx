@@ -311,6 +311,32 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
   return (
     <div className="space-y-2 px-4 pb-5 pt-4">
       {summary}
+      {(requireAccessibleStalls || showTrailer) && (
+        <section className="rounded-xl border border-white/10 bg-slate-900/70 p-3 space-y-2" aria-label="Toegankelijkheid en aanhangerplaatsen per laadstop">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-300">Toegankelijkheid & aanhangerplaatsen</h3>
+          {stops.map((stop, idx) => {
+            const accessible = stop.charger.construction?.wheelchairAccessible === true;
+            const trailerSpaces = stop.charger.construction?.trailerFriendlyStalls ?? stop.charger.trailerFriendlyStalls ?? (stop.charger.trailerFriendly ? 1 : 0);
+            return (
+              <div key={stop.charger.id ?? idx} className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2 first:border-0 first:pt-0">
+                <span className="min-w-0 text-xs font-medium text-white">{stop.charger.name}</span>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                  {requireAccessibleStalls && (
+                    <span className={accessible ? "font-semibold text-emerald-400" : "font-semibold text-red-400"} title={accessible ? "Invalidenplek geregistreerd" : "Geen invalidenplek geregistreerd"}>
+                      ♿ {accessible ? "Invalidenplek aanwezig" : "Geen invalidenplek geregistreerd"}
+                    </span>
+                  )}
+                  {showTrailer && (
+                    <span className={trailerSpaces > 0 ? "font-semibold text-emerald-400" : "font-semibold text-red-400"}>
+                      🚙 {trailerSpaces > 0 ? `${trailerSpaces} aanhangerplaats${trailerSpaces === 1 ? "" : "en"}` : "Geen aanhangerplaats geregistreerd"}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </section>
+      )}
       <h3 className="pt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">Laadstops & rijstukken</h3>
       {stops.map((stop, idx) => {
         const maxSpeedKw = ccsBlocked ? (v2SpeedKw(stop.charger) ?? 0) : parseMaxSpeed(stop.charger.stallTypes, stop.charger.maxSpeedKw, stop.charger.chargerConfigs);
@@ -330,13 +356,6 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="text-sm font-semibold text-white">{stop.charger.name}</div>
-                    {requireAccessibleStalls && (
-                      <span title={stop.charger.construction?.wheelchairAccessible ? "Invalidenplek aanwezig" : "Geen invalidenplek geregistreerd"}
-                        aria-label={stop.charger.construction?.wheelchairAccessible ? "Invalidenplek aanwezig" : "Geen invalidenplek geregistreerd"}
-                        className={`inline-flex items-center text-lg leading-none ${stop.charger.construction?.wheelchairAccessible ? "text-emerald-400" : "text-red-400"}`}>
-                        ♿
-                      </span>
-                    )}
                   </div>
                   {!requireAccessibleStalls && stop.charger.construction?.wheelchairAccessible && <div className="mt-1 text-[11px] font-medium text-sky-300">♿ Invalidenplek aanwezig</div>}
                   {eta && <div className="mt-0.5 text-[11px] text-blue-300">Aankomst ± {time(eta)} · vertrek ± {time(new Date(eta.getTime() + stop.chargeDurationMin * 60000))}</div>}
@@ -373,7 +392,6 @@ export default function ChargingStops({ stops, holidayMode = false, winterSports
                 <div><span className="text-slate-500">Versie / vermogen</span><div className="font-medium text-slate-200">{(stop.charger.versions ?? []).join(", ") || "Versie onbekend"}{maxSpeedKw > 0 ? ` · max. ${maxSpeedKw} kW` : ""}</div></div>
                 <div className="col-span-2"><span className="text-slate-500">Aansluitingen</span><div className="font-medium text-slate-200">{(stop.charger.connectors ?? []).join(" · ") || stop.charger.stallTypes || "Niet opgegeven"}</div></div>
                 {stop.charger.siteAmenities?.length ? <div className="col-span-2"><span className="text-slate-500">Voorzieningen op locatie</span><div className="font-medium text-slate-200">{stop.charger.siteAmenities.join(" · ")}</div></div> : null}
-                {stop.charger.trailerFriendly ? <div className="col-span-2 text-emerald-300">Aanhanger-vriendelijk</div> : null}
                 {stop.charger.inParkingGarage ? <div className="col-span-2 text-amber-300">In parkeergarage</div> : null}
                 {stop.charger.notes ? <div className="col-span-2"><span className="text-slate-500">Opmerking</span><div className="text-slate-300">{stop.charger.notes}</div></div> : null}
               </div>
